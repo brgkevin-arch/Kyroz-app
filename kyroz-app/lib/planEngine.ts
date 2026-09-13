@@ -808,12 +808,90 @@ export function familyKey(r: Recipe): string {
   return `${refs('protein')}×${refs('carb')}`;
 }
 
+/**
+ * Le REGISTRE d'une recette — à quoi ressemble l'assiette, pas ce qu'elle contient (D25).
+ *
+ * `familyKey` distingue poulet-riz de tofu-riz ; il ne distingue PAS un porridge d'une
+ * tartine, parce que les deux peuvent porter le même couple protéine × féculent. Or c'est
+ * exactement la répétition que la personne VOIT au réveil : sept petits-déjeuners
+ * d'affilée en porridge, poudres et soja (signalé par le fondateur le 2026-09-07, puis
+ * de nouveau le 2026-09-12 sur son propre plan).
+ *
+ * ⚠️ POURQUOI UNE ROTATION ET PAS UN MEILLEUR SCORE. Trois correctifs par le score ont été
+ * MESURÉS inefficaces le 2026-09-07 (fiche D25) : pénaliser l'écart aux glucides fait
+ * BAISSER la part de pain (12 % → 10 %), élargir la bande de variété jusqu'à 0,08 ne rend
+ * que 1 à 2 points, et réécrire les recettes moins protéinées améliore leur couverture
+ * sans changer leur rang. Les petits-déjeuners tiennent dans 5 % d'écart au score, le
+ * panier n'en retient que 8 à 29, et le format « pain » y est structurellement 1 % plus
+ * loin. Aucun réglage de score ne rattrape ça ; seule une contrainte de DIVERSITÉ le fait.
+ *
+ * ⚠️ Rédigé sur la branche fermée #230 (2026-09-07), jamais fusionné, et REPRIS le
+ * 2026-09-13 à la demande du fondateur, par-dessus la v50.
+ */
+export function registreKey(r: Recipe): string {
+  const refs = r.ingredients.map((i) => i.ref ?? '');
+  const a = (...x: string[]) => x.some((k) => refs.includes(k));
+  if (a('whey', 'proteine_vegetale', 'soja_texture')) return 'poudre';
+  if (a('pain_complet', 'pain_seigle', 'pain_pita_complet', 'pain_sans_gluten', 'tortilla_complete', 'wrap_sans_gluten', 'galette_riz')) return 'pain';
+  if (a('edamame', 'seitan', 'tempeh', 'tofu_ferme', 'tofu_fume', 'tofu_soyeux', 'yaourt_soja_proteine')) return 'vegetal';
+  if (a('flocons_avoine', 'millet', 'polenta', 'riz_basmati', 'riz_complet', 'semoule_couscous', 'quinoa', 'sarrasin', 'chataigne')) return 'porridge';
+  return 'autre';
+}
+
+/**
+ * Poids de la rotation par registre, calibré au balayage (0 · 0,02 · 0,04 · 0,08) sur les
+ * 12 profils × 4 semaines, le 2026-09-07 : 0,08 retenu. Plus GRAND que `FAMILY_SELECT_W_*`
+ * (0,04) parce qu'il y a 5 registres pour ~120 familles : chaque registre est resservi
+ * bien plus souvent, donc il faut un cran plus ferme pour qu'il sorte de la bande.
+ * ⚠️ Éteint en « répétitif », comme la famille : ce réglage DEMANDE la même base.
+ * Chiffres re-mesurés à la reprise : AGENTS.md D25.
+ */
+const REGISTRE_SELECT_W = 0.08;
+
+/**
+ * Table vide passée aux créneaux qui ne sont PAS un petit-déjeuner : la rotation par
+ * registre n'y agit pas.
+ *
+ * 🔴 LA VERSION FERMÉE LE FAISAIT TOURNER SUR TOUS LES REPAS, et ça ne se voyait pas sur
+ * son propre test (qui ne regarde que le petit-déjeuner). Mesuré à la reprise, le
+ * 2026-09-13, sur le gabarit du fondateur (omnivore, « Végétal » non coché) : les repas à
+ * protéine 100 % végétale passaient de 3 % à **14 %**, surtout au déjeuner et au dîner.
+ * `registreKey` y range tofu, tempeh et seitan dans « vegetal » et riz ou quinoa dans
+ * « porridge » : faire tourner ces registres le midi, c'est ramener un plat végétal pour
+ * « varier », par-dessus la mise en retrait de la v50. Monter `VEGETAL_EN_RETRAIT_W` ne
+ * réglait rien proprement (0,15 : encore 6 à 7 % ; 0,25 : 2 %, mais 3 repas hors cible).
+ * Le défaut signalé est celui du RÉVEIL ; le correctif y reste.
+ */
+const SANS_REGISTRE = new Map<string, string>();
+
+/**
+ * La rotation par registre s'applique-t-elle à ce profil ? Non pour un profil végétarien
+ * ou vegan.
+ *
+ * 🔴 MESURÉ le 2026-09-13 (12 gabarits × 5 régimes × 4 tirages, 6 720 repas) : repas
+ * hors cible **13** sur `main`, **15** avec le seul catalogue B10, **23** avec la
+ * rotation partout, **17** sans rotation pour ces deux régimes. Les 8 de trop ne sont
+ * PAS au petit-déjeuner : ils tombent le midi, le soir et à la collation, sur des
+ * recettes anciennes. Forcer un autre registre au réveil sur un vivier mince change ce
+ * qui reste du budget du jour, et le vivier végétal n'a pas de quoi le remplir.
+ * ⚠️ Le défaut que la rotation corrige (poudres et soja au réveil chez quelqu'un qui n'en
+ * a rien demandé) est un défaut d'OMNIVORE : les petits-déjeuners « à la française »
+ * (12 gabarits sans régime) passent de 63 à 68 % sans elle chez les végétariens.
+ * ➡️ À rouvrir le jour où le vivier végétal du matin s'épaissit, en re-mesurant ce couple.
+ */
+export function rotationRegistreActive(profile: UserProfile): boolean {
+  const regimes = profile.dietary_restrictions ?? [];
+  return !regimes.includes('vegan') && !regimes.includes('vegetarian');
+}
+
 function selectMealAdapted(
   pool: Recipe[],
   target: AdaptTarget,
   usage: Record<string, number>,
   familyUsage: Record<string, number>,
   families: Map<string, string>,
+  registreUsage: Record<string, number>,
+  registres: Map<string, string>,
   variety: VarietyPreference,
   preferredIds: Set<string>,
   enRetraitIds: Set<string>,
@@ -893,8 +971,21 @@ function selectMealAdapted(
   // premier plan servi était donc le moins varié des trois. C'était l'inverse de ce
   // qu'on veut d'une première impression.
   const famW = famActive ? (seed !== 0 ? FAMILY_SELECT_W_VARIANT : FAMILY_SELECT_W_CANON) : 0;
+  const regW = famActive ? REGISTRE_SELECT_W : 0;
+  // 🔴 Une recette EN RETRAIT (végétal chez l'omnivore qui ne l'a pas coché) compte comme
+  // le registre le PLUS servi, jamais comme un registre à découvrir. Sans ça la rotation
+  // la présentait comme la nouveauté de la semaine et défaisait la v50 : mesuré le
+  // 2026-09-13 sur le gabarit du fondateur, 0 → 8–11 % de petits-déjeuners végétaux, dont
+  // le bol edamame-millet qu'il avait signalé. Hors petit-déjeuner la table est vide
+  // (`SANS_REGISTRE`), donc ce plancher n'y ajoute rien.
+  const regUseMax = registres.size > 0 ? Math.max(0, ...Object.values(registreUsage)) : 0;
+  const regUse = (c: AdaptedChoice) => {
+    if (registres.size === 0) return 0;
+    if (enRetraitIds.has(c.recipe.id)) return regUseMax;
+    return registreUsage[registres.get(c.recipe.id) ?? ''] ?? 0;
+  };
   const effOf = (c: AdaptedChoice) =>
-    c.score - fiberW * c.fiber + step * (usage[c.recipe.id] ?? 0) + famW * famUse(c);
+    c.score - fiberW * c.fiber + step * (usage[c.recipe.id] ?? 0) + famW * famUse(c) + regW * regUse(c);
   candidates.sort((a, b) => effOf(a) - effOf(b) || a.recipe.id.localeCompare(b.recipe.id));
 
   const minEff = effOf(candidates[0]);
@@ -1100,7 +1191,7 @@ export function nextPlanSeed(stored: string | null, reroll: boolean): number {
 // Version du moteur de génération : à incrémenter quand le scoring/sélection
 // change, pour que les plans EN CACHE se régénèrent automatiquement (la signature
 // change → l'auto-refresh de l'écran Plan rejoue la génération). v2 = lipides cadrés.
-const ENGINE_VERSION = 50; // v50 = les protéines préférées se lisent sur les REFS de protéine (plus sur tout le texte), les recettes 100 % végétales passent en retrait chez l’omnivore qui n’a pas coché « Végétal », et « répétitif » suit enfin les préférences avec un plafond de ceil(jours/2) services par recette : la sélection change, un plan en cache servirait l’ancienne ; v49 = détente de 10 % de la cible protéique sur les profils VÉGANES (voir tdee.ts, facteurProteineVegetal) : la cible protéique du repas vegan baisse, donc le moteur peut rétrécir les plats au lieu de les gonfler pour atteindre la protéine, donc un plan en cache servirait une sélection périmée ; v48 = vague B11 : 4 repas complets vegan bâtis sur les PIÈCES végétales (haché, émincé, boulettes, galette) ajoutées le même jour — familles neuves, les plans en cache ne les verraient pas ; v47 = créneaux de repas libres : l'ordre canonique de la journée devient CHRONOLOGIQUE (la collation de 16 h passe avant le dîner, elle était servie en dernier), donc le report de budget de repas en repas ne se fait plus dans le même ordre et un plan en cache servirait l'ancienne répartition ; v46 = le budget du jour suit la dépense RÉELLE du jour (`lib/dailyBudget.ts`) : le plan n'est plus isocalorique entre jours d'entraînement et jours de repos, un plan en cache servirait l'ancienne répartition ; v45 = `tags.objectif` (192 recettes) et `tags.sport` (148) recalculés mécaniquement depuis les kcal du moteur, et `recup_jour_repos` supprimé : le départage `needMatch` lit objectif+sport, donc la sélection change et un plan en cache servirait l'ancienne ; v44 = 47 recettes dont la légumineuse était pesée SÈCHE alors que les instructions la cuisinaient en moins de 40 min : 44 passent sur un `ref` prêt à consommer (macros ET composition changées sous les mêmes ids, un plan en cache servirait l'ancienne pesée), 3 gardent le sec avec un `temps_min` corrigé ; v43 = rep10 réécrit (curry de pois chiches → tofu + pois chiches au lait de coco) : composition changée sous le même id, un plan en cache servirait l'ancienne recette ; v42 = vague B9 : 8 collations GRAND FORMAT (col103–col110, 380–460 kcal) — un format inédit, les gros gabarits n'étaient servis que par étirement ; v41 = vague B8 : 8 collations vegan + sans gluten (col95–col102), familles neuves — les plans en cache ne les verraient pas ; v40 = vague B7 : 30 recettes végétales ajoutées — 12 petits-déjeuners (pd111–pd122), 10 repas complets (rep271–rep280), 8 collations (col87–col94) ; les plans en cache ne les verraient pas ; v39 = la pénalité de FAMILLE s'applique aussi au plan canonique (`FAMILY_SELECT_W_CANON`) — le 1er plan servi passe de 45,0 à 23,3 % de semaines avec quasi-doublon ; un plan en cache servirait encore l'ancienne composition ; v38 = rotation par FAMILLE (`FAMILY_FIBER_TOL`) — la composition de la semaine change, un plan en cache servirait l'ancienne rotation ; v37 = lot B6, 7 collations vegan ajoutées (col80–col86) — les plans en cache ne les verraient pas ; v36 = plancher protéique par repas (`PROT_SHARE_FLOOR`) — la répartition intra-journée change, les plans en cache serviraient l’ancienne ; v35 = lot B5, 20 collations réécrites (composition changée sous le même id → les plans en cache serviraient l’ancienne recette) ; v34 = lot B4, 32 recettes à l’enveloppe corrigée (rep251–rep270, pd99–pd110) — les plans en cache ne les verraient pas ; v33 = lot B3, 20 petits-déjeuners (pd79–pd98) — tous les lots commandés sont livrés ; v32 = lot B1-lot4, 20 repas complets — la vague B1 est complète (rep171–rep250) ; v31 = lot B1-lot3, 20 repas complets ; v30 = lot B1-lot2, 20 repas complets ; v29 = lot B1-lot1, 20 repas complets (les plans en cache ne les verraient pas) ; v28 = cible lipidique visée 15 % au-dessus du plancher (A9) — les plans en cache serviraient l'ancienne répartition ; v27 = lot B2, 13 collations légères (les plans en cache ne les verraient pas) ; v26 = banque de calories (les plans en cache ignoraient les écarts déclarés) ; v25 = borne basse de l'ancre protéine 1,0 → 0,5 (les plans en cache servaient l'ancien plancher) ; v24 = 9 recettes différenciées (nettoyage des doublons : composition modifiée) ; v23 = ancre protéine rendue à 8 recettes ; v22 = le temps de prépa ne filtre plus ; v21 = yaourt_grec démappé
+const ENGINE_VERSION = 51; // v51 = vague B10 (25 recettes du registre quotidien français : 15 petits-déjeuners pd123 à pd137, 10 collations salées col111 à col120) ET rotation par REGISTRE (registreKey, D25) : un porridge déjà servi pousse le suivant hors du panier, ce que la rotation par famille ne voyait pas. Repris de deux PR fermées sans merge le 2026-09-07 ; la composition de la semaine change, un plan en cache servirait l’ancienne ; v50 = les protéines préférées se lisent sur les REFS de protéine (plus sur tout le texte), les recettes 100 % végétales passent en retrait chez l’omnivore qui n’a pas coché « Végétal », et « répétitif » suit enfin les préférences avec un plafond de ceil(jours/2) services par recette : la sélection change, un plan en cache servirait l’ancienne ; v49 = détente de 10 % de la cible protéique sur les profils VÉGANES (voir tdee.ts, facteurProteineVegetal) : la cible protéique du repas vegan baisse, donc le moteur peut rétrécir les plats au lieu de les gonfler pour atteindre la protéine, donc un plan en cache servirait une sélection périmée ; v48 = vague B11 : 4 repas complets vegan bâtis sur les PIÈCES végétales (haché, émincé, boulettes, galette) ajoutées le même jour — familles neuves, les plans en cache ne les verraient pas ; v47 = créneaux de repas libres : l'ordre canonique de la journée devient CHRONOLOGIQUE (la collation de 16 h passe avant le dîner, elle était servie en dernier), donc le report de budget de repas en repas ne se fait plus dans le même ordre et un plan en cache servirait l'ancienne répartition ; v46 = le budget du jour suit la dépense RÉELLE du jour (`lib/dailyBudget.ts`) : le plan n'est plus isocalorique entre jours d'entraînement et jours de repos, un plan en cache servirait l'ancienne répartition ; v45 = `tags.objectif` (192 recettes) et `tags.sport` (148) recalculés mécaniquement depuis les kcal du moteur, et `recup_jour_repos` supprimé : le départage `needMatch` lit objectif+sport, donc la sélection change et un plan en cache servirait l'ancienne ; v44 = 47 recettes dont la légumineuse était pesée SÈCHE alors que les instructions la cuisinaient en moins de 40 min : 44 passent sur un `ref` prêt à consommer (macros ET composition changées sous les mêmes ids, un plan en cache servirait l'ancienne pesée), 3 gardent le sec avec un `temps_min` corrigé ; v43 = rep10 réécrit (curry de pois chiches → tofu + pois chiches au lait de coco) : composition changée sous le même id, un plan en cache servirait l'ancienne recette ; v42 = vague B9 : 8 collations GRAND FORMAT (col103–col110, 380–460 kcal) — un format inédit, les gros gabarits n'étaient servis que par étirement ; v41 = vague B8 : 8 collations vegan + sans gluten (col95–col102), familles neuves — les plans en cache ne les verraient pas ; v40 = vague B7 : 30 recettes végétales ajoutées — 12 petits-déjeuners (pd111–pd122), 10 repas complets (rep271–rep280), 8 collations (col87–col94) ; les plans en cache ne les verraient pas ; v39 = la pénalité de FAMILLE s'applique aussi au plan canonique (`FAMILY_SELECT_W_CANON`) — le 1er plan servi passe de 45,0 à 23,3 % de semaines avec quasi-doublon ; un plan en cache servirait encore l'ancienne composition ; v38 = rotation par FAMILLE (`FAMILY_FIBER_TOL`) — la composition de la semaine change, un plan en cache servirait l'ancienne rotation ; v37 = lot B6, 7 collations vegan ajoutées (col80–col86) — les plans en cache ne les verraient pas ; v36 = plancher protéique par repas (`PROT_SHARE_FLOOR`) — la répartition intra-journée change, les plans en cache serviraient l’ancienne ; v35 = lot B5, 20 collations réécrites (composition changée sous le même id → les plans en cache serviraient l’ancienne recette) ; v34 = lot B4, 32 recettes à l’enveloppe corrigée (rep251–rep270, pd99–pd110) — les plans en cache ne les verraient pas ; v33 = lot B3, 20 petits-déjeuners (pd79–pd98) — tous les lots commandés sont livrés ; v32 = lot B1-lot4, 20 repas complets — la vague B1 est complète (rep171–rep250) ; v31 = lot B1-lot3, 20 repas complets ; v30 = lot B1-lot2, 20 repas complets ; v29 = lot B1-lot1, 20 repas complets (les plans en cache ne les verraient pas) ; v28 = cible lipidique visée 15 % au-dessus du plancher (A9) — les plans en cache serviraient l'ancienne répartition ; v27 = lot B2, 13 collations légères (les plans en cache ne les verraient pas) ; v26 = banque de calories (les plans en cache ignoraient les écarts déclarés) ; v25 = borne basse de l'ancre protéine 1,0 → 0,5 (les plans en cache servaient l'ancien plancher) ; v24 = 9 recettes différenciées (nettoyage des doublons : composition modifiée) ; v23 = ancre protéine rendue à 8 recettes ; v22 = le temps de prépa ne filtre plus ; v21 = yaourt_grec démappé
 
 export function profileSignature(p: UserProfile): string {
   // NB : `hidden_recipes` (👎) est VOLONTAIREMENT absent. Un 👎 remplace UN repas
@@ -1452,6 +1543,16 @@ export function buildLocalPlan(profile: UserProfile, seed: number = 0): MealPlan
   const familyUsage: Record<string, number> = {};
   const families = new Map<string, string>();
   for (const mt of allMealTypes) for (const r of pools[mt] ?? []) if (!families.has(r.id)) families.set(r.id, familyKey(r));
+  // Idem un cran plus haut : le REGISTRE (pain, porridge, végétal, poudre), cf. `registreKey`.
+  // ⚠️ PETIT-DÉJEUNER SEULEMENT, cf. `SANS_REGISTRE` : la table ne connaît que les recettes
+  // des créneaux de vivier `breakfast`, et seuls ces créneaux la reçoivent et la font avancer.
+  const registreUsage: Record<string, number> = {};
+  const registres = new Map<string, string>();
+  const rotationRegistre = rotationRegistreActive(profile);
+  for (const slot of daySlots) {
+    if (slot.pool !== 'breakfast' || !rotationRegistre) continue;
+    for (const r of pools[slot.id] ?? []) if (!registres.has(r.id)) registres.set(r.id, registreKey(r));
+  }
   // Reliquat calorique reporté de jour en jour → la semaine converge vers days×cible.
   let weekDeficitKcal = 0;
 
@@ -1509,7 +1610,9 @@ export function buildLocalPlan(profile: UserProfile, seed: number = 0): MealPlan
       );
 
       const choice = selectMealAdapted(
-        pools[mealType], target, usage, familyUsage, families, variety, preferredIds, enRetraitIds, maxUsageRepetitif,
+        pools[mealType], target, usage, familyUsage, families,
+        registreUsage, slot.pool === 'breakfast' && rotationRegistre ? registres : SANS_REGISTRE,
+        variety, preferredIds, enRetraitIds, maxUsageRepetitif,
         objectives, sportBuckets,
         seed, fiberStrong, goalDir,
       );
@@ -1517,6 +1620,8 @@ export function buildLocalPlan(profile: UserProfile, seed: number = 0): MealPlan
       usage[choice.recipe.id] = (usage[choice.recipe.id] ?? 0) + 1;
       const fam = families.get(choice.recipe.id);
       if (fam) familyUsage[fam] = (familyUsage[fam] ?? 0) + 1;
+      const reg = slot.pool === 'breakfast' && rotationRegistre ? registres.get(choice.recipe.id) : undefined;
+      if (reg) registreUsage[reg] = (registreUsage[reg] ?? 0) + 1;
       remainingKcal -= choice.macros.kcal;
       remainingProtein -= choice.macros.protein_g;
       remainingWeight -= weight;

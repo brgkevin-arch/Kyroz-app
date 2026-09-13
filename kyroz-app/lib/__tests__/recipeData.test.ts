@@ -2,8 +2,8 @@ import { describe, it, expect } from 'vitest';
 import { RECIPE_INGREDIENTS, RECIPE_CONFIG, RAW_RECIPES, macrosForRefIngredients } from '../recipeData';
 
 describe('recipeData', () => {
-  it('charge 516 recettes brutes', () => {
-    expect(RAW_RECIPES).toHaveLength(516);
+  it('charge 541 recettes brutes', () => {
+    expect(RAW_RECIPES).toHaveLength(541);
   });
   it('chaque recette déclare sa vague de livraison', () => {
     // Sans `wave`, une vague ne sait pas contre quoi se comparer : impossible d'expliquer
@@ -29,6 +29,11 @@ describe('recipeData', () => {
       // B11 : 4 repas complets vegan bâtis sur les PIÈCES végétales (haché, émincé,
       // boulettes, galette) ajoutées le 2026-09-10. 512 → 516.
       '2026-09-10-b11-pieces-vegetales': 4,
+      // B10 : 25 recettes du REGISTRE quotidien français — 15 petits-déjeuners
+      // (pd123 → pd137) et 10 collations SALÉES (col111 → col120), dont les 4 premières
+      // carnées du créneau. Écrite le 2026-09-07, sa PR fermée sans merge, reprise le
+      // 2026-09-13 (après B11, d'où l'ordre des nombres). 516 → 541.
+      '2026-09-07-b10-registre-francais': 25,
       '2026-08-03-b8-collations-vegan-sg': 8,
       '2026-08-03-b9-collations-grand-format': 8,
       fondation: 92, '2026-06-19-vegan': 156, '2026-07-22-sans-gluten': 46,
