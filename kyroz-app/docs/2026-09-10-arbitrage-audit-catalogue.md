@@ -17,7 +17,13 @@ Mesures refaites sur `Recette/recettes-kyroz.json` — **512 recettes / 125 refs
 >   **Ciqual les porte**, et ses entrées « préemballé » sont l'aliment moyen du marché
 >   français. Le fondateur a tranché l'inverse de ma reco, et il avait raison ;
 > · **§2.4** encore : le levier « détendre la cible protéique » est désormais CHIFFRÉ,
->   après deux mesures fausses. C'est la seule décision qui reste ouverte.
+>   après deux mesures fausses. ~~C'est la seule décision qui reste ouverte.~~
+>   ✅ **Tranchée le 2026-09-11** (−10 %), livrée par la PR #267, en OTA depuis le 2026-09-12.
+>
+> 🔴 **RE-CORRIGÉ LE 2026-09-13, sur deux points de plus, encore à mon désavantage** :
+> · la décision protéine restait présentée comme ouverte, en §2.4 et en §4 ;
+> · « le steak et la saucisse ne passent R8 à aucune quantité » était trop fort — cf. §2.4.
+> Les points encore ouverts vivent désormais dans la liste unique d'`AGENTS.md` (§D).
 
 ---
 
@@ -196,8 +202,17 @@ conservé parce que son erreur est instructive.
 que sur un yaourt ou une poudre. Le vivier `vegan` des petits gabarits monte (F 55 sèche
 27 → 29 repas complets, F 65 sèche 38 → 42, H 80 sèche 51 → 54). Le vivier **vegan + sans
 gluten ne bouge pas** : sur les 7 pièces, 4 sont au blé, et des 3 restantes deux
-(`steak_soja`, `saucisse_vegetale`) sont trop grasses pour passer R8 à n'importe quelle
-quantité. Il ne reste que `hache_vegetal`.
+(`steak_soja`, `saucisse_vegetale`) ~~sont trop grasses pour passer R8 à n'importe quelle
+quantité. Il ne reste que `hache_vegetal`.~~
+
+> 🔴 **TROP FORT — re-mesuré le 2026-09-13.** Le balayage de la vague B11 n'avait essayé que
+> deux ou trois accompagnements par pièce. Avec d'autres (lentilles cuites, edamame), le
+> meilleur point atteint, sur les cibles qu'emploie le contrôle (omnivores) puis sur celles
+> que reçoit réellement un végane : **steak de soja 8/12 → 7/12 · saucisse 7/12 → 9/12 ·
+> nuggets 9/12 → 10/12.** « Impossible » était faux ; ce sont des meilleurs points isolés,
+> leur marge n'est pas vérifiée. ⚠️ Et l'écart entre les deux colonnes est lui-même un
+> défaut : **le contrôle R8 juge les recettes véganes sur des cibles d'omnivore**, donc il
+> se trompe dans les deux sens. Suivi dans `AGENTS.md` §D.
 
 **Levier B — détendre la cible protéique du repas.** C'est LE levier, et voici son prix
 exact. Vivier vegan + sans gluten du midi (50 repas complets), recettes réellement
@@ -219,7 +234,12 @@ sur cinq — les recettes deviennent trop petites au lieu d'être trop grosses.
 > **La décision produit, une fois posée sur ses vrais chiffres** : accepter **−3 g de
 > protéines par repas sur les créneaux vegan** (soit ~10 %) pour doubler le choix des
 > petits gabarits, ou garder la cible au gramme près et laisser ces personnes devant
-> 20 recettes sur 50. C'est ta décision, et c'est la seule qui reste sur ce sujet.
+> 20 recettes sur 50. ~~C'est ta décision, et c'est la seule qui reste sur ce sujet.~~
+>
+> ✅ **TRANCHÉE LE 2026-09-11 : −10 % retenu** (`tdee.ts::facteurProteineVegetal`,
+> `ENGINE_REV` 11), livré par la PR #267, en OTA depuis le 2026-09-12. Mesuré sur le moteur
+> une fois livré : F 55 sèche **20 → 38** (la simulation ci-dessus annonçait 39), F 65 sèche
+> 32 → 41, H 65 sèche 37 → 42, H 80 sèche 35 → 45. Vivier vegan seul, F 55 sèche : 47 → 70.
 
 ⚠️ **CETTE MESURE A DEMANDÉ TROIS INSTRUMENTS, ET LES DEUX PREMIERS MENTAIENT — dans des
 sens opposés.** C'est la partie à retenir, plus que le chiffre.
@@ -295,15 +315,24 @@ est « Purée de sésame (tahini) ». Rien à refaire.
 | | Chantier | Volume réel | Effort |
 |---|---|---|---|
 | ~~1~~ | ~~3 refs condiment + 11 recettes + test ciblé~~ | ✅ **fait** — PR #248, autrement et mieux (§2.1) | — |
-| 2 | Réaffecter/réécrire les ~6 plats salés servis en pdj/collation | 6 recettes | ~1 session |
+| 2 | Réaffecter/réécrire les ~6 plats salés servis en pdj/collation — ⚠️ au 2026-09-13, `pd118` et `col92` inchangés, et le « ~6 » n'a jamais été listé : la liste se valide avec le fondateur (`AGENTS.md` §D) | ~6 recettes | ~1 session |
 | ~~2b~~ | ~~Ajouter les simili-carnés~~ | ✅ **fait** — 7 pièces, PR #255, toutes sourcées Ciqual (§2.4) | — |
-| 3 | **Décision produit** : −10 % sur la cible protéique des créneaux vegan ? Chiffré en §2.4 : le vivier vegan+SG des petits gabarits **double** (20 → 39) pour 3 g de protéines en moins par repas | — | **ta décision, la seule qui reste** |
-| 4 | Réécrire sans-gluten (40), avec le cliquet en place d'abord | 40 recettes | 1 vague |
-| 5 | Réécrire vegan (144) en 3 vagues, ancres refondues dans le même passage | 144 recettes | 3 vagues |
-| 6 | Réécrire fondation (13) | 13 recettes | ~1 session |
+| ~~3~~ | ~~**Décision produit** : −10 % sur la cible protéique des créneaux vegan ?~~ | ✅ **tranchée et livrée** — PR #267 (§2.4) | — |
+| ~~4~~ | ~~Réécrire sans-gluten (40), avec le cliquet en place d'abord~~ | ↪️ **remplacé par un meilleur critère** — cf. note ci-dessous | — |
+| ~~5~~ | ~~Réécrire vegan (144) en 3 vagues, ancres refondues dans le même passage~~ | ↪️ idem | — |
+| ~~6~~ | ~~Réécrire fondation (13)~~ | ↪️ idem | — |
+| 7 | **Le contrôle R8 juge les recettes véganes sur des cibles d'omnivore** — décision avant la prochaine vague végane | tout lot végane | `AGENTS.md` §D |
+| 8 | Trois pièces végétales sans recette (`steak_soja`, `nuggets_vegetal`, `saucisse_vegetale`) — après le 7 | vague possible | `AGENTS.md` §D |
 
-Le chantier 3 **bloque** le 5 : réécrire 144 recettes vegan avant d'avoir tranché la cible,
-c'est les réécrire deux fois.
+~~Le chantier 3 **bloque** le 5 : réécrire 144 recettes vegan avant d'avoir tranché la cible,
+c'est les réécrire deux fois.~~
+
+> ↪️ **Mis à jour le 2026-09-13.** Le 3 est tranché. Les 4, 5 et 6 visaient « ≤ 2 étapes » ;
+> les lots de réécriture suivants ont mesuré que ce critère se trompait (il accuse des
+> assemblages à froid complets et rate des recettes longues sans aucun repère de cuisson) et
+> l'ont remplacé par « la recette est-elle **muette** ? ». **Zéro recette muette au catalogue,
+> zéro servie.** Il reste 97 recettes de 2 étapes ou moins : courtes, pas muettes — pas un
+> défaut en soi. Voir `lib/instructionsQualite.ts`.
 
 ⚠️ **`mesure:vivier` avant de commander chaque vague**, et `check:doublons` + `check:enveloppe`
 avant de concaténer. La chaîne est déjà écrite dans `Recette/README.md` — elle n'a pas besoin

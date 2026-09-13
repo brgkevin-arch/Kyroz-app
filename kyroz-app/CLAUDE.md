@@ -175,6 +175,22 @@ App mobile React Native (Expo Router, **SDK 57** depuis le 2026-08-27) de plans 
 > 20) et c'est légitime — l'une décide d'une soumission, l'autre tient le journal :
 > l'invariant est donc le **PRÉFIXE**, jamais l'égalité.
 >
+> 🔴 **ET UNE OTA SE PUBLIE DEPUIS UN ARBRE DÉTACHÉ SUR `origin/main`** (2026-09-12,
+> 32ᵉ puis 33ᵉ). La 32ᵉ est partie d'une branche de travail parfaitement à jour, au contenu
+> identique au bit près : `check:ota` l'a refusée (« ancêtre d'origin/main : false »). Il
+> avait raison — le dépôt fusionne en **squash**, donc un commit de branche n'entre jamais
+> dans `main` et ce qui tourne chez les utilisateurs devient irretrouvable. « Même contenu »
+> ne vaut pas « même traçabilité ». ➡️ `git checkout --detach origin/main`, puis publier.
+> ⚠️ **Le binaire visé se lit sur EAS, jamais dans une fiche.** Ce jour-là, les fiches
+> annonçaient le (7) comme dernier build et la dernière OTA citait le (20), alors que le (22)
+> était compilé et soumis depuis deux jours. Dernier build et runtime :
+> `npx eas-cli build:list --platform ios --json` (`appBuildVersion`, `runtime.version`) ;
+> distribué ou non : `npx eas-cli submit:list` (`submittedBuild.id`).
+> ⚠️ **Dans une note d'OTA, pas de sha court entre backticks dans une seule des deux
+> fiches** : `lib/otaFiches.ts` lit tout jeton hexadécimal de 8 caractères comme un
+> identifiant de groupe, et les deux chaînes divergent — c'est ce qui a encore rougi le
+> troisième geste ce jour-là.
+>
 > ⚠️ **Ce que l'OTA ne peut PAS faire** : livrer du natif. Ajouter ou changer une
 > dépendance native impose un nouveau build ET une nouvelle revue. `runtimeVersion` est
 > le garde-fou : lié à `expo.version`, **monter la version coupe volontairement la ligne
