@@ -768,9 +768,61 @@ produit en suspens — il ne reste qu'à coder.
 
 ### 🍽 D — Catalogue
 
+- ✅ **D29 · Une journée qui ressemble à une journée — livré le 2026-09-13**
+  (`planEngine::regleVegetal`, `ENGINE_VERSION` 52 → 53, moteur seul, aucune migration).
+  **Lu dans le carnet des menus** (9 profils alimentaires × 3 variétés × 4 semaines, publié
+  le même jour en artifact privé) : l'omnivore « Peu importe » ouvrait sa semaine sur un
+  lundi 100 % végétal (edamame matin, midi et soir, près de 700 g), le pescétarien passait
+  une journée sur deux sans poisson ni midi ni soir, et « répétitif » servait le même
+  bœuf-wok au déjeuner PUIS au dîner. D26 ne touchait pas « Peu importe » : la mise en
+  retrait ne s'arme que sur des protéines cochées, et « Peu importe » est une liste vide.
+  **Décisions fondateur du 2026-09-13** :
+  · omnivore (« Peu importe » compris, sans lactose, sans gluten) : au plus **3** déjeuners
+    ou dîners à protéine 100 % végétale par semaine (« pas plus de 2/3 repas végétal ») ;
+  · halal et sans porc : traités comme un omnivore qui a coché ses protéines — la mise en
+    retrait D26 s'applique même sur « Peu importe » ;
+  · pescétarien : au plus **un** déjeuner ou dîner sans poisson par jour, végétarien et pas
+    forcément végan (les œufs et les laitages y comptent) ;
+  · « Végétal » coché, végétarien, vegan : aucune règle. Petit-déjeuner et collation ne
+    comptent pas.
+  **Ajouté en l'écrivant, et dit au fondateur** : au plus un plat végétal par JOUR, et un
+  plafond qui s'ÉTALE (`ceil(3 × jour / 7)`) — sans lui les trois tombaient lundi, mardi,
+  mercredi, soit la première impression. Et **jamais la même recette deux fois le même
+  jour**, tous profils.
+  **Mécanisme** : une exclusion passée à `selectMealAdapted`, appliquée seulement s'il reste
+  un candidat PROPRE — le même arbitrage que le goût (D28) : la règle ne fabrique jamais un
+  repas mal calibré.
+  **Mesuré, même script sur `main` et sur la branche** (3 corps × 3 objectifs × 3 variétés ×
+  4 tirages, 12 profils alimentaires) :
+  | | avant | après |
+  |---|---|---|
+  | omnivore « Peu importe » : semaines au-delà de 3 plats végétaux | 82/108 | **0** |
+  | … jours à 2 plats végétaux, midi et soir | 109 | **0** |
+  | halal et sans porc « Peu importe » : plats végétaux par semaine | 5,0 | **0,5** |
+  | pescétarien : jours sans poisson ni midi ni soir | 371/756 | **0** |
+  | même recette deux fois le même jour (12 profils) | 232 jours | **1** (vegan sans gluten) |
+  | repas mal calibrés (12 profils) | 95 | **86** |
+  Écart calorique du jour inchangé (3,53 → 3,54 %), recettes distinctes par semaine
+  inchangées (≈ 23). Drapeaux en hausse sur deux cases (omnivore « Peu importe » 2 → 5,
+  pescétarien sans gluten 1 → 5), en baisse ailleurs (halal et sans porc 4 → 1, sans
+  lactose 6 → 1, sans gluten 8 → 3).
+  ⚠️ **Le seul reste « même recette le même jour »** est un vegan sans gluten, sur une
+  journée où aucun autre plat propre n'existe : la précision passe devant.
+  ⚠️ **Non traité** : « Remplacer ce repas » (`swapMeal`) ignore la règle, comme il ignore
+  le goût. **Et le carnet a montré d'autres défauts, hors de ce chantier** : petits-déjeuners
+  qui sont des plats du midi (poêlée de thon aux pommes de terre, nouilles sautées au
+  tofu), millet dans 7 repas par semaine, 28 recettes neuves par semaine en « Équilibré »
+  (54 à 64 articles de courses, 73 à 83 min de cuisine par jour), collations de 15 min,
+  deux fois le même féculent de base dans la journée (semoule le matin, semoule à 16 h).
+  ➡️ Garde-fou : `lib/__tests__/coherenceJournee.test.ts`, **vérifié par 6 mutations**
+  (même recette le même jour permise · plafond végétal coupé · étalement retiré · règle
+  pescétarienne retirée · halal et sans porc comme « Peu importe » · plafond du jour
+  retiré), toutes rouges.
+
 - ✅ **D28 · Sucré ou salé, le matin et en collation — livré le 2026-09-13**
-  (`lib/gout.ts`, `ENGINE_VERSION` 51 → 52, **migration `2026-09-13_profiles_gouts.sql` à
-  jouer AVANT l'OTA**, procédure `docs/procedures/PROCEDURE-2026-09-13-migration-gouts.md`).
+  (`lib/gout.ts`, `ENGINE_VERSION` 51 → 52, migration `2026-09-13_profiles_gouts.sql`
+  **jouée en production le 2026-09-13, vérifiée par `npm run check:migrations:prod`**,
+  procédure `docs/procedures/PROCEDURE-2026-09-13-migration-gouts.md`).
   **Demande fondateur** : « qui mange un bol d'edamame avec du millet et du poivron à 8 h
   du matin ? » **Arbitrages du 2026-09-13** : deux réponses séparées (petit-déjeuner,
   collations) · « majorité garantie » · posée à l'inscription (étape 6, exigée, « Peu
@@ -857,8 +909,8 @@ produit en suspens — il ne reste qu'à coder.
   du sport, les cibles des jours diffèrent et le même plat ne dépasse pas 4 par hasard —
   seul un profil SANS sport (7 jours identiques) la voit.
   **Reste, dans l'ordre arbitré** : (2) ✅ sucré/salé — **D28, 2026-09-13** ;
-  (3) critère « collation sur le pouce » à trancher par le fondateur ; (4) cohérence de
-  la journée à RE-MESURER maintenant que D25 et D28 sont en place.
+  (3) critère « collation sur le pouce » à trancher par le fondateur ; (4) ✅ cohérence de
+  la journée — **D29, 2026-09-13**.
 
 - ✅ **D24 · VAGUE B10 — les 25 recettes du registre quotidien français. LIVRÉES le 2026-09-13.**
   🔴 **Écrites le 2026-09-07 (PR #229), fermées SANS merge le soir même, sans un mot**, et
