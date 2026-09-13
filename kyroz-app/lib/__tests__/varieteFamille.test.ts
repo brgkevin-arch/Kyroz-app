@@ -172,6 +172,8 @@ describe('rotation par FAMILLE (protéine × féculent)', () => {
 
   it('le plan canonique (`repetitive`, seed 0) ignore la famille et reste déterministe', () => {
     // Il est volontairement statique : la rotation — id comme famille — n'y entre pas.
+    // (Depuis v50 il suit les préférences et plafonne une recette à ceil(jours/2)
+    // services, mais il reste DÉTERMINISTE : c'est ce que ce cas garde.)
     const p = gabarit({ variety: 'repetitive' });
     const a = buildLocalPlan(p, 0).meals.map((m) => m.recipe.id);
     const b = buildLocalPlan(p, 0).meals.map((m) => m.recipe.id);

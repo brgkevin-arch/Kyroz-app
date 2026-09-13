@@ -127,9 +127,9 @@ describe('variété intra-semaine (P3.5)', () => {
   });
 
   it('mode répétitif : opte hors rotation → nettement moins varié que balanced', () => {
-    // Le fix ne doit pas « varier » le mode répétitif : la pénalité d'usage y est nulle,
-    // donc il sert le meilleur fit strict de chaque jour (rare diversité résiduelle vient
-    // seulement du décalage de cible par lissage hebdo, pas de la rotation).
+    // Le fix ne doit pas « varier » le mode répétitif : la pénalité d'usage y est nulle.
+    // Seul le plafond de v50 (une recette ≤ ceil(jours/2) services) y ajoute de la
+    // diversité — assez pour qu'un créneau ait ≥ 2 plats, jamais autant que balanced.
     const rep = plan7({ goal: 'cut', sex: 'male', variety: 'repetitive' }).distinct('breakfast');
     const bal = plan7({ goal: 'cut', sex: 'male', variety: 'balanced' }).distinct('breakfast');
     expect(rep, 'répétitif < balanced').toBeLessThan(bal);

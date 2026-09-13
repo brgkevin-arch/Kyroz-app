@@ -768,6 +768,48 @@ produit en suspens — il ne reste qu'à coder.
 
 ### 🍽 D — Catalogue
 
+- ✅ **D26 · Les goûts déclarés passent dans l'assiette — étape 1 livrée le 2026-09-12**
+  (`ENGINE_VERSION` 49 → 50, moteur seul, aucun changement de catalogue).
+  **Signalé par le fondateur sur son propre plan** : poulet/bœuf/poisson/œufs/whey cochés,
+  « Végétal » non coché, et pourtant ragoût de soja le soir, galette végétale le midi, et le
+  même bol d'edamame 6 jours sur 7 en « répétitif ».
+  **Mesuré sur son gabarit** (H 84 kg, muscu 4 × 30 min, 4 repas, 3 objectifs × 4 tirages) :
+  | | avant | après |
+  |---|---|---|
+  | repas à protéine 100 % végétale (répétitif) | 25,3 % | **2,4 %** |
+  | repas sans aucune protéine déclarée | 36,3 % | **14,9 %** |
+  | jours où midi ET soir sont végétaux | 9 / 84 | **0** |
+  | même plat sur un créneau (pire) | 6/7 | **4/7** |
+  Trois causes, trois correctifs :
+  1. **« Répétitif » sortait avant toute préférence** (`return candidates[0]`, meilleur fit
+     macro strict). Il suit désormais le chemin commun, avec un plafond de `ceil(jours/2)`
+     services par recette — « au moins deux avec la même base » (décision fondateur). Le
+     plafond ne fait jamais servir un repas à drapeau s'il existe un propre au-dessus.
+  2. **Ne pas cocher « Végétal » ne disait rien.** La préférence n'était qu'un départage à
+     1 % d'écart ; les vagues B7 et B11, écrites pour les véganes, passaient devant. Les
+     recettes à protéine 100 % végétale prennent `VEGETAL_EN_RETRAIT_W = 0,05` chez
+     l'omnivore qui a déclaré ses protéines sans « Végétal ». « Peu importe », végétarien
+     et vegan : rien ne change.
+  3. **La préférence se lisait sur TOUT le texte des ingrédients** (« steak » cochait
+     « bœuf » sur un steak de soja). Elle se lit sur les refs de rôle `protein`
+     (`PROTEIN_REFS`), mots-clés en repli pour les recettes perso. **« Poulet » couvre la
+     dinde** — choix assumé, à rouvrir si le fondateur le conteste.
+  **Coût, ancien et nouveau moteur sur le MÊME arbre** (12 gabarits × 5 régimes × 3
+  réglages × 3 jeux de préférences × 4 tirages) : « Peu importe » en équilibré/max
+  **240/240 plans identiques** ; drapeaux en baisse partout sauf une case (omnivore
+  répétitif, 0 → 1, total 12 → 9) ; écart calorique du jour inchangé.
+  🔴 **Pourquoi aucun audit ne l'avait vu** : tous les scripts de mesure tournaient avec
+  `preferred_proteins: []` et en variété `max`. Une préférence jamais renseignée ne peut
+  pas être trouvée non respectée.
+  ➡️ Garde-fou : `lib/__tests__/preferencesServies.test.ts`, **vérifié par 3 mutations**
+  (pénalité à 0 · plafond retiré · sortie anticipée remise). La 3ᵉ passait d'abord : avec
+  du sport, les cibles des jours diffèrent et le même plat ne dépasse pas 4 par hasard —
+  seul un profil SANS sport (7 jours identiques) la voit.
+  **Reste, dans l'ordre arbitré** : (2) sucré/salé au petit-déj et aux collations — tag
+  catalogue + question d'inscription + migration Supabase ; recouper avec D24, déjà
+  diagnostiquée sur le même symptôme ; (3) critère « collation sur le pouce » à trancher
+  par le fondateur ; (4) cohérence de la journée à RE-MESURER après cette étape.
+
 - 🤖 **D24 · VAGUE B10 — écrire les 25 recettes du registre quotidien français.**
   **COMMANDÉE le 2026-09-07, PAS ÉCRITE.** Les deux briefs sont générés et à jour :
   `Recette/lots/b10-pdj.md` (15 petits-déj, `pd123`–`pd137`) et `Recette/lots/b10-col.md`
