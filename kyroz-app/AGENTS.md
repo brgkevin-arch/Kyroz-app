@@ -892,6 +892,32 @@ produit en suspens — il ne reste qu'à coder.
   ➡️ À régler **en écrivant ailleurs**, jamais en réécrivant une recette au hasard : le
   générateur de briefs (`scripts/gen-brief-lot.ts`) publie déjà les couples saturés et les
   ancres encore ouvertes dans chaque §7.
+
+- **D27 · Suites de la vague B11 et de la détente protéique végane — 4 points ouverts (2026-09-13)**
+  1. 🔴 **Le contrôle R8 juge les recettes véganes sur des cibles d'OMNIVORE.** Le contrôle
+     d'enveloppe (`scripts/mesure-couverture.ts`) construit ses cibles par `ciblesDe(g)`, sans
+     restriction. Depuis la détente protéique végane (PR #267, `ENGINE_REV` 11), une recette
+     végane est donc jugée sur une cible protéique qu'aucun végane ne reçoit. Meilleur point
+     de trois configurations, cibles omnivores (ce que juge le contrôle) → cibles véganes (ce
+     que vit un végane) : **saucisse végétale 7/12 → 9/12** (rejetée à tort) · **steak de soja
+     8/12 → 7/12** (acceptée à tort) · **nuggets 9/12 → 10/12**. Il se trompe dans les DEUX sens.
+     ➡️ La correction technique est simple (juger chaque recette sur les cibles de SON régime),
+     mais elle change la porte d'entrée de toutes les vagues : **décision fondateur, à prendre
+     AVANT la prochaine vague végane.** ⚠️ Meilleurs points isolés, marge non vérifiée.
+  2. **Trois pièces végétales sans recette** — `steak_soja`, `nuggets_vegetal`,
+     `saucisse_vegetale`, dans la table depuis la PR #255. Elles ne servent personne. Elles ne
+     sont pas mortes (cf. point 1) ; une vague est possible, **après** le point 1 — sinon c'est
+     le contrôle faussé qui trie.
+  3. **Plats salés servis au petit-déjeuner ou en collation** (arbitrage du 2026-09-10, §2.3).
+     `pd118` « Châtaigne fondante au soja texturé » (avec haricots verts) et `col92`
+     « Champignons poêlés à la châtaigne » sont **inchangés** au 2026-09-13. Le « ~6 » de
+     l'arbitrage n'a jamais été listé, et la liste ne sort pas d'un filtre : un tofu brouillé
+     au petit-déjeuner est normal, un riz complet au tempeh et brocoli beaucoup moins. **À
+     valider avec le fondateur** avant de réaffecter le créneau ou de réécrire.
+  4. ❓ **Question en attente du fondateur** : mapper `ciqual-1030` « Fines tranches
+     végétales » (29,7 g de protéines pour 100 g, la plus dense du rayon) malgré l'absence de
+     composition et de mention végane chez Ciqual ? Écartée par la règle « sans ambiguïté ou
+     rien » (`CLAUDE.md` §2). Pas de réponse au 2026-09-13.
 ### 🧹 E — Dette technique
 
 > 🔴 **LE NUMÉRO SE CHOISIT EN REGARDANT `main` *ET* LES BRANCHES OUVERTES** — le
