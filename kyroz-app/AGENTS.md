@@ -806,14 +806,25 @@ produit en suspens — il ne reste qu'à coder.
   du sport, les cibles des jours diffèrent et le même plat ne dépasse pas 4 par hasard —
   seul un profil SANS sport (7 jours identiques) la voit.
   **Reste, dans l'ordre arbitré** : (2) sucré/salé au petit-déj et aux collations — tag
-  catalogue + question d'inscription + migration Supabase ; recouper avec D24, déjà
-  diagnostiquée sur le même symptôme ; (3) critère « collation sur le pouce » à trancher
+  catalogue + question d'inscription + migration Supabase ; ⚠️ D24 et D25 sont **livrées
+  depuis le 2026-09-13** : le petit-déjeuner tourne désormais entre registres, et une
+  préférence sucré/salé devra s'y brancher (sinon elle ne sera qu'un départage de plus,
+  le défaut exact de cette fiche) ; (3) critère « collation sur le pouce » à trancher
   par le fondateur ; (4) cohérence de la journée à RE-MESURER après cette étape.
 
-- 🤖 **D24 · VAGUE B10 — écrire les 25 recettes du registre quotidien français.**
-  **COMMANDÉE le 2026-09-07, PAS ÉCRITE.** Les deux briefs sont générés et à jour :
-  `Recette/lots/b10-pdj.md` (15 petits-déj, `pd123`–`pd137`) et `Recette/lots/b10-col.md`
-  (10 collations salées, `col111`–`col120`). `verifieCoherence` a validé les deux lots.
+- ✅ **D24 · VAGUE B10 — les 25 recettes du registre quotidien français. LIVRÉES le 2026-09-13.**
+  🔴 **Écrites le 2026-09-07 (PR #229), fermées SANS merge le soir même, sans un mot**, et
+  reprises le 2026-09-13 à la demande du fondateur, avec D25. Cette fiche a dit « PAS
+  ÉCRITE » pendant six jours alors que les 25 recettes dormaient sur une branche : une PR
+  fermée n'est pas une commande non faite. 15 petits-déjeuners (`pd123`–`pd137`) et
+  10 collations salées (`col111`–`col120`), dont les 4 premières carnées du créneau ;
+  catalogue **516 → 541** ; drop `Recette/drops/2026-09-07-b10-registre-francais/`.
+  ⚠️ **Treize phrases ont dû être reprises**, parce que deux garde-fous sont nés APRÈS la
+  fermeture : 10 tirets cadratins (règle du 2026-09-08) et 3 denrées citées sans être
+  servies (« farine » ×2, « sucré », `ingredientsCites.test.ts`). Une branche qui dort
+  vieillit contre les règles, pas seulement contre le code.
+  ⚠️ **Seules, ces recettes ne changent presque rien à l'assiette** : c'est D25 qui les
+  fait servir. Le texte ci-dessous est la commande d'origine, gardée pour son diagnostic.
 
   **Le défaut mesuré** (2026-09-07, moteur réel, profils de `PROFILS_REF`) : sept
   petits-déjeuners d'affilée pour un H 80 maintien — porridge avoine-whey, porridge
@@ -868,6 +879,58 @@ produit en suspens — il ne reste qu'à coder.
   des protéines est désormais exigée à l'étape 6, avec une case « Peu importe ». Mesuré :
   déclarer « Poulet » fait passer un H 80 sèche de 3 à 7 plats animaux sur 14. Ce levier
   ne peut RIEN pour le petit-déjeuner — d'où cette vague.
+
+- ✅ **D25 · Le petit-déjeuner tourne entre REGISTRES — livré le 2026-09-13** (`registreKey`,
+  `REGISTRE_SELECT_W = 0,08`, `ENGINE_VERSION` 50 → 51, avec D24).
+  **Le défaut** (mesuré le 2026-09-07) : les recettes de B10 n'étaient presque jamais
+  servies (10 petits-déjeuners sur 336). La cause n'était pas le catalogue mais le TRI :
+  les petits-déjeuners tiennent dans 5 % d'écart au score, le panier n'en retient que 8 à
+  29, et le format « pain » y est 1 % plus loin. Trois correctifs par le score avaient été
+  mesurés inefficaces (pénaliser l'écart aux glucides : pain 12 → 10 % ; élargir la bande
+  jusqu'à 0,08 : +1 à 2 points ; alléger les tartines : le rang ne bouge pas). Ce qui
+  marche est une contrainte de DIVERSITÉ : un registre (pain, porridge, végétal, poudre)
+  déjà servi dans la semaine pousse le suivant hors du panier, comme `familyUsage` le fait
+  pour les couples protéine × féculent. Écrit sur la PR #230, fermée sans merge.
+  🔴 **LA VERSION FERMÉE N'ÉTAIT PAS LIVRABLE TELLE QUELLE — trois défauts trouvés en la
+  reprenant, tous par la mesure, aucun par son propre test :**
+  1. **Elle tournait sur TOUS les repas**, pas seulement le petit-déjeuner (son test ne
+     regardait que ce créneau). `registreKey` range tofu et tempeh en « vegetal », riz et
+     quinoa en « porridge » : le midi, la rotation ramenait un plat végétal pour
+     « varier ». Sur le gabarit du fondateur, repas à protéine 100 % végétale **3 → 14 %**.
+     ➡️ Petit-déjeuner seulement (`SANS_REGISTRE`).
+  2. **Elle défaisait la v50 (D26) au réveil** : le registre « vegetal », jamais servi
+     chez un omnivore, devenait la nouveauté de la semaine et passait devant la mise en
+     retrait. Petits-déjeuners végétaux du fondateur **0 → 8–11 %**, dont le bol
+     edamame-millet qu'il avait signalé. Monter la pénalité ne réglait rien proprement
+     (0,15 : 6–7 % ; 0,25 : 2 % mais 3 repas hors cible). ➡️ Une recette en retrait compte
+     comme le registre le PLUS servi.
+  3. **Elle coûtait 10 repas hors cible**, tous hors du petit-déjeuner, sur des recettes
+     anciennes, chez les végétariens et les véganes : un autre petit-déjeuner change le
+     budget restant, et leur vivier ne le remplit pas. ➡️ Éteinte pour ces deux régimes
+     (`rotationRegistreActive`).
+  **Mesuré, `main` et cette version sur le même moteur de mesure** (12 gabarits × 5 régimes
+  × 4 tirages pour la précision ; 12 gabarits sans régime pour le registre) :
+  | | `main` | + B10 seul | livré |
+  |---|---|---|---|
+  | petit-déj « registre français » (moyenne) | 63 % | — | **68 %** |
+  | petit-déj « poudres et soja » (moyenne) | 65 % | — | **55 %** |
+  | H 80 sèche : français / poudres | 46 / 82 % | — | **68 / 54 %** |
+  | repas hors cible (6 720 repas) | 13 | 15 | **17** |
+  | écart calorique moyen du jour | 0,66 % | — | **0,65 %** |
+  | quasi-doublons servis | 5,4 % | — | **5,4 %** |
+  Gabarit du fondateur (préférences animales, B10 dans les deux colonnes) : petits-déjeuners
+  « poudre » **38–42 → 22–27** sur 84, au pain **14–15 → 20–22**, végétaux **0 → 0**.
+  ⚠️ **Ce que ça coûte** : 4 repas hors cible de plus que `main` (2 du catalogue, 2 de la
+  rotation, un omnivore et un sans-gluten). Et les végétariens n'ont pas de rotation au
+  réveil : à rouvrir le jour où leur vivier du matin s'épaissit, en re-mesurant ce couple.
+  ➡️ Garde-fous : `registreRotation.test.ts` (rotation à 0 → rouge) et trois cas de
+  `preferencesServies.test.ts` (correctif edamame retiré → rouge ; règle végétarien/vegan
+  forcée → rouge). ⚠️ **Une mutation reste VERTE** : étendre la rotation à tous les repas.
+  Son coût tombe sous les seuils de tous les tests existants ; la décision est tenue par ce
+  paragraphe et par le commentaire de `SANS_REGISTRE`, pas par un test.
+  ➡️ Contrôle après toute vague de petits-déjeuners : `npx tsx scripts/mesure-registre.ts`.
+  ⚠️ **Pas de script `npm run`, et c'est voulu** : une ligne de plus dans `package.json`
+  change l'empreinte native et coupe la ligne OTA (CLAUDE.md §2).
 
 - **D4-bis · la photo du catalogue au 2026-08-02 — 14 groupes saturés.**
   Un couple (protéines × féculent) est « saturé » au-delà de 2 recettes. Les 14 groupes,

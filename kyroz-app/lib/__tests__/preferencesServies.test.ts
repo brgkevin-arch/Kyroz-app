@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { makeProfile } from './helpers';
 import { recalcProfile } from '../tdee';
-import { buildLocalPlan, PROTEIN_REFS, PROTEIN_REFS_HORS_CHOIX } from '../planEngine';
+import { buildLocalPlan, PROTEIN_REFS, PROTEIN_REFS_HORS_CHOIX, rotationRegistreActive } from '../planEngine';
 import { getEffectiveRecipes } from '../recipes';
 import { Meal, UserProfile, VarietyPreference } from '../types';
 
@@ -80,6 +80,32 @@ describe('un omnivore qui n\'a pas coché « Végétal » ne reçoit pas un plan
     expect(peuImporte.filter(toutVegetal).length / peuImporte.length).toBeGreaterThan(0.15);
     expect(vege.filter(toutVegetal).length / vege.length).toBeGreaterThan(0.3);
   }, 60_000);
+});
+
+describe('la rotation des petits-déjeuners (v51) ne défait pas la mise en retrait', () => {
+  it('un omnivore sans « Végétal » ne reçoit presque aucun petit-déjeuner végétal', () => {
+    // 🔴 MESURÉ le 2026-09-13 en reprenant la rotation par registre (D25) : elle présentait
+    // le registre « vegetal », jamais servi dans la semaine de cet omnivore, comme la
+    // nouveauté à placer, et passait devant la pénalité de la v50. Sur le gabarit du
+    // fondateur : 0 → 8–11 % de petits-déjeuners végétaux, dont le bol edamame-millet
+    // qu'il avait signalé. Le taux global de repas végétaux, lui, restait sous 8 % :
+    // c'est ce cas-ci, créneau par créneau, qui le voit.
+    for (const variety of ['balanced', 'max'] as const) {
+      const pdj = repasServis(variety).filter((m) => m.meal_type === 'breakfast');
+      const veg = pdj.filter(toutVegetal).length;
+      expect(veg / pdj.length, `${variety} : ${veg}/${pdj.length} petits-déjeuners 100 % végétaux`).toBeLessThan(0.03);
+    }
+  }, 60_000);
+
+  it('…et elle est éteinte chez les végétariens et les véganes (mesuré : 23 → 17 repas hors cible)', () => {
+    // Retirer cette règle ne ferait rougir aucun autre test : la hausse des repas hors
+    // cible (13 sur `main`, 23 avec la rotation partout) tombe sur des viviers minces, sous
+    // tous les seuils existants. Ce cas garde la DÉCISION, la mesure est dans AGENTS.md D25.
+    expect(rotationRegistreActive(fondateur({}))).toBe(true);
+    expect(rotationRegistreActive(fondateur({ dietary_restrictions: ['gluten_free'] }))).toBe(true);
+    expect(rotationRegistreActive(fondateur({ dietary_restrictions: ['vegetarian'] }))).toBe(false);
+    expect(rotationRegistreActive(fondateur({ dietary_restrictions: ['vegan', 'gluten_free'] }))).toBe(false);
+  });
 });
 
 describe('« répétitif » : souvent les mêmes, jamais un seul', () => {
