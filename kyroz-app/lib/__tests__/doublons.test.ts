@@ -45,10 +45,18 @@ import { findViolations, nameKey, norm, type CheckRecipe } from '../../scripts/c
 //   R5 16 → 0 : noms humains des 541 recettes (2026-09-14, D31). Écrits en vérifiant les
 //               amorces à mesure : plus aucune paire d'une même catégorie ne commence par les
 //               trois mêmes mots, et plus aucun nom identique dans tout le catalogue.
+//   R2 71 → 70 : chantier « pas de remplissage » (2026-09-14). La leçon de P3.4 rejouée : le
+//               premier jet remplaçait graines, beurre de cacahuète et crème de soja par la même
+//               huile d'olive, et créait 48 violations (R1, R2, R4, R5). Chaque clone a été défait
+//               en donnant au plat SON gras (avocat sur le chili, parmesan sur les champignons,
+//               olives avec la courgette) ou un légume qui le distingue. ⚠️ Retirer tout gras
+//               n'était pas une sortie : une recette sans ingrédient au rôle `fat` tombe à 0 profil
+//               servi (le moteur ne peut plus viser les lipides). Au passage, rep52 (wrap de thon)
+//               cesse d'être le jumeau de rep13 (wrap de poulet).
 // Ce qui reste est du quasi-doublon de composition, pas du clone : R4 est dominé par des
 // familles saturées (whey+avoine ×6, yaourt de soja sans féculent ×8) qui se règlent en
 // écrivant AILLEURS, pas en réécrivant l'existant.
-const PLAFOND = { R1: 74, R2: 71, R4: 14, R5: 0, R7: 0 } as const;
+const PLAFOND = { R1: 74, R2: 70, R4: 14, R5: 0, R7: 0 } as const;
 
 const RECIPES = (raw as { recipes: unknown[] }).recipes as CheckRecipe[];
 
