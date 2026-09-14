@@ -1880,6 +1880,61 @@ export function buildLocalPlan(profile: UserProfile, seed: number = 0): MealPlan
 }
 
 /**
+ * Couches d'exclusion de « Remplacer ce repas » : les MÊMES règles qu'à la génération
+ * (D28, D29, D30), comptées sur le plan DÉJÀ servi, ce repas mis à part. La plus
+ * importante d'abord, et `swapMeal` n'applique chacune que s'il reste une alternative
+ * propre — le même arbitrage que `selectMealAdapted`.
+ *
+ * 🔴 SANS ELLES (signalé par le fondateur le 2026-09-14), le bouton défaisait le plan qu'il
+ * modifiait : il pouvait ramener au petit-déjeuner la poêlée de thon que D30 venait
+ * d'écarter, une collation de 15 minutes à la poêle, un quatrième plat végétal dans la
+ * semaine d'un omnivore, ou le plat du midi au dîner du même jour.
+ *
+ * ⚠️ Le plafond végétal compte la semaine et le jour, mais PAS l'étalement de la génération
+ * (`ceil(3 × jour / 7)`) : celui-ci protège la première impression d'un plan neuf, pas un
+ * geste fait en cours de semaine sur un repas précis.
+ */
+function couchesDuRemplacement(
+  profile: UserProfile, plan: MealPlan, meal: Meal, slot: MealSlot, gout: GoutPreference | undefined,
+): ((r: Recipe) => boolean)[] {
+  const slots = knownSlots(profile);
+  const autres = plan.meals.filter((m) => m.id !== meal.id && !m.fixed);
+  const duJour = autres.filter((m) => m.day === meal.day);
+  const principal = (m: Meal) => slotOrFallback(slots, m.meal_type).pool === 'meal';
+  const couches: ((r: Recipe) => boolean)[] = [(r) => duJour.some((m) => m.recipe.id === r.id)];
+
+  const regle = regleVegetal(profile);
+  if (regle && slot.pool === 'meal') {
+    const semaine = autres.filter((m) => principal(m) && regle.ids.has(m.recipe.id)).length;
+    const jour = duJour.filter((m) => principal(m) && regle.ids.has(m.recipe.id)).length;
+    if (jour >= regle.maxJour || semaine >= regle.maxSemaine) couches.push((r) => regle.ids.has(r.id));
+  }
+  if (slot.pool === 'breakfast') couches.push(platDuMidi);
+  if (slot.pool === 'snack') couches.push((r) => !surLePouce(r));
+  // Goût garanti (D28) : si remplacer CE repas par un autre goût ferait tomber la semaine
+  // sous la part promise, on ne propose que le goût déclaré. Jamais pour un vegan, comme à
+  // la génération (`goutGarantiPour`).
+  // ⚠️ AVANT les deux couches de variété, et c'est mesuré : placée après, un végétarien
+  // sans gluten qui a répondu « salé » remplaçait un petit-déjeuner et la semaine tombait
+  // à 4 salés sur 7 — ses rares petits-déjeuners salés étaient écartés par « même féculent
+  // le même jour » ou par un plafond d'ingrédient, et la garantie cédait. Une réponse
+  // donnée par la personne passe devant une règle de variété qu'elle n'a pas demandée.
+  if (gout && goutGarantiPour(profile.dietary_restrictions)) {
+    const memeVivier = plan.meals.filter((m) => !m.fixed && slotOrFallback(slots, m.meal_type).pool === slot.pool);
+    const dansLeGout = memeVivier.filter((m) => m.id !== meal.id && goutRecette(m.recipe) === gout).length;
+    if (dansLeGout < quotaGout(memeVivier.length)) couches.push((r) => goutRecette(r) !== gout);
+  }
+  if ((profile.variety ?? 'balanced') !== 'repetitive') {
+    const feculentsDuJour = new Set(duJour.flatMap((m) => feculentsDe(m.recipe)));
+    couches.push((r) => feculentsDe(r).some((f) => feculentsDuJour.has(f)));
+    const servis: Record<string, number> = {};
+    for (const m of autres) for (const ref of ingredientsDeBase(m.recipe)) servis[ref] = (servis[ref] ?? 0) + 1;
+    couches.push((r) => ingredientsDeBase(r).some((ref) => (servis[ref] ?? 0) >= plafondIngredient(ref, profile)));
+  }
+  return couches;
+}
+
+/**
  * Remplace UN seul repas du plan par une alternative du même type, calée sur les
  * mêmes macros (kcal/protéines) que le repas actuel, sans toucher au reste du
  * plan. On choisit au hasard parmi les meilleures alternatives → effet « autre
@@ -1905,11 +1960,31 @@ export function swapMeal(profile: UserProfile, plan: MealPlan, meal: Meal, favor
   };
 
   const goalDir = goalDirection(profile);
+  // Les préférences et le goût pèsent comme à la génération (D26, D28) : sans ça, un
+  // omnivore qui n'a pas coché « Végétal » voyait revenir le végétal au premier remplacement.
+  const enRetrait = vegetalEnRetraitIds(profile);
+  const gout = slot.pool === 'breakfast' ? goutLu(profile.gout_petit_dej)
+    : slot.pool === 'snack' ? goutLu(profile.gout_collation) : undefined;
   const ranked = pool
-    .map((r) => { const a = adaptRecipe(r, target); return { r, a, score: fitScore(a.macros, target, a.flags, goalDir) }; })
+    .map((r) => {
+      const a = adaptRecipe(r, target);
+      const score = fitScore(a.macros, target, a.flags, goalDir)
+        + (enRetrait.has(r.id) ? VEGETAL_EN_RETRAIT_W : 0)
+        + (gout && goutRecette(r) !== gout ? GOUT_HORS_W : 0);
+      return { r, a, score };
+    })
     .sort((x, y) => x.score - y.score);
 
-  const top = ranked.slice(0, Math.min(VARIANT_MIN, ranked.length));
+  // Les règles de l'assiette, couche par couche, chacune seulement s'il reste une
+  // alternative propre (cf. `couchesDuRemplacement`).
+  const propre = (c: (typeof ranked)[number]) => !c.a.flags.some((f) => FLAG_AUDIENCE[f] === 'user');
+  let candidats = ranked;
+  for (const exclue of couchesDuRemplacement(profile, plan, meal, slot, gout)) {
+    const admis = candidats.filter((c) => !exclue(c.r));
+    if (admis.some(propre) || (admis.length > 0 && !candidats.some(propre))) candidats = admis;
+  }
+
+  const top = candidats.slice(0, Math.min(VARIANT_MIN, candidats.length));
   // Biais favoris : si certaines des meilleures alternatives sont des 👍, on tire
   // parmi celles-là — le fit macro reste garanti (elles SONT dans le top), on ne
   // fait que pencher vers ce que l'user aime. Sinon, tirage normal dans le top.

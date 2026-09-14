@@ -837,10 +837,28 @@ produit en suspens — il ne reste qu'à coder.
   5. `dayTotalTightness` +81 kcal pour 80 : cause « sur le pouce » (+41 sans elle), borne 85 ;
   6. `mealProteinFloor` médiane 1,104 pour 1,10 : 1,094 sans D30, le plancher n'y est pour
      rien, borne 1,11 (la mutation de référence rend 1,125).
-  ⚠️ **Non traité** : « Remplacer ce repas » ignore ces règles (comme le goût et D29) ; un
-  repas « mangé » reporté par `carryTracking` garde sa mention de restes même si le plan
-  régénéré n'a plus la paire ; la mention n'a pas été regardée à l'écran (moteur testé,
-  texte relu). Et le carnet a encore montré des noms de recettes en listes
+  ✅ **« Remplacer ce repas » tient les mêmes règles** (demande fondateur du 2026-09-14,
+  `planEngine::couchesDuRemplacement`) : même recette le jour, plafond végétal (sans
+  l'étalement, qui protège la première impression d'un plan neuf, pas un geste en cours de
+  semaine), plat du midi, sur le pouce, même féculent et plafonds hors « Répétitif », goût
+  garanti — et les protéines non cochées en retrait : D26, D28 et D29 y étaient ignorés
+  aussi. Chaque couche ne s'applique que s'il reste une alternative propre. Garde-fou
+  `remplacerRepas.test.ts` : chaque repas de vrais plans remplacé un à un, tirage au sort
+  FIGÉ aux deux bouts du panier pour que le test ne dépende pas de la chance. **Vérifié par
+  8 mutations**, toutes rouges — et DEUX étaient vertes au premier jet : « goût garanti »
+  (chez l'omnivore la pénalité suffit ; prouvé sur un végétarien sans gluten) et « même
+  recette le même jour » (la couche du féculent la masquait ; prouvé par un cas construit
+  où l'alternative obtenue est posée au dîner, puis le déjeuner remplacé de nouveau).
+  🔴 **Le goût garanti passe AVANT les couches de variété** au remplacement : une réponse
+  donnée passe devant une règle qu'on n'a pas demandée.
+  ⚠️ **Limite de catalogue mesurée** : un végétarien sans gluten a 17 petits-déjeuners
+  salés, dont 14 plats du midi ; sur 2 remplacements, aucune alternative salée n'était
+  admissible et la semaine tombe à 4 salés sur 7. La vague de petits-déjeuners salés
+  « à la française » à commander vaut donc pour le végétarien sans gluten comme pour le vegan.
+  ⚠️ **Non traité** : un repas « mangé » reporté par `carryTracking` garde sa mention de
+  restes même si le plan régénéré n'a plus la paire ; la fiche du dîner n'affiche que la
+  part du soir, pas ce qu'il faut cuisiner pour le lendemain ; la mention n'a pas été
+  regardée à l'écran (moteur testé, texte relu). Et le carnet a encore montré des noms de recettes en listes
   (« Bœuf 5% – wok – nouilles complètes ») — chantier des noms humains, déjà noté.
   ➡️ Garde-fous : `lib/__tests__/coherenceHumaine.test.ts` et `repasHumain.test.ts`,
   **vérifiés par 10 mutations** (plat du midi admis · collation qui cuit admise · même
