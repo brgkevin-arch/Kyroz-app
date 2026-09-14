@@ -113,6 +113,11 @@ describe('plancher protéique par repas', () => {
     ratios.sort((a, b) => a - b);
     const mediane = ratios[Math.floor(ratios.length / 2)];
     expect(ratios.length, 'jours mesurés').toBe(21);
-    expect(mediane, `médiane=${mediane.toFixed(3)}`).toBeLessThan(1.10);
+    // ⚠️ MÉDIANE 1,10 → 1,11 le 2026-09-14 (D30), mesurée des deux côtés : 1,094 sans les
+    // règles de lecture humaine, 1,104 avec. Le PLANCHER n'y est pour rien (inchangé) : ce
+    // sont les couches d'exclusion qui écartent des plats moins protéinés au petit-déjeuner
+    // et à la collation — chacune retirée seule ramène la médiane sous 1,075. La mutation
+    // qui prouve ce garde-fou (`PROT_SHARE_FLOOR` 0,7 → 0,9) rendait 1,125 : toujours au-dessus.
+    expect(mediane, `médiane=${mediane.toFixed(3)}`).toBeLessThan(1.11);
   });
 });

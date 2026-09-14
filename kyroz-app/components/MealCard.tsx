@@ -106,6 +106,16 @@ export function MealCard({
       {isFixed && (
         <Text style={[styles.fixedNote, { color: t.textTertiary }]}>Tu gères ce repas — compté dans ton total</Text>
       )}
+      {/* MÊME PLAT (D30) : un CONSEIL, pas une consigne. Chaque repas garde ses propres
+          quantités (décision fondateur du 2026-09-14) ; on dit seulement que les deux
+          peuvent se cuisiner d'un coup. Promettre « rien à cuisiner » au déjeuner serait
+          faux pour qui ne l'a pas fait. */}
+      {!isFixed && meal.same_dish_tomorrow && (
+        <Text style={[styles.fixedNote, { color: t.textTertiary }]}>Même plat demain midi : tu peux cuisiner les deux en même temps</Text>
+      )}
+      {!isFixed && meal.same_dish_yesterday && (
+        <Text style={[styles.fixedNote, { color: t.textTertiary }]}>Même plat qu'hier soir : déjà prêt si tu l'as cuisiné en double</Text>
+      )}
       {/* Macros : une ligne grise, plus quatre pastilles colorées. Ici il n'y a
           aucune proportion à comparer — c'est le nom du plat qu'on lit. */}
       {!skipped && (

@@ -147,11 +147,21 @@ describe('la promesse servie : 70 % du créneau dans le goût choisi', () => {
     expect(r.ratees, `moyenne ${(100 * r.moyenne).toFixed(0)} %`).toBe(0);
   }, 60_000);
 
-  it('un profil vegan, sans forçage, reçoit quand même une majorité quand il la demande', () => {
-    // Mesuré : vegan sans gluten, 36 % de salé servi s'il répond « peu importe », 73 % s'il
-    // répond « salé ». C'est la pénalité seule qui porte ce gain chez lui (cf. goutGarantiPour).
+  it('un profil vegan, sans forçage, reçoit nettement plus de salé quand il le demande', () => {
+    // 🔴 AMENDÉ le 2026-09-14 (D30, décision fondateur). Ce test exigeait une MAJORITÉ (60 %)
+    // de petits-déjeuners salés pour un vegan sans gluten qui répond « salé ». Ses
+    // petits-déjeuners salés étaient presque tous des plats du midi (millet au tofu, polenta
+    // au tofu fumé), que D30 retire du matin. Question posée : sa réponse « salé » passe-t-elle
+    // devant la règle du matin ? Réponse : NON, pas de plat du midi à 8 h, et une vague de
+    // petits-déjeuners salés vegan « à la française » à commander.
+    // Mesuré après D30 : 15,5 % de salé s'il répond « peu importe », 36,9 % s'il répond
+    // « salé » (73 % avant, dont les plats du midi). La pénalité porte toujours le gain ;
+    // c'est ce que ce test garde, en attendant la vague.
     const r = salePdj({ dietary_restrictions: ['vegan', 'gluten_free'] });
-    expect(r.moyenne, `moyenne ${(100 * r.moyenne).toFixed(0)} %`).toBeGreaterThanOrEqual(0.6);
+    let temoin = 0;
+    for (const goal of ['cut', 'maintain', 'lean_bulk'] as const) for (const seed of [0, 1, 2, 3])
+      temoin += part(buildLocalPlan(gabarit({ goal, dietary_restrictions: ['vegan', 'gluten_free'] }), seed).meals, 'breakfast', 'sale') / 12;
+    expect(r.moyenne - temoin, `salé ${(100 * r.moyenne).toFixed(0)} %, peu importe ${(100 * temoin).toFixed(0)} %`).toBeGreaterThanOrEqual(0.15);
   }, 60_000);
 
   it('« majorité » veut dire majorité : une fois la part tenue, le goût cesse de peser', () => {
@@ -180,10 +190,15 @@ describe('la promesse servie : 70 % du créneau dans le goût choisi', () => {
           for (const f of m.adapt_flags ?? []) if (USER.has(f)) n++;
       return n;
     };
+    // ⚠️ ÉCART TOLÉRÉ +1 → +3 le 2026-09-14 (D30), et ce n'est pas le salé qui a empiré :
+    // mesuré sur ce gabarit, « salé » vaut 6 repas mal calibrés AVANT comme APRÈS D30. C'est
+    // le TÉMOIN qui s'est amélioré (6 → 3) : les règles de lecture humaine écartent au
+    // petit-déjeuner et à la collation des plats qui débordaient. Garder +1 aurait rendu ce
+    // test rouge parce qu'autre chose va mieux (même piège que varieteFamille, 2026-08-06).
     const regime: DietaryRestriction[] = ['vegan', 'gluten_free'];
     const temoin = drapeaux({ dietary_restrictions: regime });
     const sale = drapeaux({ dietary_restrictions: regime, gout_petit_dej: 'sale', gout_collation: 'sale' });
-    expect(sale, `témoin ${temoin}, salé ${sale}`).toBeLessThanOrEqual(temoin + 1);
+    expect(sale, `témoin ${temoin}, salé ${sale}`).toBeLessThanOrEqual(temoin + 3);
   }, 60_000);
 });
 

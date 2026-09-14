@@ -37,9 +37,10 @@ interface Props {
   custom?: boolean;           // recette déjà personnalisée → badge
   dragHandlers?: any;         // injecté par <Sheet> : rend l'en-tête glissable
   sheetScrollProps?: any;     // injecté par <Sheet> : lie le défilement à la fermeture
+  memePlat?: 'demain' | 'hier'; // D30 : le même plat revient demain midi / était servi hier soir
 }
 
-export function RecipeDetail({ recipe, portions = 1, adaptedIngredients, adaptedMacros, adaptFlags, adaptGap, restrictionRelaxed, onClose, onCook, onSkip, status, onSwap, onDislike, onEdit, custom, dragHandlers, sheetScrollProps }: Props) {
+export function RecipeDetail({ recipe, portions = 1, adaptedIngredients, adaptedMacros, adaptFlags, adaptGap, restrictionRelaxed, onClose, onCook, onSkip, status, onSwap, onDislike, onEdit, custom, dragHandlers, sheetScrollProps, memePlat }: Props) {
   const t = useTheme();
   const layout = useLayout();
   const s = useMemo(() => makeStyles(t, layout.isTablet), [t, layout.isTablet]);
@@ -141,6 +142,17 @@ export function RecipeDetail({ recipe, portions = 1, adaptedIngredients, adapted
           </View>
         )}
         {orderedFlags.map((fl) => <Text key={fl} style={s.warn}>{flagMsg(fl)}</Text>)}
+
+        {/* MÊME PLAT (D30) : un conseil, et les quantités restent celles de CE repas
+            (décision fondateur du 2026-09-14). Les étapes restent affichées au déjeuner :
+            cuisiner en double n'est qu'une proposition, rien ne dit qu'elle a été suivie. */}
+        {memePlat && (
+          <Text style={s.memePlat}>
+            {memePlat === 'demain'
+              ? 'Tu retrouves ce plat demain midi : tu peux cuisiner les deux en même temps. Les quantités ci-dessous sont celles de ce soir, celles de demain sont sur sa fiche.'
+              : "Même plat qu'hier soir : si tu l'as cuisiné en double, il ne te reste qu'à le réchauffer."}
+          </Text>
+        )}
 
         <View style={[s.macros, cardShadow(t)]}>
           <Big t={t} v={macros.kcal} l="kcal" />
@@ -265,6 +277,7 @@ function makeStyles(t: ThemePalette, isTablet: boolean) {
     why: { ...Type.bodySmall, color: t.textSecondary, fontStyle: 'italic', lineHeight: 20, marginTop: -Spacing.sm },
     macros: { flexDirection: 'row', backgroundColor: t.card, borderRadius: Radius.card, padding: Spacing.lg, justifyContent: 'space-around' },
     fiber: { ...Type.caption, color: t.textTertiary, marginTop: -Spacing.sm },
+    memePlat: { ...Type.bodySmall, color: t.textSecondary },
     section: { color: t.textTertiary, ...Type.overline },
     ing: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: Spacing.md, borderBottomWidth: Trait.fin, borderBottomColor: t.line },
     ingName: { ...Type.body, color: t.text },

@@ -37,9 +37,24 @@ const gabarit = (over: Partial<UserProfile> = {}): UserProfile => recalcProfile(
   ...over,
 } as UserProfile);
 
-/** Miroir du groupement de `familyKey`, créneau compris (les pools sont par créneau). */
-const cle = (r: Recipe) =>
-  `${r.tags.includes('snack') ? 'c' : r.tags.includes('breakfast') ? 'p' : 'r'}|${familyKey(r)}`;
+/**
+ * Miroir du groupement de `familyKey`, créneau compris (les pools sont par créneau).
+ *
+ * 🔴 UNE RECETTE SANS FÉCULENT EST SA PROPRE FAMILLE — décision fondateur du 2026-09-14.
+ * `familyKey` range toutes les recettes sans féculent d'une même protéine dans une seule
+ * famille (`yaourt_soja_proteine×∅`). CLAUDE.md §6 l'avait noté : c'est une question de
+ * PRODUIT, pas de métrique. Elle a été posée quand D30 (collations « sur le pouce ») a
+ * fait remonter la mesure : sur 60 plans canoniques, 21 des 31 « jumelles » étaient deux
+ * collations au yaourt de soja différentes (fruits rouges, amandes). Réponse : « non,
+ * c'est normal ». Seules comptent désormais les vraies jumelles, même protéine ET même
+ * féculent. ⚠️ Le MOTEUR, lui, n'a pas changé : `familyKey` et sa pénalité sont intacts.
+ * Mesuré avec cette clé (moteur D30) : panel de 16 semaines 4 semaines / 5 paires, et
+ * **10 semaines / 11 paires sans la rotation par famille** (`famActive` à false) — les
+ * bornes ci-dessous tombent toujours quand le mécanisme disparaît.
+ */
+const cle = (r: Recipe) => familyKey(r).endsWith('×∅')
+  ? `seule|${r.id}`
+  : `${r.tags.includes('snack') ? 'c' : r.tags.includes('breakfast') ? 'p' : 'r'}|${familyKey(r)}`;
 
 /** Nb de semaines contenant ≥ 2 recettes DIFFÉRENTES d'une même famille, et nb de paires. */
 function quasiDoublons(): { semaines: number; avecClone: number; paires: number } {

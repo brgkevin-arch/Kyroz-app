@@ -1053,6 +1053,14 @@ régime de 33,3 à 16,7 % **sans qu'un seul repas servi ne change** : ce serait 
 l'affichage, pas le produit — exactement ce que la règle « pas de mensonge » interdit. La
 question légitime est de PRODUIT (« deux yaourts de soja à des fruits différents, est-ce
 une répétition ? ») et se tranche avec le fondateur, pas dans un correctif de métrique.
+✅ **TRANCHÉE LE 2026-09-14 : « non, c'est normal »** (décision fondateur, AGENTS.md D30).
+La question est revenue quand les collations « sur le pouce » ont fait remonter la mesure :
+21 des 31 « jumelles » de 60 plans canoniques étaient deux collations au yaourt de soja
+différentes. Depuis, `varieteFamille.test.ts` ne compte plus que les VRAIES jumelles —
+même protéine ET même féculent ; une recette sans féculent est sa propre famille. ⚠️ Ce
+qui n'a PAS changé : `familyKey` et sa pénalité dans le moteur. La décision porte sur ce
+qu'on appelle une répétition, pas sur ce que le moteur sert — le « ce serait corriger
+l'affichage » ci-dessus reste vrai pour qui voudrait changer la clé du MOTEUR.
 
 ⚠️ **Trois propriétés de ce mécanisme, chacune payée par une mesure.** Deux d'entre elles
 ont CHANGÉ depuis D18 — elles étaient écrites « non négociables » et décrivaient un moteur
