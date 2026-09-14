@@ -768,6 +768,35 @@ produit en suspens — il ne reste qu'à coder.
 
 ### 🍽 D — Catalogue
 
+- ⏭️ **RESTE À FAIRE — catalogue et moteur, relevé le 2026-09-14** (à lire avant D32 → D29)
+  1. 🧑 **Valider l'inventaire du remplissage** : page « Remplissage des recettes » (artifact
+     privé du fondateur, réponses dans sa base, collection `avis`). 206 lignes — 138
+     ingrédients de remplissage sur 124 recettes, 68 légitimes — dont **7 répondues** au
+     2026-09-14. Règle d'origine : pas d'ingrédient choisi pour la macro plutôt que pour le
+     plat (fiche D31).
+  2. 🤖 **Réécrire les recettes validées.** Chaque remplacement se MESURE au moteur (profils
+     servis sur 12, repas mal calibrés) : dans **81 cas**, retirer l'ingrédient sans le
+     remplacer fait tomber la recette à 0–2 profils. Renommer les recettes reprises (D31),
+     et un test qui empêche le remplissage de revenir. Ajouter `pd36` et `pd66` (pancakes
+     cuits à la poêle sans aucun corps gras). ⚠️ `rep52` a été validé sur une formulation
+     FAUSSE (« le gras vient déjà de la vinaigrette » : la recette n'en a pas) — appliquer la
+     corrigée (vinaigrette à l'huile d'olive) en le disant au fondateur.
+  3. 🤖 **PUIS le soja texturé** (décision fondateur : « on remplace le soja après ») par les
+     aliments de D32, proposé recette par recette sur une page avant d'écrire ; les noms
+     « soja » des recettes reprises deviennent « soja texturé ». Lié à D27.2 (steak, nuggets,
+     saucisses toujours sans recette) et à **D27.1, à trancher AVANT** (le contrôle R8 juge
+     les recettes véganes sur des cibles d'omnivore).
+  4. 🤖 **OTA** : D32 et le remplissage ne sont pas publiés. Dernière OTA : la 34ᵉ (D29, D30,
+     D31). Comparer l'empreinte au build (22) avant de publier.
+  5. 🧑 **Petits-déjeuners salés « à la française »** à commander pour le vegan et le
+     végétarien sans gluten (limite de catalogue mesurée en D30).
+  6. 🧑 **Liste de courses « aujourd'hui → dimanche »** : décision en attente ; et le plan ne
+     se régénère pas au changement de semaine (constaté pendant D30).
+  7. Reportée par le fondateur : proposer en fin de semaine des plats qui finissent les
+     achats — suppose de connaître les quantités réellement restantes (D30).
+  ℹ️ D27.4 (mapper les « fines tranches végétales » de Ciqual) est largement rendue sans
+  objet par D32 : le jambon végétal existe désormais, en moyenne de 4 étiquettes.
+
 - ✅ **D32 · La liste végétale à côté de Ciqual — livrée le 2026-09-14**
   (`lib/etiquettesVegetales.ts`, catalogue 132 → **139** ingrédients, aucune recette
   modifiée, aucun `ENGINE_VERSION`). **Demande fondateur** : 19 aliments végétaux à trouver
