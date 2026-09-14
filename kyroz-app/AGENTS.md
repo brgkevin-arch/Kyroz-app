@@ -768,6 +768,35 @@ produit en suspens — il ne reste qu'à coder.
 
 ### 🍽 D — Catalogue
 
+- ✅ **D31 · Des noms de plats, pas des listes d'ingrédients — livré le 2026-09-14**
+  (`Recette/recettes-kyroz.json`, champ `name` seul ; aucun `ENGINE_VERSION` : l'écran Plan
+  rafraîchit un titre changé, cf. `Recette/README.md`). **Décisions fondateur** : style
+  « nom de plat » (type de plat + 1 à 3 ingrédients qu'on voit dans l'assiette, jamais un
+  plat connu qu'on ne sert pas) ; le secondaire sort du nom (graines, huile, poudres
+  remplacées par « protéiné », « 5% », « light ») ; relecture des 541 sur une page
+  (artifact « Noms des recettes ») : « parfait, rien à changer ».
+  **Mesuré** : 412 noms changent sur 541 (129 étaient déjà bons) ; longueur médiane 38 → 36
+  caractères, 50 au plus ; **R5 16 → 0** (plafond resserré dans `doublons.test.ts`) ;
+  `nomsHonnetes` vert, plus un contrôle ponctuel étendu à ~90 aliments (3 signalements, tous
+  faux : « semoule de maïs » = polenta, un burrito bowl se sert sans tortilla). Six noms
+  promettaient un aliment ABSENT et sont corrigés au passage : `pd34` (cacahuète), `pd71`
+  (poire, alors que c'est une pomme), `rep273` (tomate), `col106` (poivron, alors que ce
+  sont des champignons), `col52` et `col66` (« crème de soja », alors que c'est du yaourt de
+  soja). L'exception `rep36` de `nomsHonnetes` tombe : « Tortilla espagnole au jambon » ne
+  promet plus rien.
+  🔴 **LE RENOMMAGE A MAQUILLÉ DU REMPLISSAGE.** « Dinde sauce cacahuète au riz complet »
+  fait paraître voulu un beurre de cacahuète ajouté pour atteindre les macros. Relevé par le
+  fondateur sur la page de relecture (« on avait dit pas de remplissage bizarre ») — une
+  règle écrite NULLE PART : le « pas de remplissage » du brief de génération visait les
+  ÉTAPES, pas les ingrédients. Mesuré le jour même : **5 plats complets** des vagues B1/B4
+  (1ᵉʳ–2 août) à 24–30 g de beurre de cacahuète (24–32 % des kcal, rôle `fat`) sans être des
+  plats à la cacahuète (`rep201`, `rep221`, `rep226`, `rep250`, `rep261` — contre 15–18 g et
+  ~15 % dans les vrais : pad thaï, bo bun, tofu sauté, curry cacahuète) ; graines de courge
+  dans **55** recettes ; **11 plats salés** bâtis sur 130–305 g de fromage blanc ou de
+  cottage cheese. ➡️ **Chantier suivant, décidé sur TOUT le catalogue** : liste des
+  ingrédients hors plat validée par le fondateur, réécriture, re-mesure du moteur, et un test
+  qui l'empêche de revenir. Les recettes reprises changeront de nom une seconde fois.
+
 - ✅ **D30 · Un plan qu'un humain mangerait — livré le 2026-09-14**
   (`lib/repasHumain.ts`, `ENGINE_VERSION` 53 → 54, moteur + une ligne d'écran, aucune
   migration). **Lu dans le carnet des menus** (D29) sur un moteur aux indicateurs verts :
