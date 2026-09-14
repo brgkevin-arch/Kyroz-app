@@ -219,7 +219,13 @@ installation neuve part du binaire, donc du (6).
   encore `0639ecc` après la compilation, 0 PR ouverte — le piège du 11 août ne s'est pas
   rejoué). *(Le précédent :)* le **(6)** — `ceec1b17`, commit
   `1047b9f`, terminé le 2026-08-11 à 20 h 37. Il a **62 commits de retard** sur `main` — chiffre RE-MESURÉ le 2026-08-26 (il en annonçait 40, mesurés le 2026-08-23), qui **grandit à chaque merge** : le relire avec `git rev-list --count 1047b9f..origin/main` plutôt que de le recopier (même défaut que le décompte d'OTA tenu à la main).
-- **OTA** : la dernière est la **34ᵉ** (groupe `2275a44b` pour iOS et groupe `e22e8f7c`
+- **OTA** : la dernière est la **35ᵉ** (groupe `c91cc774` pour iOS et groupe `b0cbc6df`
+  pour Android, 2026-09-15), publiée sur le commit `0e48c9f` — `main`, arbre propre.
+  ✅ **Runtime iOS `823c89db…` = le build (22)**, empreinte comparée AVANT publication.
+  Contenu : D32 (liste végétale, 19 aliments) et D33 (pas de remplissage, 104 recettes
+  réécrites) ; `ENGINE_VERSION` 55, donc chaque plan se régénère une fois. Aucun changement
+  natif : rien à soumettre à Apple.
+  **La 34ᵉ** (groupe `2275a44b` pour iOS et groupe `e22e8f7c`
   pour Android, 2026-09-14), publiée sur le commit `ebd53ff` — `main`, arbre propre.
   ✅ **Runtime iOS `823c89db…` = le build (22)**, empreinte comparée AVANT publication.
   Contenu : D29 (journée cohérente), D30 (un plan qu'un humain mangerait) et D31 (noms de
