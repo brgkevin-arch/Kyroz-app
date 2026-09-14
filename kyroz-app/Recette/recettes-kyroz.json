@@ -1321,7 +1321,7 @@
       }
     },
     "steak_soja": {
-      "name": "Steak / pavé de soja",
+      "name": "Steak végétal (soja)",
       "unit": "g",
       "per_100": {
         "kcal": 252,
@@ -1332,7 +1332,7 @@
       "abs_max_qty": 200
     },
     "emince_vegetal": {
-      "name": "Émincé végétal (soja et blé)",
+      "name": "Émincés de poulet végétal (soja et blé)",
       "unit": "g",
       "per_100": {
         "kcal": 157,
@@ -1343,7 +1343,7 @@
       "abs_max_qty": 200
     },
     "hache_vegetal": {
-      "name": "Haché végétal de soja",
+      "name": "Steak haché végétal (soja)",
       "unit": "g",
       "per_100": {
         "kcal": 143,
@@ -1354,7 +1354,7 @@
       "abs_max_qty": 200
     },
     "galette_vegetale": {
-      "name": "Galette végétale (blé et soja)",
+      "name": "Burger végétal (blé et soja)",
       "unit": "g",
       "per_100": {
         "kcal": 215,
@@ -1387,7 +1387,7 @@
       "abs_max_qty": 180
     },
     "saucisse_vegetale": {
-      "name": "Saucisse végétale au tofu",
+      "name": "Saucisses végétales (tofu)",
       "unit": "g",
       "per_100": {
         "kcal": 228,
@@ -1397,8 +1397,85 @@
       },
       "abs_max_qty": 150
     },
+    "filets_poulet_vegetal": {
+      "name": "Filets de poulet végétal",
+      "unit": "g",
+      "per_100": {
+        "kcal": 158,
+        "protein": 20,
+        "carbs": 0.9,
+        "fat": 7.8
+      },
+      "abs_max_qty": 180
+    },
+    "aiguillettes_poulet_vegetal": {
+      "name": "Aiguillettes de poulet végétal",
+      "unit": "g",
+      "per_100": {
+        "kcal": 148,
+        "protein": 20,
+        "carbs": 2.2,
+        "fat": 5.2
+      },
+      "abs_max_qty": 180
+    },
+    "lardons_vegetaux": {
+      "name": "Lardons végétaux",
+      "unit": "g",
+      "per_100": {
+        "kcal": 218,
+        "protein": 15,
+        "carbs": 5.9,
+        "fat": 15
+      },
+      "abs_max_qty": 100
+    },
+    "merguez_vegetale": {
+      "name": "Merguez végétales",
+      "unit": "g",
+      "per_100": {
+        "kcal": 224,
+        "protein": 13.2,
+        "carbs": 5,
+        "fat": 15.8
+      },
+      "abs_max_qty": 200
+    },
+    "chorizo_vegetal": {
+      "name": "Chorizo végétal",
+      "unit": "g",
+      "per_100": {
+        "kcal": 163,
+        "protein": 18.7,
+        "carbs": 4.6,
+        "fat": 6.6
+      },
+      "abs_max_qty": 100
+    },
+    "jambon_vegetal": {
+      "name": "Jambon végétal",
+      "unit": "g",
+      "per_100": {
+        "kcal": 118,
+        "protein": 19.5,
+        "carbs": 3.9,
+        "fat": 2.2
+      },
+      "abs_max_qty": 120
+    },
+    "escalope_vegetale": {
+      "name": "Escalope végétale",
+      "unit": "g",
+      "per_100": {
+        "kcal": 221,
+        "protein": 13.1,
+        "carbs": 15.7,
+        "fat": 10.9
+      },
+      "abs_max_qty": 180
+    },
     "falafel": {
-      "name": "Falafel prêt à consommer",
+      "name": "Falafels prêts à consommer",
       "unit": "g",
       "per_100": {
         "kcal": 211,

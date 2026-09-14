@@ -57,16 +57,18 @@ export const FOOD_FAMILIES: Record<string, string[]> = {
   'fruits a coque': ['amandes', 'beurre_amande', 'noix', 'noisettes', 'lait_amande'],
   'fruit a coque': ['amandes', 'beurre_amande', 'noix', 'noisettes', 'lait_amande'],
   oleagineux: ['amandes', 'beurre_amande', 'noix', 'noisettes', 'lait_amande', 'beurre_cacahuete'],
-  // « soja » attrape déjà 7 refs par le nom ; ces cinq-là ne le portent pas.
-  soja: ['tofu_ferme', 'tofu_soyeux', 'tofu_fume', 'tempeh', 'edamame'],
+  // « soja » attrape déjà par le nom les refs qui le portent ; ceux-ci ne le portent pas.
+  // Les pièces et aliments végétaux y sont par PRUDENCE : un seul produit relevé au soja
+  // suffit (cf. lib/etiquettesVegetales.ts, et Ciqual pour nuggets, saucisses, boulettes).
+  soja: ['tofu_ferme', 'tofu_soyeux', 'tofu_fume', 'tempeh', 'edamame', 'nuggets_vegetal', 'saucisse_vegetale', 'boulette_vegetale', 'filets_poulet_vegetal', 'aiguillettes_poulet_vegetal', 'lardons_vegetaux', 'merguez_vegetale', 'chorizo_vegetal', 'jambon_vegetal', 'escalope_vegetale'],
   lactose: ['skyr', 'fromage_blanc_0', 'yaourt_grec', 'cottage_cheese', 'whey', 'lait_demi_ecreme', 'mozzarella', 'feta', 'parmesan', 'pesto'],
   laitier: ['skyr', 'fromage_blanc_0', 'yaourt_grec', 'cottage_cheese', 'whey', 'lait_demi_ecreme', 'mozzarella', 'feta', 'parmesan', 'pesto'],
   fromage: ['mozzarella', 'feta', 'parmesan', 'cottage_cheese', 'fromage_blanc_0', 'pesto'],
   // Le gluten a son propre régime (`gluten_free`), plus complet et plus sûr que ce
   // chemin ; on le résout quand même, parce qu'un utilisateur peut l'écrire ici sans
   // avoir coché le régime.
-  gluten: ['flocons_avoine', 'pain_complet', 'pain_seigle', 'pates_completes', 'pates_semoule', 'nouilles_completes', 'boulgour', 'semoule_couscous', 'tortilla_complete', 'pain_pita_complet', 'seitan', 'sauce_soja', 'chapelure', 'levure_maltee', 'falafel'],
-  ble: ['pain_complet', 'pates_completes', 'pates_semoule', 'nouilles_completes', 'boulgour', 'semoule_couscous', 'tortilla_complete', 'pain_pita_complet', 'seitan', 'chapelure', 'falafel'],
+  gluten: ['flocons_avoine', 'pain_complet', 'pain_seigle', 'pates_completes', 'pates_semoule', 'nouilles_completes', 'boulgour', 'semoule_couscous', 'tortilla_complete', 'pain_pita_complet', 'seitan', 'sauce_soja', 'chapelure', 'levure_maltee', 'falafel', 'emince_vegetal', 'galette_vegetale', 'nuggets_vegetal', 'boulette_vegetale', 'lardons_vegetaux', 'aiguillettes_poulet_vegetal', 'merguez_vegetale', 'chorizo_vegetal', 'escalope_vegetale'],
+  ble: ['pain_complet', 'pates_completes', 'pates_semoule', 'nouilles_completes', 'boulgour', 'semoule_couscous', 'tortilla_complete', 'pain_pita_complet', 'seitan', 'chapelure', 'falafel', 'emince_vegetal', 'galette_vegetale', 'nuggets_vegetal', 'boulette_vegetale', 'merguez_vegetale', 'chorizo_vegetal', 'escalope_vegetale'],
   viande: ['poulet_filet', 'dinde_escalope', 'boeuf_5', 'boeuf_bavette', 'porc_filet', 'jambon_blanc'],
   volaille: ['poulet_filet', 'dinde_escalope'],
   porc: ['porc_filet', 'jambon_blanc'],

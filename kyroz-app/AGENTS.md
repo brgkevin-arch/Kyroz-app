@@ -768,6 +768,70 @@ produit en suspens — il ne reste qu'à coder.
 
 ### 🍽 D — Catalogue
 
+- ⏭️ **RESTE À FAIRE — catalogue et moteur, relevé le 2026-09-14** (à lire avant D32 → D29)
+  1. 🧑 **Valider l'inventaire du remplissage** : page « Remplissage des recettes » (artifact
+     privé du fondateur, réponses dans sa base, collection `avis`). 206 lignes — 138
+     ingrédients de remplissage sur 124 recettes, 68 légitimes — dont **7 répondues** au
+     2026-09-14. Règle d'origine : pas d'ingrédient choisi pour la macro plutôt que pour le
+     plat (fiche D31).
+  2. 🤖 **Réécrire les recettes validées.** Chaque remplacement se MESURE au moteur (profils
+     servis sur 12, repas mal calibrés) : dans **81 cas**, retirer l'ingrédient sans le
+     remplacer fait tomber la recette à 0–2 profils. Renommer les recettes reprises (D31),
+     et un test qui empêche le remplissage de revenir. Ajouter `pd36` et `pd66` (pancakes
+     cuits à la poêle sans aucun corps gras). ⚠️ `rep52` a été validé sur une formulation
+     FAUSSE (« le gras vient déjà de la vinaigrette » : la recette n'en a pas) — appliquer la
+     corrigée (vinaigrette à l'huile d'olive) en le disant au fondateur.
+  3. 🤖 **PUIS le soja texturé** (décision fondateur : « on remplace le soja après ») par les
+     aliments de D32, proposé recette par recette sur une page avant d'écrire ; les noms
+     « soja » des recettes reprises deviennent « soja texturé ». Lié à D27.2 (steak, nuggets,
+     saucisses toujours sans recette) et à **D27.1, à trancher AVANT** (le contrôle R8 juge
+     les recettes véganes sur des cibles d'omnivore).
+  4. 🤖 **OTA** : D32 et le remplissage ne sont pas publiés. Dernière OTA : la 34ᵉ (D29, D30,
+     D31). Comparer l'empreinte au build (22) avant de publier.
+  5. 🧑 **Petits-déjeuners salés « à la française »** à commander pour le vegan et le
+     végétarien sans gluten (limite de catalogue mesurée en D30).
+  6. 🧑 **Liste de courses « aujourd'hui → dimanche »** : décision en attente ; et le plan ne
+     se régénère pas au changement de semaine (constaté pendant D30).
+  7. Reportée par le fondateur : proposer en fin de semaine des plats qui finissent les
+     achats — suppose de connaître les quantités réellement restantes (D30).
+  ℹ️ D27.4 (mapper les « fines tranches végétales » de Ciqual) est largement rendue sans
+  objet par D32 : le jambon végétal existe désormais, en moyenne de 4 étiquettes.
+
+- ✅ **D32 · La liste végétale à côté de Ciqual — livrée le 2026-09-14**
+  (`lib/etiquettesVegetales.ts`, catalogue 132 → **139** ingrédients, aucune recette
+  modifiée, aucun `ENGINE_VERSION`). **Demande fondateur** : 19 aliments végétaux à trouver
+  dans l'app (nuggets, filets, émincés et aiguillettes de poulet végétal, steak, burger,
+  steak haché, boulettes, falafels, saucisses, lardons, merguez, chorizo, jambon, escalope,
+  tofu nature, fumé et soyeux, tempeh), d'abord pour remplacer le soja texturé glissé en
+  remplissage (inventaire du remplissage, même jour).
+  **Mesuré avant d'ajouter** : 12 des 19 existaient déjà, mappés sur l'aliment moyen de
+  l'ANSES, mais 8 de ces 12 ne servaient à 0 ou 1 recette. Ils prennent les noms du
+  fondateur (« Steak végétal », « Burger végétal », « Steak haché végétal », « Émincés de
+  poulet végétal », « Saucisses végétales », « Falafels »), dans le catalogue ET dans la
+  recherche d'aliments ; valeurs ANSES inchangées. Le tofu garde ses noms : les réserves
+  des utilisateurs s'apparient par le nom.
+  **7 absents de Ciqual, en MOYENNE D'ÉTIQUETTES** (décisions fondateur : moyenne de
+  marques ; un ingrédient par nom de la liste ; toutes les versions gardées, « un végan
+  vérifiera avant d'acheter » ; dans les recettes et dans la recherche). Relevé sur 20
+  étiquettes citées une à une : merguez (4 marques), escalope (4), jambon (2 marques,
+  4 produits), chorizo (2 marques, 3 produits), aiguillettes et lardons (1 marque,
+  2 variantes), filets (1 produit). Deux produits écartés, raison écrite : des mini-chorizos
+  SECS d'apéritif, et une page sans liste d'ingrédients. ⚠️ **Trois aliments reposent sur
+  une seule marque** : le marché français n'en offrait pas d'autre trouvable ce jour-là.
+  **Gluten lu sur les étiquettes, avec prudence** : un produit au blé ou qui déclare des
+  traces suffit à retirer le sans gluten. Restent sans gluten : filets et jambon végétal.
+  🔴 **Un trou existant fermé au passage** : écrire « gluten » dans les aliments évités
+  n'écartait ni les nuggets, ni le burger, ni les émincés, ni les boulettes, tous au blé
+  (familles `gluten` et `ble` de `lib/avoidance.ts`) ; le soja des nuggets, saucisses et
+  boulettes n'était pas couvert non plus.
+  ➡️ Garde-fou : `lib/__tests__/alimentsVegetaux.test.ts` — les 19 noms dans la
+  recherche, la moyenne des étiquettes dans le catalogue ET la recherche (fibres
+  comprises), aucun mapping Ciqual qui l'écraserait, gluten, soja et blé recalculés depuis
+  les étiquettes, calories de chaque étiquette cohérentes avec ses macros. **Vérifié par
+  6 mutations**, toutes rouges.
+  ⏭️ **Suite** : remplacer le soja texturé de remplissage des recettes par ces aliments
+  (liste « Remplissage des recettes » en cours de validation par le fondateur).
+
 - ✅ **D31 · Des noms de plats, pas des listes d'ingrédients — livré le 2026-09-14**
   (`Recette/recettes-kyroz.json`, champ `name` seul ; aucun `ENGINE_VERSION` : l'écran Plan
   rafraîchit un titre changé, cf. `Recette/README.md`). **Décisions fondateur** : style

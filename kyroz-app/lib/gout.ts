@@ -74,6 +74,8 @@ export const REFS_SALEES: readonly string[] = [
   'edamame', 'tofu_ferme', 'tofu_fume', 'tempeh', 'seitan', 'soja_texture',
   'pois_chiches_conserve', 'lentilles_cuites', 'haricots_rouges_conserve', 'falafel',
   'feta', 'levure_maltee',
+  'filets_poulet_vegetal', 'aiguillettes_poulet_vegetal', 'lardons_vegetaux', 'merguez_vegetale',
+  'chorizo_vegetal', 'jambon_vegetal', 'escalope_vegetale',
 ];
 
 /**

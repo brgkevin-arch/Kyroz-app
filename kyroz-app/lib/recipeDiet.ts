@@ -57,6 +57,13 @@ const VIOLATIONS: Record<string, DietaryRestriction[]> = {
   // un faux positif sert du gluten à un cœliaque).
   emince_vegetal: ['gluten_free'], galette_vegetale: ['gluten_free'],
   nuggets_vegetal: ['gluten_free'], boulette_vegetale: ['gluten_free'],
+  // ── Aliments végétaux absents de Ciqual (2026-09-14, `lib/etiquettesVegetales.ts`) ──
+  // Le gluten est lu sur les ÉTIQUETTES relevées : un seul produit au blé, ou qui déclare
+  // des traces de gluten, retire le sans gluten (même prudence que `boulette_vegetale`).
+  // Restent sans gluten : `filets_poulet_vegetal` et `jambon_vegetal`. Compté par
+  // `alimentsVegetaux.test.ts`, qui recalcule ce partage depuis les étiquettes.
+  lardons_vegetaux: ['gluten_free'], aiguillettes_poulet_vegetal: ['gluten_free'],
+  merguez_vegetale: ['gluten_free'], chorizo_vegetal: ['gluten_free'], escalope_vegetale: ['gluten_free'],
   // note : tofu/tempeh/quinoa/riz/maïs/polenta/nouilles_riz/galette_riz = sans gluten ;
   // lait_amande/lait_coco/creme_soja/boisson_soja = NON laitiers (compatibles lactose_free) ;
   // tahini = sésame → allergène, mais aucun des 7 régimes ne l'exclut (cf. champ allergènes, absent).
