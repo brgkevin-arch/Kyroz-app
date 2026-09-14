@@ -58,8 +58,11 @@ describe('le goût d\'une recette se lit sur ses ingrédients', () => {
     // Marqueur faible seul : riz au lait, pain perdu.
     expect(g('pd135'), 'riz au lait').toBe('sucre');
     expect(g('pd128'), 'pain perdu').toBe('sucre');
-    // Deux forts opposés : honnêtement mixte.
-    expect(g('col41'), 'galettes de riz, dinde, avocat, kiwi').toBe('mixte');
+    // Deux forts opposés : honnêtement mixte. Le cas réel était col41 (galettes de riz, dinde,
+    // avocat, kiwi) ; son kiwi était du remplissage, retiré le 2026-09-14, et plus aucun
+    // petit-déjeuner ni collation ne marie deux forts opposés. La règle se garde sur un cobaye.
+    const mixte = { ingredients: ['dinde_escalope', 'kiwi'].map((ref) => ({ name: ref, quantity_g: 1, ref })) };
+    expect(goutRecette(mixte), 'dinde et kiwi').toBe('mixte');
     // Et le cas qui a lancé le chantier.
     expect(g('pd112'), 'bol d\'edamame au millet et poivron').toBe('sale');
   });

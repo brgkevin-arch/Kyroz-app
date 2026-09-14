@@ -769,18 +769,38 @@ produit en suspens — il ne reste qu'à coder.
 ### 🍽 D — Catalogue
 
 - ⏭️ **RESTE À FAIRE — catalogue et moteur, relevé le 2026-09-14** (à lire avant D32 → D29)
-  1. 🧑 **Valider l'inventaire du remplissage** : page « Remplissage des recettes » (artifact
-     privé du fondateur, réponses dans sa base, collection `avis`). 206 lignes — 138
-     ingrédients de remplissage sur 124 recettes, 68 légitimes — dont **7 répondues** au
-     2026-09-14. Règle d'origine : pas d'ingrédient choisi pour la macro plutôt que pour le
-     plat (fiche D31).
-  2. 🤖 **Réécrire les recettes validées.** Chaque remplacement se MESURE au moteur (profils
-     servis sur 12, repas mal calibrés) : dans **81 cas**, retirer l'ingrédient sans le
-     remplacer fait tomber la recette à 0–2 profils. Renommer les recettes reprises (D31),
-     et un test qui empêche le remplissage de revenir. Ajouter `pd36` et `pd66` (pancakes
-     cuits à la poêle sans aucun corps gras). ⚠️ `rep52` a été validé sur une formulation
-     FAUSSE (« le gras vient déjà de la vinaigrette » : la recette n'en a pas) — appliquer la
-     corrigée (vinaigrette à l'huile d'olive) en le disant au fondateur.
+  1. ✅ **Inventaire du remplissage validé** (2026-09-14) : 180 lignes sur 206 « d'accord »,
+     sans note ; les 26 lignes de soja texturé laissées exprès pour le point 3. Une seule
+     réponse portait sur une formulation périmée (`rep52`) : appliquée dans sa version corrigée.
+  2. 🔶 **Réécriture FAITE, PAS MERGÉE** — branche `feat/sans-remplissage`, PR en brouillon
+     (fiche D33 à écrire au merge). 104 recettes réécrites (ingrédients, étapes, nom quand le
+     plat change, macros et `tags.objectif` recalculés), `ENGINE_VERSION` 54 → 55 (précédents
+     v35, v43, v44 : composition changée sous le même id). Garde-fou neuf
+     `lib/__tests__/remplissage.test.ts` : 66 plats tolérés UN PAR UN avec la raison de la
+     relecture, 26 soja texturé en attente (ne peut que diminuer), **vérifié par 4 mutations**.
+     Cliquet anti-doublons R2 71 → 70. `pd36` et `pd66` NON repris : 3 g d'huile les font
+     passer de « sucré » à « mixte » (`goutRecette`), la poêle antiadhésive suffit.
+     **Mesuré à cibles FIGÉES sur main** (les cibles se relisent sur les plans servis : sans
+     les figer, le catalogue modifié déplace ses propres cibles et des recettes non touchées
+     bougent) : profils servis des 104 recettes 979 → 863, aucune à 0–2 ; aucun clone créé.
+     Vivier réel (cibles vivantes, `--vivier`) : petit-déjeuner −0,5 %, repas −3,2 %,
+     collations −5,0 % ; végan sans gluten au repas F 55 sèche 23 → 17, H 110 masse 15 → 18 ;
+     promesse « 70 % salé » du végétarien sans gluten tenue ; paires « même plat » sans repas
+     mal calibré. ⚠️ **Plus forte baisse : H 65 sèche pescétarien, 151 → 111 repas** — 30 des
+     42 sortants sont des recettes réécrites, trop grosses au dîner ou trop peu protéinées au
+     midi une fois la graine ou le laitage retiré. C'est le prix de la règle, pas un réglage.
+     🔴 **Deux tests rouges, à trancher par le fondateur avant merge** : `varieteFamille`
+     (premier plan avec jumelles : 20 % sur main, 25 % sur la branche pour un seuil de 22 % ;
+     38 % en coupant la pénalité de famille, mesuré avant le dernier recalage → le mécanisme
+     mord, c'est le tirage qui bouge, et le seuil est relatif au plan régénéré) ; `reroll`
+     « repetitive » (4 plats distincts sur le créneau le plus répétitif du profil par défaut,
+     2 attendus), apparu au dernier recalage des repas véganes, non diagnostiqué.
+     **Écarts à la formulation validée, à relire** : légumineuses ajoutées où la feta seule
+     manquait de protéines (rep202, rep223, rep263, rep266) ; aliments de D32 (pd92 poulet
+     végétal, pd97 jambon végétal, rep280 merguez végétales) ; gras différenciés pour ne pas
+     recréer de clones (rep76 avocat, rep182 et rep278 olives, rep203 parmesan, col100 tahini,
+     col118 olives). **À juger** : `col03` (devenu salé sans l'ananas, jamais présenté).
+     20 recettes cuisent encore à la poêle sans aucun ingrédient gras (32 sur main).
   3. 🤖 **PUIS le soja texturé** (décision fondateur : « on remplace le soja après ») par les
      aliments de D32, proposé recette par recette sur une page avant d'écrire ; les noms
      « soja » des recettes reprises deviennent « soja texturé ». Lié à D27.2 (steak, nuggets,
