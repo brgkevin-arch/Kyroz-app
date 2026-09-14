@@ -293,15 +293,25 @@ App mobile React Native (Expo Router, **SDK 57** depuis le 2026-08-27) de plans 
 > Cette ligne annonçait « Ciqual primaire + **Open Food Facts** secondaire », en statut
 > « Cible ». Open Food Facts **n'a jamais été branché** : zéro ligne de code, zéro appel.
 > La réalité, mesurée : la table `Recette/recettes-kyroz.json > ingredients_reference`
-> porte **132 refs** (2026-09-10), dont **117 réellement utilisées** par une recette.
-> **115/132 sont
+> porte **139 refs** (2026-09-14), dont **117 réellement utilisées** par une recette.
+> **115/139 sont
 > sourcées Ciqual** (`lib/recipeFoodMap.ts::REF_FOOD_ID` → base ANSES convertie dans
 > `lib/foods.generated.ts`), soit **102/117** en ne comptant que les utilisées, et
-> **17 sont saisies à la main** — celles que Ciqual ne couvre pas proprement : `whey`,
+> **24 sont saisies à la main** — celles que Ciqual ne couvre pas proprement : `whey`,
 > `skyr`, `yaourt_grec`, `cottage_cheese`, `proteine_vegetale`, `soja_texture`,
 > `yaourt_soja`, `yaourt_soja_proteine`, `levure_maltee`, `edamame`, `haricots_noirs`,
-> `haricots_noirs_conserve`, `millet`, `wrap_sans_gluten`, et trois mélanges
-> (`legumes_wok`, `ratatouille`, `fruits_rouges`).
+> `haricots_noirs_conserve`, `millet`, `wrap_sans_gluten`, trois mélanges
+> (`legumes_wok`, `ratatouille`, `fruits_rouges`), et **sept aliments végétaux** ajoutés
+> le 2026-09-14 (`filets_poulet_vegetal`, `aiguillettes_poulet_vegetal`,
+> `lardons_vegetaux`, `merguez_vegetale`, `chorizo_vegetal`, `jambon_vegetal`,
+> `escalope_vegetale`).
+> 🔴 **CES SEPT-LÀ NE SONT PAS « SAISIS AU JUGÉ » : ce sont des MOYENNES D'ÉTIQUETTES**
+> (décision fondateur : « une liste à côté de Ciqual pour les aliments qui n'y sont pas »).
+> Chaque produit relevé est cité avec sa page dans `lib/etiquettesVegetales.ts`, et le
+> catalogue comme la recherche d'aliments portent la moyenne calculée — jamais recopiée.
+> Garde-fou : `lib/__tests__/alimentsVegetaux.test.ts`. ⚠️ Trois ne reposent que sur UNE
+> marque (filets : Heura ; aiguillettes et lardons : une marque, deux variantes) : le
+> marché français n'en proposait pas d'autre trouvable le jour du relevé.
 > ⚠️ **Cette liste en comptait QUINZE pour un total qui en annonçait dix-sept** — elle
 > a été recopiée telle quelle depuis le 2026-08-05, ici et dans `docs/JOURNAL.md`, sans
 > que personne ne fasse la soustraction. Les deux absents étaient `haricots_noirs` et

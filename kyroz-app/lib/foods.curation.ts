@@ -1,4 +1,5 @@
 import { Food } from './types';
+import { FOODS_VEGETAUX_KYROZ } from './etiquettesVegetales';
 
 // ── Couche de curation Kyroz par-dessus la base Ciqual ────────────────────────
 //
@@ -55,6 +56,19 @@ export const DEFAULT_CURATION: CurationConfig = {
 
   renames: {
     'ciqual-13005': 'Banane', // « Banane, chair sans peau, crue » → nom courant
+    // Aliments végétaux : les noms du rayon (liste du fondateur, 2026-09-14). Les valeurs
+    // restent celles de l'ANSES — seul le libellé change, comme le permet la licence.
+    'ciqual-25227': 'Nuggets végétaux (soja et blé)',
+    'ciqual-20914': 'Steak végétal (soja)',
+    'ciqual-25593': 'Burger végétal (blé et soja)',
+    'ciqual-30181': 'Steak haché végétal (soja)',
+    'ciqual-25223': 'Émincés de poulet végétal (soja et blé)',
+    'ciqual-25589': 'Boulettes végétales (soja et/ou blé)',
+    'ciqual-25590': 'Falafels prêts à consommer',
+    'ciqual-20337': 'Saucisses végétales (tofu)',
+    'ciqual-20904': 'Tofu nature',
+    'ciqual-20912': 'Tofu fumé',
+    'ciqual-20906': 'Tofu soyeux',
   },
 
   overrides: {
@@ -78,6 +92,9 @@ export const DEFAULT_CURATION: CurationConfig = {
       fiber_g: 0,
       source: 'kyroz',
     },
+    // Aliments végétaux absents de Ciqual : moyenne des étiquettes du commerce, calculée
+    // dans lib/etiquettesVegetales.ts (jamais recopiée ici).
+    ...FOODS_VEGETAUX_KYROZ,
   ],
 };
 

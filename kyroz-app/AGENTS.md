@@ -768,6 +768,41 @@ produit en suspens — il ne reste qu'à coder.
 
 ### 🍽 D — Catalogue
 
+- ✅ **D32 · La liste végétale à côté de Ciqual — livrée le 2026-09-14**
+  (`lib/etiquettesVegetales.ts`, catalogue 132 → **139** ingrédients, aucune recette
+  modifiée, aucun `ENGINE_VERSION`). **Demande fondateur** : 19 aliments végétaux à trouver
+  dans l'app (nuggets, filets, émincés et aiguillettes de poulet végétal, steak, burger,
+  steak haché, boulettes, falafels, saucisses, lardons, merguez, chorizo, jambon, escalope,
+  tofu nature, fumé et soyeux, tempeh), d'abord pour remplacer le soja texturé glissé en
+  remplissage (inventaire du remplissage, même jour).
+  **Mesuré avant d'ajouter** : 12 des 19 existaient déjà, mappés sur l'aliment moyen de
+  l'ANSES, mais 8 de ces 12 ne servaient à 0 ou 1 recette. Ils prennent les noms du
+  fondateur (« Steak végétal », « Burger végétal », « Steak haché végétal », « Émincés de
+  poulet végétal », « Saucisses végétales », « Falafels »), dans le catalogue ET dans la
+  recherche d'aliments ; valeurs ANSES inchangées. Le tofu garde ses noms : les réserves
+  des utilisateurs s'apparient par le nom.
+  **7 absents de Ciqual, en MOYENNE D'ÉTIQUETTES** (décisions fondateur : moyenne de
+  marques ; un ingrédient par nom de la liste ; toutes les versions gardées, « un végan
+  vérifiera avant d'acheter » ; dans les recettes et dans la recherche). Relevé sur 20
+  étiquettes citées une à une : merguez (4 marques), escalope (4), jambon (2 marques,
+  4 produits), chorizo (2 marques, 3 produits), aiguillettes et lardons (1 marque,
+  2 variantes), filets (1 produit). Deux produits écartés, raison écrite : des mini-chorizos
+  SECS d'apéritif, et une page sans liste d'ingrédients. ⚠️ **Trois aliments reposent sur
+  une seule marque** : le marché français n'en offrait pas d'autre trouvable ce jour-là.
+  **Gluten lu sur les étiquettes, avec prudence** : un produit au blé ou qui déclare des
+  traces suffit à retirer le sans gluten. Restent sans gluten : filets et jambon végétal.
+  🔴 **Un trou existant fermé au passage** : écrire « gluten » dans les aliments évités
+  n'écartait ni les nuggets, ni le burger, ni les émincés, ni les boulettes, tous au blé
+  (familles `gluten` et `ble` de `lib/avoidance.ts`) ; le soja des nuggets, saucisses et
+  boulettes n'était pas couvert non plus.
+  ➡️ Garde-fou : `lib/__tests__/alimentsVegetaux.test.ts` — les 19 noms dans la
+  recherche, la moyenne des étiquettes dans le catalogue ET la recherche (fibres
+  comprises), aucun mapping Ciqual qui l'écraserait, gluten, soja et blé recalculés depuis
+  les étiquettes, calories de chaque étiquette cohérentes avec ses macros. **Vérifié par
+  6 mutations**, toutes rouges.
+  ⏭️ **Suite** : remplacer le soja texturé de remplissage des recettes par ces aliments
+  (liste « Remplissage des recettes » en cours de validation par le fondateur).
+
 - ✅ **D31 · Des noms de plats, pas des listes d'ingrédients — livré le 2026-09-14**
   (`Recette/recettes-kyroz.json`, champ `name` seul ; aucun `ENGINE_VERSION` : l'écran Plan
   rafraîchit un titre changé, cf. `Recette/README.md`). **Décisions fondateur** : style

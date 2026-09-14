@@ -145,4 +145,8 @@ export const REF_FIBER_MANUAL: Record<string, number> = {
   levure_maltee: 20,                              // levure maltée : très riche
   fruits_rouges: 4, legumes_wok: 2.5, ratatouille: 2, // mélanges (moyenne des composants)
   wrap_sans_gluten: 3.6,                          // calqué sur la tortilla de maïs (ciqual-7813)
+  // Aliments végétaux absents de Ciqual (2026-09-14) : moyenne des ÉTIQUETTES relevées,
+  // cf. lib/etiquettesVegetales.ts — `alimentsVegetaux.test.ts` vérifie l'égalité.
+  filets_poulet_vegetal: 1.4, aiguillettes_poulet_vegetal: 6.2, lardons_vegetaux: 3.2,
+  merguez_vegetale: 5.4, chorizo_vegetal: 5.1, jambon_vegetal: 2.9, escalope_vegetale: 4,
 };
