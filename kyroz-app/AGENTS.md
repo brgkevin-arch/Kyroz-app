@@ -784,10 +784,20 @@ produit en suspens — il ne reste qu'à coder.
   · **répétition** : le même féculent au plus une fois par jour ; un ingrédient de base
     courant dans 5 repas par semaine au plus, rare (millet, polenta, sarrasin, quinoa,
     châtaigne ; protéines végétales travaillées chez l'omnivore) dans 2 ;
-  · **« Équilibré » = restes** : le dîner des jours 1, 3 et 5 revient au déjeuner du
-    lendemain (adapté à sa cible, si le lendemain est le jour calendaire suivant et si
-    l'adaptation reste propre). La carte dit « Prévois une part de plus » au dîner et
-    « Restes du dîner d'hier » au déjeuner ; « Remplacer ce repas » casse la paire.
+  · **« Équilibré » = même plat** : le dîner des jours 1, 3 et 5 revient au déjeuner du
+    lendemain (adapté à SA cible, si le lendemain est le jour calendaire suivant et si
+    l'adaptation reste propre). 🔴 **Chaque repas garde ses propres quantités** (décision
+    fondateur du 2026-09-14 : « on doit avoir les quantités nécessaires à un repas et pas
+    prévoir une part de plus ») : la paire ne porte qu'un CONSEIL. Carte du dîner « Même
+    plat demain midi : tu peux cuisiner les deux en même temps », carte du déjeuner « Même
+    plat qu'hier soir : déjà prêt si tu l'as cuisiné en double » ; la fiche du dîner dit
+    que ses quantités sont celles du soir (celles de demain sont sur l'autre fiche), la
+    fiche du déjeuner GARDE ses étapes — rien ne dit que le conseil a été suivi.
+    ⚠️ La première version (« Prévois une part de plus » / « Restes du dîner d'hier, rien à
+    cuisiner ») a été écartée avant fusion : elle promettait un déjeuner sans cuisine et
+    une fiche du dîner qui n'affichait pas la part à cuisiner. `swapMeal` et
+    `carryTracking` passent par `accorderMemePlat` : une paire défaite perd ses DEUX
+    mentions, repas mangé compris.
   **Mécanisme** : des COUCHES d'exclusion dans `selectMealAdapted`, la plus importante
   d'abord (même recette le jour · plafond végétal · plat du midi · sur le pouce · même
   féculent · plafond d'ingrédient), chacune appliquée seulement s'il reste un candidat
@@ -811,14 +821,19 @@ produit en suspens — il ne reste qu'à coder.
   | petits-déjeuners « plat du midi » | 20–51 % | **0 %** |
   | collations pas « sur le pouce » | 53–82 % | **0 %** |
   | jours avec le même féculent deux fois | 30–49 % | **0 %** en « Équilibré », **0,1 %** en « Variété max » (« Répétitif » exempté : 39 %) |
-  | « Équilibré » : restes par semaine | 0 | **1,9–2,5** |
+  | « Équilibré » : même plat dîner → midi, par semaine | 0 | **1,9–2,5** |
   | « Équilibré » : recettes distinctes par semaine | 27,4–28 | **23,2–25,8** |
-  | « Équilibré » : cuisine par jour | 71–79 min | **57–65 min** |
+  | « Équilibré » : cuisine par jour, chaque plat cuisiné | 71–79 min | **65–74 min** |
+  | « Équilibré » : cuisine par jour, conseil suivi (les deux d'un coup) | 71–79 min | **57–65 min** |
   | repas mal calibrés (10 profils) | 83 | **88** |
   Écart calorique du jour inchangé (3,52 → 3,53 %). Drapeaux : pescétarien 5 → 11,
   végétarien sans gluten 10 → 15 ; en baisse ailleurs (sans gluten 3 → 0, omnivore « Peu
   importe » 5 → 3, vegan sans gluten 49 → 47). Les articles de courses ne baissent presque
-  pas (65,5 → 65,0 pour l'omnivore) : les restes économisent de la CUISINE, pas des achats.
+  pas (65,5 → 65,0 pour l'omnivore) : le même plat économise de la CUISINE, et seulement si
+  le conseil est suivi — pas des achats, chaque repas ayant ses propres quantités.
+  ⚠️ **La ligne « cuisine » disait 57–65 min sans condition** tant que le déjeuner était
+  compté comme « restes, rien à cuisiner ». Re-mesurée le 2026-09-14 après la décision
+  « chaque repas ses quantités » : ce gain n'existe que pour qui cuisine les deux d'un coup.
   🔴 **SIX TESTS EXISTANTS ONT ROUGI, ATTRIBUÉS UN PAR UN** (copie « sans D30 » : les six
   verts), et aucun n'a été relevé sans cette preuve :
   1. `reroll` (« Répétitif ») → **corrigé dans le moteur** (exemption ci-dessus) ;
@@ -855,16 +870,22 @@ produit en suspens — il ne reste qu'à coder.
   salés, dont 14 plats du midi ; sur 2 remplacements, aucune alternative salée n'était
   admissible et la semaine tombe à 4 salés sur 7. La vague de petits-déjeuners salés
   « à la française » à commander vaut donc pour le végétarien sans gluten comme pour le vegan.
-  ⚠️ **Non traité** : un repas « mangé » reporté par `carryTracking` garde sa mention de
-  restes même si le plan régénéré n'a plus la paire ; la fiche du dîner n'affiche que la
-  part du soir, pas ce qu'il faut cuisiner pour le lendemain ; la mention n'a pas été
-  regardée à l'écran (moteur testé, texte relu). Et le carnet a encore montré des noms de recettes en listes
-  (« Bœuf 5% – wok – nouilles complètes ») — chantier des noms humains, déjà noté.
+  ✅ **Regardé à l'écran le 2026-09-14** (preview web, profil « Équilibré », plan réel) :
+  dîner du vendredi et déjeuner du samedi, même saumon – patate douce – épinards, **735 et
+  815 kcal, saumon 120 et 160 g** — chaque fiche ses quantités, le conseil en tête de
+  fiche, les étapes toujours là au déjeuner.
+  ⚠️ **Non traité** : le carnet a encore montré des noms de recettes en listes
+  (« Bœuf 5% – wok – nouilles complètes ») — chantier des noms humains, déjà noté. Et une
+  piste ouverte par le fondateur, **reportée** : proposer en fin de semaine des plats qui
+  finissent ce qui a été ACHETÉ. Elle suppose de connaître les quantités réellement
+  achetées et restantes — saisies par l'utilisateur, ou devinées sans friction : à trancher.
   ➡️ Garde-fous : `lib/__tests__/coherenceHumaine.test.ts` et `repasHumain.test.ts`,
-  **vérifiés par 10 mutations** (plat du midi admis · collation qui cuit admise · même
-  féculent admis · plafond retiré · restes coupés · « Remplacer » ne casse plus la paire ·
-  jour calendaire ignoré · « Répétitif » plus exempté · poudres plafonnées · « sans
-  cuisson » plus retiré), toutes rouges.
+  **vérifiés par 12 mutations** (plat du midi admis · collation qui cuit admise · même
+  féculent admis · plafond retiré · paire coupée · « Remplacer » ne casse plus la paire ·
+  régénération qui garde les mentions d'une paire défaite · dîner qui porte la part du
+  lendemain · jour calendaire ignoré · « Répétitif » plus exempté · poudres plafonnées ·
+  « sans cuisson » plus retiré), toutes rouges. ⚠️ « Le dîner porte la part du lendemain »
+  était VERTE au premier jet : le test comparait le dîner à sa journée, qui gonflait avec lui.
 
 - ✅ **D29 · Une journée qui ressemble à une journée — livré le 2026-09-13**
   (`planEngine::regleVegetal`, `ENGINE_VERSION` 52 → 53, moteur seul, aucune migration).

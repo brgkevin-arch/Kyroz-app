@@ -1283,7 +1283,7 @@ export function nextPlanSeed(stored: string | null, reroll: boolean): number {
 // Version du moteur de génération : à incrémenter quand le scoring/sélection
 // change, pour que les plans EN CACHE se régénèrent automatiquement (la signature
 // change → l'auto-refresh de l'écran Plan rejoue la génération). v2 = lipides cadrés.
-const ENGINE_VERSION = 54; // v54 = lecture humaine (D30, lib/repasHumain.ts) : plus de plat du midi au petit-déjeuner, collations de 10 minutes au plus sans cuisson, le même féculent une fois par jour, ingrédient de base courant 5 repas par semaine et rare 2, et en « Équilibré » le dîner des jours 1, 3 et 5 revient en restes au déjeuner du lendemain. La sélection change, un plan en cache servirait l’ancienne ; v53 = cohérence de la journée (D29) : au plus 3 déjeuners ou dîners 100 % végétaux par semaine chez l’omnivore (« Peu importe » compris), un par jour, étalés sur la semaine ; halal et sans porc servis comme un omnivore qui a coché ses protéines ; au plus un déjeuner ou dîner sans poisson par jour chez le pescétarien ; jamais la même recette deux fois le même jour. La sélection change, un plan en cache servirait l’ancienne ; v52 = goût déclaré au petit-déjeuner et à la collation (sucré ou salé, lib/gout.ts, D28) : pénalité hors goût et part garantie de 70 %, la sélection change pour qui a répondu ; v51 = vague B10 (25 recettes du registre quotidien français : 15 petits-déjeuners pd123 à pd137, 10 collations salées col111 à col120) ET rotation par REGISTRE (registreKey, D25) : un porridge déjà servi pousse le suivant hors du panier, ce que la rotation par famille ne voyait pas. Repris de deux PR fermées sans merge le 2026-09-07 ; la composition de la semaine change, un plan en cache servirait l’ancienne ; v50 = les protéines préférées se lisent sur les REFS de protéine (plus sur tout le texte), les recettes 100 % végétales passent en retrait chez l’omnivore qui n’a pas coché « Végétal », et « répétitif » suit enfin les préférences avec un plafond de ceil(jours/2) services par recette : la sélection change, un plan en cache servirait l’ancienne ; v49 = détente de 10 % de la cible protéique sur les profils VÉGANES (voir tdee.ts, facteurProteineVegetal) : la cible protéique du repas vegan baisse, donc le moteur peut rétrécir les plats au lieu de les gonfler pour atteindre la protéine, donc un plan en cache servirait une sélection périmée ; v48 = vague B11 : 4 repas complets vegan bâtis sur les PIÈCES végétales (haché, émincé, boulettes, galette) ajoutées le même jour — familles neuves, les plans en cache ne les verraient pas ; v47 = créneaux de repas libres : l'ordre canonique de la journée devient CHRONOLOGIQUE (la collation de 16 h passe avant le dîner, elle était servie en dernier), donc le report de budget de repas en repas ne se fait plus dans le même ordre et un plan en cache servirait l'ancienne répartition ; v46 = le budget du jour suit la dépense RÉELLE du jour (`lib/dailyBudget.ts`) : le plan n'est plus isocalorique entre jours d'entraînement et jours de repos, un plan en cache servirait l'ancienne répartition ; v45 = `tags.objectif` (192 recettes) et `tags.sport` (148) recalculés mécaniquement depuis les kcal du moteur, et `recup_jour_repos` supprimé : le départage `needMatch` lit objectif+sport, donc la sélection change et un plan en cache servirait l'ancienne ; v44 = 47 recettes dont la légumineuse était pesée SÈCHE alors que les instructions la cuisinaient en moins de 40 min : 44 passent sur un `ref` prêt à consommer (macros ET composition changées sous les mêmes ids, un plan en cache servirait l'ancienne pesée), 3 gardent le sec avec un `temps_min` corrigé ; v43 = rep10 réécrit (curry de pois chiches → tofu + pois chiches au lait de coco) : composition changée sous le même id, un plan en cache servirait l'ancienne recette ; v42 = vague B9 : 8 collations GRAND FORMAT (col103–col110, 380–460 kcal) — un format inédit, les gros gabarits n'étaient servis que par étirement ; v41 = vague B8 : 8 collations vegan + sans gluten (col95–col102), familles neuves — les plans en cache ne les verraient pas ; v40 = vague B7 : 30 recettes végétales ajoutées — 12 petits-déjeuners (pd111–pd122), 10 repas complets (rep271–rep280), 8 collations (col87–col94) ; les plans en cache ne les verraient pas ; v39 = la pénalité de FAMILLE s'applique aussi au plan canonique (`FAMILY_SELECT_W_CANON`) — le 1er plan servi passe de 45,0 à 23,3 % de semaines avec quasi-doublon ; un plan en cache servirait encore l'ancienne composition ; v38 = rotation par FAMILLE (`FAMILY_FIBER_TOL`) — la composition de la semaine change, un plan en cache servirait l'ancienne rotation ; v37 = lot B6, 7 collations vegan ajoutées (col80–col86) — les plans en cache ne les verraient pas ; v36 = plancher protéique par repas (`PROT_SHARE_FLOOR`) — la répartition intra-journée change, les plans en cache serviraient l’ancienne ; v35 = lot B5, 20 collations réécrites (composition changée sous le même id → les plans en cache serviraient l’ancienne recette) ; v34 = lot B4, 32 recettes à l’enveloppe corrigée (rep251–rep270, pd99–pd110) — les plans en cache ne les verraient pas ; v33 = lot B3, 20 petits-déjeuners (pd79–pd98) — tous les lots commandés sont livrés ; v32 = lot B1-lot4, 20 repas complets — la vague B1 est complète (rep171–rep250) ; v31 = lot B1-lot3, 20 repas complets ; v30 = lot B1-lot2, 20 repas complets ; v29 = lot B1-lot1, 20 repas complets (les plans en cache ne les verraient pas) ; v28 = cible lipidique visée 15 % au-dessus du plancher (A9) — les plans en cache serviraient l'ancienne répartition ; v27 = lot B2, 13 collations légères (les plans en cache ne les verraient pas) ; v26 = banque de calories (les plans en cache ignoraient les écarts déclarés) ; v25 = borne basse de l'ancre protéine 1,0 → 0,5 (les plans en cache servaient l'ancien plancher) ; v24 = 9 recettes différenciées (nettoyage des doublons : composition modifiée) ; v23 = ancre protéine rendue à 8 recettes ; v22 = le temps de prépa ne filtre plus ; v21 = yaourt_grec démappé
+const ENGINE_VERSION = 54; // v54 = lecture humaine (D30, lib/repasHumain.ts) : plus de plat du midi au petit-déjeuner, collations de 10 minutes au plus sans cuisson, le même féculent une fois par jour, ingrédient de base courant 5 repas par semaine et rare 2, et en « Équilibré » le même plat au dîner des jours 1, 3 et 5 puis au déjeuner du lendemain, chaque repas avec ses propres quantités. La sélection change, un plan en cache servirait l’ancienne ; v53 = cohérence de la journée (D29) : au plus 3 déjeuners ou dîners 100 % végétaux par semaine chez l’omnivore (« Peu importe » compris), un par jour, étalés sur la semaine ; halal et sans porc servis comme un omnivore qui a coché ses protéines ; au plus un déjeuner ou dîner sans poisson par jour chez le pescétarien ; jamais la même recette deux fois le même jour. La sélection change, un plan en cache servirait l’ancienne ; v52 = goût déclaré au petit-déjeuner et à la collation (sucré ou salé, lib/gout.ts, D28) : pénalité hors goût et part garantie de 70 %, la sélection change pour qui a répondu ; v51 = vague B10 (25 recettes du registre quotidien français : 15 petits-déjeuners pd123 à pd137, 10 collations salées col111 à col120) ET rotation par REGISTRE (registreKey, D25) : un porridge déjà servi pousse le suivant hors du panier, ce que la rotation par famille ne voyait pas. Repris de deux PR fermées sans merge le 2026-09-07 ; la composition de la semaine change, un plan en cache servirait l’ancienne ; v50 = les protéines préférées se lisent sur les REFS de protéine (plus sur tout le texte), les recettes 100 % végétales passent en retrait chez l’omnivore qui n’a pas coché « Végétal », et « répétitif » suit enfin les préférences avec un plafond de ceil(jours/2) services par recette : la sélection change, un plan en cache servirait l’ancienne ; v49 = détente de 10 % de la cible protéique sur les profils VÉGANES (voir tdee.ts, facteurProteineVegetal) : la cible protéique du repas vegan baisse, donc le moteur peut rétrécir les plats au lieu de les gonfler pour atteindre la protéine, donc un plan en cache servirait une sélection périmée ; v48 = vague B11 : 4 repas complets vegan bâtis sur les PIÈCES végétales (haché, émincé, boulettes, galette) ajoutées le même jour — familles neuves, les plans en cache ne les verraient pas ; v47 = créneaux de repas libres : l'ordre canonique de la journée devient CHRONOLOGIQUE (la collation de 16 h passe avant le dîner, elle était servie en dernier), donc le report de budget de repas en repas ne se fait plus dans le même ordre et un plan en cache servirait l'ancienne répartition ; v46 = le budget du jour suit la dépense RÉELLE du jour (`lib/dailyBudget.ts`) : le plan n'est plus isocalorique entre jours d'entraînement et jours de repos, un plan en cache servirait l'ancienne répartition ; v45 = `tags.objectif` (192 recettes) et `tags.sport` (148) recalculés mécaniquement depuis les kcal du moteur, et `recup_jour_repos` supprimé : le départage `needMatch` lit objectif+sport, donc la sélection change et un plan en cache servirait l'ancienne ; v44 = 47 recettes dont la légumineuse était pesée SÈCHE alors que les instructions la cuisinaient en moins de 40 min : 44 passent sur un `ref` prêt à consommer (macros ET composition changées sous les mêmes ids, un plan en cache servirait l'ancienne pesée), 3 gardent le sec avec un `temps_min` corrigé ; v43 = rep10 réécrit (curry de pois chiches → tofu + pois chiches au lait de coco) : composition changée sous le même id, un plan en cache servirait l'ancienne recette ; v42 = vague B9 : 8 collations GRAND FORMAT (col103–col110, 380–460 kcal) — un format inédit, les gros gabarits n'étaient servis que par étirement ; v41 = vague B8 : 8 collations vegan + sans gluten (col95–col102), familles neuves — les plans en cache ne les verraient pas ; v40 = vague B7 : 30 recettes végétales ajoutées — 12 petits-déjeuners (pd111–pd122), 10 repas complets (rep271–rep280), 8 collations (col87–col94) ; les plans en cache ne les verraient pas ; v39 = la pénalité de FAMILLE s'applique aussi au plan canonique (`FAMILY_SELECT_W_CANON`) — le 1er plan servi passe de 45,0 à 23,3 % de semaines avec quasi-doublon ; un plan en cache servirait encore l'ancienne composition ; v38 = rotation par FAMILLE (`FAMILY_FIBER_TOL`) — la composition de la semaine change, un plan en cache servirait l'ancienne rotation ; v37 = lot B6, 7 collations vegan ajoutées (col80–col86) — les plans en cache ne les verraient pas ; v36 = plancher protéique par repas (`PROT_SHARE_FLOOR`) — la répartition intra-journée change, les plans en cache serviraient l’ancienne ; v35 = lot B5, 20 collations réécrites (composition changée sous le même id → les plans en cache serviraient l’ancienne recette) ; v34 = lot B4, 32 recettes à l’enveloppe corrigée (rep251–rep270, pd99–pd110) — les plans en cache ne les verraient pas ; v33 = lot B3, 20 petits-déjeuners (pd79–pd98) — tous les lots commandés sont livrés ; v32 = lot B1-lot4, 20 repas complets — la vague B1 est complète (rep171–rep250) ; v31 = lot B1-lot3, 20 repas complets ; v30 = lot B1-lot2, 20 repas complets ; v29 = lot B1-lot1, 20 repas complets (les plans en cache ne les verraient pas) ; v28 = cible lipidique visée 15 % au-dessus du plancher (A9) — les plans en cache serviraient l'ancienne répartition ; v27 = lot B2, 13 collations légères (les plans en cache ne les verraient pas) ; v26 = banque de calories (les plans en cache ignoraient les écarts déclarés) ; v25 = borne basse de l'ancre protéine 1,0 → 0,5 (les plans en cache servaient l'ancien plancher) ; v24 = 9 recettes différenciées (nettoyage des doublons : composition modifiée) ; v23 = ancre protéine rendue à 8 recettes ; v22 = le temps de prépa ne filtre plus ; v21 = yaourt_grec démappé
 
 export function profileSignature(p: UserProfile): string {
   // NB : `hidden_recipes` (👎) est VOLONTAIREMENT absent. Un 👎 remplace UN repas
@@ -1626,10 +1626,10 @@ export function buildLocalPlan(profile: UserProfile, seed: number = 0): MealPlan
   const ingredientSemaine: Record<string, number> = {};
   const plafondDepasse = (r: Recipe) =>
     ingredientsDeBase(r).some((ref) => (ingredientSemaine[ref] ?? 0) >= plafondIngredient(ref, profile));
-  // RESTES (« Équilibré ») : le dîner des jours 1, 3 et 5 revient au déjeuner du lendemain,
+  // MÊME PLAT (« Équilibré ») : le dîner des jours 1, 3 et 5 revient au déjeuner du lendemain,
   // à condition que le lendemain soit le jour CALENDAIRE suivant (un plan lundi-mercredi-
   // vendredi ne sert pas le dîner de lundi mercredi midi).
-  const JOURS_RESTES = new Set([1, 3, 5]);
+  const JOURS_MEME_PLAT = new Set([1, 3, 5]);
   const wd = profile.plan_weekdays ?? [];
   const lendemainCalendaire = (d: number) =>
     wd.length >= d + 1 ? (wd[d] - wd[d - 1] + 7) % 7 === 1 : true;
@@ -1781,26 +1781,27 @@ export function buildLocalPlan(profile: UserProfile, seed: number = 0): MealPlan
       const goutImpose = goutGaranti && !!goutMatch
         && goutAImposer(goutQuota, goutDejaServis, goutTotal - (goutPasses[slot.pool] ?? 0));
 
-      // RESTES (« Équilibré », D30) : au premier créneau principal du lendemain d'un jour de
-      // restes, on ressert le dîner de la veille, ADAPTÉ à la cible de ce déjeuner — à
-      // condition qu'aucune couche ne l'exclue et que l'adaptation reste propre. Sinon,
-      // sélection ordinaire, et le dîner de la veille ne porte aucune mention.
+      // MÊME PLAT (« Équilibré », D30) : au premier créneau principal du lendemain d'un jour
+      // de même plat, on ressert le dîner de la veille, ADAPTÉ à la cible de CE déjeuner —
+      // ses quantités sont les siennes, jamais une part prélevée sur le dîner — à condition
+      // qu'aucune couche ne l'exclue et que l'adaptation reste propre. Sinon, sélection
+      // ordinaire, et le dîner de la veille ne porte aucune mention.
       const premierPrincipalDuJour = principal && !dayMeals.some((m) => !m.fixed && slotOrFallback(slots, m.meal_type).pool === 'meal');
-      const veille = variety === 'balanced' && premierPrincipalDuJour && d > 1 && JOURS_RESTES.has(d - 1) && lendemainCalendaire(d - 1)
+      const veille = variety === 'balanced' && premierPrincipalDuJour && d > 1 && JOURS_MEME_PLAT.has(d - 1) && lendemainCalendaire(d - 1)
         ? [...meals].reverse().find((m) => m.day === d - 1 && !m.fixed && slotOrFallback(slots, m.meal_type).pool === 'meal')
         : undefined;
-      let reste: AdaptedChoice | null = null;
+      let memePlat: AdaptedChoice | null = null;
       if (veille && !exclusions.some((ex) => ex(veille.recipe))) {
         const a = adaptRecipe(veille.recipe, target);
         if (!a.flags.some((f) => FLAG_AUDIENCE[f] === 'user')) {
-          reste = {
+          memePlat = {
             recipe: veille.recipe, ingredients: a.ingredients, macros: a.macros, gap: a.gap, flags: a.flags,
             score: 0, fiber: 0, preferred: false, need: 0,
           };
-          veille.cook_for_tomorrow = true;
+          veille.same_dish_tomorrow = true;
         }
       }
-      const choice = reste ?? selectMealAdapted(
+      const choice = memePlat ?? selectMealAdapted(
         pools[mealType], target, usage, familyUsage, families,
         registreUsage, slot.pool === 'breakfast' && rotationRegistre ? registres : SANS_REGISTRE,
         variety, preferredIds, enRetraitIds, maxUsageRepetitif, goutMatch, goutImpose, exclusions,
@@ -1837,7 +1838,7 @@ export function buildLocalPlan(profile: UserProfile, seed: number = 0): MealPlan
         adapt_gap: choice.gap,
         restriction_relaxed: relaxed[mealType] || undefined,
         rest_day: isRest || undefined,
-        leftover_from_prev: reste ? true : undefined,
+        same_dish_yesterday: memePlat ? true : undefined,
       });
     }
 
@@ -2001,19 +2002,41 @@ export function swapMeal(profile: UserProfile, plan: MealPlan, meal: Meal, favor
     adapted_ingredients: pick.a.ingredients,
     adapt_flags: pick.a.flags.length ? pick.a.flags : undefined,
     adapt_gap: pick.a.gap,
-    cook_for_tomorrow: undefined,
-    leftover_from_prev: undefined,
+    same_dish_tomorrow: undefined,
+    same_dish_yesterday: undefined,
   };
-  // RESTES (D30) : remplacer l'un des deux repas d'une paire casse la paire. Sans ça, le
-  // dîner annoncerait « prévois une part de plus » pour un déjeuner qui n'est plus le sien,
-  // ou le déjeuner dirait « restes d'hier » d'un plat que personne n'a cuisiné.
-  const casse = (m: Meal): Meal => {
-    if (meal.cook_for_tomorrow && m.leftover_from_prev && m.day === meal.day + 1) return { ...m, leftover_from_prev: undefined };
-    if (meal.leftover_from_prev && m.cook_for_tomorrow && m.day === meal.day - 1) return { ...m, cook_for_tomorrow: undefined };
-    return m;
-  };
-  const meals = plan.meals.map((m) => (m.id === meal.id ? newMeal : casse(m)));
+  // MÊME PLAT (D30) : remplacer l'un des deux repas d'une paire casse la paire. Sans ça, le
+  // dîner annoncerait « même plat demain midi » pour un déjeuner qui n'est plus le sien.
+  const meals = accorderMemePlat(plan.meals.map((m) => (m.id === meal.id ? newMeal : m)));
   return { ...plan, meals, total_macros_per_day: computeDailyTotals(meals, plan.days, plan.day_extras) };
+}
+
+/**
+ * MÊME PLAT (D30) : une mention ne vaut que si sa paire existe ENCORE — dîner du jour d
+ * marqué « demain », déjeuner du jour d+1 marqué « hier », même recette. Sinon les deux
+ * tombent. On n'en crée jamais : seule la génération décide d'une paire.
+ *
+ * Appelé partout où un repas peut changer de recette APRÈS la génération : « Remplacer ce
+ * repas » (`swapMeal`) et la régénération qui reporte un repas mangé ENTIER, mentions
+ * comprises (`carryTracking`). Rend le même tableau quand rien ne tombe.
+ */
+export function accorderMemePlat(meals: Meal[]): Meal[] {
+  const cle = (m: Meal) => `${m.day}|${m.recipe.id}`;
+  const attenduDemain = new Set(meals.filter((m) => m.same_dish_tomorrow).map((m) => `${m.day + 1}|${m.recipe.id}`));
+  const attenduHier = new Set(meals.filter((m) => m.same_dish_yesterday).map((m) => `${m.day - 1}|${m.recipe.id}`));
+  let change = false;
+  const out = meals.map((m) => {
+    const perdDemain = !!m.same_dish_tomorrow && !attenduHier.has(cle(m));
+    const perdHier = !!m.same_dish_yesterday && !attenduDemain.has(cle(m));
+    if (!perdDemain && !perdHier) return m;
+    change = true;
+    return {
+      ...m,
+      same_dish_tomorrow: perdDemain ? undefined : m.same_dish_tomorrow,
+      same_dish_yesterday: perdHier ? undefined : m.same_dish_yesterday,
+    };
+  });
+  return change ? out : meals;
 }
 
 /**
@@ -2338,12 +2361,14 @@ export function carryTracking(profile: UserProfile, ancien: MealPlan | null | un
   // Les ids de repas sont `${jour}-${créneau}` : stables d'une génération à l'autre.
   const parId = new Map(ancien.meals.map((m) => [m.id, m]));
   const joursTouches = new Set<number>();
-  const meals = nouveau.meals.map((m) => {
+  // Un repas mangé revient ENTIER, mention « même plat » comprise (D30) : si le plan neuf ne
+  // ressert plus ce plat de l'autre côté de la paire, `accorderMemePlat` fait tomber les deux.
+  const meals = accorderMemePlat(nouveau.meals.map((m) => {
     const av = parId.get(m.id);
     if (!av?.status) return m;
     joursTouches.add(m.day);
     return av.status === 'eaten' ? av : { ...m, status: av.status };
-  });
+  }));
   for (const d of Object.keys(ancien.day_extras ?? {})) joursTouches.add(Number(d));
   if (joursTouches.size === 0) return nouveau;
   let next: MealPlan = {

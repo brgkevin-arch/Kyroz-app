@@ -1222,6 +1222,7 @@ export default function PlanScreen() {
             adaptFlags={selectedMeal.adapt_flags}
             adaptGap={selectedMeal.adapt_gap}
             restrictionRelaxed={selectedMeal.restriction_relaxed}
+            memePlat={selectedMeal.same_dish_tomorrow ? 'demain' : selectedMeal.same_dish_yesterday ? 'hier' : undefined}
             custom={isCustom(selectedMeal.recipe.id)}
             status={selectedMeal.status}
             onEdit={() => setEditingRecipe(selectedMeal.recipe)}

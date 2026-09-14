@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { makeProfile } from './helpers';
 import { recalcProfile } from '../tdee';
-import { buildLocalPlan, swapMeal } from '../planEngine';
+import { buildLocalPlan, carryTracking, swapMeal } from '../planEngine';
 import { feculentsDe, ingredientsDeBase, plafondIngredient, platDuMidi, surLePouce } from '../repasHumain';
 import { DietaryRestriction, MealPlan, UserProfile, VarietyPreference } from '../types';
 import { FLAG_AUDIENCE } from '../adaptRecipe';
@@ -18,8 +18,8 @@ import { FLAG_AUDIENCE } from '../adaptRecipe';
 //   collations pas « sur le pouce »          53–82 % → 0 %
 //   jours avec le même féculent deux fois    30–49 % → 0 %
 //   semaines au-delà d'un plafond (omnivore)  ~100 % → 0 %
-//   « Équilibré » : restes par semaine            0 → 1,9–2,5
-//   « Équilibré » : cuisine par jour (omnivore)  73 → 59 min
+//   « Équilibré » : même plat dîner → midi        0 → 1,9–2,5 par semaine
+//   (chaque repas garde SES quantités : la paire n'est qu'un conseil, décision du 2026-09-14)
 //   repas mal calibrés (10 profils)              83 → 94
 
 const M4 = ['breakfast', 'lunch', 'dinner', 'snack'] as const;
@@ -103,54 +103,105 @@ describe('ce qui revient (« Équilibré » et « Variété max »)', () => {
   });
 });
 
-describe('« Équilibré » : le dîner revient en restes au déjeuner du lendemain', () => {
-  it.each(PROFILS)('%s : chaque reste a sa paire, et seulement les lendemains des jours 1, 3 et 5', (_n, over) => {
-    let restes = 0, semaines = 0;
+describe('« Équilibré » : le même plat au dîner puis au déjeuner du lendemain', () => {
+  it.each(PROFILS)('%s : chaque mention a sa paire, et seulement les lendemains des jours 1, 3 et 5', (_n, over) => {
+    let paires = 0, semaines = 0;
     for (const { plan } of plans(over, ['balanced'])) {
       semaines++;
       for (const m of plan.meals) {
-        if (m.leftover_from_prev) {
-          restes++;
-          expect([2, 4, 6], `reste au jour ${m.day}`).toContain(m.day);
+        if (m.same_dish_yesterday) {
+          paires++;
+          expect([2, 4, 6], `même plat au jour ${m.day}`).toContain(m.day);
           expect(m.meal_type).toBe('lunch');
           const veille = plan.meals.find((x) => x.day === m.day - 1 && x.meal_type === 'dinner');
           expect(veille?.recipe.id, `jour ${m.day}`).toBe(m.recipe.id);
-          expect(veille?.cook_for_tomorrow).toBe(true);
+          expect(veille?.same_dish_tomorrow).toBe(true);
           expect((m.adapt_flags ?? []).filter((f) => FLAG_AUDIENCE[f] === 'user')).toEqual([]);
         }
-        if (m.cook_for_tomorrow) {
+        if (m.same_dish_tomorrow) {
           const demain = plan.meals.find((x) => x.day === m.day + 1 && x.meal_type === 'lunch');
-          expect(demain?.leftover_from_prev, `dîner du jour ${m.day} annoncé sans déjeuner de restes`).toBe(true);
+          expect(demain?.same_dish_yesterday, `dîner du jour ${m.day} annoncé sans déjeuner identique`).toBe(true);
         }
       }
     }
-    // La sonde sait dire OUI : mesuré 1,9 à 2,5 restes par semaine.
-    expect(restes / semaines, 'aucun reste servi : la règle est morte').toBeGreaterThanOrEqual(1);
+    // La sonde sait dire OUI : mesuré 1,9 à 2,5 paires par semaine.
+    expect(paires / semaines, 'aucune paire servie : la règle est morte').toBeGreaterThanOrEqual(1);
   });
 
-  it('« Répétitif » et « Variété max » ne servent aucun reste', () => {
+  // 🔴 DÉCISION FONDATEUR DU 2026-09-14 : « chaque fois que l'on cuisine un plat, on doit
+  // avoir les quantités nécessaires à UN repas, pas prévoir une part de plus ». Le dîner
+  // d'une paire se compare à son JUMEAU du lendemain midi — même recette, cible voisine :
+  // doublé, il en vaudrait ~1,8 fois.
+  // ⚠️ La première version comparait le dîner à sa JOURNÉE (< 50 %) : vérifiée par
+  // mutation, elle restait verte sur un dîner doublé (46 %), la journée gonflant avec lui.
+  it.each(PROFILS)('%s : le dîner d\'une paire ne porte que sa propre portion', (_n, over) => {
+    for (const { plan } of plans(over, ['balanced'])) {
+      for (const m of plan.meals.filter((x) => x.same_dish_tomorrow)) {
+        const jumeau = plan.meals.find((x) => x.day === m.day + 1 && x.same_dish_yesterday)!;
+        expect(m.macros.kcal / jumeau.macros.kcal, `dîner du jour ${m.day}`).toBeLessThan(1.5);
+      }
+    }
+  });
+
+  it('« Répétitif » et « Variété max » ne servent aucune paire', () => {
     for (const { plan } of [...plans({}, ['repetitive']), ...plans({}, ['max'])])
-      expect(plan.meals.filter((m) => m.leftover_from_prev || m.cook_for_tomorrow)).toEqual([]);
+      expect(plan.meals.filter((m) => m.same_dish_yesterday || m.same_dish_tomorrow)).toEqual([]);
   });
 
-  it('pas de reste entre deux jours du plan qui ne se suivent pas au calendrier', () => {
+  it('pas de paire entre deux jours du plan qui ne se suivent pas au calendrier', () => {
     // Lundi, mercredi, vendredi, samedi : le dîner de lundi ne se sert pas mercredi midi.
     const over = { plan_days: 4, plan_weekdays: [1, 3, 5, 6] } as Partial<UserProfile>;
     for (const { plan } of plans(over, ['balanced']))
-      expect(plan.meals.find((m) => m.day === 2 && m.leftover_from_prev), 'reste servi le mercredi').toBeUndefined();
+      expect(plan.meals.find((m) => m.day === 2 && m.same_dish_yesterday), 'même plat servi le mercredi').toBeUndefined();
   });
 
   it('« Remplacer ce repas » casse la paire, dans les deux sens', () => {
-    const { p, plan } = plans({}, ['balanced']).find(({ plan }) => plan.meals.some((m) => m.leftover_from_prev))!;
-    const dejeuner = plan.meals.find((m) => m.leftover_from_prev)!;
-    const diner = plan.meals.find((m) => m.day === dejeuner.day - 1 && m.cook_for_tomorrow)!;
+    const { p, plan } = plans({}, ['balanced']).find(({ plan }) => plan.meals.some((m) => m.same_dish_yesterday))!;
+    const dejeuner = plan.meals.find((m) => m.same_dish_yesterday)!;
+    const diner = plan.meals.find((m) => m.day === dejeuner.day - 1 && m.same_dish_tomorrow)!;
 
     const apresDejeuner = swapMeal(p, plan, dejeuner);
-    expect(apresDejeuner.meals.find((m) => m.id === dejeuner.id)!.leftover_from_prev).toBeUndefined();
-    expect(apresDejeuner.meals.find((m) => m.id === diner.id)!.cook_for_tomorrow).toBeUndefined();
+    expect(apresDejeuner.meals.find((m) => m.id === dejeuner.id)!.same_dish_yesterday).toBeUndefined();
+    expect(apresDejeuner.meals.find((m) => m.id === diner.id)!.same_dish_tomorrow).toBeUndefined();
 
     const apresDiner = swapMeal(p, plan, diner);
-    expect(apresDiner.meals.find((m) => m.id === diner.id)!.cook_for_tomorrow).toBeUndefined();
-    expect(apresDiner.meals.find((m) => m.id === dejeuner.id)!.leftover_from_prev).toBeUndefined();
+    expect(apresDiner.meals.find((m) => m.id === diner.id)!.same_dish_tomorrow).toBeUndefined();
+    expect(apresDiner.meals.find((m) => m.id === dejeuner.id)!.same_dish_yesterday).toBeUndefined();
+  });
+
+  // Un repas MANGÉ est reporté ENTIER par `carryTracking`, mentions comprises. Si le plan
+  // régénéré ne ressert plus le même plat de l'autre côté, la mention deviendrait fausse.
+  it('une régénération qui défait la paire fait tomber ses mentions, repas mangé compris', () => {
+    const { p, plan } = plans({}, ['balanced']).find(({ plan }) => plan.meals.some((m) => m.same_dish_yesterday))!;
+    const dejeuner = plan.meals.find((m) => m.same_dish_yesterday)!;
+    const diner = plan.meals.find((m) => m.day === dejeuner.day - 1 && m.same_dish_tomorrow)!;
+    const mange = (id: string): MealPlan => ({
+      ...plan, tracking_date: '2026-09-14',
+      meals: plan.meals.map((m) => (m.id === id ? { ...m, status: 'eaten' as const } : m)),
+    });
+    const trouve = (m: typeof diner, autre: string) => {
+      for (let s = 0; s < 40; s++) {
+        const neuf = buildLocalPlan(p, s);
+        if (neuf.meals.find((x) => x.id === autre)!.recipe.id !== m.recipe.id) return neuf;
+      }
+      throw new Error('aucun tirage ne défait la paire');
+    };
+
+    // La sonde sait dire OUI : régénéré à l'identique, la paire tient.
+    const garde = carryTracking(p, mange(diner.id), plan);
+    expect(garde.meals.find((m) => m.id === diner.id)!.same_dish_tomorrow).toBe(true);
+    expect(garde.meals.find((m) => m.id === dejeuner.id)!.same_dish_yesterday).toBe(true);
+
+    // Dîner mangé, déjeuner du lendemain devenu un autre plat.
+    const a = carryTracking(p, mange(diner.id), trouve(diner, dejeuner.id));
+    expect(a.meals.find((m) => m.id === diner.id)!.status).toBe('eaten');
+    expect(a.meals.find((m) => m.id === diner.id)!.same_dish_tomorrow).toBeUndefined();
+    expect(a.meals.find((m) => m.id === dejeuner.id)!.same_dish_yesterday).toBeUndefined();
+
+    // Déjeuner mangé, dîner de la veille devenu un autre plat.
+    const b = carryTracking(p, mange(dejeuner.id), trouve(dejeuner, diner.id));
+    expect(b.meals.find((m) => m.id === dejeuner.id)!.status).toBe('eaten');
+    expect(b.meals.find((m) => m.id === dejeuner.id)!.same_dish_yesterday).toBeUndefined();
+    expect(b.meals.find((m) => m.id === diner.id)!.same_dish_tomorrow).toBeUndefined();
   });
 });
