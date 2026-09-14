@@ -179,10 +179,19 @@ describe('rotation par FAMILLE (protéine × féculent)', () => {
       }
       return (avecClone / semaines) * 100;
     };
+    // 🔴 SEUIL FIXE DEPUIS LE 2026-09-15 (décision fondateur, chantier « pas de remplissage »).
+    // L'ancienne borne, « régénéré + 15 points », était RELATIVE : elle durcissait chaque fois que
+    // le plan régénéré s'améliorait (défaut déjà consigné plus haut), et chaque vague de catalogue
+    // redistribue le tirage du canonique — 19 à 25 repas sur 28 changent d'une version à l'autre.
+    // Mesuré sur la réécriture de 104 recettes : canonique 20 % sur main, 25 % sur la branche,
+    // 38 % en coupant `FAMILY_SELECT_W_CANON` ; régénéré 7 %. Ce que le test garde est la
+    // DISPARITION de la pénalité (38 à 45 % de semaines avec jumelles), pas un chiffre du tirage :
+    // 30 % se tient entre les deux. Rappel : le « même plat » dîner → déjeuner du lendemain (D30)
+    // est UNE recette, il ne compte pas ici — seules comptent deux recettes différentes.
     const canonique = compte([0]);
     const regenere = compte([1, 2, 3]);
-    expect(canonique, `canonique ${canonique.toFixed(1)} % vs régénéré ${regenere.toFixed(1)} %`)
-      .toBeLessThanOrEqual(regenere + 15);
+    expect(canonique, `canonique ${canonique.toFixed(1)} % (régénéré ${regenere.toFixed(1)} %) : la pénalité de famille au plan canonique a-t-elle disparu ?`)
+      .toBeLessThanOrEqual(30);
   });
 
   it('le plan canonique (`repetitive`, seed 0) ignore la famille et reste déterministe', () => {

@@ -789,7 +789,12 @@ produit en suspens — il ne reste qu'à coder.
      mal calibré. ⚠️ **Plus forte baisse : H 65 sèche pescétarien, 151 → 111 repas** — 30 des
      42 sortants sont des recettes réécrites, trop grosses au dîner ou trop peu protéinées au
      midi une fois la graine ou le laitage retiré. C'est le prix de la règle, pas un réglage.
-     🔴 **Deux tests rouges, à trancher par le fondateur avant merge** : `varieteFamille`
+     ✅ **Tranché par le fondateur le 2026-09-15** : baisse pescétarienne acceptée (les profils
+     spécifiques seront enrichis plus tard) ; les deux tests rouges ci-dessous AMENDÉS, vérifiés
+     par mutation — `varieteFamille` passe à un plafond FIXE de 30 % (pénalité coupée : 43 %),
+     `reroll` « repetitive » se mesure sur 5 profils × 6 tirages (au moins 5/30 semaines avec un
+     créneau à 2 plats, au plus 5 plats distincts par créneau ; rotation ajoutée : 0/30). Suite
+     complète 2374/2374. Historique de la décision : `varieteFamille`
      (premier plan avec jumelles : 20 % sur main, 25 % sur la branche pour un seuil de 22 % ;
      38 % en coupant la pénalité de famille, mesuré avant le dernier recalage → le mécanisme
      mord, c'est le tirage qui bouge, et le seuil est relatif au plan régénéré) ; `reroll`

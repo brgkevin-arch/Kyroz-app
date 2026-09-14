@@ -1,7 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { buildLocalPlan } from '../planEngine';
+import { recalcProfile } from '../tdee';
 import { makeProfile } from './helpers';
-import { DietaryRestriction, MealPlan, VarietyPreference } from '../types';
+import { DietaryRestriction, MealPlan, UserProfile, VarietyPreference } from '../types';
 
 // ── « Régénérer mon plan » doit RENOUVELER le plan ───────────────────────────
 //
@@ -250,14 +251,40 @@ describe('« Régénérer » doit suivre le réglage de variété', () => {
     // « le droit de servir le même plat toute la semaine », et le moteur en usait : le
     // même bol d'edamame 6 jours sur 7. « Au moins deux avec la même base » — d'où le
     // plafond `ceil(jours/2)` services par recette, vérifié ici sur ce même profil.
-    const p = makeProfile({ plan_days: 7, plan_weekdays: [0, 1, 2, 3, 4, 5, 6], variety: 'repetitive' });
-    const plan = buildLocalPlan(p, 3);
+    //
+    // 🔴 PANEL DEPUIS LE 2026-09-15 (décision fondateur). Le test lisait UN plan (profil par
+    // défaut, tirage 3) et a rougi à la réécriture de 104 recettes alors que la branche était
+    // PLUS répétitive que main : un seul tirage mesure le tirage, pas le réglage. Mesuré sur ce
+    // panel (5 profils × 6 tirages) : semaines avec un créneau à 2 plats au plus — main 8/30,
+    // branche 15/30, « balanced » et « max » 0/30 ; plats distincts moyens par créneau 3,8 et
+    // 3,6 contre 6,9 en « balanced » ; aucune recette au-delà de 4 services. Les bornes se
+    // tiennent entre « répétitif » et « équilibré ».
     const creneaux = ['breakfast', 'lunch', 'dinner', 'snack'];
-    const parCreneau = creneaux.map((c) =>
-      new Set(plan.meals.filter((m) => m.meal_type === c).map((m) => m.recipe.id)).size);
-    expect(Math.min(...parCreneau), `distinctes par créneau : ${parCreneau.join(', ')}`).toBeLessThanOrEqual(2);
-    expect(Math.min(...parCreneau), `distinctes par créneau : ${parCreneau.join(', ')}`).toBeGreaterThanOrEqual(2);
-  });
+    const PANEL: Partial<UserProfile>[] = [
+      {}, { sex: 'male', weight_kg: 84, goal: 'cut' }, { sex: 'male', weight_kg: 84, goal: 'lean_bulk' },
+      { sex: 'female', weight_kg: 60, height_cm: 165, goal: 'maintain' }, { dietary_restrictions: ['vegetarian'] },
+    ];
+    let semaines = 0, repetees = 0, distincts = 0;
+    for (const o of PANEL) for (const seed of [0, 1, 2, 3, 4, 5]) {
+      const p = recalcProfile(makeProfile({ plan_days: 7, plan_weekdays: [0, 1, 2, 3, 4, 5, 6], variety: 'repetitive', ...o }));
+      const plan = buildLocalPlan(p, seed);
+      const parCreneau = creneaux.map((c) => {
+        const ids = plan.meals.filter((m) => m.meal_type === c).map((m) => m.recipe.id);
+        for (const id of new Set(ids)) {
+          expect(ids.filter((x) => x === id).length, `« ${id} » servi trop souvent (tirage ${seed})`).toBeLessThanOrEqual(Math.ceil(7 / 2));
+        }
+        return new Set(ids).size;
+      });
+      // Jamais un seul plat toute la semaine sur un créneau.
+      expect(Math.min(...parCreneau), `distinctes par créneau : ${parCreneau.join(', ')}`).toBeGreaterThanOrEqual(2);
+      semaines++;
+      if (Math.min(...parCreneau) <= 2) repetees++;
+      distincts += parCreneau.reduce((a, b) => a + b, 0) / creneaux.length;
+    }
+    // …et « souvent les mêmes plats » se voit sur la semaine.
+    expect(repetees, `${repetees}/${semaines} semaines avec un créneau à 2 plats au plus`).toBeGreaterThanOrEqual(5);
+    expect(distincts / semaines, 'plats distincts moyens par créneau').toBeLessThanOrEqual(5);
+  }, 60_000);
 
   it('le plan CANONIQUE ne dépend pas de ce câblage — il n’a pas changé', () => {
     // Le reroll seul est concerné : `variety` agissait déjà sur le plan canonique,
