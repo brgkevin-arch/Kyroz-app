@@ -794,7 +794,12 @@ produit en suspens — il ne reste qu'à coder.
      38 % en coupant la pénalité de famille, mesuré avant le dernier recalage → le mécanisme
      mord, c'est le tirage qui bouge, et le seuil est relatif au plan régénéré) ; `reroll`
      « repetitive » (4 plats distincts sur le créneau le plus répétitif du profil par défaut,
-     2 attendus), apparu au dernier recalage des repas véganes, non diagnostiqué.
+     2 attendus). **Diagnostiqué le 2026-09-15 : effet de tirage.** Le test lit UN plan (profil
+     par défaut, tirage 3) ; sur 30 semaines (5 profils × 6 tirages), la branche est PLUS
+     répétitive que main (plats distincts par créneau 3,1/3,8/4,8/3,7 → 3,0/3,4/4,6/3,3 ;
+     semaines avec un créneau à 2 plats au plus : 8/30 → 15/30). Relecture de la PR : `col119`
+     demandait de cuire des œufs, donc n'était plus une collation « sur le pouce » (D30) —
+     remplacée par une salade maïs-tomate-thon, sans cuisson.
      **Écarts à la formulation validée, à relire** : légumineuses ajoutées où la feta seule
      manquait de protéines (rep202, rep223, rep263, rep266) ; aliments de D32 (pd92 poulet
      végétal, pd97 jambon végétal, rep280 merguez végétales) ; gras différenciés pour ne pas

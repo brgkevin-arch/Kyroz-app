@@ -33630,7 +33630,7 @@
     },
     {
       "id": "col119",
-      "name": "Salade de maïs, poivron et œuf dur",
+      "name": "Salade de maïs, tomate et thon",
       "category": "collation",
       "tags": {
         "objectif": [
@@ -33645,8 +33645,8 @@
       "base_servings": 1,
       "ingredients": [
         {
-          "ref": "oeuf_entier",
-          "qty": 90,
+          "ref": "thon_naturel",
+          "qty": 70,
           "macro_role": "protein",
           "scalable": true
         },
@@ -33657,23 +33657,28 @@
           "scalable": true
         },
         {
-          "ref": "poivron",
+          "ref": "tomate",
           "qty": 60,
           "macro_role": "vegetable",
           "scalable": false
+        },
+        {
+          "ref": "huile_olive",
+          "qty": 5,
+          "macro_role": "fat",
+          "scalable": true
         }
       ],
       "instructions": [
-        "Plonge les œufs 9 minutes dans l'eau bouillante, passe-les sous l'eau froide et écale-les : le jaune doit être pris jusqu'au centre.",
-        "Égoutte le maïs, coupe le poivron en dés et les œufs en quartiers.",
-        "Mélange le tout avec un filet de citron, du sel et du poivre."
+        "Égoutte le maïs et le thon, et coupe la tomate en petits dés.",
+        "Effeuille le thon à la fourchette et mélange le tout avec l'huile d'olive, un filet de citron, du sel et du poivre."
       ],
       "why": "Une base protéinée maigre relevée par des légumes croquants.",
       "macros_per_serving": {
-        "kcal": 229.1,
-        "protein": 14.3,
-        "carbs": 17.7,
-        "fat": 10.4
+        "kcal": 245.1,
+        "protein": 21.4,
+        "carbs": 17.6,
+        "fat": 9.5
       },
       "wave": "2026-09-07-b10-registre-francais"
     },
