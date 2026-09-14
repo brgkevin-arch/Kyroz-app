@@ -293,10 +293,10 @@ App mobile React Native (Expo Router, **SDK 57** depuis le 2026-08-27) de plans 
 > Cette ligne annonçait « Ciqual primaire + **Open Food Facts** secondaire », en statut
 > « Cible ». Open Food Facts **n'a jamais été branché** : zéro ligne de code, zéro appel.
 > La réalité, mesurée : la table `Recette/recettes-kyroz.json > ingredients_reference`
-> porte **139 refs** (2026-09-14), dont **117 réellement utilisées** par une recette.
+> porte **139 refs** (re-compté le 2026-09-15), dont **124 réellement utilisées** par une recette.
 > **115/139 sont
 > sourcées Ciqual** (`lib/recipeFoodMap.ts::REF_FOOD_ID` → base ANSES convertie dans
-> `lib/foods.generated.ts`), soit **102/117** en ne comptant que les utilisées, et
+> `lib/foods.generated.ts`), soit **106/124** en ne comptant que les utilisées, et
 > **24 sont saisies à la main** — celles que Ciqual ne couvre pas proprement : `whey`,
 > `skyr`, `yaourt_grec`, `cottage_cheese`, `proteine_vegetale`, `soja_texture`,
 > `yaourt_soja`, `yaourt_soja_proteine`, `levure_maltee`, `edamame`, `haricots_noirs`,
