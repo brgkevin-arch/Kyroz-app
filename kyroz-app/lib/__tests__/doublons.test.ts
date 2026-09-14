@@ -42,10 +42,13 @@ import { findViolations, nameKey, norm, type CheckRecipe } from '../../scripts/c
 //               (balayés, pas supposés). Elle partage alors 4 refs avec rep133
 //               (oeuf_entier, epinards, huile_olive, pomme_de_terre), dont trois qu'elle
 //               partageait DÉJÀ. Le solde du chantier est de −6 violations.
+//   R5 16 → 0 : noms humains des 541 recettes (2026-09-14, D31). Écrits en vérifiant les
+//               amorces à mesure : plus aucune paire d'une même catégorie ne commence par les
+//               trois mêmes mots, et plus aucun nom identique dans tout le catalogue.
 // Ce qui reste est du quasi-doublon de composition, pas du clone : R4 est dominé par des
 // familles saturées (whey+avoine ×6, yaourt de soja sans féculent ×8) qui se règlent en
 // écrivant AILLEURS, pas en réécrivant l'existant.
-const PLAFOND = { R1: 74, R2: 71, R4: 14, R5: 16, R7: 0 } as const;
+const PLAFOND = { R1: 74, R2: 71, R4: 14, R5: 0, R7: 0 } as const;
 
 const RECIPES = (raw as { recipes: unknown[] }).recipes as CheckRecipe[];
 

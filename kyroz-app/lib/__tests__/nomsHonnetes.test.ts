@@ -112,7 +112,6 @@ export const promessesNonTenues = (r: Recette): string[] => {
 // prochaine recette vraiment fautive du même mot passerait sous l'exception.
 const TOLERE: Record<string, string> = {
   rep136: '« Œufs cocotte » — nom de préparation, le « coco » n’est pas un aliment promis',
-  rep36: '« Tortilla pommes de terre » — la tortilla espagnole EST une omelette (œuf + pomme de terre), pas une galette de blé',
 };
 
 describe('le nom d’une recette ne promet pas un aliment absent', () => {

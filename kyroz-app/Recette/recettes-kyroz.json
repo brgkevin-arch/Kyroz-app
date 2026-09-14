@@ -1453,7 +1453,7 @@
   "recipes": [
     {
       "id": "pd01",
-      "name": "Porridge avoine – whey – banane – myrtilles",
+      "name": "Porridge protéiné banane-myrtilles",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -1522,7 +1522,7 @@
     },
     {
       "id": "pd02",
-      "name": "Overnight oats chia – skyr – framboises",
+      "name": "Overnight oats au skyr et framboises",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -1583,7 +1583,7 @@
     },
     {
       "id": "pd03",
-      "name": "Pancakes protéinés banane – flocons – œuf",
+      "name": "Pancakes protéinés à la banane",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -1651,7 +1651,7 @@
     },
     {
       "id": "pd04",
-      "name": "Omelette 3 œufs jambon – champignons",
+      "name": "Omelette jambon-champignons et pain complet",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -1714,7 +1714,7 @@
     },
     {
       "id": "pd05",
-      "name": "Œufs brouillés – avocat – pain complet",
+      "name": "Œufs brouillés à l'avocat sur pain complet",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -1771,7 +1771,7 @@
     },
     {
       "id": "pd06",
-      "name": "Skyr bowl granola – fruits rouges – amandes",
+      "name": "Skyr bowl granola et fruits rouges",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -1832,7 +1832,7 @@
     },
     {
       "id": "pd07",
-      "name": "Smoothie bowl mangue – épinards – protéine",
+      "name": "Smoothie bowl protéiné mangue-épinards",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -1906,7 +1906,7 @@
     },
     {
       "id": "pd08",
-      "name": "Tartines seigle – cottage cheese – tomate",
+      "name": "Tartines de seigle au cottage cheese et tomate",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -1960,7 +1960,7 @@
     },
     {
       "id": "pd09",
-      "name": "Porridge chocolat – cacao – beurre de cacahuète",
+      "name": "Porridge chocolat-cacahuète",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -2027,7 +2027,7 @@
     },
     {
       "id": "pd10",
-      "name": "Yaourt grec – noix – miel – pomme",
+      "name": "Bol de yaourt grec à la pomme, noix et miel",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -2088,7 +2088,7 @@
     },
     {
       "id": "pd11",
-      "name": "Omelette blancs – épinards – feta",
+      "name": "Omelette de blancs aux épinards et feta",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -2158,7 +2158,7 @@
     },
     {
       "id": "pd12",
-      "name": "Pain perdu protéiné",
+      "name": "Pain perdu protéiné aux fruits rouges",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -2232,7 +2232,7 @@
     },
     {
       "id": "pd13",
-      "name": "Wrap petit-déj œuf – dinde – poivron",
+      "name": "Wrap du matin à l'œuf et à la dinde",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -2296,7 +2296,7 @@
     },
     {
       "id": "pd14",
-      "name": "Smoothie avoine – banane – beurre d'amande – whey",
+      "name": "Smoothie banane et beurre d'amande",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -2357,7 +2357,7 @@
     },
     {
       "id": "pd15",
-      "name": "Fromage blanc – muesli – kiwi – graines de courge",
+      "name": "Fromage blanc au kiwi et muesli",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -2410,7 +2410,7 @@
     },
     {
       "id": "pd16",
-      "name": "Tofu brouillé curcuma – épinards – pain",
+      "name": "Tofu brouillé au curcuma sur pain complet",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -2464,7 +2464,7 @@
     },
     {
       "id": "pd17",
-      "name": "Porridge quinoa – pomme – cannelle",
+      "name": "Porridge de quinoa pomme-cannelle",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -2525,7 +2525,7 @@
     },
     {
       "id": "pd18",
-      "name": "Pita complet – saumon fumé – fromage frais",
+      "name": "Pita au saumon fumé et fromage frais",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -2585,7 +2585,7 @@
     },
     {
       "id": "pd19",
-      "name": "Shake gainer maison",
+      "name": "Shake gainer banane-cacahuète",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -2651,7 +2651,7 @@
     },
     {
       "id": "pd20",
-      "name": "Shakshuka light œufs – pois chiches",
+      "name": "Shakshuka du matin aux pois chiches",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -2719,7 +2719,7 @@
     },
     {
       "id": "col01",
-      "name": "Bowl skyr – flocons – amandes – miel",
+      "name": "Bol de skyr aux amandes et miel",
       "category": "collation",
       "tags": {
         "objectif": [
@@ -2774,7 +2774,7 @@
     },
     {
       "id": "col02",
-      "name": "Shake whey – banane – lait",
+      "name": "Shake protéiné classique à la banane",
       "category": "collation",
       "tags": {
         "objectif": [
@@ -2931,7 +2931,7 @@
     },
     {
       "id": "col05",
-      "name": "Tartine complète, banane et cacahuète",
+      "name": "Fromage blanc et tartine banane-cacahuète",
       "category": "collation",
       "tags": {
         "objectif": [
@@ -3041,7 +3041,7 @@
     },
     {
       "id": "col07",
-      "name": "Yaourt grec – myrtilles – chia",
+      "name": "Yaourt grec aux myrtilles et chia",
       "category": "collation",
       "tags": {
         "objectif": [
@@ -3095,7 +3095,7 @@
     },
     {
       "id": "col08",
-      "name": "Mousse fromage blanc – cacao – whey",
+      "name": "Mousse de fromage blanc au cacao",
       "category": "collation",
       "tags": {
         "objectif": [
@@ -3149,7 +3149,7 @@
     },
     {
       "id": "col09",
-      "name": "Galettes de riz – fromage frais – dinde",
+      "name": "Galettes de riz au fromage frais et dinde",
       "category": "collation",
       "tags": {
         "objectif": [
@@ -3212,7 +3212,7 @@
     },
     {
       "id": "col10",
-      "name": "Skyr, pomme et graines de courge",
+      "name": "Skyr à la pomme et au miel",
       "category": "collation",
       "tags": {
         "objectif": [
@@ -3267,7 +3267,7 @@
     },
     {
       "id": "col11",
-      "name": "Shake récup avoine – whey – miel",
+      "name": "Shake récup à l'avoine et au miel",
       "category": "collation",
       "tags": {
         "objectif": [
@@ -3326,7 +3326,7 @@
     },
     {
       "id": "col12",
-      "name": "Houmous – bâtonnets de carotte – pita",
+      "name": "Houmous, bâtonnets de carotte et pita",
       "category": "collation",
       "tags": {
         "objectif": [
@@ -3380,7 +3380,7 @@
     },
     {
       "id": "col13",
-      "name": "Skyr – granola – mangue",
+      "name": "Skyr à la mangue et granola",
       "category": "collation",
       "tags": {
         "objectif": [
@@ -3435,7 +3435,7 @@
     },
     {
       "id": "col14",
-      "name": "Œufs durs – avocat – tomate",
+      "name": "Œufs durs, avocat et tomate",
       "category": "collation",
       "tags": {
         "objectif": [
@@ -3484,7 +3484,7 @@
     },
     {
       "id": "col15",
-      "name": "Bol d'avoine, raisins et noisettes",
+      "name": "Fromage blanc aux raisins et noisettes",
       "category": "collation",
       "tags": {
         "objectif": [
@@ -3649,7 +3649,7 @@
     },
     {
       "id": "col18",
-      "name": "Smoothie vert kiwi – épinards – protéine",
+      "name": "Smoothie vert kiwi-épinards",
       "category": "collation",
       "tags": {
         "objectif": [
@@ -3708,7 +3708,7 @@
     },
     {
       "id": "col19",
-      "name": "Cottage cheese – pain de seigle – concombre",
+      "name": "Cottage cheese et pain de seigle au concombre",
       "category": "collation",
       "tags": {
         "objectif": [
@@ -3762,7 +3762,7 @@
     },
     {
       "id": "col20",
-      "name": "Pudding chia – fruits rouges",
+      "name": "Pudding de chia aux fruits rouges",
       "category": "collation",
       "tags": {
         "objectif": [
@@ -3823,7 +3823,7 @@
     },
     {
       "id": "rep01",
-      "name": "Poulet – riz basmati – brocoli",
+      "name": "Bol de poulet au riz basmati et brocoli",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -3878,7 +3878,7 @@
     },
     {
       "id": "rep02",
-      "name": "Saumon – patate douce – épinards",
+      "name": "Pavé de saumon à la patate douce et aux épinards",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -3934,7 +3934,7 @@
     },
     {
       "id": "rep03",
-      "name": "Dahl de lentilles corail – riz",
+      "name": "Dahl de lentilles corail au lait de coco",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -4002,7 +4002,7 @@
     },
     {
       "id": "rep04",
-      "name": "Bœuf 5% – wok – nouilles complètes",
+      "name": "Wok de bœuf haché aux nouilles complètes",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -4066,7 +4066,7 @@
     },
     {
       "id": "rep05",
-      "name": "Tofu – quinoa – légumes",
+      "name": "Poêlée de tofu au quinoa et poivrons",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -4133,7 +4133,7 @@
     },
     {
       "id": "rep06",
-      "name": "Cabillaud – boulgour – pois chiches – courgettes",
+      "name": "Cabillaud aux pois chiches et boulgour",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -4197,7 +4197,7 @@
     },
     {
       "id": "rep07",
-      "name": "Poulet – patates douces rôties – haricots verts",
+      "name": "Poulet aux patates douces rôties et haricots verts",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -4251,7 +4251,7 @@
     },
     {
       "id": "rep08",
-      "name": "Pâtes complètes bolognaise bœuf 5%",
+      "name": "Pâtes complètes à la bolognaise",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -4313,7 +4313,7 @@
     },
     {
       "id": "rep09",
-      "name": "Burrito bowl poulet – riz complet – avocat – maïs",
+      "name": "Burrito bowl au poulet et avocat",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -4376,7 +4376,7 @@
     },
     {
       "id": "rep10",
-      "name": "Tofu et pois chiches au lait de coco, épinards et riz",
+      "name": "Curry de tofu et pois chiches au lait de coco",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -4445,7 +4445,7 @@
     },
     {
       "id": "rep11",
-      "name": "Bavette de bœuf – pommes de terre – salade",
+      "name": "Bavette aux pommes de terre rôties",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -4500,7 +4500,7 @@
     },
     {
       "id": "rep12",
-      "name": "Saumon – quinoa – asperges",
+      "name": "Saumon au quinoa et asperges",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -4556,7 +4556,7 @@
     },
     {
       "id": "rep13",
-      "name": "Wrap poulet – crudités – fromage frais",
+      "name": "Wrap de poulet aux crudités",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -4624,7 +4624,7 @@
     },
     {
       "id": "rep14",
-      "name": "Chili sin carne haricots rouges – maïs",
+      "name": "Chili sin carne aux haricots rouges et maïs",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -4690,7 +4690,7 @@
     },
     {
       "id": "rep15",
-      "name": "Dinde sautée – nouilles de riz – légumes wok",
+      "name": "Wok de dinde aux nouilles de riz",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -4754,7 +4754,7 @@
     },
     {
       "id": "rep16",
-      "name": "Cabillaud – pommes de terre – ratatouille",
+      "name": "Cabillaud à la ratatouille et pommes de terre",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -4810,7 +4810,7 @@
     },
     {
       "id": "rep17",
-      "name": "Buddha bowl tofu – quinoa – betterave – houmous",
+      "name": "Buddha bowl au tofu et à la betterave",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -4877,7 +4877,7 @@
     },
     {
       "id": "rep18",
-      "name": "Omelette géante poulet – mozzarella – épinards",
+      "name": "Omelette au poulet et mozzarella, pommes de terre",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -4946,7 +4946,7 @@
     },
     {
       "id": "rep19",
-      "name": "Pâtes thon – tomate – olives",
+      "name": "Pâtes au thon, tomate et olives",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -5010,7 +5010,7 @@
     },
     {
       "id": "rep20",
-      "name": "Poke bowl saumon – riz – edamame",
+      "name": "Poke bowl au saumon et edamame",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -5080,7 +5080,7 @@
     },
     {
       "id": "rep21",
-      "name": "Poulet tikka – riz basmati – yaourt",
+      "name": "Poulet tikka et riz basmati",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -5143,7 +5143,7 @@
     },
     {
       "id": "rep22",
-      "name": "Soupe de lentilles – légumes – pain complet",
+      "name": "Soupe de lentilles corail et pain complet",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -5209,7 +5209,7 @@
     },
     {
       "id": "rep23",
-      "name": "Steak haché 5% – purée patate douce – brocoli",
+      "name": "Steak haché, purée de patate douce et brocoli",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -5265,7 +5265,7 @@
     },
     {
       "id": "rep24",
-      "name": "Crevettes sautées – nouilles – légumes (pad thaï light)",
+      "name": "Pad thaï de crevettes aux nouilles de riz",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -5328,7 +5328,7 @@
     },
     {
       "id": "rep25",
-      "name": "Tempeh grillé – riz complet – chou-fleur rôti",
+      "name": "Tempeh grillé au chou-fleur rôti et riz complet",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -5383,7 +5383,7 @@
     },
     {
       "id": "rep26",
-      "name": "Maquereau – pommes de terre – salade",
+      "name": "Maquereau aux pommes de terre et salade",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -5437,7 +5437,7 @@
     },
     {
       "id": "rep27",
-      "name": "Wok poulet – riz – légumes – amandes",
+      "name": "Wok de poulet aux amandes",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -5500,7 +5500,7 @@
     },
     {
       "id": "rep28",
-      "name": "Galette de polenta – ratatouille – œuf",
+      "name": "Galette de polenta à la ratatouille et œuf",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -5560,7 +5560,7 @@
     },
     {
       "id": "rep29",
-      "name": "Pois chiches rôtis – boulgour – feta",
+      "name": "Pois chiches rôtis au boulgour et feta",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -5627,7 +5627,7 @@
     },
     {
       "id": "rep30",
-      "name": "Dinde – patate douce – épinards",
+      "name": "Dinde à la patate douce et aux épinards",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -5683,7 +5683,7 @@
     },
     {
       "id": "rep31",
-      "name": "Pâtes – poulet – pesto – tomates",
+      "name": "Pâtes au poulet et pesto",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -5740,7 +5740,7 @@
     },
     {
       "id": "rep32",
-      "name": "Cabillaud pané maison – purée – petits pois",
+      "name": "Cabillaud pané, purée et petits pois",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -5807,7 +5807,7 @@
     },
     {
       "id": "rep33",
-      "name": "Bœuf – haricots rouges – riz (cajun)",
+      "name": "Bœuf cajun aux haricots rouges et riz",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -5871,7 +5871,7 @@
     },
     {
       "id": "rep34",
-      "name": "Saumon – lentilles vertes – épinards",
+      "name": "Saumon aux lentilles vertes et épinards",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -5929,7 +5929,7 @@
     },
     {
       "id": "rep35",
-      "name": "Tofu mariné – nouilles soba – brocoli",
+      "name": "Nouilles au tofu mariné et brocoli",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -5991,7 +5991,7 @@
     },
     {
       "id": "rep36",
-      "name": "Tortilla pommes de terre – jambon",
+      "name": "Tortilla espagnole au jambon",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -6051,7 +6051,7 @@
     },
     {
       "id": "rep37",
-      "name": "Tajine de poulet – olives – semoule",
+      "name": "Tajine de poulet aux olives et semoule",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -6123,7 +6123,7 @@
     },
     {
       "id": "rep38",
-      "name": "Thon frais grillé – riz – haricots verts",
+      "name": "Thon frais grillé aux haricots verts et riz",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -6178,7 +6178,7 @@
     },
     {
       "id": "rep39",
-      "name": "Curry poulet – lait de coco – riz",
+      "name": "Curry de poulet au lait de coco",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -6239,7 +6239,7 @@
     },
     {
       "id": "rep40",
-      "name": "Salade composée poulet – quinoa – avocat – feta",
+      "name": "Salade de poulet au quinoa, avocat et feta",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -6308,7 +6308,7 @@
     },
     {
       "id": "rep41",
-      "name": "Seitan – patate douce – brocoli",
+      "name": "Seitan à la patate douce et au brocoli",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -6365,7 +6365,7 @@
     },
     {
       "id": "rep42",
-      "name": "Bowl mexicain bœuf – haricots – maïs – riz",
+      "name": "Bowl mexicain au bœuf et haricots rouges",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -6435,7 +6435,7 @@
     },
     {
       "id": "rep43",
-      "name": "Cabillaud – quinoa – courgettes – citron",
+      "name": "Cabillaud au quinoa et courgettes",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -6492,7 +6492,7 @@
     },
     {
       "id": "rep44",
-      "name": "Pâtes complètes saumon – épinards – crème de soja",
+      "name": "Pâtes complètes au saumon et épinards",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -6549,7 +6549,7 @@
     },
     {
       "id": "rep45",
-      "name": "Boulettes de dinde – courgettes – feta",
+      "name": "Boulettes de dinde aux courgettes et feta",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -6610,7 +6610,7 @@
     },
     {
       "id": "rep46",
-      "name": "Riz sauté œufs – petits pois – jambon",
+      "name": "Riz sauté au jambon et petits pois",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -6679,7 +6679,7 @@
     },
     {
       "id": "rep47",
-      "name": "Soupe japonaise – tofu – nouilles – edamame",
+      "name": "Soupe japonaise au tofu et nouilles de riz",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -6748,7 +6748,7 @@
     },
     {
       "id": "rep48",
-      "name": "Poulet rôti – polenta crémeuse – champignons",
+      "name": "Poulet rôti sur polenta crémeuse aux champignons",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -6811,7 +6811,7 @@
     },
     {
       "id": "rep49",
-      "name": "Sardines – pain complet – salade de tomate",
+      "name": "Sardines sur pain grillé, salade de tomates",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -6871,7 +6871,7 @@
     },
     {
       "id": "rep50",
-      "name": "Bowl tempeh teriyaki – riz – brocoli",
+      "name": "Bowl de tempeh teriyaki au riz et brocoli",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -6933,7 +6933,7 @@
     },
     {
       "id": "rep51",
-      "name": "Cabillaud – lentilles vertes – tomate",
+      "name": "Cabillaud aux lentilles et pommes de terre",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -6996,7 +6996,7 @@
     },
     {
       "id": "rep52",
-      "name": "Wrap thon – crudités – fromage frais",
+      "name": "Wrap de thon aux crudités",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -7064,7 +7064,7 @@
     },
     {
       "id": "rep53",
-      "name": "Bœuf bourguignon light – pommes vapeur",
+      "name": "Bœuf bourguignon et pommes vapeur",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -7124,7 +7124,7 @@
     },
     {
       "id": "rep54",
-      "name": "Poêlée patate douce – pois chiches – œuf",
+      "name": "Poêlée de patate douce, pois chiches et œuf",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -7187,7 +7187,7 @@
     },
     {
       "id": "rep55",
-      "name": "Saumon – riz complet – brocoli – graines de courge",
+      "name": "Saumon au riz complet et brocoli",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -7251,7 +7251,7 @@
     },
     {
       "id": "rep56",
-      "name": "One pot poulet – pâtes – courgettes – parmesan",
+      "name": "One pot de poulet aux pâtes et courgettes",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -7312,7 +7312,7 @@
     },
     {
       "id": "rep57",
-      "name": "Chili dinde – haricots – riz",
+      "name": "Chili de dinde aux haricots rouges",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -7380,7 +7380,7 @@
     },
     {
       "id": "rep58",
-      "name": "Tofu général tao light – riz – haricots verts",
+      "name": "Tofu général Tao et riz",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -7447,7 +7447,7 @@
     },
     {
       "id": "rep59",
-      "name": "Cabillaud vapeur – écrasé patate douce – asperges",
+      "name": "Cabillaud vapeur et écrasé de patate douce",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -7503,7 +7503,7 @@
     },
     {
       "id": "rep60",
-      "name": "Gros bowl gainer bœuf – riz – avocat – œuf",
+      "name": "Grand bowl de bœuf au riz et avocat",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -7574,7 +7574,7 @@
     },
     {
       "id": "pd21",
-      "name": "Porridge avoine – whey vanille – banane",
+      "name": "Porridge vanille, banane et cacahuète",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -7634,7 +7634,7 @@
     },
     {
       "id": "pd22",
-      "name": "Porridge avoine – fromage blanc – fruits rouges",
+      "name": "Porridge au fromage blanc et fruits rouges",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -7687,7 +7687,7 @@
     },
     {
       "id": "pd23",
-      "name": "Porridge sarrasin – yaourt soja – myrtilles",
+      "name": "Porridge de sarrasin aux myrtilles",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -7740,7 +7740,7 @@
     },
     {
       "id": "pd24",
-      "name": "Porridge millet – lait coco – mangue",
+      "name": "Porridge de millet coco-mangue",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -7794,7 +7794,7 @@
     },
     {
       "id": "pd25",
-      "name": "Porridge avoine protéiné – cacao – noisettes",
+      "name": "Porridge protéiné cacao-noisettes",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -7854,7 +7854,7 @@
     },
     {
       "id": "pd26",
-      "name": "Skyr – granola maison – framboises",
+      "name": "Skyr, granola et framboises",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -7907,7 +7907,7 @@
     },
     {
       "id": "pd27",
-      "name": "Bowl skyr – beurre d'amande – banane",
+      "name": "Bol de skyr banane et beurre d'amande",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -7961,7 +7961,7 @@
     },
     {
       "id": "pd28",
-      "name": "Fromage blanc – muesli – pomme râpée",
+      "name": "Fromage blanc au muesli et pomme râpée",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -8014,7 +8014,7 @@
     },
     {
       "id": "pd29",
-      "name": "Cottage cheese – ananas – graines de courge",
+      "name": "Cottage cheese à l'ananas",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -8068,7 +8068,7 @@
     },
     {
       "id": "pd30",
-      "name": "Yaourt grec – miel – noix",
+      "name": "Yaourt grec au miel et aux noix",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -8122,7 +8122,7 @@
     },
     {
       "id": "pd31",
-      "name": "Overnight oats soja – chia – fruits rouges",
+      "name": "Overnight oats de soja aux fruits rouges",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -8175,7 +8175,7 @@
     },
     {
       "id": "pd32",
-      "name": "Bowl yaourt soja – granola – banane",
+      "name": "Granola banane-cacahuète au yaourt de soja",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -8229,7 +8229,7 @@
     },
     {
       "id": "pd33",
-      "name": "Smoothie bowl protéine pois – mangue – chia",
+      "name": "Smoothie bowl mangue-chia",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -8288,7 +8288,7 @@
     },
     {
       "id": "pd34",
-      "name": "Pudding chia – cacao – beurre cacahuète",
+      "name": "Pudding de chia chocolat-banane",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -8347,7 +8347,7 @@
     },
     {
       "id": "pd35",
-      "name": "Tofu brouillé – épinards – pain complet",
+      "name": "Tofu brouillé aux épinards",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -8407,7 +8407,7 @@
     },
     {
       "id": "pd36",
-      "name": "Pancakes avoine – banane – oeuf",
+      "name": "Pancakes d'avoine à la banane",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -8470,7 +8470,7 @@
     },
     {
       "id": "pd37",
-      "name": "Omelette blanc d'oeuf – tomate – pain seigle",
+      "name": "Omelette de blancs à la tomate, pain de seigle",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -8532,7 +8532,7 @@
     },
     {
       "id": "pd38",
-      "name": "Tartine de seigle – œufs brouillés – tomate",
+      "name": "Tartine de seigle aux œufs brouillés et avocat",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -8590,7 +8590,7 @@
     },
     {
       "id": "pd39",
-      "name": "Pancakes protéinés – myrtilles",
+      "name": "Pancakes protéinés aux myrtilles",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -8653,7 +8653,7 @@
     },
     {
       "id": "pd40",
-      "name": "Tartines pain complet – cottage – saumon fumé",
+      "name": "Tartines au saumon fumé et cottage cheese",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -8706,7 +8706,7 @@
     },
     {
       "id": "pd41",
-      "name": "Tartines beurre cacahuète – banane – yaourt soja",
+      "name": "Tartines banane-cacahuète et yaourt de soja",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -8760,7 +8760,7 @@
     },
     {
       "id": "pd42",
-      "name": "Pita complet – houmous express – œuf",
+      "name": "Pita au houmous et œuf dur",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -8822,7 +8822,7 @@
     },
     {
       "id": "pd43",
-      "name": "Bowl quinoa – yaourt soja – kiwi",
+      "name": "Bol de quinoa au yaourt de soja et kiwi",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -8875,7 +8875,7 @@
     },
     {
       "id": "pd44",
-      "name": "Porridge millet – pomme – cannelle",
+      "name": "Porridge de millet pomme-chia",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -8928,7 +8928,7 @@
     },
     {
       "id": "col21",
-      "name": "Shake whey – banane – beurre cacahuète",
+      "name": "Shake cacahuète-banane protéiné",
       "category": "collation",
       "tags": {
         "objectif": [
@@ -8982,7 +8982,7 @@
     },
     {
       "id": "col22",
-      "name": "Shake whey – cacao – avoine",
+      "name": "Shake protéiné chocolat-avoine",
       "category": "collation",
       "tags": {
         "objectif": [
@@ -9036,7 +9036,7 @@
     },
     {
       "id": "col23",
-      "name": "Shake protéine pois – fruits rouges – amande",
+      "name": "Shake végétal aux fruits rouges",
       "category": "collation",
       "tags": {
         "objectif": [
@@ -9090,7 +9090,7 @@
     },
     {
       "id": "col24",
-      "name": "Shake soja – mangue – coco",
+      "name": "Shake végétal mangue-coco",
       "category": "collation",
       "tags": {
         "objectif": [
@@ -9199,7 +9199,7 @@
     },
     {
       "id": "col26",
-      "name": "Shake yaourt soja – banane – cacahuète",
+      "name": "Shake de yaourt de soja banane-cacahuète",
       "category": "collation",
       "tags": {
         "objectif": [
@@ -9253,7 +9253,7 @@
     },
     {
       "id": "col27",
-      "name": "Skyr – myrtilles – amandes",
+      "name": "Skyr aux myrtilles et amandes",
       "category": "collation",
       "tags": {
         "objectif": [
@@ -9301,7 +9301,7 @@
     },
     {
       "id": "col28",
-      "name": "Fromage blanc – fruits rouges – noix",
+      "name": "Fromage blanc aux fruits rouges et noix",
       "category": "collation",
       "tags": {
         "objectif": [
@@ -9349,7 +9349,7 @@
     },
     {
       "id": "col29",
-      "name": "Cottage cheese – concombre – pain complet",
+      "name": "Pain complet, cottage cheese et concombre",
       "category": "collation",
       "tags": {
         "objectif": [
@@ -9452,7 +9452,7 @@
     },
     {
       "id": "col31",
-      "name": "Energy balls dattes – cacahuète – avoine",
+      "name": "Energy balls avoine-dattes",
       "category": "collation",
       "tags": {
         "objectif": [
@@ -9616,7 +9616,7 @@
     },
     {
       "id": "col34",
-      "name": "Barre protéinée whey – avoine – cacahuète",
+      "name": "Barre protéinée avoine-cacahuète",
       "category": "collation",
       "tags": {
         "objectif": [
@@ -9670,7 +9670,7 @@
     },
     {
       "id": "col35",
-      "name": "Galettes de riz – beurre amande – banane",
+      "name": "Galettes de riz banane et beurre d'amande",
       "category": "collation",
       "tags": {
         "objectif": [
@@ -9724,7 +9724,7 @@
     },
     {
       "id": "col36",
-      "name": "Galettes de riz – cottage – tomate",
+      "name": "Galettes de riz au cottage cheese et tomate",
       "category": "collation",
       "tags": {
         "objectif": [
@@ -9779,7 +9779,7 @@
     },
     {
       "id": "col37",
-      "name": "Tartine pain seigle – houmous – crudités",
+      "name": "Tartine de seigle au houmous et carotte",
       "category": "collation",
       "tags": {
         "objectif": [
@@ -9833,7 +9833,7 @@
     },
     {
       "id": "col38",
-      "name": "Tartine avocat – œuf dur – pain complet",
+      "name": "Tartine avocat et œuf dur",
       "category": "collation",
       "tags": {
         "objectif": [
@@ -9889,7 +9889,7 @@
     },
     {
       "id": "col39",
-      "name": "Pudding chia – framboises",
+      "name": "Pudding de chia aux framboises",
       "category": "collation",
       "tags": {
         "objectif": [
@@ -9936,7 +9936,7 @@
     },
     {
       "id": "col40",
-      "name": "Edamame vapeur – sel",
+      "name": "Edamame vapeur",
       "category": "collation",
       "tags": {
         "objectif": [
@@ -10088,7 +10088,7 @@
     },
     {
       "id": "col43",
-      "name": "Banane – beurre cacahuète – chocolat noir",
+      "name": "Banane au chocolat noir et cacahuète",
       "category": "collation",
       "tags": {
         "objectif": [
@@ -10142,7 +10142,7 @@
     },
     {
       "id": "col44",
-      "name": "Cottage – ananas – graines de courge",
+      "name": "Ananas et cottage cheese",
       "category": "collation",
       "tags": {
         "objectif": [
@@ -10190,7 +10190,7 @@
     },
     {
       "id": "rep61",
-      "name": "Pâtes complètes – poulet – pesto – roquette",
+      "name": "Pâtes complètes au poulet, pesto et roquette",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -10244,7 +10244,7 @@
     },
     {
       "id": "rep62",
-      "name": "Pâtes – steak haché 5% – sauce tomate",
+      "name": "Pâtes à la sauce tomate et bœuf haché",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -10307,7 +10307,7 @@
     },
     {
       "id": "rep63",
-      "name": "Pâtes complètes – thon – tomate",
+      "name": "Pâtes complètes au thon et tomates",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -10363,7 +10363,7 @@
     },
     {
       "id": "rep64",
-      "name": "Boulgour – thon – tomate – roquette",
+      "name": "Salade de boulgour au thon et roquette",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -10427,7 +10427,7 @@
     },
     {
       "id": "rep65",
-      "name": "Pâtes – tofu – curry – lait coco",
+      "name": "Curry de tofu aux pâtes et lait de coco",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -10490,7 +10490,7 @@
     },
     {
       "id": "rep66",
-      "name": "Pâtes – lentilles – tomate – basilic",
+      "name": "Pâtes à la bolognaise de lentilles",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -10559,7 +10559,7 @@
     },
     {
       "id": "rep67",
-      "name": "Nouilles de riz – poulet – légumes wok",
+      "name": "Nouilles de riz au poulet et légumes",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -10616,7 +10616,7 @@
     },
     {
       "id": "rep68",
-      "name": "Nouilles de riz – tofu – brocoli – lait de coco",
+      "name": "Nouilles de riz au tofu, brocoli et coco",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -10674,7 +10674,7 @@
     },
     {
       "id": "rep69",
-      "name": "Pâtes – crevettes – ail – courgette",
+      "name": "Pâtes aux crevettes et courgettes",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -10730,7 +10730,7 @@
     },
     {
       "id": "rep70",
-      "name": "Pâtes – seitan – tomate – olives",
+      "name": "Pâtes au seitan, tomate et olives",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -10793,7 +10793,7 @@
     },
     {
       "id": "rep71",
-      "name": "Nouilles de riz – bœuf – sauce coco-curry",
+      "name": "Bœuf coco-curry aux nouilles de riz",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -10850,7 +10850,7 @@
     },
     {
       "id": "rep72",
-      "name": "Pâtes – ricotta de tofu – épinards",
+      "name": "Pâtes crémeuses aux épinards et ricotta de tofu",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -10913,7 +10913,7 @@
     },
     {
       "id": "rep73",
-      "name": "Riz complet – poulet grillé – brocoli",
+      "name": "Poulet grillé au riz complet et brocoli",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -10967,7 +10967,7 @@
     },
     {
       "id": "rep74",
-      "name": "Bowl riz – saumon – avocat – edamame",
+      "name": "Bowl de saumon, avocat et edamame",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -11031,7 +11031,7 @@
     },
     {
       "id": "rep75",
-      "name": "Riz – cabillaud – citron – haricots verts",
+      "name": "Cabillaud au riz et haricots verts",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -11087,7 +11087,7 @@
     },
     {
       "id": "rep76",
-      "name": "Riz complet – tofu – chili sin carne",
+      "name": "Tofu en chili sin carne, riz complet",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -11151,7 +11151,7 @@
     },
     {
       "id": "rep77",
-      "name": "Bowl riz – PST bolognaise – maïs",
+      "name": "Bowl de riz à la bolognaise de soja",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -11214,7 +11214,7 @@
     },
     {
       "id": "rep78",
-      "name": "Riz basmati – dinde – curry – petits pois",
+      "name": "Curry de dinde aux petits pois et riz",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -11271,7 +11271,7 @@
     },
     {
       "id": "rep79",
-      "name": "Riz – thon – poivron – sauce tomate",
+      "name": "Riz au thon à la tomate et poivron",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -11334,7 +11334,7 @@
     },
     {
       "id": "rep80",
-      "name": "Bowl riz – tempeh laqué – chou-fleur",
+      "name": "Tempeh laqué, riz et chou-fleur",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -11398,7 +11398,7 @@
     },
     {
       "id": "rep81",
-      "name": "Riz – œufs – légumes wok (cantonais)",
+      "name": "Riz cantonais aux œufs et légumes",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -11455,7 +11455,7 @@
     },
     {
       "id": "rep82",
-      "name": "Riz – haricots noirs – maïs – avocat",
+      "name": "Bowl de riz aux haricots noirs et avocat",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -11518,7 +11518,7 @@
     },
     {
       "id": "rep83",
-      "name": "Riz – poulet – ananas – poivron",
+      "name": "Poulet à l'ananas et riz",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -11581,7 +11581,7 @@
     },
     {
       "id": "rep84",
-      "name": "Riz – sardines – tomate – oignon",
+      "name": "Riz aux sardines et tomates",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -11644,7 +11644,7 @@
     },
     {
       "id": "rep85",
-      "name": "Bowl riz – feta – pois chiches – concombre",
+      "name": "Bowl de riz, feta et pois chiches",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -11707,7 +11707,7 @@
     },
     {
       "id": "rep86",
-      "name": "Riz – crevettes – curry vert",
+      "name": "Curry vert de crevettes et riz",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -11764,7 +11764,7 @@
     },
     {
       "id": "rep87",
-      "name": "Quinoa – poulet – courgette – pesto",
+      "name": "Quinoa au poulet, courgette et pesto",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -11820,7 +11820,7 @@
     },
     {
       "id": "rep88",
-      "name": "Buddha bowl quinoa – pois chiches – avocat",
+      "name": "Buddha bowl au quinoa et pois chiches",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -11890,7 +11890,7 @@
     },
     {
       "id": "rep89",
-      "name": "Sarrasin – tempeh – champignons",
+      "name": "Poêlée de sarrasin au tempeh et champignons",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -11948,7 +11948,7 @@
     },
     {
       "id": "rep90",
-      "name": "Sarrasin – saumon – asperges",
+      "name": "Saumon au sarrasin et asperges",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -12005,7 +12005,7 @@
     },
     {
       "id": "rep91",
-      "name": "Millet – curry de pois chiches – épinards",
+      "name": "Millet au curry de pois chiches et épinards",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -12069,7 +12069,7 @@
     },
     {
       "id": "rep92",
-      "name": "Quinoa – cabillaud – ratatouille",
+      "name": "Cabillaud à la ratatouille et quinoa",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -12125,7 +12125,7 @@
     },
     {
       "id": "rep93",
-      "name": "Millet – dinde – petits pois – carotte",
+      "name": "Dinde au millet, petits pois et carottes",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -12188,7 +12188,7 @@
     },
     {
       "id": "rep94",
-      "name": "Quinoa – haricots blancs – tomate – romarin",
+      "name": "Haricots blancs à la tomate et quinoa",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -12251,7 +12251,7 @@
     },
     {
       "id": "rep95",
-      "name": "Patate douce rôtie – poulet – brocoli",
+      "name": "Patate douce rôtie au poulet et brocoli",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -12304,7 +12304,7 @@
     },
     {
       "id": "rep96",
-      "name": "Pomme de terre – steak haché – haricots verts",
+      "name": "Steak haché, pommes de terre et haricots verts",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -12360,7 +12360,7 @@
     },
     {
       "id": "rep97",
-      "name": "Patate douce – tofu – épinards – coco",
+      "name": "Tofu à la patate douce, épinards et coco",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -12418,7 +12418,7 @@
     },
     {
       "id": "rep98",
-      "name": "Pomme de terre – cabillaud – haricots verts",
+      "name": "Cabillaud aux pommes de terre et haricots verts",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -12474,7 +12474,7 @@
     },
     {
       "id": "rep99",
-      "name": "Patate douce – PST chili – maïs",
+      "name": "Chili de soja et patate douce rôtie",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -12543,7 +12543,7 @@
     },
     {
       "id": "rep100",
-      "name": "Pomme de terre – saumon – asperges – yaourt",
+      "name": "Saumon aux asperges et pommes de terre",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -12606,7 +12606,7 @@
     },
     {
       "id": "rep101",
-      "name": "Dahl lentilles corail – riz – épinards",
+      "name": "Dahl aux épinards et lentilles corail",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -12672,7 +12672,7 @@
     },
     {
       "id": "rep102",
-      "name": "Dahl lentilles – PST – riz complet",
+      "name": "Dahl de lentilles et riz complet",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -12735,7 +12735,7 @@
     },
     {
       "id": "rep103",
-      "name": "Chili sin carne – haricots rouges – riz",
+      "name": "Chili de haricots rouges au soja, riz complet",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -12804,7 +12804,7 @@
     },
     {
       "id": "rep104",
-      "name": "Curry pois chiches – patate douce – lait de coco",
+      "name": "Curry de pois chiches à la patate douce",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -12868,7 +12868,7 @@
     },
     {
       "id": "rep105",
-      "name": "Soupe haricots blancs – légumes – pain",
+      "name": "Soupe de haricots blancs et pain complet",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -12933,7 +12933,7 @@
     },
     {
       "id": "rep106",
-      "name": "Feijoada express – haricots noirs – riz",
+      "name": "Feijoada de haricots noirs et riz",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -12997,7 +12997,7 @@
     },
     {
       "id": "rep107",
-      "name": "Buddha bowl pois cassés – boulgour – carotte",
+      "name": "Buddha bowl de pois cassés au boulgour",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -13064,7 +13064,7 @@
     },
     {
       "id": "rep108",
-      "name": "Dahl fèves – riz – coriandre",
+      "name": "Dahl de fèves et riz basmati",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -13125,7 +13125,7 @@
     },
     {
       "id": "rep109",
-      "name": "Salade lentilles – feta – tomate",
+      "name": "Salade de lentilles à la feta",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -13184,7 +13184,7 @@
     },
     {
       "id": "rep110",
-      "name": "Chili poulet – haricots rouges – riz",
+      "name": "Chili de poulet aux haricots rouges",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -13247,7 +13247,7 @@
     },
     {
       "id": "rep111",
-      "name": "Houmous bowl – pois chiches – boulgour",
+      "name": "Bol de boulgour au houmous et poivron",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -13311,7 +13311,7 @@
     },
     {
       "id": "rep112",
-      "name": "Soupe pois cassés – croûtons – graines",
+      "name": "Soupe de pois cassés et croûtons",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -13377,7 +13377,7 @@
     },
     {
       "id": "rep113",
-      "name": "Wrap poulet – avocat – crudités",
+      "name": "Wrap de poulet à l'avocat",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -13439,7 +13439,7 @@
     },
     {
       "id": "rep114",
-      "name": "Tacos PST – haricots noirs – maïs",
+      "name": "Tacos de soja aux haricots noirs",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -13503,7 +13503,7 @@
     },
     {
       "id": "rep115",
-      "name": "Wrap thon – crudités – fromage blanc",
+      "name": "Wrap de thon au fromage blanc",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -13569,7 +13569,7 @@
     },
     {
       "id": "rep116",
-      "name": "Galettes sarrasin – œuf – champignons",
+      "name": "Galettes de sarrasin à l'œuf et champignons",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -13625,7 +13625,7 @@
     },
     {
       "id": "rep117",
-      "name": "Pita poulet – tzatziki – salade",
+      "name": "Pita au poulet et tzatziki",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -13687,7 +13687,7 @@
     },
     {
       "id": "rep118",
-      "name": "Wrap falafel – houmous – crudités",
+      "name": "Wrap de falafels au four",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -13752,7 +13752,7 @@
     },
     {
       "id": "rep119",
-      "name": "Tacos poisson – chou-fleur – avocat",
+      "name": "Tacos de poisson au chou-fleur et avocat",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -13808,7 +13808,7 @@
     },
     {
       "id": "rep120",
-      "name": "Pita PST shawarma – sauce soja – légumes",
+      "name": "Pita shawarma au soja",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -13870,7 +13870,7 @@
     },
     {
       "id": "rep121",
-      "name": "Taboulé protéiné – pois chiches – menthe",
+      "name": "Taboulé aux pois chiches",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -13933,7 +13933,7 @@
     },
     {
       "id": "rep122",
-      "name": "Couscous poulet – légumes – pois chiches",
+      "name": "Couscous de poulet aux légumes",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -13999,7 +13999,7 @@
     },
     {
       "id": "rep123",
-      "name": "Boulgour – bœuf – ratatouille – yaourt",
+      "name": "Boulgour au bœuf et ratatouille",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -14062,7 +14062,7 @@
     },
     {
       "id": "rep124",
-      "name": "Semoule – tofu façon merguez – légumes",
+      "name": "Semoule au tofu façon merguez",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -14125,7 +14125,7 @@
     },
     {
       "id": "rep125",
-      "name": "Boulgour – saumon – courgette – citron",
+      "name": "Saumon aux courgettes et boulgour",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -14182,7 +14182,7 @@
     },
     {
       "id": "rep126",
-      "name": "Couscous végétal – pois chiches – PST",
+      "name": "Couscous végétal aux pois chiches",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -14248,7 +14248,7 @@
     },
     {
       "id": "rep127",
-      "name": "Polenta crémeuse – poulet – champignons",
+      "name": "Polenta crémeuse au poulet et champignons",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -14304,7 +14304,7 @@
     },
     {
       "id": "rep128",
-      "name": "Polenta – ratatouille – tofu grillé",
+      "name": "Tofu grillé à la ratatouille sur polenta",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -14362,7 +14362,7 @@
     },
     {
       "id": "rep129",
-      "name": "Nouilles de riz sautées – tofu – cacahuète",
+      "name": "Nouilles de riz sautées au tofu et cacahuète",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -14420,7 +14420,7 @@
     },
     {
       "id": "rep130",
-      "name": "Nouilles de riz – bœuf – brocoli",
+      "name": "Nouilles de riz au bœuf et brocoli",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -14477,7 +14477,7 @@
     },
     {
       "id": "rep131",
-      "name": "Polenta – PST bolognaise – parmesan",
+      "name": "Polenta à la bolognaise de soja",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -14540,7 +14540,7 @@
     },
     {
       "id": "rep132",
-      "name": "Nouilles de riz – crevettes – légumes – coco",
+      "name": "Nouilles de riz aux crevettes et coco",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -14597,7 +14597,7 @@
     },
     {
       "id": "rep133",
-      "name": "Omelette – pommes de terre – épinards",
+      "name": "Omelette aux pommes de terre et épinards",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -14653,7 +14653,7 @@
     },
     {
       "id": "rep134",
-      "name": "Shakshuka – œufs – pois chiches – pain",
+      "name": "Shakshuka aux pois chiches",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -14722,7 +14722,7 @@
     },
     {
       "id": "rep135",
-      "name": "Frittata – courgette – feta – quinoa",
+      "name": "Frittata courgette-feta au quinoa",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -14785,7 +14785,7 @@
     },
     {
       "id": "rep136",
-      "name": "Œufs cocotte – épinards – patate douce",
+      "name": "Œufs cocotte aux épinards et patate douce",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -14841,7 +14841,7 @@
     },
     {
       "id": "rep137",
-      "name": "Omelette protéinée – champignons – riz",
+      "name": "Omelette de blancs aux champignons et riz",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -14905,7 +14905,7 @@
     },
     {
       "id": "rep138",
-      "name": "Œufs brouillés – avocat – patate – maïs",
+      "name": "Œufs brouillés, patate douce et avocat",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -14961,7 +14961,7 @@
     },
     {
       "id": "rep139",
-      "name": "Salade César allégée – poulet – quinoa",
+      "name": "Salade César au poulet et quinoa",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -15023,7 +15023,7 @@
     },
     {
       "id": "rep140",
-      "name": "Salade riz – thon – maïs – œuf",
+      "name": "Salade de riz au thon et œuf",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -15086,7 +15086,7 @@
     },
     {
       "id": "rep141",
-      "name": "Salade quinoa – tofu fumé – avocat – edamame",
+      "name": "Salade de quinoa au tofu, avocat et edamame",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -15149,7 +15149,7 @@
     },
     {
       "id": "rep142",
-      "name": "Salade pois chiches – feta – concombre – boulgour",
+      "name": "Salade de pois chiches à la feta et boulgour",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -15212,7 +15212,7 @@
     },
     {
       "id": "rep143",
-      "name": "Salade lentilles – saumon fumé – betterave",
+      "name": "Salade de lentilles au saumon fumé",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -15271,7 +15271,7 @@
     },
     {
       "id": "rep144",
-      "name": "Salade haricots blancs – thon – tomate",
+      "name": "Salade de haricots blancs au thon",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -15338,7 +15338,7 @@
     },
     {
       "id": "rep145",
-      "name": "Salade quinoa – haricots noirs – maïs – avocat",
+      "name": "Salade mexicaine de quinoa aux haricots noirs",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -15402,7 +15402,7 @@
     },
     {
       "id": "rep146",
-      "name": "Salade poulet – patate douce – épinards",
+      "name": "Salade de poulet à la patate douce",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -15464,7 +15464,7 @@
     },
     {
       "id": "pd45",
-      "name": "Porridge sarrasin – beurre cacahuète – banane",
+      "name": "Porridge de sarrasin banane-cacahuète",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -15518,7 +15518,7 @@
     },
     {
       "id": "pd46",
-      "name": "Porridge millet – cacao – dattes",
+      "name": "Porridge de millet chocolat-dattes",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -15585,7 +15585,7 @@
     },
     {
       "id": "pd47",
-      "name": "Pudding chia – mangue – coco",
+      "name": "Pudding de chia mangue-coco",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -15638,7 +15638,7 @@
     },
     {
       "id": "pd48",
-      "name": "Bowl yaourt soja – amandes – fruits rouges",
+      "name": "Bol de yaourt de soja aux fruits rouges",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -15691,7 +15691,7 @@
     },
     {
       "id": "pd49",
-      "name": "Smoothie bowl protéine pois – framboises – chia",
+      "name": "Smoothie bowl framboises-chia",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -15744,7 +15744,7 @@
     },
     {
       "id": "pd50",
-      "name": "Porridge quinoa – pomme – amandes",
+      "name": "Quinoa au yaourt de soja, pomme et amandes",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -15797,7 +15797,7 @@
     },
     {
       "id": "pd51",
-      "name": "Riz au lait d'amande – dattes – cannelle",
+      "name": "Riz au lait d'amande et dattes",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -15857,7 +15857,7 @@
     },
     {
       "id": "pd52",
-      "name": "Tofu brouillé – patate douce – épinards",
+      "name": "Tofu brouillé à la patate douce",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -15921,7 +15921,7 @@
     },
     {
       "id": "pd53",
-      "name": "Bowl yaourt soja protéiné – kiwi – graines courge",
+      "name": "Yaourt de soja au kiwi",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -15968,7 +15968,7 @@
     },
     {
       "id": "pd54",
-      "name": "Pudding chia – cacao – beurre amande – banane",
+      "name": "Pudding de chia cacao-amande",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -16034,7 +16034,7 @@
     },
     {
       "id": "pd55",
-      "name": "Smoothie soja – mangue – avocat – chia",
+      "name": "Smoothie mangue-avocat",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -16087,7 +16087,7 @@
     },
     {
       "id": "pd56",
-      "name": "Galettes de riz – cacahuète – banane – yaourt soja",
+      "name": "Galettes de riz banane-cacahuète",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -16140,7 +16140,7 @@
     },
     {
       "id": "pd57",
-      "name": "Porridge millet – framboises – noisettes",
+      "name": "Porridge de millet framboises-noisettes",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -16193,7 +16193,7 @@
     },
     {
       "id": "pd58",
-      "name": "Bowl quinoa – fruits rouges – amandes – coco",
+      "name": "Bol de quinoa aux fruits rouges et coco",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -16256,7 +16256,7 @@
     },
     {
       "id": "col45",
-      "name": "Pudding chia – banane – amande",
+      "name": "Pudding de chia banane-amande",
       "category": "collation",
       "tags": {
         "objectif": [
@@ -16313,7 +16313,7 @@
     },
     {
       "id": "col46",
-      "name": "Shake protéine pois – banane – cacao",
+      "name": "Shake végétal banane-cacao",
       "category": "collation",
       "tags": {
         "objectif": [
@@ -16374,7 +16374,7 @@
     },
     {
       "id": "col47",
-      "name": "Yaourt soja protéiné – myrtilles – amandes",
+      "name": "Yaourt de soja aux myrtilles et amandes",
       "category": "collation",
       "tags": {
         "objectif": [
@@ -16422,7 +16422,7 @@
     },
     {
       "id": "col48",
-      "name": "Energy balls dattes – cacahuète – sarrasin",
+      "name": "Energy balls sarrasin-dattes",
       "category": "collation",
       "tags": {
         "objectif": [
@@ -16478,7 +16478,7 @@
     },
     {
       "id": "col49",
-      "name": "Galettes de riz – beurre amande – chocolat noir",
+      "name": "Galettes de riz, beurre d'amande et chocolat",
       "category": "collation",
       "tags": {
         "objectif": [
@@ -16532,7 +16532,7 @@
     },
     {
       "id": "col50",
-      "name": "Edamame, maïs et graines de courge",
+      "name": "Edamame, maïs et ananas",
       "category": "collation",
       "tags": {
         "objectif": [
@@ -16587,7 +16587,7 @@
     },
     {
       "id": "col51",
-      "name": "Smoothie soja – ananas – chia",
+      "name": "Smoothie de soja à l'ananas",
       "category": "collation",
       "tags": {
         "objectif": [
@@ -16634,7 +16634,7 @@
     },
     {
       "id": "col52",
-      "name": "Crème de soja, banane et amandes",
+      "name": "Yaourt de soja à la banane écrasée",
       "category": "collation",
       "tags": {
         "objectif": [
@@ -16689,7 +16689,7 @@
     },
     {
       "id": "col53",
-      "name": "Banane – beurre cacahuète – graines courge",
+      "name": "Banane-cacahuète et yaourt de soja",
       "category": "collation",
       "tags": {
         "objectif": [
@@ -16743,7 +16743,7 @@
     },
     {
       "id": "col54",
-      "name": "Compote pomme – chia – noix",
+      "name": "Compote pomme-chia au yaourt de soja",
       "category": "collation",
       "tags": {
         "objectif": [
@@ -16797,7 +16797,7 @@
     },
     {
       "id": "rep147",
-      "name": "Riz – PST sautée – edamame – brocoli",
+      "name": "Riz sauté au soja, edamame et brocoli",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -16861,7 +16861,7 @@
     },
     {
       "id": "rep148",
-      "name": "Quinoa – tofu – curry cacahuète – épinards",
+      "name": "Curry cacahuète de tofu au quinoa",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -16919,7 +16919,7 @@
     },
     {
       "id": "rep149",
-      "name": "Patate douce – haricots noirs – PST – avocat",
+      "name": "Patate douce aux haricots noirs et avocat",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -16983,7 +16983,7 @@
     },
     {
       "id": "rep150",
-      "name": "Riz – tempeh – légumes wok – coco",
+      "name": "Riz au tempeh et légumes au coco",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -17041,7 +17041,7 @@
     },
     {
       "id": "rep151",
-      "name": "Polenta – ragoût haricots blancs – PST",
+      "name": "Ragoût de haricots blancs sur polenta",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -17104,7 +17104,7 @@
     },
     {
       "id": "rep152",
-      "name": "Sarrasin – tofu grillé – champignons – levure",
+      "name": "Sarrasin au tofu grillé et champignons",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -17168,7 +17168,7 @@
     },
     {
       "id": "pd59",
-      "name": "Polenta crémeuse – lait – miel – noisettes",
+      "name": "Polenta crémeuse au miel et noisettes",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -17228,7 +17228,7 @@
     },
     {
       "id": "pd60",
-      "name": "Polenta – lait amande – cacao – banane",
+      "name": "Polenta au chocolat et banane",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -17295,7 +17295,7 @@
     },
     {
       "id": "pd61",
-      "name": "Polenta – fromage blanc – fruits rouges",
+      "name": "Polenta au fromage blanc et fruits rouges",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -17348,7 +17348,7 @@
     },
     {
       "id": "pd62",
-      "name": "Porridge châtaigne – lait amande – pomme",
+      "name": "Porridge de châtaigne à la pomme",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -17408,7 +17408,7 @@
     },
     {
       "id": "pd63",
-      "name": "Bowl châtaigne – skyr – chocolat noir",
+      "name": "Bol de châtaigne au skyr et chocolat noir",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -17462,7 +17462,7 @@
     },
     {
       "id": "pd64",
-      "name": "Riz au lait – whey vanille – framboises",
+      "name": "Riz au lait vanille-framboises",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -17523,7 +17523,7 @@
     },
     {
       "id": "pd65",
-      "name": "Riz au lait coco – mangue – chia",
+      "name": "Riz au lait coco-mangue",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -17589,7 +17589,7 @@
     },
     {
       "id": "pd66",
-      "name": "Pancakes sarrasin – œuf – myrtilles",
+      "name": "Pancakes de sarrasin aux myrtilles",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -17652,7 +17652,7 @@
     },
     {
       "id": "pd67",
-      "name": "Pancakes sarrasin vegan – banane – cacahuète",
+      "name": "Pancakes de sarrasin banane-cacahuète",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -17716,7 +17716,7 @@
     },
     {
       "id": "pd68",
-      "name": "Pancakes banane – œuf – sans farine",
+      "name": "Pancakes banane sans farine",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -17779,7 +17779,7 @@
     },
     {
       "id": "pd69",
-      "name": "Porridge quinoa – skyr – myrtilles",
+      "name": "Porridge de quinoa au skyr et myrtilles",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -17832,7 +17832,7 @@
     },
     {
       "id": "pd70",
-      "name": "Porridge millet – whey – pomme – cannelle",
+      "name": "Porridge de millet protéiné à la pomme",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -17892,7 +17892,7 @@
     },
     {
       "id": "pd71",
-      "name": "Porridge sarrasin – cottage – poire",
+      "name": "Porridge de sarrasin au cottage cheese",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -17946,7 +17946,7 @@
     },
     {
       "id": "pd72",
-      "name": "Pudding chia – yaourt soja – kiwi",
+      "name": "Pudding de chia au kiwi",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -17993,7 +17993,7 @@
     },
     {
       "id": "pd73",
-      "name": "Bowl skyr – châtaigne – raisins",
+      "name": "Bol de skyr aux châtaignes et raisins",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -18046,7 +18046,7 @@
     },
     {
       "id": "pd74",
-      "name": "Smoothie bowl skyr – fruits rouges – graines",
+      "name": "Smoothie bowl skyr-fruits rouges",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -18099,7 +18099,7 @@
     },
     {
       "id": "pd75",
-      "name": "Bowl yaourt soja – banane – amande",
+      "name": "Yaourt de soja banane et beurre d'amande",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -18152,7 +18152,7 @@
     },
     {
       "id": "pd76",
-      "name": "Œufs brouillés – polenta grillée – tomate",
+      "name": "Œufs brouillés et polenta grillée",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -18209,7 +18209,7 @@
     },
     {
       "id": "pd77",
-      "name": "Tofu brouillé – pomme de terre – champignons",
+      "name": "Tofu brouillé aux pommes de terre et champignons",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -18273,7 +18273,7 @@
     },
     {
       "id": "pd78",
-      "name": "Omelette – patate douce – épinards – feta",
+      "name": "Omelette à la patate douce et feta",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -18391,7 +18391,7 @@
     },
     {
       "id": "col56",
-      "name": "Galettes de riz – purée châtaigne – noisettes",
+      "name": "Galettes de riz à la purée de châtaigne",
       "category": "collation",
       "tags": {
         "objectif": [
@@ -18445,7 +18445,7 @@
     },
     {
       "id": "col57",
-      "name": "Galettes de riz – cottage – concombre",
+      "name": "Galettes de riz, concombre et cottage cheese",
       "category": "collation",
       "tags": {
         "objectif": [
@@ -18555,7 +18555,7 @@
     },
     {
       "id": "col59",
-      "name": "Energy balls riz soufflé – dattes – cacahuète",
+      "name": "Energy balls riz soufflé-dattes",
       "category": "collation",
       "tags": {
         "objectif": [
@@ -18609,7 +18609,7 @@
     },
     {
       "id": "col60",
-      "name": "Skyr – châtaigne – cannelle",
+      "name": "Skyr aux châtaignes et amandes",
       "category": "collation",
       "tags": {
         "objectif": [
@@ -18657,7 +18657,7 @@
     },
     {
       "id": "col61",
-      "name": "Shake whey – riz soufflé – banane",
+      "name": "Shake protéiné banane et riz soufflé",
       "category": "collation",
       "tags": {
         "objectif": [
@@ -18711,7 +18711,7 @@
     },
     {
       "id": "col62",
-      "name": "Yaourt soja – polenta croustillante – érable",
+      "name": "Yaourt de soja et polenta croustillante à l'érable",
       "category": "collation",
       "tags": {
         "objectif": [
@@ -18765,7 +18765,7 @@
     },
     {
       "id": "col63",
-      "name": "Fromage blanc – mangue – graines courge",
+      "name": "Fromage blanc à la mangue",
       "category": "collation",
       "tags": {
         "objectif": [
@@ -18868,7 +18868,7 @@
     },
     {
       "id": "col65",
-      "name": "Salade d'edamame – concombre – tomate",
+      "name": "Salade d'edamame, concombre et tomate",
       "category": "collation",
       "tags": {
         "objectif": [
@@ -18925,7 +18925,7 @@
     },
     {
       "id": "col66",
-      "name": "Crème de soja, châtaigne et amandes",
+      "name": "Yaourt de soja aux châtaignes et kiwi",
       "category": "collation",
       "tags": {
         "objectif": [
@@ -18980,7 +18980,7 @@
     },
     {
       "id": "rep153",
-      "name": "Risotto – poulet – champignons – parmesan",
+      "name": "Risotto au poulet et champignons",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -19040,7 +19040,7 @@
     },
     {
       "id": "rep154",
-      "name": "Risotto – crevettes – courgette – citron",
+      "name": "Risotto aux crevettes et courgette",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -19093,7 +19093,7 @@
     },
     {
       "id": "rep155",
-      "name": "Risotto vegan – PST – petits pois – levure",
+      "name": "Risotto aux petits pois et soja",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -19153,7 +19153,7 @@
     },
     {
       "id": "rep156",
-      "name": "Paella express – poulet – crevettes – poivron",
+      "name": "Paella au poulet et crevettes",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -19222,7 +19222,7 @@
     },
     {
       "id": "rep157",
-      "name": "Gratin pommes de terre – jambon – mozzarella",
+      "name": "Gratin de pommes de terre au jambon",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -19275,7 +19275,7 @@
     },
     {
       "id": "rep158",
-      "name": "Rösti pommes de terre – saumon – aneth",
+      "name": "Rösti de pommes de terre au saumon",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -19337,7 +19337,7 @@
     },
     {
       "id": "rep159",
-      "name": "Curry pommes de terre – pois chiches – épinards",
+      "name": "Curry de pommes de terre et pois chiches",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -19397,7 +19397,7 @@
     },
     {
       "id": "rep160",
-      "name": "Salade tiède pommes de terre – thon – haricots verts",
+      "name": "Salade tiède de pommes de terre au thon",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -19459,7 +19459,7 @@
     },
     {
       "id": "rep161",
-      "name": "Polenta gratinée – ragoût de bœuf – tomate",
+      "name": "Polenta gratinée au ragoût de bœuf",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -19522,7 +19522,7 @@
     },
     {
       "id": "rep162",
-      "name": "Polenta grillée – tempeh – ratatouille",
+      "name": "Polenta grillée au tempeh et ratatouille",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -19579,7 +19579,7 @@
     },
     {
       "id": "rep163",
-      "name": "Polenta crémeuse – cabillaud – épinards",
+      "name": "Polenta crémeuse au cabillaud et épinards",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -19635,7 +19635,7 @@
     },
     {
       "id": "rep164",
-      "name": "Bo bun – nouilles de riz – bœuf – crudités",
+      "name": "Bo bun au bœuf",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -19699,7 +19699,7 @@
     },
     {
       "id": "rep165",
-      "name": "Soupe pho – nouilles de riz – poulet",
+      "name": "Pho au poulet",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -19770,7 +19770,7 @@
     },
     {
       "id": "rep166",
-      "name": "Nouilles de riz – tempeh – curry rouge – coco",
+      "name": "Curry rouge de tempeh aux nouilles de riz",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -19828,7 +19828,7 @@
     },
     {
       "id": "rep167",
-      "name": "Galettes sarrasin – jambon – champignons",
+      "name": "Galettes de sarrasin au jambon et champignons",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -19891,7 +19891,7 @@
     },
     {
       "id": "rep168",
-      "name": "Millet – saumon – brocoli – citron",
+      "name": "Saumon au millet et brocoli",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -19945,7 +19945,7 @@
     },
     {
       "id": "rep169",
-      "name": "Quinoa – dinde – patate douce – amandes",
+      "name": "Dinde au quinoa, patate douce et amandes",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -20009,7 +20009,7 @@
     },
     {
       "id": "rep170",
-      "name": "Sarrasin – haricots blancs – tomate – olives",
+      "name": "Sarrasin aux haricots blancs, tomate et olives",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -20072,7 +20072,7 @@
     },
     {
       "id": "col67",
-      "name": "Tartine de dinde – concombre – graines de courge",
+      "name": "Tartine de dinde au concombre",
       "category": "collation",
       "tags": {
         "objectif": [
@@ -20181,7 +20181,7 @@
     },
     {
       "id": "col69",
-      "name": "Wrap froid edamame écrasés – roquette",
+      "name": "Wrap froid aux edamame écrasés",
       "category": "collation",
       "tags": {
         "objectif": [
@@ -20235,7 +20235,7 @@
     },
     {
       "id": "col70",
-      "name": "Œuf mollet sur pain de seigle – tomate",
+      "name": "Œuf mollet sur pain de seigle",
       "category": "collation",
       "tags": {
         "objectif": [
@@ -20289,7 +20289,7 @@
     },
     {
       "id": "col71",
-      "name": "Skyr – châtaignes – framboises",
+      "name": "Skyr, châtaignes et framboises",
       "category": "collation",
       "tags": {
         "objectif": [
@@ -20398,7 +20398,7 @@
     },
     {
       "id": "col73",
-      "name": "Polenta grillée – cottage cheese – roquette",
+      "name": "Polenta grillée au cottage cheese",
       "category": "collation",
       "tags": {
         "objectif": [
@@ -20507,7 +20507,7 @@
     },
     {
       "id": "col75",
-      "name": "Fromage blanc – kiwi – graines de courge",
+      "name": "Fromage blanc au kiwi et châtaigne",
       "category": "collation",
       "tags": {
         "objectif": [
@@ -20561,7 +20561,7 @@
     },
     {
       "id": "col76",
-      "name": "Falafels tièdes – maïs – sauce fromage blanc au sésame",
+      "name": "Falafels tièdes, sauce fromage blanc au sésame",
       "category": "collation",
       "tags": {
         "objectif": [
@@ -20622,7 +20622,7 @@
     },
     {
       "id": "col77",
-      "name": "Pois chiches grillés – galette de sarrasin – carotte",
+      "name": "Pois chiches grillés à la carotte",
       "category": "collation",
       "tags": {
         "objectif": [
@@ -20677,7 +20677,7 @@
     },
     {
       "id": "col78",
-      "name": "Edamame – maïs – avocat au citron",
+      "name": "Edamame, maïs et avocat",
       "category": "collation",
       "tags": {
         "objectif": [
@@ -20732,7 +20732,7 @@
     },
     {
       "id": "col79",
-      "name": "Yaourt de soja – châtaignes – chocolat noir",
+      "name": "Yaourt de soja au chocolat noir et framboises",
       "category": "collation",
       "tags": {
         "objectif": [
@@ -20787,7 +20787,7 @@
     },
     {
       "id": "rep171",
-      "name": "Escalope de dinde, polenta crémeuse et poivrons",
+      "name": "Dinde aux poivrons sur polenta crémeuse",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -20850,7 +20850,7 @@
     },
     {
       "id": "rep172",
-      "name": "Millet au thon et épinards fondus",
+      "name": "Millet crémeux au thon et épinards",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -20907,7 +20907,7 @@
     },
     {
       "id": "rep173",
-      "name": "Thon frais mi-cuit, semoule et courgettes aux amandes",
+      "name": "Thon mi-cuit, semoule aux courgettes",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -20970,7 +20970,7 @@
     },
     {
       "id": "rep174",
-      "name": "Pâtes au thon frais, brocoli et pointe de pesto",
+      "name": "Pâtes au thon frais, brocoli et pesto",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -21027,7 +21027,7 @@
     },
     {
       "id": "rep175",
-      "name": "Sardines, boulgour et chou-fleur rôti au sésame",
+      "name": "Sardines et boulgour, chou-fleur rôti au sésame",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -21084,7 +21084,7 @@
     },
     {
       "id": "rep176",
-      "name": "Sardines sur patate douce écrasée, roquette",
+      "name": "Sardines sur écrasé de patate douce",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -21140,7 +21140,7 @@
     },
     {
       "id": "rep177",
-      "name": "Sarrasin aux asperges et saumon fumé",
+      "name": "Sarrasin au saumon fumé et asperges",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -21260,7 +21260,7 @@
     },
     {
       "id": "rep179",
-      "name": "Pâtes complètes au jambon et champignons, crème de soja",
+      "name": "Pâtes crémeuses au jambon et champignons",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -21317,7 +21317,7 @@
     },
     {
       "id": "rep180",
-      "name": "Bavette grillée, riz complet et poivrons, avocat",
+      "name": "Bavette grillée aux poivrons et riz complet",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -21375,7 +21375,7 @@
     },
     {
       "id": "rep181",
-      "name": "Millet crémeux aux crevettes, épinards et coco",
+      "name": "Millet crémeux aux crevettes et coco",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -21438,7 +21438,7 @@
     },
     {
       "id": "rep182",
-      "name": "Sarrasin au cottage cheese, courgettes et amandes",
+      "name": "Sarrasin au cottage cheese et courgettes",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -21495,7 +21495,7 @@
     },
     {
       "id": "rep183",
-      "name": "Blancs d'œufs brouillés, patate douce et haricots verts",
+      "name": "Blancs d'œufs brouillés à la patate douce",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -21553,7 +21553,7 @@
     },
     {
       "id": "rep184",
-      "name": "Polenta au cottage cheese et tomates, roquette",
+      "name": "Polenta au cottage cheese et tomates",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -21671,7 +21671,7 @@
     },
     {
       "id": "rep186",
-      "name": "Wrap sans gluten à la mozzarella et ratatouille",
+      "name": "Wrap de blancs d'œufs à la ratatouille",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -21734,7 +21734,7 @@
     },
     {
       "id": "rep187",
-      "name": "Boulgour au tofu doré, épinards et graines de courge",
+      "name": "Boulgour au tofu doré et épinards",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -21792,7 +21792,7 @@
     },
     {
       "id": "rep188",
-      "name": "Seitan grillé, semoule et courgettes au tahini",
+      "name": "Seitan grillé à la semoule, sauce tahini",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -21848,7 +21848,7 @@
     },
     {
       "id": "rep189",
-      "name": "Protéines de soja aux carottes, pain sans gluten",
+      "name": "Mijoté de soja aux carottes",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -21974,7 +21974,7 @@
     },
     {
       "id": "rep191",
-      "name": "Poulet aux pommes de terre et haricots verts, amandes",
+      "name": "Poulet aux pommes de terre et haricots verts",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -22101,7 +22101,7 @@
     },
     {
       "id": "rep193",
-      "name": "Bœuf haché sur polenta, tomates et olives",
+      "name": "Bœuf haché à la tomate sur polenta",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -22228,7 +22228,7 @@
     },
     {
       "id": "rep195",
-      "name": "Pâtes complètes au cabillaud et courgettes, pesto",
+      "name": "Pâtes complètes au cabillaud et pesto",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -22291,7 +22291,7 @@
     },
     {
       "id": "rep196",
-      "name": "Cabillaud vapeur, millet et légumes wok au coco",
+      "name": "Cabillaud vapeur au coco et millet",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -22411,7 +22411,7 @@
     },
     {
       "id": "rep198",
-      "name": "Sarrasin au thon, concombre et tahini",
+      "name": "Sarrasin au thon et concombre, sauce tahini",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -22537,7 +22537,7 @@
     },
     {
       "id": "rep200",
-      "name": "Boulgour aux crevettes, courgettes et feta",
+      "name": "Boulgour aux crevettes et feta",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -22593,7 +22593,7 @@
     },
     {
       "id": "rep201",
-      "name": "Dinde au riz complet, brocoli et beurre de cacahuète",
+      "name": "Dinde sauce cacahuète au riz complet",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -22656,7 +22656,7 @@
     },
     {
       "id": "rep202",
-      "name": "Boulgour au fromage blanc, betterave et noix de courge",
+      "name": "Boulgour au fromage blanc et betterave",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -22720,7 +22720,7 @@
     },
     {
       "id": "rep203",
-      "name": "Sarrasin au fromage blanc, champignons et huile d'olive",
+      "name": "Sarrasin aux champignons et fromage blanc",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -22784,7 +22784,7 @@
     },
     {
       "id": "rep204",
-      "name": "Semoule aux blancs d'œufs, concombre et feta",
+      "name": "Semoule aux blancs d'œufs et feta",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -22847,7 +22847,7 @@
     },
     {
       "id": "rep205",
-      "name": "Pâtes complètes au cottage cheese, courgettes et amandes",
+      "name": "Pâtes complètes au cottage cheese et courgettes",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -22973,7 +22973,7 @@
     },
     {
       "id": "rep207",
-      "name": "Ragoût de soja aux pommes de terre et ratatouille",
+      "name": "Ragoût de soja aux pommes de terre",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -23036,7 +23036,7 @@
     },
     {
       "id": "rep208",
-      "name": "Wrap sans gluten au soja, poivrons et avocat",
+      "name": "Wrap sans gluten au soja et avocat",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -23099,7 +23099,7 @@
     },
     {
       "id": "rep209",
-      "name": "Seitan doré, patate douce et chou-fleur au sésame",
+      "name": "Seitan doré au chou-fleur et patate douce",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -23162,7 +23162,7 @@
     },
     {
       "id": "rep210",
-      "name": "Tofu croustillant, pain complet et champignons",
+      "name": "Tofu croustillant aux champignons sur pain complet",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -23289,7 +23289,7 @@
     },
     {
       "id": "rep212",
-      "name": "Sarrasin au poulet, asperges et crème de soja",
+      "name": "Sarrasin crémeux au poulet et asperges",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -23352,7 +23352,7 @@
     },
     {
       "id": "rep213",
-      "name": "Riz complet au bœuf, haricots verts et sésame",
+      "name": "Riz complet au bœuf et haricots verts",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -23478,7 +23478,7 @@
     },
     {
       "id": "rep215",
-      "name": "Cabillaud sur polenta, courgettes et graines de courge",
+      "name": "Cabillaud sur polenta aux courgettes",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -23541,7 +23541,7 @@
     },
     {
       "id": "rep216",
-      "name": "Boulgour au cabillaud, chou-fleur et amandes",
+      "name": "Cabillaud rôti au chou-fleur et boulgour",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -23794,7 +23794,7 @@
     },
     {
       "id": "rep220",
-      "name": "Tartine de pain complet au thon et concombre",
+      "name": "Tartine de pain complet au thon et avocat",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -23856,7 +23856,7 @@
     },
     {
       "id": "rep221",
-      "name": "Nouilles complètes aux crevettes, brocoli et poivrons",
+      "name": "Nouilles complètes aux crevettes, sauce cacahuète",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -23919,7 +23919,7 @@
     },
     {
       "id": "rep222",
-      "name": "Millet au cottage cheese, poivrons et graines",
+      "name": "Millet au cottage cheese et poivrons",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -24101,7 +24101,7 @@
     },
     {
       "id": "rep225",
-      "name": "Omelette sur polenta, tomates et roquette",
+      "name": "Omelette sur polenta à la tomate",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -24164,7 +24164,7 @@
     },
     {
       "id": "rep226",
-      "name": "Patate douce et soja au beurre de cacahuète, brocoli",
+      "name": "Patate douce au soja, sauce cacahuète",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -24228,7 +24228,7 @@
     },
     {
       "id": "rep227",
-      "name": "Boulgour au seitan, poivrons et graines de courge",
+      "name": "Boulgour au seitan et poivrons",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -24291,7 +24291,7 @@
     },
     {
       "id": "rep228",
-      "name": "Millet au seitan et champignons au lait de coco",
+      "name": "Millet au seitan et champignons au coco",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -24354,7 +24354,7 @@
     },
     {
       "id": "rep229",
-      "name": "Poêlée de soja aux épinards, pain complet et tahini",
+      "name": "Poêlée de soja aux épinards, sauce tahini",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -24417,7 +24417,7 @@
     },
     {
       "id": "rep230",
-      "name": "Nouilles complètes au seitan, chou-fleur et coco",
+      "name": "Nouilles complètes au seitan et coco",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -24599,7 +24599,7 @@
     },
     {
       "id": "rep233",
-      "name": "Sarrasin au bœuf, poivrons et tomates",
+      "name": "Sarrasin au bœuf et poivrons",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -24661,7 +24661,7 @@
     },
     {
       "id": "rep234",
-      "name": "Boulgour à la bavette, poivrons et olives",
+      "name": "Boulgour à la bavette et olives",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -24724,7 +24724,7 @@
     },
     {
       "id": "rep235",
-      "name": "Cabillaud au sarrasin, asperges et crème de soja",
+      "name": "Cabillaud au sarrasin et asperges",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -24913,7 +24913,7 @@
     },
     {
       "id": "rep238",
-      "name": "Dinde et quinoa, haricots verts et graines de courge",
+      "name": "Dinde au quinoa et haricots verts",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -24976,7 +24976,7 @@
     },
     {
       "id": "rep239",
-      "name": "Polenta au jambon, courgettes et champignons",
+      "name": "Polenta crémeuse au jambon et courgettes",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -25102,7 +25102,7 @@
     },
     {
       "id": "rep241",
-      "name": "Pâtes complètes aux sardines, courgettes et tomates",
+      "name": "Pâtes complètes aux sardines et tomates",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -25165,7 +25165,7 @@
     },
     {
       "id": "rep242",
-      "name": "Cottage cheese sur millet, haricots verts et graines",
+      "name": "Cottage cheese sur millet et haricots verts",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -25228,7 +25228,7 @@
     },
     {
       "id": "rep243",
-      "name": "Pommes de terre aux blancs d’œufs, brocoli et amandes",
+      "name": "Pommes de terre aux blancs d'œufs et brocoli",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -25291,7 +25291,7 @@
     },
     {
       "id": "rep244",
-      "name": "Quinoa aux blancs d’œufs, épinards et feta",
+      "name": "Quinoa aux blancs d'œufs, épinards et feta",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -25354,7 +25354,7 @@
     },
     {
       "id": "rep245",
-      "name": "Pâtes à l’œuf, épinards et parmesan",
+      "name": "Pâtes à l'œuf, épinards et parmesan",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -25417,7 +25417,7 @@
     },
     {
       "id": "rep246",
-      "name": "Seitan et sarrasin, chou-fleur au sésame",
+      "name": "Seitan au sarrasin et chou-fleur au sésame",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -25544,7 +25544,7 @@
     },
     {
       "id": "rep248",
-      "name": "Quinoa au soja et légumes wok au coco",
+      "name": "Quinoa au soja et légumes au coco",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -25601,7 +25601,7 @@
     },
     {
       "id": "rep249",
-      "name": "Pâtes complètes au soja, épinards et graines de courge",
+      "name": "Pâtes complètes au soja et épinards",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -25665,7 +25665,7 @@
     },
     {
       "id": "rep250",
-      "name": "Seitan aux pâtes, brocoli et beurre de cacahuète",
+      "name": "Pâtes au seitan, sauce cacahuète",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -26164,7 +26164,7 @@
     },
     {
       "id": "pd86",
-      "name": "Polenta au cottage cheese, tomates et levure maltée",
+      "name": "Polenta tomate et cottage cheese",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -26226,7 +26226,7 @@
     },
     {
       "id": "pd87",
-      "name": "Blancs d'œufs brouillés sur pain complet, avocat",
+      "name": "Blancs d'œufs brouillés sur pain complet",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -26353,7 +26353,7 @@
     },
     {
       "id": "pd89",
-      "name": "Bowl chaud de sarrasin au skyr, myrtilles et pomme",
+      "name": "Sarrasin tiède au skyr, myrtilles et pomme",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -26479,7 +26479,7 @@
     },
     {
       "id": "pd91",
-      "name": "Pommes de terre sautées, blancs d'œufs et champignons",
+      "name": "Pommes de terre sautées aux blancs d'œufs",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -26543,7 +26543,7 @@
     },
     {
       "id": "pd92",
-      "name": "Wrap sans gluten protéiné à l'avocat et aux épinards",
+      "name": "Wrap protéiné à l'avocat et aux épinards",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -26606,7 +26606,7 @@
     },
     {
       "id": "pd93",
-      "name": "Polenta au tofu fumé brouillé et épinards",
+      "name": "Polenta au tofu fumé brouillé",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -26670,7 +26670,7 @@
     },
     {
       "id": "pd94",
-      "name": "Bowl de quinoa protéiné à la mangue",
+      "name": "Bol de quinoa protéiné à la mangue",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -26727,7 +26727,7 @@
     },
     {
       "id": "pd95",
-      "name": "Châtaigne au yaourt de soja, framboises et cacao",
+      "name": "Châtaigne au yaourt de soja et framboises",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -26790,7 +26790,7 @@
     },
     {
       "id": "pd96",
-      "name": "Sarrasin au yaourt de soja, myrtilles et érable",
+      "name": "Sarrasin au yaourt de soja et myrtilles",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -26852,7 +26852,7 @@
     },
     {
       "id": "pd97",
-      "name": "Tartine sans gluten protéinée, tomate et concombre",
+      "name": "Tartine protéinée tomate-concombre",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -26915,7 +26915,7 @@
     },
     {
       "id": "pd98",
-      "name": "Bowl de patate douce au yaourt de soja et noisettes",
+      "name": "Patate douce au yaourt de soja et noisettes",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -26979,7 +26979,7 @@
     },
     {
       "id": "rep251",
-      "name": "Dinde au millet et crème de sésame",
+      "name": "Dinde au millet, sauce sésame",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -27043,7 +27043,7 @@
     },
     {
       "id": "rep252",
-      "name": "Coquillettes crémeuses jambon petits pois",
+      "name": "Coquillettes crémeuses au jambon et petits pois",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -27177,7 +27177,7 @@
     },
     {
       "id": "rep254",
-      "name": "Sardines à la poêle et sarrasin",
+      "name": "Sardines poêlées au sarrasin et olives",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -27304,7 +27304,7 @@
     },
     {
       "id": "rep256",
-      "name": "Bavette grillée semoule ratatouille",
+      "name": "Bavette grillée, semoule et ratatouille",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -27368,7 +27368,7 @@
     },
     {
       "id": "rep257",
-      "name": "Dos de cabillaud riz complet petits pois",
+      "name": "Cabillaud au riz complet et petits pois",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -27432,7 +27432,7 @@
     },
     {
       "id": "rep258",
-      "name": "Bol de quinoa au saumon fumé",
+      "name": "Bol de quinoa au saumon fumé et asperges",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -27496,7 +27496,7 @@
     },
     {
       "id": "rep259",
-      "name": "Nouilles complètes au thon et graines",
+      "name": "Nouilles complètes au thon et brocoli",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -27943,7 +27943,7 @@
     },
     {
       "id": "rep266",
-      "name": "Bol de sarrasin tiède à la betterave",
+      "name": "Sarrasin tiède au fromage blanc et betterave",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -28007,7 +28007,7 @@
     },
     {
       "id": "rep267",
-      "name": "Sauté de protéines de pois au lait de coco",
+      "name": "Wok protéiné de nouilles de riz au coco",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -28385,7 +28385,7 @@
     },
     {
       "id": "rep273",
-      "name": "Fèves mijotées à la tomate et quinoa",
+      "name": "Fèves mijotées au coco et quinoa",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -28519,7 +28519,7 @@
     },
     {
       "id": "rep275",
-      "name": "Chou-fleur rôti, sauce au yaourt de soja et riz complet",
+      "name": "Chou-fleur rôti au riz complet, sauce tahini",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -28639,7 +28639,7 @@
     },
     {
       "id": "rep277",
-      "name": "Maïs et haricots verts au soja texturé",
+      "name": "Poêlée de maïs au soja et haricots verts",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -28811,7 +28811,7 @@
     },
     {
       "id": "rep280",
-      "name": "Semoule à la ratatouille et protéine végétale",
+      "name": "Semoule protéinée à la ratatouille",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -29636,7 +29636,7 @@
     },
     {
       "id": "pd111",
-      "name": "Tempeh grillé, sarrasin et épinards",
+      "name": "Tempeh grillé au sarrasin et épinards",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -29757,7 +29757,7 @@
     },
     {
       "id": "pd113",
-      "name": "Polenta crémeuse aux champignons et soja texturé",
+      "name": "Polenta crémeuse aux champignons et soja",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -29986,7 +29986,7 @@
     },
     {
       "id": "pd117",
-      "name": "Galettes de riz garnies d'edamame écrasés",
+      "name": "Galettes de riz aux edamame écrasés",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -30043,7 +30043,7 @@
     },
     {
       "id": "pd118",
-      "name": "Châtaigne fondante au soja texturé",
+      "name": "Châtaignes fondantes au soja et haricots verts",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -30277,7 +30277,7 @@
     },
     {
       "id": "pd122",
-      "name": "Pita complète au tempeh et crudités",
+      "name": "Pita au tempeh et crudités",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -30395,7 +30395,7 @@
     },
     {
       "id": "col81",
-      "name": "Polenta crémeuse à la protéine de pois et pomme râpée",
+      "name": "Polenta crémeuse protéinée à la pomme",
       "category": "collation",
       "tags": {
         "objectif": [
@@ -30499,7 +30499,7 @@
     },
     {
       "id": "col83",
-      "name": "Seitan poêlé au maïs et paprika",
+      "name": "Seitan poêlé au maïs",
       "category": "collation",
       "tags": {
         "objectif": [
@@ -30548,7 +30548,7 @@
     },
     {
       "id": "col84",
-      "name": "Tartine complète purée de cacahuète et pomme, yaourt de soja",
+      "name": "Tartine pomme-cacahuète et yaourt de soja",
       "category": "collation",
       "tags": {
         "objectif": [
@@ -30603,7 +30603,7 @@
     },
     {
       "id": "col85",
-      "name": "Crème de châtaigne à la protéine de pois et banane",
+      "name": "Crème de châtaigne protéinée à la banane",
       "category": "collation",
       "tags": {
         "objectif": [
@@ -30930,7 +30930,7 @@
     },
     {
       "id": "col91",
-      "name": "Galettes de riz au soja texturé et tomate",
+      "name": "Galettes de riz au soja et tomate",
       "category": "collation",
       "tags": {
         "objectif": [
@@ -31256,7 +31256,7 @@
     },
     {
       "id": "col97",
-      "name": "Toast à la banane et protéine végétale",
+      "name": "Toast protéiné à la banane",
       "category": "collation",
       "tags": {
         "objectif": [
@@ -31747,7 +31747,7 @@
     },
     {
       "id": "col106",
-      "name": "Polenta au tofu fumé et poivron",
+      "name": "Polenta au tofu fumé et champignons",
       "category": "collation",
       "tags": {
         "objectif": [
@@ -32022,7 +32022,7 @@
     },
     {
       "id": "rep281",
-      "name": "Chili de haché végétal aux lentilles, millet et graines de courge",
+      "name": "Chili végétal aux lentilles et millet",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -32099,7 +32099,7 @@
     },
     {
       "id": "rep282",
-      "name": "Émincé végétal sauté au sésame, nouilles et brocoli",
+      "name": "Nouilles sautées à l'émincé végétal et brocoli",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -32169,7 +32169,7 @@
     },
     {
       "id": "rep283",
-      "name": "Boulettes végétales à la tomate, boulgour et edamame",
+      "name": "Boulettes végétales à la tomate et boulgour",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -32245,7 +32245,7 @@
     },
     {
       "id": "rep284",
-      "name": "Galette végétale, quinoa aux lentilles, betterave et graines de courge",
+      "name": "Galette végétale et quinoa aux lentilles",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -32611,7 +32611,7 @@
     },
     {
       "id": "pd128",
-      "name": "Pain perdu au lait et noisettes",
+      "name": "Pain perdu aux noisettes",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -32735,7 +32735,7 @@
     },
     {
       "id": "pd130",
-      "name": "Crêpes de sarrasin, fromage blanc et framboises",
+      "name": "Crêpes de sarrasin au fromage blanc et framboises",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -32906,7 +32906,7 @@
     },
     {
       "id": "pd133",
-      "name": "Skyr, fruits rouges et pain de seigle",
+      "name": "Skyr, fruits rouges et pain de seigle grillé",
       "category": "petit_dej",
       "tags": {
         "objectif": [
