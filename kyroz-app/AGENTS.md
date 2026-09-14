@@ -772,8 +772,8 @@ produit en suspens — il ne reste qu'à coder.
   1. ✅ **Inventaire du remplissage validé** (2026-09-14) : 180 lignes sur 206 « d'accord »,
      sans note ; les 26 lignes de soja texturé laissées exprès pour le point 3. Une seule
      réponse portait sur une formulation périmée (`rep52`) : appliquée dans sa version corrigée.
-  2. 🔶 **Réécriture FAITE, PAS MERGÉE** — branche `feat/sans-remplissage`, PR en brouillon
-     (fiche D33 à écrire au merge). 104 recettes réécrites (ingrédients, étapes, nom quand le
+  2. ✅ **D33 · Pas de remplissage dans les recettes — mergé le 2026-09-15** (PR #284), PAS
+     encore publié en OTA (point 4). Ce point tient lieu de fiche. 104 recettes réécrites (ingrédients, étapes, nom quand le
      plat change, macros et `tags.objectif` recalculés), `ENGINE_VERSION` 54 → 55 (précédents
      v35, v43, v44 : composition changée sous le même id). Garde-fou neuf
      `lib/__tests__/remplissage.test.ts` : 66 plats tolérés UN PAR UN avec la raison de la
