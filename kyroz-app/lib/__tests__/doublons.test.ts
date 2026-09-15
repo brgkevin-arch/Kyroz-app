@@ -53,10 +53,14 @@ import { findViolations, nameKey, norm, type CheckRecipe } from '../../scripts/c
 //               n'était pas une sortie : une recette sans ingrédient au rôle `fat` tombe à 0 profil
 //               servi (le moteur ne peut plus viser les lipides). Au passage, rep52 (wrap de thon)
 //               cesse d'être le jumeau de rep13 (wrap de poulet).
+//   R1 74 → 64, R2 70 → 59 : soja texturé remplacé par des protéines végétales (2026-09-15, D34).
+//               Chaque remplacement a été choisi AUSSI contre les doublons : le tofu donnait 8 au
+//               dahl de fèves mais le copiait sur rep10, le poulet végétal copiait rep91 sur
+//               rep159. Aucune violation créée, 21 défaites.
 // Ce qui reste est du quasi-doublon de composition, pas du clone : R4 est dominé par des
 // familles saturées (whey+avoine ×6, yaourt de soja sans féculent ×8) qui se règlent en
 // écrivant AILLEURS, pas en réécrivant l'existant.
-const PLAFOND = { R1: 74, R2: 70, R4: 14, R5: 0, R7: 0 } as const;
+const PLAFOND = { R1: 64, R2: 59, R4: 14, R5: 0, R7: 0 } as const;
 
 const RECIPES = (raw as { recipes: unknown[] }).recipes as CheckRecipe[];
 

@@ -68,7 +68,7 @@ describe('collation « sur le pouce » : 10 min au plus, sans cuisson', () => {
     ['col05', 'Tartine complète grillée'],
     ['col14', 'Œufs durs'],
     ['col41', 'Galettes de riz, dinde saisie'],
-    ['col82', "Soja texturé à l'eau bouillante"],
+    ['col92', 'Champignons saisis à la poêle'],
     ['col108', 'Légumes wok sautés'],
     ['col17', 'Semoule de maïs, 15 min'],
   ])('%s (%s) ne passe pas', (id) => {

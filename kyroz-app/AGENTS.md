@@ -246,7 +246,7 @@ jour même**) sont les deux nouveaux. Trois tests comptent ce qu'ils affirment �
 | | valeur | comment la revérifier |
 |---|---|---|
 | Catalogue | **541 recettes** — 137 petits-déj · 284 repas complets · 120 collations (relu le 2026-09-15 ; 516 au relevé précédent) | `npm run mesure:couverture` |
-| `ENGINE_VERSION` | **55** (relu le 2026-09-15 dans `lib/planEngine.ts`, dont le changelog fait foi : v55 = pas de remplissage, D33 ; invalide les plans en cache). *Historique de la case, qui annonçait encore la v47 :* créneaux de repas LIBRES : l'ordre canonique de la journée devient CHRONOLOGIQUE (la collation de 16 h passe avant le dîner, elle était servie en dernier), donc le report de budget de repas en repas change d'ordre *(46 = le budget du jour suit la dépense RÉELLE du jour, `lib/dailyBudget.ts`)*. ⚠️ Cette ligne est restée à **45** pendant une journée entière après le bump : celui qui incrémente la constante est celui qui doit toucher cette case | `lib/planEngine.ts` |
+| `ENGINE_VERSION` | **56** (relu le 2026-09-15 dans `lib/planEngine.ts`, dont le changelog fait foi : v56 = soja texturé remplacé par les protéines végétales, D34 ; invalide les plans en cache). *Historique de la case, qui annonçait encore la v47 :* créneaux de repas LIBRES : l'ordre canonique de la journée devient CHRONOLOGIQUE (la collation de 16 h passe avant le dîner, elle était servie en dernier), donc le report de budget de repas en repas change d'ordre *(46 = le budget du jour suit la dépense RÉELLE du jour, `lib/dailyBudget.ts`)*. ⚠️ Cette ligne est restée à **45** pendant une journée entière après le bump : celui qui incrémente la constante est celui qui doit toucher cette case | `lib/planEngine.ts` |
 | `ENGINE_REV` | **11** (relu le 2026-09-15 dans `lib/tdee.ts`). *Historique :* **10** (avertissement one-shot à l'utilisateur) — re-lu dans le code le 2026-08-27 (`lib/tdee.ts`), cette case annonçait **8** : elle avait sauté DEUX incréments dans la même journée. 🔴 **ET LA REV 10 N'EST CHEZ PERSONNE** : elle est sur `main` depuis #178 et **aucune OTA ne la porte** — la 25ᵉ a été publiée sur `777d9167`, un commit plus tôt. **10 = A43, constat `02-01` (P0)** : le chemin « %MG **mesuré** » cesse de servir Katch là où Katch rend MOINS que Mifflin (`tdee.ts::katchRetenu`). La règle est le **SIGNE de `katch − mifflin`**, jamais un seuil d'adiposité — un seuil fixe rouvrait une marche de **571 kcal/j vers le bas**, c'est-à-dire la falaise que la rev 9 venait de fermer, sur les corps mêmes qu'elle protège. **Coût mesuré sur 645 120 profils** du chemin concerné : **344 406 bougent (53,4 %), TOUS vers le haut**, moyenne +409 kcal/j, max +1 469, dont **300 397 au-delà des 100 kcal/j** qui déclenchent l'avertissement — la plus grosse population jamais déplacée par une rev, et elle attend la prochaine publication. Le chemin « estimé » ne bouge pas d'un kcal (`npm run mesure:katch`). **9 = CA-2-01** (même jour) : le retrait des planchers dérivés de la masse maigre au-dessus du seuil d'adiposité était un INTERRUPTEUR et non une pente — 137 · 115 · 112 kcal/j de saut à des pas de 0,5 · 0,05 · 0,005 pt, il ne rétrécissait pas. Il glisse désormais sur 5 points de %MG : **28 cibles bougent sur 225 600 (0,01 %)**, max 53 kcal/j, **aucune** n'atteint le seuil d'avertissement. **Historique — 8** = A38, « R6 lissée » (2026-08-24) : pour un %MG **estimé**, le BMR glisse de Mifflin vers Katch quand la silhouette indique nettement plus de muscle que la moyenne du gabarit (fenêtre 0,5 → 1,5 bande, la bande valant les ±5 pts d'incertitude d'une silhouette), **jamais l'inverse** — côté gras Mifflin est servi tel quel. Les cibles ne peuvent donc que **MONTER** (mesuré sur le moteur : max +100 en sèche, +393 en maintien, **aucune baisse**). ⚠️ **Sa notice n'a PAS de `cause`, et c'est délibéré** : les deux causes de la rev 7 sont réservées aux trajets qui la TRAVERSENT (`depuis < 7`) — sans cette garde, un compte rev 7 → 8 recevrait « ta limite de sécurité ne s'applique plus », qui serait un mensonge. *(7 = E30, **DEUX causes** : (a) les planchers dérivés de la masse maigre (BMR + énergie disponible) se retirent au-delà de 30 %/40 % de MG, le cap 25 % du TDEE prend le relais ; (b) `bulk` refermé sur `lean_bulk` — première révision à porter deux causes, d'où `EngineNotice.cause` ; 6 = E23, la provenance du %MG décide de Katch ; 5 = A15, l'objectif daté hors de portée sert le rythme sûr MAXIMAL)* | `lib/tdee.ts` |
 | Objectif daté | la date affichée est un **POINT FIXE** : l'adopter ne la déplace plus (3 corps sur 8 glissaient de +96 j avant A15) | `npm run mesure:objectif` |
 | Échéance de l'objectif daté | 🔴 **C'est une DATE, plus une durée** (A28, 2026-08-07, décision fondateur) : la rangée de 5 puces est **RETIRÉE**, on saisit jour/mois/année, et l'écran donne une **ESTIMATION** — « la première date que Kyroz peut tenir », + « Viser cette date » en un tap. Refus de la date passée et de l'au-delà de 5 ans (au-delà, le moteur creuse au MAXIMUM : −55 → −418 kcal/j sur `F 78 → 65`). ⚠️ L'estimation vient de la **marche 1 de `deadlineLadder`**, PAS de `status.projectedDate` — les deux diffèrent de **12 à 100 jours** et la seconde suppose une échéance qui expire. ⚠️ **`deadlineLadder` (A27) tourne donc toujours** : estimation + date pré-remplie (2ᵉ marche) — **ne pas le supprimer comme du code mort**. Ses invariants restent mesurés : **40/40 tenables**, **40/40 servant un plan distinct**, contre 10/40 et 14/40 avec les 5 durées figées d'avant A27 | `npm run mesure:objectif` |
@@ -811,11 +811,36 @@ produit en suspens — il ne reste qu'à coder.
      recréer de clones (rep76 avocat, rep182 et rep278 olives, rep203 parmesan, col100 tahini,
      col118 olives). **À juger** : `col03` (devenu salé sans l'ananas, jamais présenté).
      20 recettes cuisent encore à la poêle sans aucun ingrédient gras (32 sur main).
-  3. 🤖 **PUIS le soja texturé** (décision fondateur : « on remplace le soja après ») par les
-     aliments de D32, proposé recette par recette sur une page avant d'écrire ; les noms
-     « soja » des recettes reprises deviennent « soja texturé ». Lié à D27.2 (steak, nuggets,
-     saucisses toujours sans recette) et à **D27.1, à trancher AVANT** (le contrôle R8 juge
-     les recettes véganes sur des cibles d'omnivore).
+  3. ✅ **D34 · Le soja texturé remplacé par les protéines végétales — écrit le 2026-09-15**
+     (branche `claude/vegan-recipes-textured-soy-8902bb`). Ce point tient lieu de fiche. D27.1
+     tranché d'abord (cf. D27). Validé en deux tours sur une page (bases `avis` puis `tour2`),
+     puis **les motifs de refus généralisés aux lignes acceptées** (consigne fondateur : « si un
+     motif de refus vaut pour une recette où j'ai mis d'accord, tu peux changer ») : une
+     protéine végétale plutôt que plus de légumineuse ; couvrir plus de profils ; une protéine
+     végétale qui va avec le plat au lieu du soja texturé, catalogue entier ; trop de tofu.
+     **46 recettes réécrites**, `ENGINE_VERSION` 55 → 56. Soja texturé 47 recettes → **1**
+     (`rep101`, gardé à la demande du fondateur, ses étapes muettes réécrites) ; **aucun nom de
+     plat ne dit plus « soja »** (règle fondateur ; « yaourt de soja » non visé). Protéines
+     après : filets de poulet végétal 17, jambon végétal 14, aiguillettes 5, émincés 4,
+     chorizo 4, haché 3, boulettes 2, tempeh 15 ; tofu inchangé (39 recettes, hors chantier).
+     **Mesuré à cibles FIGÉES, règle D27.1** : profils servis des 46 recettes 352 → 372 ;
+     R1 74 → 64, R2 70 → 59, aucune violation créée (chaque choix contrôlé contre les
+     doublons : le tofu copiait rep10, le poulet végétal copiait rep91 sur rep159) ;
+     `--seuils` repas complets sous le seuil 97 → 95. ⚠️ **5 recettes sortent du sans gluten**
+     (rep82, rep108, rep170 validées en connaissance ; rep226, rep277 : le garder coûtait
+     2 profils ou plus). ⚠️ **Pertes** : rep189 mijoté aux carottes 8 → 4 (son pain sans gluten
+     interdit les pièces au blé, le pain complet créait 2 doublons), rep170 11 → 8, rep66
+     10 → 8 (chorizo borné à 100 g par `absMaxQty`). Au passage : col82, col91 et col100 au
+     jambon végétal deviennent « sur le pouce » (`repasHumain.test` vise désormais col92) ;
+     sondes « végétarien » de `dislike.test` et `planEngine.test` : « poulet végétal » exclu du
+     texte lu ; `PROTEIN_REFS` + aiguillettes et chorizo ; `multiProfile` H3 (94 > 90) lu sur
+     une version intermédiaire, final 84 — sur 12 tirages × 4 gabarits lourds, jours hors
+     bande 7/240 sur main → 2/240. Suite 2379/2379. Outils rejouables : scratchpad de session
+     (`final.ts`, `appliquer.ts`, `cibles-figees.json`), perdus hors session.
+     ❓ **À trancher** : les pièces végétales de la liste D32 (filets, aiguillettes, lardons,
+     merguez, chorizo, jambon, escalope) ne sont PAS dans `PROTEINES_VEGETALES_RARES`
+     (`lib/repasHumain.ts`) : chez un omnivore elles sont plafonnées comme un ingrédient courant
+     (5/semaine) et non rare (2) comme le tofu. Sans effet chez le végane et le végétarien.
   4. ✅ **OTA** : D32 et D33 publiés dans la 35ᵉ le 2026-09-15 (ligne « OTA publiées »).
      Prochaine OTA : comparer à nouveau l'empreinte au build (22) avant de publier.
   5. 🧑 **Petits-déjeuners salés « à la française »** à commander pour le vegan et le
@@ -859,7 +884,7 @@ produit en suspens — il ne reste qu'à coder.
   comprises), aucun mapping Ciqual qui l'écraserait, gluten, soja et blé recalculés depuis
   les étiquettes, calories de chaque étiquette cohérentes avec ses macros. **Vérifié par
   6 mutations**, toutes rouges.
-  ⏭️ **Suite** : trois de ces aliments servent depuis D33 (pd92 poulet végétal, pd97 jambon végétal, rep280 merguez végétales) ; reste le soja texturé de remplissage (point 3 de « Reste à faire »).
+  ⏭️ **Suite** : trois de ces aliments servaient depuis D33 (pd92, pd97, rep280) ; depuis D34 (point 3 de « Reste à faire »), le poulet végétal, le jambon et le chorizo remplacent le soja texturé dans 46 recettes. Lardons et escalope n'en ont toujours aucune.
 
 - ✅ **D31 · Des noms de plats, pas des listes d'ingrédients — livré le 2026-09-14**
   (`Recette/recettes-kyroz.json`, champ `name` seul ; aucun `ENGINE_VERSION` : l'écran Plan

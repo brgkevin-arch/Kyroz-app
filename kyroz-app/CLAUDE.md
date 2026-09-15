@@ -293,10 +293,10 @@ App mobile React Native (Expo Router, **SDK 57** depuis le 2026-08-27) de plans 
 > Cette ligne annonçait « Ciqual primaire + **Open Food Facts** secondaire », en statut
 > « Cible ». Open Food Facts **n'a jamais été branché** : zéro ligne de code, zéro appel.
 > La réalité, mesurée : la table `Recette/recettes-kyroz.json > ingredients_reference`
-> porte **139 refs** (re-compté le 2026-09-15), dont **124 réellement utilisées** par une recette.
+> porte **139 refs** (re-compté le 2026-09-15, après D34), dont **126 réellement utilisées** par une recette.
 > **115/139 sont
 > sourcées Ciqual** (`lib/recipeFoodMap.ts::REF_FOOD_ID` → base ANSES convertie dans
-> `lib/foods.generated.ts`), soit **106/124** en ne comptant que les utilisées, et
+> `lib/foods.generated.ts`), soit **106/126** en ne comptant que les utilisées, et
 > **24 sont saisies à la main** — celles que Ciqual ne couvre pas proprement : `whey`,
 > `skyr`, `yaourt_grec`, `cottage_cheese`, `proteine_vegetale`, `soja_texture`,
 > `yaourt_soja`, `yaourt_soja_proteine`, `levure_maltee`, `edamame`, `haricots_noirs`,
@@ -332,8 +332,11 @@ App mobile React Native (Expo Router, **SDK 57** depuis le 2026-08-27) de plans 
 > gluten — le plus pauvre du catalogue (12 repas complets servables à une femme de 55 kg
 > en sèche, sur 280). Seuls `steak_soja`, `hache_vegetal` et `saucisse_vegetale` (soja
 > seul) l'atteignent, et ce sont les moins protéinés. Compté par `similiVegetal.test.ts`.
-> ⚠️ **Aucune recette ne les emploie encore** : un ref seul ne sert personne, il rend une
-> vague possible. Écartée à dessein : `ciqual-1030` « Fines tranches végétales » (29,7 g
+> ⚠️ **Depuis D34 (2026-09-15), quatre servent** : `emince_vegetal` 4 recettes,
+> `hache_vegetal` 3, `boulette_vegetale` 2, `galette_vegetale` 1. `steak_soja`,
+> `nuggets_vegetal` et `saucisse_vegetale` n'en ont toujours aucune : mesurés sur les
+> recettes au soja texturé, ils sont trop gras pour tenir les petits gabarits en sèche.
+> Un ref seul ne sert personne, il rend une vague possible. Écartée à dessein : `ciqual-1030` « Fines tranches végétales » (29,7 g
 > P/100 g, le meilleur du lot) — aucune mention de composition ni de compatibilité
 > végane, donc ambiguë, donc non mappée. Même arbitrage que `yaourt_grec` le 2026-07-29.
 > ⚠️ **Ces chiffres bougent à chaque vague de catalogue** — la version précédente
