@@ -60,7 +60,9 @@ describe('régime = mur dur (jamais relâché par les 👎)', () => {
     const plan = buildLocalPlan(makeProfile({ dietary_restrictions: ['vegetarian'], hidden_recipes: hidden }), 0);
     const banned = ['poulet', 'bœuf', 'boeuf', 'steak', 'saumon', 'thon', 'cabillaud', 'crevette', 'jambon', 'dinde', 'porc'];
     for (const m of plan.meals) {
-      const text = m.recipe.ingredients.map((i) => i.name.toLowerCase()).join(' ');
+      // Les aliments végétaux de la liste (D32) s'appellent « poulet végétal », « jambon végétal » :
+      // le mot seul accuserait un plat végane. Ils sont écartés du texte lu, pas du plan.
+      const text = m.recipe.ingredients.map((i) => i.name.toLowerCase()).filter((n) => !/végéta/.test(n)).join(' ');
       for (const b of banned) expect(text.includes(b), `${m.recipe.name_fr} contient ${b}`).toBe(false);
     }
   });

@@ -88,7 +88,8 @@ describe('buildLocalPlan (cœur du core loop)', () => {
     const plan = buildLocalPlan(p, 0);
     const banned = ['poulet', 'bœuf', 'boeuf', 'steak', 'saumon', 'thon', 'cabillaud', 'crevette', 'jambon', 'dinde', 'porc'];
     for (const meal of plan.meals) {
-      const txt = meal.recipe.ingredients.map((i) => i.name.toLowerCase()).join(' ');
+      // « poulet végétal », « jambon végétal » (D32) : le mot seul accuserait un plat végane.
+      const txt = meal.recipe.ingredients.map((i) => i.name.toLowerCase()).filter((n) => !/végéta/.test(n)).join(' ');
       for (const kw of banned) expect(txt, `${meal.recipe.name_fr}`).not.toContain(kw);
     }
   });

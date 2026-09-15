@@ -102,6 +102,7 @@ const TOLERES: Record<string, string> = {
   'pd93|graines_courge': 'Garniture, 10 g',
   'pd96|tahini': 'Bol sucré au tahini : ça existe',
   'pd97|huile_olive': 'Filet d\'huile',
+  'rep101|soja_texture': 'Dahl aux épinards : le fondateur a demandé d’y garder le soja texturé (2026-09-15, D34)',
   'rep112|graines_courge': 'Graines sur une soupe, avec les croûtons',
   'rep129|beurre_cacahuete': 'Nouilles sautées tofu-cacahuète : ça existe',
   'rep136|creme_soja': 'Œufs cocotte à la crème : classique',
@@ -137,37 +138,10 @@ const TOLERES: Record<string, string> = {
 
 /**
  * Soja texturé ajouté à des légumineuses : laissé EN ATTENTE par le fondateur (« on remplace le
- * soja après »), pour être remplacé par les aliments de la liste végétale (D32). Ne peut que
- * diminuer.
+ * soja après »), puis remplacé par les protéines de la liste végétale le 2026-09-15 (D34). Vide :
+ * le seul qui reste (rep101) est une décision, rangée dans TOLERES. Ne peut que diminuer.
  */
-const SOJA_EN_ATTENTE = new Set<string>([
-  'rep101|soja_texture',
-  'rep102|soja_texture',
-  'rep103|soja_texture',
-  'rep104|soja_texture',
-  'rep105|soja_texture',
-  'rep106|soja_texture',
-  'rep107|soja_texture',
-  'rep108|soja_texture',
-  'rep111|soja_texture',
-  'rep114|soja_texture',
-  'rep118|soja_texture',
-  'rep121|soja_texture',
-  'rep126|soja_texture',
-  'rep145|soja_texture',
-  'rep147|soja_texture',
-  'rep149|soja_texture',
-  'rep151|soja_texture',
-  'rep159|soja_texture',
-  'rep170|soja_texture',
-  'rep273|soja_texture',
-  'rep66|soja_texture',
-  'rep82|soja_texture',
-  'rep88|soja_texture',
-  'rep91|soja_texture',
-  'rep94|soja_texture',
-  'rep99|soja_texture',
-]);
+const SOJA_EN_ATTENTE = new Set<string>([]);
 
 describe('pas de remplissage dans les recettes', () => {
   const tous = RAW_RECIPES.flatMap(candidats);

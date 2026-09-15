@@ -2,7 +2,7 @@
   "_meta": {
     "version": "2.0",
     "count": 541,
-    "source_macros": "CIQUAL 2025 (ANSES) pour 115 des 132 ref, via lib/recipeFoodMap.ts → la table officielle est INTÉGRÉE (lib/foods.generated.ts), ce n'est plus une estimation. Les 17 ref restants portent une valeur manuelle assumée, listée dans recipeFoodMap (protéines en poudre, mélanges, haricots noirs — Ciqual n'a pas d'entrée). ⚠️ Ce champ a longtemps dit « remplacer par le CSV officiel avant prod » : c'est FAIT depuis le 2026-08-01.",
+    "source_macros": "CIQUAL 2025 (ANSES) pour 115 des 139 ref, via lib/recipeFoodMap.ts : la table officielle est INTÉGRÉE (lib/foods.generated.ts), ce n'est plus une estimation. Les 24 ref restants portent une valeur manuelle assumée, faute d'entrée Ciqual propre : protéines en poudre, skyr, yaourt grec, cottage, yaourts de soja, levure maltée, soja texturé, edamame, haricots noirs, millet, wrap sans gluten, trois mélanges, et sept aliments végétaux dont la valeur est la MOYENNE d'étiquettes relevées (lib/etiquettesVegetales.ts). Recompté le 2026-09-15. ⚠️ Ce champ a longtemps dit « remplacer par le CSV officiel avant prod » : c'est FAIT depuis le 2026-08-01.",
     "precision": "±5-10%.",
     "poids_basis": "basis=dry -> poids cru/sec (riz, pâtes, légumineuses sèches) ; basis=raw -> viande/poisson cru ; aucun basis -> poids PRÊT À CONSOMMER (conserve égouttée, aliment cuit). ⚠️ La cohérence n'est pas qu'une convention de pesée : les INSTRUCTIONS doivent correspondre. Une légumineuse pesée sèche ne se cuisine pas en 18 minutes — 47 recettes le faisaient jusqu'au 2026-08-03. Verrouillé par lib/__tests__/legumineuses.test.ts.",
     "adaptation_fields": {
@@ -10548,7 +10548,7 @@
     },
     {
       "id": "rep66",
-      "name": "Pâtes à la bolognaise de lentilles",
+      "name": "Pâtes aux lentilles, tomate et chorizo végétal",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -10575,12 +10575,6 @@
           "scalable": true
         },
         {
-          "ref": "soja_texture",
-          "qty": 25,
-          "macro_role": "protein",
-          "scalable": true
-        },
-        {
           "ref": "tomate_concassee",
           "qty": 120,
           "macro_role": "vegetable",
@@ -10597,21 +10591,26 @@
           "qty": 8,
           "macro_role": "fat",
           "scalable": true
+        },
+        {
+          "ref": "chorizo_vegetal",
+          "qty": 100,
+          "macro_role": "protein",
+          "scalable": true
         }
       ],
       "instructions": [
         "Rince les lentilles corail, puis fais-les cuire 12 minutes à feu doux dans trois fois leur volume d'eau salée : elles doivent se défaire.",
-        "Couvre la protéine de soja texturée d'eau bouillante salée, laisse-la gonfler 5 minutes puis presse-la pour l'essorer.",
-        "Émince l'oignon et fais-le blondir 4 minutes dans l'huile d'olive, puis ajoute la protéine de soja et laisse-la colorer 3 minutes.",
+        "Émince l'oignon et fais-le blondir 4 minutes dans l'huile d'olive, puis ajoute le chorizo végétal coupé en rondelles et laisse-le colorer 3 minutes.",
         "Verse la tomate concassée, sale, poivre, et laisse mijoter 10 minutes à feu doux jusqu'à ce que la sauce épaississe, puis ajoute les lentilles égouttées.",
         "Fais cuire les pâtes complètes dans un grand volume d'eau bouillante salée, égoutte-les, mélange-les à la sauce et ajoute le basilic ciselé hors du feu."
       ],
-      "why": "Vegan : bolognaise de lentilles, glucides + protéines pour l'endurance.",
+      "why": "Vegan : pâtes aux lentilles relevées au chorizo végétal, glucides et protéines pour l'endurance.",
       "macros_per_serving": {
-        "kcal": 700,
-        "protein": 40,
-        "carbs": 98.7,
-        "fat": 11.8
+        "kcal": 757.3,
+        "protein": 46.7,
+        "carbs": 92.4,
+        "fat": 17.7
       },
       "wave": "2026-06-19-vegan"
     },
@@ -11209,7 +11208,7 @@
     },
     {
       "id": "rep77",
-      "name": "Bowl de riz à la bolognaise de soja",
+      "name": "Bowl de riz au poulet végétal, sauce tomate et maïs",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -11230,12 +11229,6 @@
           "scalable": true
         },
         {
-          "ref": "soja_texture",
-          "qty": 50,
-          "macro_role": "protein",
-          "scalable": true
-        },
-        {
           "ref": "tomate_concassee",
           "qty": 120,
           "macro_role": "vegetable",
@@ -11252,21 +11245,26 @@
           "qty": 8,
           "macro_role": "fat",
           "scalable": true
+        },
+        {
+          "ref": "filets_poulet_vegetal",
+          "qty": 110,
+          "macro_role": "protein",
+          "scalable": true
         }
       ],
       "instructions": [
         "Rince le riz complet, puis fais-le cuire 25 minutes à couvert et à feu doux dans deux fois et demie son volume d'eau salée.",
-        "Couvre la protéine de soja texturée d'eau bouillante salée, laisse-la gonfler 5 minutes puis presse-la pour l'essorer.",
-        "Fais chauffer l'huile d'olive à feu vif et fais revenir la protéine de soja 5 minutes, jusqu'à ce qu'elle colore et croustille sur les bords.",
+        "Coupe les filets de poulet végétal en dés et fais-les dorer 5 minutes à feu vif dans l'huile d'olive, jusqu'à ce qu'ils colorent sur les bords.",
         "Verse la tomate concassée, sale, poivre, ajoute de l'origan, et laisse mijoter 10 minutes à feu doux : la sauce doit épaissir et napper.",
-        "Dresse le riz au fond du bol, verse la bolognaise dessus et ajoute le maïs égoutté."
+        "Dresse le riz au fond du bol, verse la sauce au poulet dessus et ajoute le maïs égoutté."
       ],
-      "why": "Vegan prise de masse : la PST monte très haut en protéines, sans gluten.",
+      "why": "Vegan muscu sans gluten : le poulet végétal monte haut en protéines.",
       "macros_per_serving": {
-        "kcal": 614,
-        "protein": 36,
-        "carbs": 89,
-        "fat": 11.8
+        "kcal": 616.3,
+        "protein": 30.7,
+        "carbs": 73.4,
+        "fat": 20.4
       },
       "wave": "2026-06-19-vegan"
     },
@@ -11513,7 +11511,7 @@
     },
     {
       "id": "rep82",
-      "name": "Bowl de riz aux haricots noirs et avocat",
+      "name": "Bowl de riz aux haricots noirs, chorizo végétal et avocat",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -11529,19 +11527,13 @@
       "ingredients": [
         {
           "ref": "riz_complet",
-          "qty": 80,
+          "qty": 68,
           "macro_role": "carb",
           "scalable": true
         },
         {
           "ref": "haricots_noirs_conserve",
           "qty": 150,
-          "macro_role": "protein",
-          "scalable": true
-        },
-        {
-          "ref": "soja_texture",
-          "qty": 30,
           "macro_role": "protein",
           "scalable": true
         },
@@ -11556,21 +11548,26 @@
           "qty": 60,
           "macro_role": "fat",
           "scalable": true
+        },
+        {
+          "ref": "chorizo_vegetal",
+          "qty": 70,
+          "macro_role": "protein",
+          "scalable": true
         }
       ],
       "instructions": [
         "Rince le riz complet, puis fais-le cuire 25 minutes à couvert et à feu doux dans deux fois et demie son volume d'eau salée.",
-        "Couvre la protéine de soja texturée d'eau bouillante salée, laisse-la gonfler 5 minutes puis presse-la pour l'essorer.",
-        "Fais-la revenir 4 minutes à feu vif dans une poêle antiadhésive, avec du sel, du poivre, du cumin et du paprika, jusqu'à ce qu'elle croustille sur les bords.",
-        "Égoutte et rince les haricots noirs, puis réchauffe-les 3 minutes avec la protéine de soja.",
+        "Coupe le chorizo végétal en petits dés et fais-le revenir 4 minutes à feu vif dans une poêle antiadhésive, avec du cumin et du paprika, jusqu'à ce qu'il croustille sur les bords.",
+        "Égoutte et rince les haricots noirs, puis réchauffe-les 3 minutes avec le chorizo.",
         "Dresse le riz au fond du bol, ajoute le mélange chaud et le maïs égoutté, et termine par l'avocat en lamelles."
       ],
-      "why": "Vegan combats : protéines complètes (haricots + PST), sans gluten.",
+      "why": "Vegan combats : haricots noirs et chorizo végétal, un bowl tex-mex complet.",
       "macros_per_serving": {
-        "kcal": 744,
-        "protein": 35.3,
-        "carbs": 97.1,
-        "fat": 18
+        "kcal": 712.4,
+        "protein": 32,
+        "carbs": 82.7,
+        "fat": 22
       },
       "wave": "2026-06-19-vegan"
     },
@@ -11878,7 +11875,7 @@
     },
     {
       "id": "rep88",
-      "name": "Buddha bowl au quinoa et pois chiches",
+      "name": "Buddha bowl au quinoa, pois chiches et poulet végétal",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -11894,19 +11891,13 @@
       "ingredients": [
         {
           "ref": "quinoa",
-          "qty": 80,
+          "qty": 68,
           "macro_role": "carb",
           "scalable": true
         },
         {
           "ref": "pois_chiches_conserve",
           "qty": 145,
-          "macro_role": "protein",
-          "scalable": true
-        },
-        {
-          "ref": "soja_texture",
-          "qty": 25,
           "macro_role": "protein",
           "scalable": true
         },
@@ -11927,22 +11918,27 @@
           "qty": 30,
           "macro_role": "vegetable",
           "scalable": false
+        },
+        {
+          "ref": "filets_poulet_vegetal",
+          "qty": 60,
+          "macro_role": "protein",
+          "scalable": true
         }
       ],
       "instructions": [
         "Rince le quinoa sous l'eau froide 30 secondes pour retirer son amertume, puis fais-le cuire 12 minutes à couvert dans deux fois son volume d'eau salée.",
-        "Couvre la protéine de soja texturée d'eau bouillante salée, laisse-la gonfler 5 minutes puis presse-la pour l'essorer.",
         "Égoutte et rince les pois chiches sous l'eau froide, puis sèche-les bien.",
-        "Fais revenir les pois chiches et la protéine de soja 5 minutes à feu vif dans une poêle antiadhésive, avec du sel, du poivre et du cumin, jusqu'à ce qu'ils croustillent.",
+        "Coupe les filets de poulet végétal en lamelles et fais-les revenir 5 minutes à feu vif dans une poêle antiadhésive avec les pois chiches, du sel, du poivre et du cumin, jusqu'à ce qu'ils croustillent.",
         "Égrène le quinoa et laisse-le tiédir, puis dresse-le au fond du bol avec la betterave en dés et la roquette.",
-        "Ajoute les pois chiches chauds et l'avocat en lamelles au dernier moment."
+        "Ajoute le mélange chaud et l'avocat en lamelles au dernier moment."
       ],
-      "why": "Vegan & sans gluten : triple protéine végétale, riche en fibres.",
+      "why": "Vegan & sans gluten : poulet végétal et pois chiches, riche en fibres.",
       "macros_per_serving": {
-        "kcal": 705,
-        "protein": 35.9,
-        "carbs": 80.6,
-        "fat": 21.9
+        "kcal": 670.5,
+        "protein": 33.3,
+        "carbs": 66.7,
+        "fat": 25.6
       },
       "wave": "2026-06-19-vegan"
     },
@@ -12063,7 +12059,7 @@
     },
     {
       "id": "rep91",
-      "name": "Millet au curry de pois chiches et épinards",
+      "name": "Curry de poulet végétal aux pois chiches et épinards, millet",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -12079,19 +12075,13 @@
       "ingredients": [
         {
           "ref": "millet",
-          "qty": 80,
+          "qty": 56,
           "macro_role": "carb",
           "scalable": true
         },
         {
           "ref": "pois_chiches_conserve",
           "qty": 145,
-          "macro_role": "protein",
-          "scalable": true
-        },
-        {
-          "ref": "soja_texture",
-          "qty": 30,
           "macro_role": "protein",
           "scalable": true
         },
@@ -12106,22 +12096,27 @@
           "qty": 50,
           "macro_role": "fat",
           "scalable": true
+        },
+        {
+          "ref": "filets_poulet_vegetal",
+          "qty": 100,
+          "macro_role": "protein",
+          "scalable": true
         }
       ],
       "instructions": [
         "Rince le millet, fais-le cuire 15 minutes à couvert dans deux fois son volume d'eau salée, puis laisse-le gonfler 5 minutes hors du feu.",
-        "Couvre la protéine de soja texturée d'eau bouillante salée, laisse-la gonfler 5 minutes puis presse-la pour l'essorer.",
         "Égoutte et rince les pois chiches sous l'eau froide.",
-        "Fais revenir la protéine de soja 3 minutes à feu vif dans une casserole antiadhésive, avec du sel, du poivre et des épices à curry, jusqu'à ce qu'elle colore.",
+        "Coupe les filets de poulet végétal en dés et fais-les revenir 4 minutes à feu vif dans une casserole antiadhésive, avec du sel, du poivre et des épices à curry, jusqu'à ce qu'ils colorent.",
         "Ajoute les pois chiches et le lait de coco, et laisse mijoter 8 minutes à feu doux : la sauce doit épaissir et napper la cuillère.",
         "Jette les épinards dans la casserole, mélange 1 minute le temps qu'ils tombent, et sers sur le millet."
       ],
-      "why": "Vegan endurance sans gluten : capacité protéique haute, crémeux.",
+      "why": "Vegan endurance sans gluten : curry crémeux, poulet végétal et pois chiches.",
       "macros_per_serving": {
-        "kcal": 694,
-        "protein": 37.2,
-        "carbs": 93.8,
-        "fat": 17.3
+        "kcal": 662.4,
+        "protein": 39,
+        "carbs": 68.2,
+        "fat": 23.9
       },
       "wave": "2026-06-19-vegan"
     },
@@ -12246,7 +12241,7 @@
     },
     {
       "id": "rep94",
-      "name": "Haricots blancs à la tomate et quinoa",
+      "name": "Haricots blancs à la tomate, poulet végétal et quinoa",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -12262,19 +12257,13 @@
       "ingredients": [
         {
           "ref": "quinoa",
-          "qty": 80,
+          "qty": 56,
           "macro_role": "carb",
           "scalable": true
         },
         {
           "ref": "haricots_blancs_conserve",
           "qty": 175,
-          "macro_role": "protein",
-          "scalable": true
-        },
-        {
-          "ref": "soja_texture",
-          "qty": 25,
           "macro_role": "protein",
           "scalable": true
         },
@@ -12289,21 +12278,26 @@
           "qty": 8,
           "macro_role": "fat",
           "scalable": true
+        },
+        {
+          "ref": "filets_poulet_vegetal",
+          "qty": 90,
+          "macro_role": "protein",
+          "scalable": true
         }
       ],
       "instructions": [
         "Rince le quinoa sous l'eau froide 30 secondes pour retirer son amertume, puis fais-le cuire 12 minutes à couvert dans deux fois son volume d'eau salée.",
-        "Couvre la protéine de soja texturée d'eau bouillante salée, laisse-la gonfler 5 minutes puis presse-la pour l'essorer.",
-        "Fais chauffer l'huile d'olive à feu moyen et fais revenir la protéine de soja 4 minutes avec du sel, du poivre et du romarin.",
+        "Fais chauffer l'huile d'olive à feu moyen et fais revenir les filets de poulet végétal coupés en dés 4 minutes avec du sel, du poivre et du romarin.",
         "Égoutte et rince les haricots blancs, ajoute-les avec la tomate concassée et laisse mijoter 10 minutes à feu doux : la sauce doit épaissir et les haricots s'imprégner.",
         "Sers sur le quinoa égrené."
       ],
-      "why": "Vegan combats sans gluten : haricots blancs = capacité protéique élevée.",
+      "why": "Vegan combats sans gluten : haricots blancs et poulet végétal, sauce tomate au romarin.",
       "macros_per_serving": {
-        "kcal": 618,
-        "protein": 35.1,
-        "carbs": 76.7,
-        "fat": 14.5
+        "kcal": 588.1,
+        "protein": 36.9,
+        "carbs": 56,
+        "fat": 19.8
       },
       "wave": "2026-06-19-vegan"
     },
@@ -12532,7 +12526,7 @@
     },
     {
       "id": "rep99",
-      "name": "Chili de soja et patate douce rôtie",
+      "name": "Chili de poulet végétal et patate douce rôtie",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -12550,12 +12544,6 @@
           "ref": "patate_douce",
           "qty": 200,
           "macro_role": "carb",
-          "scalable": true
-        },
-        {
-          "ref": "soja_texture",
-          "qty": 50,
-          "macro_role": "protein",
           "scalable": true
         },
         {
@@ -12581,21 +12569,26 @@
           "qty": 6,
           "macro_role": "fat",
           "scalable": true
+        },
+        {
+          "ref": "filets_poulet_vegetal",
+          "qty": 130,
+          "macro_role": "protein",
+          "scalable": true
         }
       ],
       "instructions": [
         "Préchauffe le four à 210 °C.",
         "Épluche la patate douce, coupe-la en cubes de deux centimètres et étale-les sur une plaque avec la moitié de l'huile d'olive, sans les superposer, puis enfourne 25 minutes en remuant à mi-cuisson.",
-        "Couvre la protéine de soja texturée d'eau bouillante salée, laisse-la gonfler 5 minutes puis presse-la pour l'essorer.",
-        "Fais-la revenir 4 minutes dans le reste d'huile avec du sel, du poivre, du cumin, du paprika et du piment, jusqu'à ce qu'elle croustille.",
+        "Coupe les filets de poulet végétal en dés et fais-les revenir 5 minutes dans le reste d'huile avec du sel, du poivre, du cumin, du paprika et du piment, jusqu'à ce qu'ils colorent.",
         "Égoutte et rince les haricots rouges, ajoute-les avec la tomate concassée et laisse mijoter 10 minutes à feu doux, puis sers sur la patate douce avec le maïs égoutté."
       ],
-      "why": "Vegan combats sans gluten : très haute capacité protéique.",
+      "why": "Vegan combats sans gluten : chili au poulet végétal, très haute capacité protéique.",
       "macros_per_serving": {
-        "kcal": 572,
+        "kcal": 604.8,
         "protein": 40.1,
-        "carbs": 75,
-        "fat": 9
+        "carbs": 61.1,
+        "fat": 18.7
       },
       "wave": "2026-06-19-vegan"
     },
@@ -12716,8 +12709,11 @@
         }
       ],
       "instructions": [
-        "Mijoter lentilles + oignon + épices 20 min.",
-        "Finir au lait de coco et épinards, servir avec le riz."
+        "Rince le riz basmati et fais-le cuire 11 minutes à couvert dans une fois et demie son volume d'eau salée.",
+        "Couvre la protéine de soja texturée d'eau bouillante salée, laisse-la gonfler 5 minutes puis presse-la pour l'essorer.",
+        "Émince l'oignon et fais-le blondir 4 minutes à feu moyen dans une casserole avec un peu de lait de coco, puis ajoute les lentilles corail rincées, la protéine de soja, du curcuma, du cumin et trois fois leur volume d'eau salée.",
+        "Laisse mijoter 15 minutes à feu doux : les lentilles doivent se défaire complètement.",
+        "Verse le reste du lait de coco, jette les épinards et mélange 2 minutes le temps qu'ils tombent, puis sers avec le riz."
       ],
       "why": "Vegan endurance sans gluten : dahl complet, glucides + protéines.",
       "macros_per_serving": {
@@ -12730,7 +12726,7 @@
     },
     {
       "id": "rep102",
-      "name": "Dahl de lentilles et riz complet",
+      "name": "Dahl de lentilles au poulet végétal et riz complet",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -12751,12 +12747,6 @@
           "scalable": true
         },
         {
-          "ref": "soja_texture",
-          "qty": 30,
-          "macro_role": "protein",
-          "scalable": true
-        },
-        {
           "ref": "riz_complet",
           "qty": 70,
           "macro_role": "carb",
@@ -12773,27 +12763,32 @@
           "qty": 40,
           "macro_role": "fat",
           "scalable": true
+        },
+        {
+          "ref": "filets_poulet_vegetal",
+          "qty": 90,
+          "macro_role": "protein",
+          "scalable": true
         }
       ],
       "instructions": [
         "Rince le riz complet, puis fais-le cuire 25 minutes à couvert et à feu doux dans deux fois et demie son volume d'eau salée.",
-        "Couvre la protéine de soja texturée d'eau bouillante salée, laisse-la gonfler 5 minutes puis presse-la pour l'essorer.",
         "Rince les lentilles corail, puis fais-les cuire 12 minutes à feu doux dans trois fois leur volume d'eau salée, avec du curcuma et du cumin : elles doivent se défaire complètement.",
-        "Ajoute la tomate concassée et la protéine de soja, et laisse mijoter 5 minutes de plus.",
+        "Coupe les filets de poulet végétal en dés, ajoute-les avec la tomate concassée et laisse mijoter 6 minutes de plus.",
         "Verse le lait de coco, laisse épaissir 2 minutes à découvert et sers sur le riz."
       ],
-      "why": "Vegan muscu : double protéine (lentilles + PST), forte capacité.",
+      "why": "Vegan muscu sans gluten : dahl de lentilles relevé de poulet végétal.",
       "macros_per_serving": {
-        "kcal": 704,
-        "protein": 40.3,
-        "carbs": 101.3,
-        "fat": 11.8
+        "kcal": 719.4,
+        "protein": 44.3,
+        "carbs": 87.5,
+        "fat": 17.7
       },
       "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep103",
-      "name": "Chili de haricots rouges au soja, riz complet",
+      "name": "Chili de haricots rouges au haché végétal, riz complet",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -12810,12 +12805,6 @@
         {
           "ref": "haricots_rouges_conserve",
           "qty": 175,
-          "macro_role": "protein",
-          "scalable": true
-        },
-        {
-          "ref": "soja_texture",
-          "qty": 35,
           "macro_role": "protein",
           "scalable": true
         },
@@ -12842,27 +12831,32 @@
           "qty": 6,
           "macro_role": "fat",
           "scalable": true
+        },
+        {
+          "ref": "hache_vegetal",
+          "qty": 110,
+          "macro_role": "protein",
+          "scalable": true
         }
       ],
       "instructions": [
         "Rince le riz complet, puis fais-le cuire 25 minutes à couvert et à feu doux dans deux fois et demie son volume d'eau salée.",
-        "Couvre la protéine de soja texturée d'eau bouillante salée, laisse-la gonfler 5 minutes puis presse-la pour l'essorer.",
-        "Fais-la revenir 4 minutes dans l'huile d'olive à feu vif, avec du sel, du poivre, du cumin, du paprika, de l'origan et du piment : les épices doivent accrocher au fond.",
+        "Fais revenir le haché végétal 5 minutes dans l'huile d'olive à feu vif, en l'émiettant, avec du sel, du poivre, du cumin, du paprika, de l'origan et du piment : les épices doivent accrocher au fond.",
         "Égoutte et rince les haricots rouges, ajoute-les avec la tomate concassée et un verre d'eau, et laisse mijoter 15 minutes à couvert et à feu doux.",
         "Ajoute le maïs égoutté pour les 2 dernières minutes et sers sur le riz."
       ],
-      "why": "Vegan combats sans gluten : protéines complètes, plat réconfortant.",
+      "why": "Vegan combats sans gluten : chili con carne végétal, plat réconfortant.",
       "macros_per_serving": {
-        "kcal": 689,
-        "protein": 40.4,
-        "carbs": 96.7,
-        "fat": 11.5
+        "kcal": 725.3,
+        "protein": 34.9,
+        "carbs": 93.9,
+        "fat": 17.5
       },
       "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep104",
-      "name": "Curry de pois chiches à la patate douce",
+      "name": "Curry de patate douce au poulet végétal et pois chiches",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -12883,12 +12877,6 @@
           "scalable": true
         },
         {
-          "ref": "soja_texture",
-          "qty": 40,
-          "macro_role": "protein",
-          "scalable": true
-        },
-        {
           "ref": "patate_douce",
           "qty": 120,
           "macro_role": "carb",
@@ -12905,28 +12893,33 @@
           "qty": 50,
           "macro_role": "fat",
           "scalable": true
+        },
+        {
+          "ref": "filets_poulet_vegetal",
+          "qty": 100,
+          "macro_role": "protein",
+          "scalable": true
         }
       ],
       "instructions": [
-        "Couvre la protéine de soja texturée d'eau bouillante salée, laisse-la gonfler 5 minutes puis presse-la pour l'essorer.",
         "Épluche la patate douce et coupe-la en cubes de deux centimètres : plus gros, ils resteront fermes au cœur.",
         "Égoutte et rince les pois chiches sous l'eau froide.",
-        "Fais revenir la protéine de soja et la patate douce 4 minutes à feu vif dans une casserole, avec du sel, du poivre et des épices à curry.",
+        "Coupe les filets de poulet végétal en dés et fais-les revenir avec la patate douce 4 minutes à feu vif dans une casserole, avec du sel, du poivre et des épices à curry.",
         "Ajoute la tomate concassée et les pois chiches, couvre et laisse mijoter 15 minutes à feu doux : la patate douce doit s'écraser sous la fourchette.",
         "Verse le lait de coco, laisse épaissir 3 minutes à découvert et sers."
       ],
-      "why": "Vegan endurance sans gluten : glucides patate + capacité protéique.",
+      "why": "Vegan endurance sans gluten : curry de poulet végétal, glucides de la patate douce.",
       "macros_per_serving": {
-        "kcal": 565,
-        "protein": 36.3,
-        "carbs": 63.8,
-        "fat": 15.2
+        "kcal": 585.1,
+        "protein": 35.5,
+        "carbs": 52.7,
+        "fat": 22.6
       },
       "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep105",
-      "name": "Soupe de haricots blancs et pain complet",
+      "name": "Soupe de haricots blancs aux émincés végétaux et pain complet",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -12942,12 +12935,6 @@
         {
           "ref": "haricots_blancs_conserve",
           "qty": 200,
-          "macro_role": "protein",
-          "scalable": true
-        },
-        {
-          "ref": "soja_texture",
-          "qty": 25,
           "macro_role": "protein",
           "scalable": true
         },
@@ -12974,24 +12961,32 @@
           "qty": 50,
           "macro_role": "carb",
           "scalable": true
+        },
+        {
+          "ref": "emince_vegetal",
+          "qty": 90,
+          "macro_role": "protein",
+          "scalable": true
         }
       ],
       "instructions": [
-        "Égoutte et rince les haricots blancs, mijote-les avec la PST et les légumes 25 min.",
-        "Sers avec le pain."
+        "Épluche la carotte, coupe-la en rondelles et fais-la revenir 3 minutes à feu moyen dans l'huile d'olive.",
+        "Ajoute les haricots blancs égouttés et rincés, la tomate concassée et deux verres d'eau, et laisse mijoter 20 minutes à feu doux : les haricots doivent commencer à s'écraser.",
+        "Ajoute les émincés végétaux pour les 5 dernières minutes, sale et poivre.",
+        "Sers avec le pain complet grillé."
       ],
-      "why": "Vegan combats : soupe-repas rassasiante, protéines végétales.",
+      "why": "Vegan combats : soupe-repas rassasiante aux émincés végétaux.",
       "macros_per_serving": {
-        "kcal": 490,
-        "protein": 30.8,
-        "carbs": 56.9,
-        "fat": 10.9
+        "kcal": 544.6,
+        "protein": 35.3,
+        "carbs": 55.6,
+        "fat": 14
       },
       "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep106",
-      "name": "Feijoada de haricots noirs et riz",
+      "name": "Feijoada de haricots noirs au jambon végétal, riz",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -13012,12 +13007,6 @@
           "scalable": true
         },
         {
-          "ref": "soja_texture",
-          "qty": 35,
-          "macro_role": "protein",
-          "scalable": true
-        },
-        {
           "ref": "riz_complet",
           "qty": 75,
           "macro_role": "carb",
@@ -13034,28 +13023,33 @@
           "qty": 7,
           "macro_role": "fat",
           "scalable": true
+        },
+        {
+          "ref": "jambon_vegetal",
+          "qty": 110,
+          "macro_role": "protein",
+          "scalable": true
         }
       ],
       "instructions": [
         "Rince le riz complet, puis fais-le cuire 25 minutes à couvert et à feu doux dans deux fois et demie son volume d'eau salée.",
-        "Couvre la protéine de soja texturée d'eau bouillante salée, laisse-la gonfler 5 minutes puis presse-la pour l'essorer.",
         "Émince l'oignon et fais-le blondir 4 minutes à feu moyen dans l'huile d'olive.",
-        "Ajoute la protéine de soja, du sel, du poivre, du cumin et une feuille de laurier, et laisse colorer 4 minutes à feu vif.",
+        "Ajoute le jambon végétal coupé en dés, du sel, du poivre, du cumin et une feuille de laurier, et laisse colorer 4 minutes à feu vif.",
         "Égoutte et rince les haricots noirs, ajoute-les avec un verre d'eau et laisse mijoter 12 minutes à couvert : le jus doit devenir sirupeux et les haricots commencer à s'écraser.",
         "Sers la feijoada sur le riz."
       ],
-      "why": "Vegan muscu sans gluten : haricots noirs riches en protéines et fer.",
+      "why": "Vegan muscu sans gluten : feijoada au jambon végétal, haricots noirs riches en fer.",
       "macros_per_serving": {
-        "kcal": 667,
-        "protein": 37.4,
-        "carbs": 89.8,
-        "fat": 12.1
+        "kcal": 675.6,
+        "protein": 40.6,
+        "carbs": 83.6,
+        "fat": 14.2
       },
       "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep107",
-      "name": "Buddha bowl de pois cassés au boulgour",
+      "name": "Buddha bowl de pois cassés au jambon végétal et boulgour",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -13076,14 +13070,8 @@
           "scalable": true
         },
         {
-          "ref": "soja_texture",
-          "qty": 25,
-          "macro_role": "protein",
-          "scalable": true
-        },
-        {
           "ref": "boulgour",
-          "qty": 70,
+          "qty": 60,
           "macro_role": "carb",
           "scalable": true
         },
@@ -13104,30 +13092,37 @@
           "qty": 8,
           "macro_role": "fat",
           "scalable": true
+        },
+        {
+          "ref": "jambon_vegetal",
+          "qty": 90,
+          "macro_role": "protein",
+          "scalable": true
         }
       ],
       "instructions": [
-        "Cuis les pois cassés 45 min à l’eau non salée, sans trempage : ils doivent se défaire sous la fourchette.",
-        "Cuis le boulgour et réhydrate la PST pendant ce temps.",
-        "Assemble en bowl avec la carotte râpée et la roquette."
+        "Fais cuire les pois cassés 45 minutes à l'eau non salée, sans trempage : ils doivent se défaire sous la fourchette.",
+        "Pendant ce temps, rince le boulgour, verse-le dans une fois et demie son volume d'eau bouillante salée, couvre et laisse cuire 10 minutes à feu doux.",
+        "Râpe la carotte et coupe le jambon végétal en lanières.",
+        "Assemble le bowl avec le boulgour, les pois cassés égouttés, le jambon, la carotte et la roquette, puis arrose d'huile d'olive, sale et poivre."
       ],
-      "why": "Vegan endurance : pois cassés protéinés + glucides du boulgour.",
+      "why": "Vegan endurance : pois cassés au jambon végétal, glucides du boulgour.",
       "macros_per_serving": {
-        "kcal": 676,
-        "protein": 39.3,
-        "carbs": 91.6,
-        "fat": 10.7
+        "kcal": 661.6,
+        "protein": 42.7,
+        "carbs": 81,
+        "fat": 12.3
       },
       "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep108",
-      "name": "Dahl de fèves et riz basmati",
+      "name": "Dahl de fèves aux émincés végétaux et riz basmati",
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "perte_de_gras",
-          "maintien"
+          "maintien",
+          "prise_de_masse"
         ],
         "sport": [
           "muscu"
@@ -13139,12 +13134,6 @@
         {
           "ref": "feves",
           "qty": 70,
-          "macro_role": "protein",
-          "scalable": true
-        },
-        {
-          "ref": "soja_texture",
-          "qty": 25,
           "macro_role": "protein",
           "scalable": true
         },
@@ -13165,19 +13154,26 @@
           "qty": 40,
           "macro_role": "fat",
           "scalable": true
+        },
+        {
+          "ref": "emince_vegetal",
+          "qty": 100,
+          "macro_role": "protein",
+          "scalable": true
         }
       ],
       "instructions": [
-        "Cuis les fèves sèches décortiquées 40 min à l’eau, sans trempage : elles doivent s’écraser entre deux doigts.",
-        "Mijote-les avec la PST et la tomate, finis au lait de coco.",
-        "Sers avec le riz."
+        "Fais cuire les fèves sèches décortiquées 40 minutes à l'eau, sans trempage : elles doivent s'écraser entre deux doigts.",
+        "Pendant ce temps, rince le riz basmati et fais-le cuire 11 minutes à couvert dans une fois et demie son volume d'eau salée.",
+        "Égoutte les fèves, remets-les dans la casserole avec la tomate concassée, du cumin et du curcuma, et laisse mijoter 8 minutes à feu doux.",
+        "Ajoute les émincés végétaux et le lait de coco, laisse épaissir 4 minutes et sers avec le riz."
       ],
-      "why": "Vegan muscu sans gluten : fèves = excellente densité protéique.",
+      "why": "Vegan muscu : dahl de fèves aux émincés végétaux, excellente densité protéique.",
       "macros_per_serving": {
-        "kcal": 652,
-        "protein": 38.3,
-        "carbs": 92.4,
-        "fat": 9.7
+        "kcal": 716,
+        "protein": 44.7,
+        "carbs": 90.3,
+        "fat": 13.3
       },
       "wave": "2026-06-19-vegan"
     },
@@ -13305,7 +13301,7 @@
     },
     {
       "id": "rep111",
-      "name": "Bol de boulgour au houmous et poivron",
+      "name": "Bol de boulgour au houmous, haché végétal et poivron",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -13332,12 +13328,6 @@
           "scalable": true
         },
         {
-          "ref": "soja_texture",
-          "qty": 20,
-          "macro_role": "protein",
-          "scalable": true
-        },
-        {
           "ref": "poivron",
           "qty": 80,
           "macro_role": "vegetable",
@@ -13348,22 +13338,27 @@
           "qty": 8,
           "macro_role": "fat",
           "scalable": true
+        },
+        {
+          "ref": "hache_vegetal",
+          "qty": 50,
+          "macro_role": "protein",
+          "scalable": true
         }
       ],
       "instructions": [
         "Rince le boulgour, verse-le dans une fois et demie son volume d'eau bouillante salée, couvre et laisse cuire 10 minutes à feu doux, puis égrène-le à la fourchette.",
-        "Couvre la protéine de soja texturée d'eau bouillante salée, laisse-la gonfler 5 minutes puis presse-la pour l'essorer.",
         "Coupe le poivron en larges lanières et fais-les griller 6 minutes à feu vif dans la moitié de l'huile d'olive, jusqu'à ce que la peau cloque et noircisse par endroits.",
         "Égoutte et rince les pois chiches, mets-en la moitié de côté et écrase-les avec le reste d'huile, du sel et du jus de citron, jusqu'à obtenir un houmous épais.",
-        "Fais revenir l'autre moitié des pois chiches avec la protéine de soja 4 minutes à feu vif, avec du sel, du poivre et du cumin, jusqu'à ce qu'ils croustillent.",
-        "Dresse le boulgour au fond du bol, étale le houmous sur un côté et ajoute les pois chiches chauds et le poivron grillé."
+        "Fais revenir l'autre moitié des pois chiches avec le haché végétal 5 minutes à feu vif, en l'émiettant, avec du sel, du poivre et du cumin.",
+        "Dresse le boulgour au fond du bol, étale le houmous sur un côté et ajoute le mélange chaud et le poivron grillé."
       ],
-      "why": "Vegan endurance : levantin protéiné, glucides du boulgour.",
+      "why": "Vegan endurance : bol levantin au haché végétal, glucides du boulgour.",
       "macros_per_serving": {
-        "kcal": 634,
-        "protein": 32,
-        "carbs": 83.4,
-        "fat": 14.5
+        "kcal": 636.5,
+        "protein": 27.3,
+        "carbs": 80.9,
+        "fat": 17.2
       },
       "wave": "2026-06-19-vegan"
     },
@@ -13497,7 +13492,7 @@
     },
     {
       "id": "rep114",
-      "name": "Tacos de soja aux haricots noirs",
+      "name": "Tacos au poulet végétal et haricots noirs",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -13513,14 +13508,8 @@
       "ingredients": [
         {
           "ref": "tortilla_complete",
-          "qty": 90,
+          "qty": 63,
           "macro_role": "carb",
-          "scalable": true
-        },
-        {
-          "ref": "soja_texture",
-          "qty": 50,
-          "macro_role": "protein",
           "scalable": true
         },
         {
@@ -13540,22 +13529,27 @@
           "qty": 50,
           "macro_role": "fat",
           "scalable": true
+        },
+        {
+          "ref": "aiguillettes_poulet_vegetal",
+          "qty": 110,
+          "macro_role": "protein",
+          "scalable": true
         }
       ],
       "instructions": [
-        "Couvre la protéine de soja texturée d'eau bouillante salée, laisse-la gonfler 5 minutes puis presse-la pour l'essorer : mal essorée, elle rend son eau dans la poêle.",
         "Égoutte et rince les haricots noirs et le maïs sous l'eau froide.",
-        "Fais colorer la protéine de soja 4 minutes à feu vif dans une poêle chaude, avec du sel, du poivre et des épices chili.",
+        "Coupe les aiguillettes de poulet végétal en morceaux et fais-les colorer 4 minutes à feu vif dans une poêle chaude, avec du sel, du poivre et des épices chili.",
         "Ajoute les haricots noirs, écrase-en une partie à la fourchette pour lier la sauce, et laisse mijoter 5 minutes à feu doux.",
         "Passe les tortillas 20 secondes par face dans une poêle sèche et chaude : elles se plieront sans casser.",
-        "Garnis-les du chili, du maïs et de l'avocat en lamelles, puis plie en deux."
+        "Garnis-les du mélange au poulet, du maïs et de l'avocat en lamelles, puis plie en deux."
       ],
-      "why": "Vegan combats : tacos très protéinés, capacité élevée.",
+      "why": "Vegan combats : tacos au poulet végétal, très protéinés.",
       "macros_per_serving": {
-        "kcal": 761,
-        "protein": 45,
-        "carbs": 88.5,
-        "fat": 20.2
+        "kcal": 664.7,
+        "protein": 38.8,
+        "carbs": 61.6,
+        "fat": 23.3
       },
       "wave": "2026-06-19-vegan"
     },
@@ -13749,8 +13743,8 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "maintien",
-          "prise_de_masse"
+          "perte_de_gras",
+          "maintien"
         ],
         "sport": [
           "endurance"
@@ -13761,19 +13755,13 @@
       "ingredients": [
         {
           "ref": "tortilla_complete",
-          "qty": 90,
+          "qty": 63,
           "macro_role": "carb",
           "scalable": true
         },
         {
           "ref": "pois_chiches_conserve",
-          "qty": 205,
-          "macro_role": "protein",
-          "scalable": true
-        },
-        {
-          "ref": "soja_texture",
-          "qty": 30,
+          "qty": 295,
           "macro_role": "protein",
           "scalable": true
         },
@@ -13792,19 +13780,18 @@
       ],
       "instructions": [
         "Préchauffe le four à 210 °C.",
-        "Couvre la protéine de soja texturée d'eau bouillante salée, laisse-la gonfler 5 minutes puis presse-la pour l'essorer.",
         "Égoutte et rince les pois chiches, puis sèche-les bien dans un torchon : c'est ce qui fait tenir les falafels.",
-        "Mets 55 g de pois chiches de côté et écrase-les à la fourchette avec un filet d'huile d'olive, du sel, du poivre et du jus de citron, jusqu'à obtenir une pâte épaisse : c'est le houmous du wrap.",
-        "Mixe le reste des pois chiches avec la protéine de soja, du sel, du poivre et du cumin, jusqu'à obtenir une pâte grossière qui se tient à la main.",
+        "Mets 80 g de pois chiches de côté et écrase-les à la fourchette avec un filet d'huile d'olive, du sel, du poivre et du jus de citron, jusqu'à obtenir une pâte épaisse : c'est le houmous du wrap.",
+        "Mixe le reste des pois chiches avec du sel, du poivre et du cumin, jusqu'à obtenir une pâte grossière qui se tient à la main.",
         "Forme des boulettes de la taille d'une noix, étale-les sur une plaque, badigeonne-les d'huile d'olive et enfourne 12 minutes : elles doivent être dorées et fermes.",
         "Passe la tortilla 20 secondes à la poêle chaude pour l'assouplir, garnis-la de houmous, des falafels écrasés du plat de la main et de la salade, puis roule fermement."
       ],
-      "why": "Vegan endurance : falafels protéinés, glucides du wrap.",
+      "why": "Vegan endurance : falafels maison, glucides de la tortilla.",
       "macros_per_serving": {
-        "kcal": 719,
-        "protein": 37,
-        "carbs": 88.1,
-        "fat": 20.6
+        "kcal": 639,
+        "protein": 25.2,
+        "carbs": 78.2,
+        "fat": 20.7
       },
       "wave": "2026-06-19-vegan"
     },
@@ -13866,7 +13853,7 @@
     },
     {
       "id": "rep120",
-      "name": "Pita shawarma au soja",
+      "name": "Pita shawarma au poulet végétal",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -13886,12 +13873,6 @@
           "scalable": true
         },
         {
-          "ref": "soja_texture",
-          "qty": 50,
-          "macro_role": "protein",
-          "scalable": true
-        },
-        {
           "ref": "yaourt_soja_proteine",
           "qty": 60,
           "macro_role": "dairy",
@@ -13908,32 +13889,38 @@
           "qty": 6,
           "macro_role": "fat",
           "scalable": true
+        },
+        {
+          "ref": "aiguillettes_poulet_vegetal",
+          "qty": 110,
+          "macro_role": "protein",
+          "scalable": true
         }
       ],
       "instructions": [
-        "Couvre la protéine de soja texturée d'eau bouillante salée, laisse-la gonfler 5 minutes puis presse-la pour l'essorer.",
-        "Fais chauffer l'huile d'olive à feu vif et fais-la revenir 6 minutes avec du sel, du poivre, du cumin, du paprika et de la cannelle, jusqu'à ce qu'elle croustille sur les bords : c'est cette texture qui fait le shawarma.",
+        "Coupe les aiguillettes de poulet végétal en fines lanières.",
+        "Fais chauffer l'huile d'olive à feu vif et fais-les revenir 5 minutes avec du sel, du poivre, du cumin, du paprika et de la cannelle, jusqu'à ce qu'elles croustillent sur les bords : c'est cette texture qui fait le shawarma.",
         "Mélange le yaourt de soja avec du sel, du poivre et du jus de citron, jusqu'à obtenir une sauce qui nappe la cuillère.",
         "Passe le pita 1 minute par face dans une poêle chaude, puis ouvre-le en poche.",
-        "Garnis-le de la protéine de soja, de la tomate en rondelles et de la sauce, et sers aussitôt."
+        "Garnis-le du poulet végétal, de la tomate en rondelles et de la sauce, et sers aussitôt."
       ],
-      "why": "Vegan combats : shawarma végétal très protéiné, pas trop lourd.",
+      "why": "Vegan combats : shawarma au poulet végétal, très protéiné, pas trop lourd.",
       "macros_per_serving": {
-        "kcal": 560,
-        "protein": 41.4,
-        "carbs": 71.7,
-        "fat": 10.7
+        "kcal": 528,
+        "protein": 35.6,
+        "carbs": 58.1,
+        "fat": 14.5
       },
       "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep121",
-      "name": "Taboulé aux pois chiches",
+      "name": "Taboulé aux pois chiches et poulet végétal",
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "perte_de_gras",
-          "maintien"
+          "maintien",
+          "prise_de_masse"
         ],
         "sport": [
           "endurance"
@@ -13955,12 +13942,6 @@
           "scalable": true
         },
         {
-          "ref": "soja_texture",
-          "qty": 20,
-          "macro_role": "protein",
-          "scalable": true
-        },
-        {
           "ref": "tomate",
           "qty": 80,
           "macro_role": "vegetable",
@@ -13971,21 +13952,27 @@
           "qty": 8,
           "macro_role": "fat",
           "scalable": true
+        },
+        {
+          "ref": "aiguillettes_poulet_vegetal",
+          "qty": 70,
+          "macro_role": "protein",
+          "scalable": true
         }
       ],
       "instructions": [
-        "Couvre la protéine de soja texturée d'eau bouillante salée, laisse-la gonfler 5 minutes puis presse-la pour l'essorer.",
+        "Coupe les aiguillettes de poulet végétal en morceaux et fais-les dorer 4 minutes à feu vif dans une poêle antiadhésive, puis laisse-les refroidir.",
         "Verse la semoule dans un saladier, couvre-la d'une fois et demie son volume d'eau bouillante salée, couvre et laisse gonfler 5 minutes.",
         "Égrène-la à la fourchette et laisse-la refroidir 5 minutes : tiède, elle ramollirait la tomate.",
         "Égoutte et rince les pois chiches, et coupe la tomate en petits dés.",
-        "Mélange le tout avec l'huile d'olive, du jus de citron, du sel, du poivre et beaucoup de menthe ciselée, et sers frais."
+        "Mélange le tout avec le poulet végétal, l'huile d'olive, du jus de citron, du sel, du poivre et beaucoup de menthe ciselée, et sers frais."
       ],
-      "why": "Vegan endurance : taboulé enrichi en protéines, froid.",
+      "why": "Vegan endurance : taboulé au poulet végétal, servi froid.",
       "macros_per_serving": {
-        "kcal": 643,
-        "protein": 31.6,
-        "carbs": 90.1,
-        "fat": 14.2
+        "kcal": 677.3,
+        "protein": 35.2,
+        "carbs": 85.6,
+        "fat": 17.7
       },
       "wave": "2026-06-19-vegan"
     },
@@ -14120,7 +14107,7 @@
     },
     {
       "id": "rep124",
-      "name": "Semoule au tofu façon merguez",
+      "name": "Semoule au tofu épicé et chorizo végétal",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -14136,19 +14123,13 @@
       "ingredients": [
         {
           "ref": "semoule_couscous",
-          "qty": 80,
+          "qty": 68,
           "macro_role": "carb",
           "scalable": true
         },
         {
           "ref": "tofu_ferme",
           "qty": 180,
-          "macro_role": "protein",
-          "scalable": true
-        },
-        {
-          "ref": "soja_texture",
-          "qty": 20,
           "macro_role": "protein",
           "scalable": true
         },
@@ -14163,21 +14144,27 @@
           "qty": 7,
           "macro_role": "fat",
           "scalable": true
+        },
+        {
+          "ref": "chorizo_vegetal",
+          "qty": 50,
+          "macro_role": "protein",
+          "scalable": true
         }
       ],
       "instructions": [
-        "Couvre la protéine de soja texturée d'eau bouillante salée, laisse-la gonfler 5 minutes puis presse-la pour l'essorer.",
         "Presse le tofu 5 minutes sous une assiette lestée, puis émiette-le grossièrement à la main.",
-        "Fais chauffer l'huile d'olive à feu vif et fais revenir le tofu et la protéine de soja 6 minutes avec du sel, du poivre, du paprika fumé, du cumin et du piment : laisse-les accrocher, c'est ce qui les fait croustiller.",
+        "Coupe le chorizo végétal en petits dés.",
+        "Fais chauffer l'huile d'olive à feu vif et fais revenir le tofu et le chorizo 6 minutes avec du sel, du poivre, du paprika fumé, du cumin et du piment : laisse-les accrocher, c'est ce qui les fait croustiller.",
         "Verse la semoule dans un saladier, couvre-la d'une fois et demie son volume d'eau bouillante salée, couvre et laisse gonfler 5 minutes, puis égrène-la à la fourchette.",
         "Réchauffe la ratatouille 4 minutes à feu moyen et sers-la sur la semoule, avec le tofu épicé."
       ],
-      "why": "Vegan combats : couscous végétal très protéiné, pas trop lourd.",
+      "why": "Vegan combats : semoule au tofu épicé et chorizo végétal, très protéinée.",
       "macros_per_serving": {
-        "kcal": 741,
-        "protein": 48.4,
-        "carbs": 74.4,
-        "fat": 25.8
+        "kcal": 689,
+        "protein": 42.9,
+        "carbs": 61,
+        "fat": 27.7
       },
       "wave": "2026-06-19-vegan"
     },
@@ -14240,7 +14227,7 @@
     },
     {
       "id": "rep126",
-      "name": "Couscous végétal aux pois chiches",
+      "name": "Couscous de légumes aux boulettes végétales",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -14267,12 +14254,6 @@
           "scalable": true
         },
         {
-          "ref": "soja_texture",
-          "qty": 35,
-          "macro_role": "protein",
-          "scalable": true
-        },
-        {
           "ref": "carotte",
           "qty": 80,
           "macro_role": "vegetable",
@@ -14289,18 +14270,26 @@
           "qty": 8,
           "macro_role": "fat",
           "scalable": true
+        },
+        {
+          "ref": "boulette_vegetale",
+          "qty": 60,
+          "macro_role": "protein",
+          "scalable": true
         }
       ],
       "instructions": [
-        "Cuis la semoule.",
-        "Égoutte et rince les pois chiches, mijote-les 12 min avec la PST et les légumes dans un fond d'eau salée et épicée : les légumes rendent leur jus et le lient."
+        "Coupe la carotte et la courgette en gros tronçons, et fais-les mijoter 12 minutes dans un fond d'eau salée relevée de cumin et de ras-el-hanout : les légumes doivent rendre leur jus.",
+        "Égoutte et rince les pois chiches, ajoute-les avec les boulettes végétales et laisse chauffer 6 minutes à feu doux.",
+        "Verse la semoule dans un saladier avec l'huile d'olive, couvre-la d'une fois et demie son volume d'eau bouillante salée et laisse gonfler 5 minutes, puis égrène-la à la fourchette.",
+        "Sers la semoule avec les légumes, les pois chiches, les boulettes et un peu de jus."
       ],
-      "why": "Vegan endurance : couscous complet, capacité protéique élevée.",
+      "why": "Vegan endurance : couscous de légumes aux boulettes végétales.",
       "macros_per_serving": {
-        "kcal": 705,
-        "protein": 39.6,
-        "carbs": 97.2,
-        "fat": 14
+        "kcal": 710.5,
+        "protein": 31.9,
+        "carbs": 91.5,
+        "fat": 20
       },
       "wave": "2026-06-19-vegan"
     },
@@ -14535,7 +14524,7 @@
     },
     {
       "id": "rep131",
-      "name": "Polenta à la bolognaise de soja",
+      "name": "Polenta au poulet végétal, sauce tomate et parmesan",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -14556,12 +14545,6 @@
           "scalable": true
         },
         {
-          "ref": "soja_texture",
-          "qty": 45,
-          "macro_role": "protein",
-          "scalable": true
-        },
-        {
           "ref": "tomate_concassee",
           "qty": 120,
           "macro_role": "vegetable",
@@ -14578,21 +14561,26 @@
           "qty": 6,
           "macro_role": "fat",
           "scalable": true
+        },
+        {
+          "ref": "filets_poulet_vegetal",
+          "qty": 110,
+          "macro_role": "protein",
+          "scalable": true
         }
       ],
       "instructions": [
-        "Couvre la protéine de soja texturée d'eau bouillante salée, laisse-la gonfler 5 minutes puis presse-la pour l'essorer.",
-        "Fais chauffer l'huile d'olive à feu moyen et fais revenir la protéine de soja 4 minutes, jusqu'à ce qu'elle colore sur les bords.",
+        "Coupe les filets de poulet végétal en dés et fais-les revenir 4 minutes dans l'huile d'olive à feu moyen, jusqu'à ce qu'ils colorent sur les bords.",
         "Ajoute la tomate concassée, sale, poivre, ajoute de l'origan si tu en as, et laisse mijoter 10 minutes à feu doux : la sauce doit épaissir et ne plus rendre d'eau.",
         "Pendant ce temps, verse la polenta en pluie dans quatre fois son volume d'eau salée frémissante et remue 5 minutes à feu doux, jusqu'à ce qu'elle nappe la cuillère.",
         "Dresse la polenta au fond de l'assiette, verse la sauce dessus, puis râpe le parmesan hors du feu : posé sur une sauce bouillante, il file au lieu de fondre."
       ],
-      "why": "Végétarien sans gluten : bolognaise végétale + parmesan, haute protéine.",
+      "why": "Végétarien sans gluten : poulet végétal à la tomate et parmesan, haute protéine.",
       "macros_per_serving": {
-        "kcal": 577,
-        "protein": 38,
-        "carbs": 74.1,
-        "fat": 13.5
+        "kcal": 582.5,
+        "protein": 35.2,
+        "carbs": 57.3,
+        "fat": 22.6
       },
       "wave": "2026-06-19-vegan"
     },
@@ -15396,7 +15384,7 @@
     },
     {
       "id": "rep145",
-      "name": "Salade mexicaine de quinoa aux haricots noirs",
+      "name": "Salade mexicaine de quinoa au poulet végétal",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -15412,19 +15400,13 @@
       "ingredients": [
         {
           "ref": "quinoa",
-          "qty": 70,
+          "qty": 60,
           "macro_role": "carb",
           "scalable": true
         },
         {
           "ref": "haricots_noirs_conserve",
           "qty": 175,
-          "macro_role": "protein",
-          "scalable": true
-        },
-        {
-          "ref": "soja_texture",
-          "qty": 20,
           "macro_role": "protein",
           "scalable": true
         },
@@ -15439,22 +15421,28 @@
           "qty": 60,
           "macro_role": "fat",
           "scalable": true
+        },
+        {
+          "ref": "filets_poulet_vegetal",
+          "qty": 90,
+          "macro_role": "protein",
+          "scalable": true
         }
       ],
       "instructions": [
         "Rince le quinoa sous l'eau froide 30 secondes pour retirer son amertume, puis fais-le cuire 12 minutes à couvert dans deux fois son volume d'eau salée.",
         "Égrène-le à la fourchette et laisse-le refroidir 5 minutes : encore chaud, il détremperait l'avocat.",
-        "Couvre la protéine de soja texturée d'eau bouillante salée, laisse-la gonfler 5 minutes puis presse-la pour l'essorer.",
+        "Coupe les filets de poulet végétal en dés et fais-les dorer 4 minutes à feu vif dans une poêle antiadhésive avec du paprika, puis laisse-les tiédir.",
         "Égoutte et rince les haricots noirs sous l'eau froide.",
-        "Mélange le quinoa, les haricots, la protéine de soja et le maïs égoutté, puis assaisonne de sel, de poivre et de jus de citron vert.",
+        "Mélange le quinoa, les haricots, le poulet végétal et le maïs égoutté, puis assaisonne de sel, de poivre et de jus de citron vert.",
         "Ajoute l'avocat en dés au dernier moment, pour qu'il ne s'écrase pas dans la salade."
       ],
-      "why": "Vegan combats sans gluten : salade tex-mex, protéines complètes.",
+      "why": "Vegan combats sans gluten : salade tex-mex au poulet végétal.",
       "macros_per_serving": {
-        "kcal": 709,
-        "protein": 35.7,
-        "carbs": 80.9,
-        "fat": 20.3
+        "kcal": 746.6,
+        "protein": 42,
+        "carbs": 69.9,
+        "fat": 26.5
       },
       "wave": "2026-06-19-vegan"
     },
@@ -16854,12 +16842,11 @@
     },
     {
       "id": "rep147",
-      "name": "Riz sauté au soja, edamame et brocoli",
+      "name": "Riz cantonais végétal aux edamame et brocoli",
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "perte_de_gras",
-          "maintien"
+          "perte_de_gras"
         ],
         "sport": [
           "muscu"
@@ -16872,12 +16859,6 @@
           "ref": "riz_complet",
           "qty": 80,
           "macro_role": "carb",
-          "scalable": true
-        },
-        {
-          "ref": "soja_texture",
-          "qty": 50,
-          "macro_role": "protein",
           "scalable": true
         },
         {
@@ -16897,22 +16878,27 @@
           "qty": 7,
           "macro_role": "fat",
           "scalable": true
+        },
+        {
+          "ref": "jambon_vegetal",
+          "qty": 90,
+          "macro_role": "protein",
+          "scalable": true
         }
       ],
       "instructions": [
         "Rince le riz complet, puis fais-le cuire 25 minutes à couvert et à feu doux dans deux fois et demie son volume d'eau salée.",
-        "Couvre la protéine de soja texturée d'eau bouillante salée, laisse-la gonfler 5 minutes puis presse-la pour l'essorer.",
         "Détaille le brocoli en petits bouquets et fais-le cuire 5 minutes à la vapeur : il doit rester vert vif.",
         "Fais cuire les edamame 5 minutes à l'eau bouillante salée, puis égoutte-les et écosse-les si besoin.",
-        "Fais chauffer l'huile d'olive à feu vif et saute la protéine de soja 5 minutes en remuant : elle doit brunir et croustiller sur les bords.",
+        "Fais chauffer l'huile d'olive à feu vif et saute le jambon végétal coupé en dés 3 minutes en remuant : il doit dorer sur les bords.",
         "Ajoute les edamame et le brocoli, saute 2 minutes de plus et sers sur le riz égoutté."
       ],
-      "why": "Vegan & sans gluten : double ancre (PST + edamame), forte capacité protéique.",
+      "why": "Vegan & sans gluten : riz cantonais végétal, jambon et edamame.",
       "macros_per_serving": {
-        "kcal": 623,
-        "protein": 41.8,
-        "carbs": 82.8,
-        "fat": 12.9
+        "kcal": 556.1,
+        "protein": 32.7,
+        "carbs": 68.1,
+        "fat": 14.6
       },
       "wave": "2026-06-19-vegan"
     },
@@ -16976,7 +16962,7 @@
     },
     {
       "id": "rep149",
-      "name": "Patate douce aux haricots noirs et avocat",
+      "name": "Patate douce au poulet végétal, haricots noirs et avocat",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -16992,19 +16978,13 @@
       "ingredients": [
         {
           "ref": "patate_douce",
-          "qty": 180,
+          "qty": 126,
           "macro_role": "carb",
           "scalable": true
         },
         {
           "ref": "haricots_noirs_conserve",
           "qty": 150,
-          "macro_role": "protein",
-          "scalable": true
-        },
-        {
-          "ref": "soja_texture",
-          "qty": 35,
           "macro_role": "protein",
           "scalable": true
         },
@@ -17019,22 +16999,28 @@
           "qty": 60,
           "macro_role": "fat",
           "scalable": true
+        },
+        {
+          "ref": "filets_poulet_vegetal",
+          "qty": 100,
+          "macro_role": "protein",
+          "scalable": true
         }
       ],
       "instructions": [
         "Préchauffe le four à 210 °C.",
         "Épluche la patate douce, coupe-la en cubes de deux centimètres et étale-les sur une plaque sans les superposer.",
         "Enfourne 25 minutes en remuant à mi-cuisson : les cubes doivent être dorés aux angles et fondants au centre.",
-        "Pendant ce temps, couvre la protéine de soja texturée d'eau bouillante salée, laisse-la gonfler 5 minutes puis presse-la pour l'essorer.",
-        "Égoutte et rince les haricots noirs, puis fais-les mijoter 10 minutes à feu doux avec la protéine de soja, du sel, du poivre et des épices chili : le mélange doit être sec, pas soupeux.",
+        "Pendant ce temps, coupe les filets de poulet végétal en dés et fais-les revenir 4 minutes à feu vif dans une poêle antiadhésive.",
+        "Égoutte et rince les haricots noirs, ajoute-les au poulet avec du sel, du poivre et des épices chili, et laisse mijoter 8 minutes à feu doux : le mélange doit être sec, pas soupeux.",
         "Dresse la patate douce et le chili, ajoute le maïs égoutté et l'avocat coupé en lamelles."
       ],
-      "why": "Vegan combats & sans gluten : protéines complètes, très haute capacité.",
+      "why": "Vegan combats & sans gluten : chili sec au poulet végétal, très haute capacité.",
       "macros_per_serving": {
-        "kcal": 616,
-        "protein": 34.9,
-        "carbs": 70.4,
-        "fat": 15.8
+        "kcal": 609.9,
+        "protein": 35.9,
+        "carbs": 51.5,
+        "fat": 23.2
       },
       "wave": "2026-06-19-vegan"
     },
@@ -17098,7 +17084,7 @@
     },
     {
       "id": "rep151",
-      "name": "Ragoût de haricots blancs sur polenta",
+      "name": "Ragoût de haricots blancs au jambon végétal, polenta",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -17125,12 +17111,6 @@
           "scalable": true
         },
         {
-          "ref": "soja_texture",
-          "qty": 30,
-          "macro_role": "protein",
-          "scalable": true
-        },
-        {
           "ref": "tomate_concassee",
           "qty": 100,
           "macro_role": "vegetable",
@@ -17141,21 +17121,26 @@
           "qty": 8,
           "macro_role": "fat",
           "scalable": true
+        },
+        {
+          "ref": "jambon_vegetal",
+          "qty": 90,
+          "macro_role": "protein",
+          "scalable": true
         }
       ],
       "instructions": [
-        "Couvre la protéine de soja texturée d'eau bouillante salée, laisse-la gonfler 5 minutes puis presse-la pour l'essorer.",
-        "Fais-la revenir 4 minutes dans l'huile d'olive à feu vif, avec du sel, du poivre et du romarin.",
+        "Coupe le jambon végétal en dés et fais-le revenir 3 minutes dans l'huile d'olive à feu vif, avec du poivre et du romarin.",
         "Égoutte et rince les haricots blancs, ajoute-les avec la tomate concassée et laisse mijoter 15 minutes à feu doux : le ragoût doit épaissir et les haricots commencer à s'écraser.",
         "Verse la polenta en pluie dans cinq fois son volume d'eau salée frémissante : plus d'eau que pour une polenta à trancher, c'est ce qui la rend crémeuse.",
         "Remue 5 minutes à feu doux jusqu'à ce qu'elle nappe la cuillère, puis sers le ragoût dessus."
       ],
-      "why": "Vegan combats & sans gluten : ragoût rustique, capacité protéique élevée.",
+      "why": "Vegan combats & sans gluten : ragoût de haricots blancs au jambon végétal.",
       "macros_per_serving": {
-        "kcal": 594,
-        "protein": 32.7,
-        "carbs": 83.5,
-        "fat": 10.9
+        "kcal": 596.6,
+        "protein": 34.6,
+        "carbs": 78,
+        "fat": 12.6
       },
       "wave": "2026-06-19-vegan"
     },
@@ -19150,7 +19135,7 @@
     },
     {
       "id": "rep155",
-      "name": "Risotto aux petits pois et soja",
+      "name": "Risotto aux petits pois et jambon végétal",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -19171,12 +19156,6 @@
           "scalable": true
         },
         {
-          "ref": "soja_texture",
-          "qty": 45,
-          "macro_role": "protein",
-          "scalable": true
-        },
-        {
           "ref": "petits_pois",
           "qty": 90,
           "macro_role": "vegetable",
@@ -19193,18 +19172,26 @@
           "qty": 10,
           "macro_role": "flavor",
           "scalable": false
+        },
+        {
+          "ref": "jambon_vegetal",
+          "qty": 90,
+          "macro_role": "protein",
+          "scalable": true
         }
       ],
       "instructions": [
-        "Nacrer le riz, puis mouiller à l'eau chaude salée, louche par louche.",
-        "Ajouter la PST réhydratée et les petits pois, finir crème de soja et levure."
+        "Fais revenir le riz 2 minutes à sec dans une casserole à feu moyen, jusqu'à ce qu'il devienne nacré.",
+        "Mouille à l'eau chaude salée, louche par louche, en remuant : verse la suivante quand la précédente est absorbée, pendant 15 minutes.",
+        "Ajoute les petits pois et le jambon végétal coupé en dés, et laisse cuire 4 minutes de plus.",
+        "Hors du feu, incorpore la crème de soja et la levure maltée, poivre et sers aussitôt."
       ],
-      "why": "Vegan : risotto crémeux sans laitier, forte capacité protéique.",
+      "why": "Vegan : risotto crémeux sans laitier, petits pois et jambon végétal.",
       "macros_per_serving": {
-        "kcal": 650,
-        "protein": 40.4,
-        "carbs": 94.7,
-        "fat": 10.3
+        "kcal": 598.4,
+        "protein": 34.6,
+        "carbs": 87,
+        "fat": 11.1
       },
       "wave": "2026-07-22-sans-gluten"
     },
@@ -19394,7 +19381,7 @@
     },
     {
       "id": "rep159",
-      "name": "Curry de pommes de terre et pois chiches",
+      "name": "Curry de pommes de terre au tempeh et pois chiches",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -19421,12 +19408,6 @@
           "scalable": true
         },
         {
-          "ref": "soja_texture",
-          "qty": 30,
-          "macro_role": "protein",
-          "scalable": true
-        },
-        {
           "ref": "epinards",
           "qty": 80,
           "macro_role": "vegetable",
@@ -19437,18 +19418,26 @@
           "qty": 55,
           "macro_role": "fat",
           "scalable": true
+        },
+        {
+          "ref": "tempeh",
+          "qty": 80,
+          "macro_role": "protein",
+          "scalable": true
         }
       ],
       "instructions": [
-        "Mijote les pommes de terre 20 min au curry avec la PST.",
-        "Égoutte et rince les pois chiches, ajoute-les avec les épinards et le lait de coco."
+        "Épluche les pommes de terre et coupe-les en cubes de deux centimètres.",
+        "Coupe le tempeh en dés et fais-le dorer 4 minutes à feu vif dans une casserole antiadhésive, avec des épices à curry.",
+        "Ajoute les pommes de terre et un verre d'eau, couvre et laisse mijoter 18 minutes à feu doux : elles doivent être tendres.",
+        "Égoutte et rince les pois chiches, ajoute-les avec les épinards et le lait de coco, et laisse épaissir 4 minutes."
       ],
-      "why": "Vegan & sans gluten : curry complet, capacité protéique élevée.",
+      "why": "Vegan & sans gluten : curry complet au tempeh, capacité protéique élevée.",
       "macros_per_serving": {
-        "kcal": 607,
-        "protein": 34.2,
-        "carbs": 71.7,
-        "fat": 16
+        "kcal": 628.8,
+        "protein": 31.5,
+        "carbs": 69.1,
+        "fat": 19.4
       },
       "wave": "2026-07-22-sans-gluten"
     },
@@ -20067,7 +20056,7 @@
     },
     {
       "id": "rep170",
-      "name": "Sarrasin aux haricots blancs, tomate et olives",
+      "name": "Sarrasin au chorizo végétal, haricots blancs et olives",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -20094,12 +20083,6 @@
           "scalable": true
         },
         {
-          "ref": "soja_texture",
-          "qty": 30,
-          "macro_role": "protein",
-          "scalable": true
-        },
-        {
           "ref": "tomate_concassee",
           "qty": 110,
           "macro_role": "vegetable",
@@ -20110,21 +20093,26 @@
           "qty": 30,
           "macro_role": "fat",
           "scalable": true
+        },
+        {
+          "ref": "chorizo_vegetal",
+          "qty": 70,
+          "macro_role": "protein",
+          "scalable": true
         }
       ],
       "instructions": [
         "Rince le sarrasin, fais-le cuire 12 minutes dans deux fois son volume d'eau salée, puis égoutte-le.",
-        "Couvre la protéine de soja texturée d'eau bouillante salée, laisse-la gonfler 5 minutes puis presse-la pour l'essorer.",
-        "Fais-la revenir 4 minutes à feu vif dans une casserole antiadhésive, avec du sel, du poivre et du romarin.",
+        "Coupe le chorizo végétal en rondelles et fais-le revenir 4 minutes à feu vif dans une casserole antiadhésive, avec du romarin.",
         "Égoutte et rince les haricots blancs, ajoute-les avec la tomate concassée et les olives, et laisse mijoter 12 minutes à feu doux : la sauce doit épaissir.",
         "Sers le ragoût sur le sarrasin."
       ],
-      "why": "Vegan & sans gluten combats : rustique, capacité protéique élevée.",
+      "why": "Vegan combats : ragoût à l'espagnole au chorizo végétal, rustique.",
       "macros_per_serving": {
-        "kcal": 636,
-        "protein": 39.2,
-        "carbs": 87.8,
-        "fat": 9.9
+        "kcal": 647,
+        "protein": 36.7,
+        "carbs": 82,
+        "fat": 14.2
       },
       "wave": "2026-07-22-sans-gluten"
     },
@@ -21897,11 +21885,12 @@
     },
     {
       "id": "rep189",
-      "name": "Mijoté de soja aux carottes",
+      "name": "Mijoté de poulet végétal aux carottes",
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "perte_de_gras"
+          "perte_de_gras",
+          "maintien"
         ],
         "sport": [
           "muscu"
@@ -21911,14 +21900,8 @@
       "base_servings": 1,
       "ingredients": [
         {
-          "ref": "soja_texture",
-          "qty": 50,
-          "macro_role": "protein",
-          "scalable": true
-        },
-        {
           "ref": "pain_sans_gluten",
-          "qty": 100,
+          "qty": 85,
           "macro_role": "carb",
           "scalable": true
         },
@@ -21939,22 +21922,27 @@
           "qty": 45,
           "macro_role": "flavor",
           "scalable": false
+        },
+        {
+          "ref": "filets_poulet_vegetal",
+          "qty": 150,
+          "macro_role": "protein",
+          "scalable": true
         }
       ],
       "instructions": [
-        "Verse les protéines de soja dans un bol, couvre d'eau bouillante salée et laisse-les se réhydrater 8 minutes, puis presse-les pour retirer l'excédent.",
         "Émince l'oignon et taille les carottes en rondelles fines.",
         "Fais chauffer l'huile d'olive à feu moyen et fais suer l'oignon 3 minutes, jusqu'à ce qu'il devienne translucide.",
         "Ajoute les carottes, couvre et laisse cuire 10 minutes : elles doivent être fondantes sans tomber en purée.",
-        "Ajoute les protéines de soja pressées et fais-les colorer 5 minutes à feu vif, en remuant peu.",
+        "Coupe les filets de poulet végétal en dés, ajoute-les et fais-les colorer 5 minutes à feu vif, en remuant peu.",
         "Sale, poivre, ajoute du thym, et sers avec le pain sans gluten grillé."
       ],
-      "why": "Les protéines de soja texturées offrent une densité protéique rare chez les végétaux.",
+      "why": "Vegan muscu sans gluten : mijoté de carottes au poulet végétal.",
       "macros_per_serving": {
-        "kcal": 550,
-        "protein": 32.2,
-        "carbs": 61.6,
-        "fat": 16
+        "kcal": 577.1,
+        "protein": 35.5,
+        "carbs": 42.4,
+        "fat": 26.2
       },
       "wave": "2026-08-01-b1-lot1-repas"
     },
@@ -23033,7 +23021,7 @@
     },
     {
       "id": "rep207",
-      "name": "Ragoût de soja aux pommes de terre",
+      "name": "Ragoût de pommes de terre au poulet végétal",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -23046,12 +23034,6 @@
       },
       "base_servings": 1,
       "ingredients": [
-        {
-          "ref": "soja_texture",
-          "qty": 50,
-          "macro_role": "protein",
-          "scalable": true
-        },
         {
           "ref": "pomme_de_terre",
           "qty": 255,
@@ -23075,28 +23057,33 @@
           "qty": 40,
           "macro_role": "flavor",
           "scalable": false
+        },
+        {
+          "ref": "filets_poulet_vegetal",
+          "qty": 110,
+          "macro_role": "protein",
+          "scalable": true
         }
       ],
       "instructions": [
-        "Verse les protéines de soja dans un bol, couvre d'eau bouillante salée et laisse-les se réhydrater 8 minutes, puis presse-les.",
         "Épluche les pommes de terre et coupe-les en cubes de deux centimètres.",
         "Émince l'oignon et fais-le suer 3 minutes dans l'huile d'olive, à feu moyen, jusqu'à ce qu'il devienne translucide.",
         "Ajoute les pommes de terre et laisse-les colorer 6 minutes à feu vif, en les retournant peu.",
         "Verse la ratatouille, ajoute du thym et une feuille de laurier, couvre et laisse mijoter 15 minutes à feu doux.",
-        "Ajoute les protéines de soja pressées pour les 5 dernières minutes, sale, poivre et sers."
+        "Ajoute les filets de poulet végétal coupés en dés pour les 5 dernières minutes, sale, poivre et sers."
       ],
-      "why": "Les protéines de soja texturées apportent une densité protéique rare chez les végétaux.",
+      "why": "Vegan muscu sans gluten : ragoût de pommes de terre et ratatouille au poulet végétal.",
       "macros_per_serving": {
-        "kcal": 553,
-        "protein": 32.8,
-        "carbs": 63.8,
-        "fat": 16
+        "kcal": 554.3,
+        "protein": 28.8,
+        "carbs": 49.8,
+        "fat": 24.1
       },
       "wave": "2026-08-01-b1-lot2-repas"
     },
     {
       "id": "rep208",
-      "name": "Wrap sans gluten au soja et avocat",
+      "name": "Wrap sans gluten au poulet végétal et avocat",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -23109,12 +23096,6 @@
       },
       "base_servings": 1,
       "ingredients": [
-        {
-          "ref": "soja_texture",
-          "qty": 50,
-          "macro_role": "protein",
-          "scalable": true
-        },
         {
           "ref": "wrap_sans_gluten",
           "qty": 80,
@@ -23138,22 +23119,27 @@
           "qty": 40,
           "macro_role": "vegetable",
           "scalable": false
+        },
+        {
+          "ref": "filets_poulet_vegetal",
+          "qty": 110,
+          "macro_role": "protein",
+          "scalable": true
         }
       ],
       "instructions": [
-        "Verse les protéines de soja dans un bol, couvre d'eau bouillante salée et laisse-les se réhydrater 8 minutes, puis presse-les fermement.",
-        "Fais-les colorer 5 minutes à feu vif dans une poêle antiadhésive, en remuant peu : elles doivent croustiller sur les bords.",
+        "Coupe les filets de poulet végétal en lanières et fais-les colorer 5 minutes à feu vif dans une poêle antiadhésive, en remuant peu.",
         "Détaille le poivron en fines lanières et ajoute-le pour 3 minutes.",
         "Écrase l'avocat à la fourchette avec du sel, en gardant des morceaux.",
         "Chauffe le wrap 30 secondes par face à sec dans la poêle : il doit rester souple, il craque s'il chauffe trop.",
         "Tartine-le d'avocat, garnis de la poêlée et de salade, poivre, replie les bords et roule serré."
       ],
-      "why": "Un wrap sans gluten dont la protéine vient du soja et les lipides de l'avocat.",
+      "why": "Vegan muscu : un wrap sans gluten au poulet végétal et à l'avocat.",
       "macros_per_serving": {
-        "kcal": 550.8,
-        "protein": 32.7,
-        "carbs": 64.8,
-        "fat": 15.6
+        "kcal": 552.1,
+        "protein": 28.7,
+        "carbs": 50.8,
+        "fat": 23.6
       },
       "wave": "2026-08-01-b1-lot2-repas"
     },
@@ -24220,12 +24206,12 @@
     },
     {
       "id": "rep226",
-      "name": "Patate douce au soja texturé et brocoli",
+      "name": "Patate douce et brocoli au poulet végétal",
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "perte_de_gras",
-          "maintien"
+          "maintien",
+          "prise_de_masse"
         ],
         "sport": [
           "muscu"
@@ -24234,12 +24220,6 @@
       },
       "base_servings": 1,
       "ingredients": [
-        {
-          "ref": "soja_texture",
-          "qty": 45,
-          "macro_role": "protein",
-          "scalable": true
-        },
         {
           "ref": "patate_douce",
           "qty": 365,
@@ -24263,21 +24243,26 @@
           "qty": 40,
           "macro_role": "flavor",
           "scalable": false
+        },
+        {
+          "ref": "aiguillettes_poulet_vegetal",
+          "qty": 130,
+          "macro_role": "protein",
+          "scalable": true
         }
       ],
       "instructions": [
-        "Verse les protéines de soja dans un bol, couvre d'eau bouillante salée et laisse-les se réhydrater 8 minutes, puis presse-les fermement.",
         "Épluche la patate douce, coupe-la en cubes de deux centimètres et fais-la cuire 18 minutes à l'eau bouillante salée.",
         "Détaille le brocoli en bouquets et fais-le cuire 5 minutes à la vapeur : il doit rester vert vif.",
-        "Émince l'oignon et fais-le suer 3 minutes dans l'huile d'olive, puis ajoute les protéines de soja et fais-les colorer 5 minutes à feu vif : elles doivent croustiller sur les bords.",
-        "Réunis patate douce, brocoli et soja, sale, poivre et sers chaud."
+        "Émince l'oignon et fais-le suer 3 minutes dans l'huile d'olive, puis ajoute les aiguillettes de poulet végétal et fais-les colorer 5 minutes à feu vif.",
+        "Réunis patate douce, brocoli et poulet végétal, sale, poivre et sers chaud."
       ],
-      "why": "Les protéines de soja texturées offrent une densité protéique rare chez les végétaux.",
+      "why": "Vegan muscu : patate douce, brocoli et poulet végétal, un plat simple et rassasiant.",
       "macros_per_serving": {
-        "kcal": 630.2,
-        "protein": 32.3,
-        "carbs": 80.3,
-        "fat": 16.4
+        "kcal": 667.3,
+        "protein": 34.9,
+        "carbs": 69.6,
+        "fat": 22.7
       },
       "wave": "2026-08-01-b1-lot3-repas"
     },
@@ -24414,7 +24399,7 @@
     },
     {
       "id": "rep229",
-      "name": "Poêlée de soja aux épinards, sauce tahini",
+      "name": "Poêlée de jambon végétal aux épinards, sauce tahini",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -24428,14 +24413,8 @@
       "base_servings": 1,
       "ingredients": [
         {
-          "ref": "soja_texture",
-          "qty": 30,
-          "macro_role": "protein",
-          "scalable": true
-        },
-        {
           "ref": "pain_complet",
-          "qty": 110,
+          "qty": 77,
           "macro_role": "carb",
           "scalable": true
         },
@@ -24456,22 +24435,27 @@
           "qty": 45,
           "macro_role": "flavor",
           "scalable": false
+        },
+        {
+          "ref": "jambon_vegetal",
+          "qty": 120,
+          "macro_role": "protein",
+          "scalable": true
         }
       ],
       "instructions": [
-        "Verse les protéines de soja dans un bol, couvre d'eau bouillante salée et laisse-les se réhydrater 8 minutes, puis presse-les.",
         "Émince l'oignon et fais-le suer 3 minutes à feu moyen dans une poêle antiadhésive.",
-        "Ajoute les protéines de soja pressées et fais-les colorer 5 minutes à feu vif, en remuant peu.",
+        "Ajoute le jambon végétal coupé en lanières et fais-le dorer 4 minutes à feu vif, en remuant peu.",
         "Ajoute les épinards et laisse-les tomber 2 minutes, jusqu'à ce qu'ils soient souples et brillants.",
         "Délie le tahini avec trois cuillères d'eau tiède et une pincée de sel jusqu'à ce que la sauce nappe.",
         "Fais griller le pain complet, dresse la poêlée dessus, nappe de sauce au sésame et poivre."
       ],
-      "why": "Soja texturé et sésame : une protéine végétale dense et des lipides insaturés.",
+      "why": "Vegan muscu : jambon végétal et sésame, une protéine dense et des lipides insaturés.",
       "macros_per_serving": {
-        "kcal": 559.3,
-        "protein": 32,
-        "carbs": 62.7,
-        "fat": 16.1
+        "kcal": 520.2,
+        "protein": 36.9,
+        "carbs": 44.8,
+        "fat": 17.8
       },
       "wave": "2026-08-01-b1-lot3-repas"
     },
@@ -25608,11 +25592,12 @@
     },
     {
       "id": "rep248",
-      "name": "Quinoa au soja et légumes au coco",
+      "name": "Quinoa au poulet végétal, légumes et lait de coco",
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "perte_de_gras"
+          "perte_de_gras",
+          "maintien"
         ],
         "sport": [
           "muscu"
@@ -25621,12 +25606,6 @@
       },
       "base_servings": 1,
       "ingredients": [
-        {
-          "ref": "soja_texture",
-          "qty": 35,
-          "macro_role": "protein",
-          "scalable": true
-        },
         {
           "ref": "quinoa",
           "qty": 80,
@@ -25644,28 +25623,33 @@
           "qty": 110,
           "macro_role": "vegetable",
           "scalable": false
+        },
+        {
+          "ref": "filets_poulet_vegetal",
+          "qty": 110,
+          "macro_role": "protein",
+          "scalable": true
         }
       ],
       "instructions": [
-        "Verse les protéines de soja dans un bol, couvre d'eau bouillante salée et laisse-les se réhydrater 8 minutes, puis presse-les fermement.",
         "Rince le quinoa, puis fais-le cuire 12 minutes à couvert dans deux fois son volume d'eau salée.",
         "Fais sauter les légumes wok 5 minutes à feu vif dans une sauteuse : ils doivent rester croquants.",
-        "Ajoute les protéines de soja pressées et fais-les colorer 4 minutes, en remuant peu.",
+        "Ajoute les filets de poulet végétal coupés en dés et fais-les colorer 4 minutes, en remuant peu.",
         "Verse le lait de coco, sale et laisse réduire 3 minutes à petits frémissements.",
         "Égrène le quinoa, mélange-le à la sauteuse, poivre et ajoute de la coriandre si tu en as."
       ],
-      "why": "Soja texturé et lait de coco : une protéine végétale dense et un lipide végétal.",
+      "why": "Vegan muscu sans gluten : poulet végétal et lait de coco, un plat de sauteuse complet.",
       "macros_per_serving": {
-        "kcal": 549.6,
-        "protein": 31.5,
-        "carbs": 64.8,
-        "fat": 16.1
+        "kcal": 602.7,
+        "protein": 35.3,
+        "carbs": 55.3,
+        "fat": 24.3
       },
       "wave": "2026-08-01-b1-lot4-repas"
     },
     {
       "id": "rep249",
-      "name": "Pâtes complètes au soja et épinards",
+      "name": "Pâtes aux épinards, tomate et poulet végétal",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -25679,14 +25663,8 @@
       "base_servings": 1,
       "ingredients": [
         {
-          "ref": "soja_texture",
-          "qty": 30,
-          "macro_role": "protein",
-          "scalable": true
-        },
-        {
           "ref": "pates_completes",
-          "qty": 80,
+          "qty": 68,
           "macro_role": "carb",
           "scalable": true
         },
@@ -25707,22 +25685,27 @@
           "qty": 120,
           "macro_role": "vegetable",
           "scalable": false
+        },
+        {
+          "ref": "aiguillettes_poulet_vegetal",
+          "qty": 110,
+          "macro_role": "protein",
+          "scalable": true
         }
       ],
       "instructions": [
-        "Verse les protéines de soja dans un bol, couvre d'eau bouillante salée et laisse-les se réhydrater 8 minutes, puis presse-les.",
         "Porte une grande casserole d'eau salée à ébullition et fais cuire les pâtes complètes selon le temps du paquet.",
-        "Fais colorer les protéines de soja 5 minutes à feu vif dans une sauteuse avec l'huile d'olive, en remuant peu : elles doivent croustiller sur les bords.",
+        "Fais colorer les aiguillettes de poulet végétal 5 minutes à feu vif dans une sauteuse avec l'huile d'olive, en remuant peu.",
         "Coupe les tomates en dés, ajoute-les avec de l'origan et laisse compoter 5 minutes.",
         "Ajoute les épinards et laisse-les tomber 2 minutes.",
         "Égoutte les pâtes, mélange-les à la sauce, sale et poivre."
       ],
-      "why": "Soja texturé et graines de courge : la protéine végétale la plus dense du catalogue.",
+      "why": "Vegan muscu : pâtes complètes au poulet végétal, tomate et épinards.",
       "macros_per_serving": {
-        "kcal": 520.5,
-        "protein": 27.6,
-        "carbs": 69.3,
-        "fat": 12.9
+        "kcal": 537.4,
+        "protein": 32.5,
+        "carbs": 54.6,
+        "fat": 18.1
       },
       "wave": "2026-08-01-b1-lot4-repas"
     },
@@ -28426,12 +28409,12 @@
     },
     {
       "id": "rep273",
-      "name": "Fèves mijotées au coco et quinoa",
+      "name": "Fèves mijotées au coco, poulet végétal et quinoa",
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "perte_de_gras",
-          "maintien"
+          "maintien",
+          "prise_de_masse"
         ],
         "sport": [
           "muscu"
@@ -28443,12 +28426,6 @@
         {
           "ref": "feves",
           "qty": 51,
-          "macro_role": "protein",
-          "scalable": true
-        },
-        {
-          "ref": "soja_texture",
-          "qty": 25,
           "macro_role": "protein",
           "scalable": true
         },
@@ -28475,22 +28452,27 @@
           "qty": 50,
           "macro_role": "vegetable",
           "scalable": false
+        },
+        {
+          "ref": "filets_poulet_vegetal",
+          "qty": 70,
+          "macro_role": "protein",
+          "scalable": true
         }
       ],
       "instructions": [
         "Fais cuire les fèves décortiquées 40 minutes dans un grand volume d'eau non salée, sans trempage : elles doivent s'écraser entre deux doigts.",
-        "Couvre la protéine de soja texturée d'eau bouillante salée, laisse-la gonfler 5 minutes et presse-la pour l'essorer.",
         "Rince le quinoa et fais-le cuire 13 minutes dans deux fois son volume d'eau salée, à couvert.",
         "Émince l'oignon et taille la carotte en rondelles, puis fais-les fondre 8 minutes à feu moyen avec le lait de coco.",
-        "Ajoute les fèves égouttées et le soja texturé essoré, sale, poivre et laisse mijoter 5 minutes.",
+        "Ajoute les fèves égouttées et les filets de poulet végétal coupés en dés, sale, poivre et laisse mijoter 5 minutes.",
         "Sers le mijoté sur le quinoa égrené à la fourchette."
       ],
-      "why": "Le soja texturé complète les fèves pour atteindre la cible protéique du repas.",
+      "why": "Le poulet végétal complète les fèves pour atteindre la cible protéique du repas.",
       "macros_per_serving": {
-        "kcal": 656.3,
-        "protein": 37,
-        "carbs": 70.5,
-        "fat": 20.4
+        "kcal": 680.6,
+        "protein": 38,
+        "carbs": 63.6,
+        "fat": 25.6
       },
       "wave": "2026-08-02-b7-repas-vegan"
     },
@@ -28686,7 +28668,7 @@
     },
     {
       "id": "rep277",
-      "name": "Poêlée de maïs au soja et haricots verts",
+      "name": "Poêlée de maïs aux émincés végétaux et haricots verts",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -28700,12 +28682,6 @@
       },
       "base_servings": 1,
       "ingredients": [
-        {
-          "ref": "soja_texture",
-          "qty": 52,
-          "macro_role": "protein",
-          "scalable": true
-        },
         {
           "ref": "mais",
           "qty": 270,
@@ -28723,21 +28699,26 @@
           "qty": 110,
           "macro_role": "vegetable",
           "scalable": false
+        },
+        {
+          "ref": "emince_vegetal",
+          "qty": 110,
+          "macro_role": "protein",
+          "scalable": true
         }
       ],
       "instructions": [
-        "Couvre la protéine de soja texturée d'eau bouillante salée, laisse gonfler 5 minutes puis presse-la pour l'essorer.",
         "Fais cuire les haricots verts 8 minutes à la vapeur : ils doivent rester fermes.",
-        "Fais dorer le soja texturé 4 minutes à feu vif dans une sauteuse avec l'huile d'olive, sale et poivre.",
+        "Fais dorer les émincés végétaux 4 minutes à feu vif dans une sauteuse avec l'huile d'olive, sale et poivre.",
         "Ajoute le maïs égoutté et laisse chauffer 3 minutes à feu moyen en remuant.",
         "Ajoute les haricots verts, mélange 1 minute et sers aussitôt."
       ],
-      "why": "Le maïs et le soja texturé donnent un plat nourrissant sans gluten.",
+      "why": "Vegan muscu : maïs, haricots verts et émincés végétaux, un plat nourrissant.",
       "macros_per_serving": {
-        "kcal": 633,
-        "protein": 36.3,
-        "carbs": 69.5,
-        "fat": 20.3
+        "kcal": 626.3,
+        "protein": 30.8,
+        "carbs": 61.4,
+        "fat": 23.9
       },
       "wave": "2026-08-02-b7-repas-vegan"
     },
@@ -29804,12 +29785,12 @@
     },
     {
       "id": "pd113",
-      "name": "Polenta crémeuse aux champignons et soja",
+      "name": "Polenta crémeuse aux champignons et jambon végétal",
       "category": "petit_dej",
       "tags": {
         "objectif": [
-          "maintien",
-          "prise_de_masse"
+          "perte_de_gras",
+          "maintien"
         ],
         "sport": [
           "muscu"
@@ -29818,12 +29799,6 @@
       },
       "base_servings": 1,
       "ingredients": [
-        {
-          "ref": "soja_texture",
-          "qty": 48,
-          "macro_role": "protein",
-          "scalable": true
-        },
         {
           "ref": "polenta",
           "qty": 75,
@@ -29841,21 +29816,26 @@
           "qty": 90,
           "macro_role": "vegetable",
           "scalable": false
+        },
+        {
+          "ref": "jambon_vegetal",
+          "qty": 100,
+          "macro_role": "protein",
+          "scalable": true
         }
       ],
       "instructions": [
-        "Couvre le soja texturé d'eau bouillante salée, laisse-le gonfler 5 minutes, puis presse-le entre tes mains pour l'essorer.",
         "Émince les champignons et fais-les saisir 4 minutes à feu vif sans les remuer au début, pour qu'ils colorent au lieu de rendre leur eau.",
-        "Ajoute le soja texturé essoré dans la poêle, laisse-le dorer 3 minutes, sale et poivre.",
+        "Ajoute le jambon végétal coupé en dés et laisse-le dorer 2 minutes, poivre.",
         "Porte trois fois le volume de la polenta en eau salée à frémissement, verse la polenta en pluie et remue sans arrêt 5 minutes jusqu'à ce qu'elle épaississe, puis incorpore la crème de soja hors du feu.",
-        "Verse la polenta dans un bol creux et couronne-la du mélange champignons et soja texturé."
+        "Verse la polenta dans un bol creux et couronne-la du mélange champignons et jambon."
       ],
-      "why": "Le soja texturé porte la protéine, la polenta reste digeste au réveil.",
+      "why": "Le jambon végétal porte la protéine, la polenta reste digeste au réveil.",
       "macros_per_serving": {
-        "kcal": 545.8,
-        "protein": 34.9,
-        "carbs": 72.8,
-        "fat": 11.7
+        "kcal": 498.2,
+        "protein": 29.4,
+        "carbs": 62.3,
+        "fat": 13.5
       },
       "wave": "2026-08-02-b7-pdej-vegan"
     },
@@ -30082,7 +30062,7 @@
     },
     {
       "id": "pd118",
-      "name": "Châtaignes fondantes au soja et haricots verts",
+      "name": "Châtaignes fondantes au poulet végétal et haricots verts",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -30096,12 +30076,6 @@
       },
       "base_servings": 1,
       "ingredients": [
-        {
-          "ref": "soja_texture",
-          "qty": 54,
-          "macro_role": "protein",
-          "scalable": true
-        },
         {
           "ref": "chataigne",
           "qty": 98,
@@ -30119,21 +30093,26 @@
           "qty": 90,
           "macro_role": "vegetable",
           "scalable": false
+        },
+        {
+          "ref": "filets_poulet_vegetal",
+          "qty": 100,
+          "macro_role": "protein",
+          "scalable": true
         }
       ],
       "instructions": [
-        "Couvre le soja texturé d'eau bouillante salée, laisse-le gonfler 5 minutes, puis essore-le en le pressant.",
         "Fais cuire les haricots verts 8 minutes à la vapeur, ils doivent rester fermes sous la dent.",
         "Écrase grossièrement les châtaignes à la fourchette et fais-les chauffer 3 minutes à feu doux avec la moitié de l'huile d'olive et deux cuillères d'eau.",
-        "Fais dorer le soja texturé 4 minutes à feu vif dans le reste d'huile, sale et poivre.",
-        "Mélange les châtaignes et les haricots verts, dresse en assiette creuse et couronne du soja texturé doré."
+        "Coupe les filets de poulet végétal en dés et fais-les dorer 4 minutes à feu vif dans le reste d'huile, sale et poivre.",
+        "Mélange les châtaignes et les haricots verts, dresse en assiette creuse et couronne du poulet végétal doré."
       ],
-      "why": "La châtaigne apporte des glucides doux, le soja texturé la charge protéique.",
+      "why": "La châtaigne apporte des glucides doux, le poulet végétal la charge protéique.",
       "macros_per_serving": {
-        "kcal": 526.2,
-        "protein": 31.7,
-        "carbs": 56,
-        "fat": 16.5
+        "kcal": 497.9,
+        "protein": 23.6,
+        "carbs": 40.7,
+        "fat": 23.7
       },
       "wave": "2026-08-02-b7-pdej-vegan"
     },
@@ -30489,7 +30468,7 @@
     },
     {
       "id": "col82",
-      "name": "Wrap froid au soja texturé et avocat",
+      "name": "Wrap froid au jambon végétal et avocat",
       "category": "collation",
       "tags": {
         "objectif": [
@@ -30499,16 +30478,10 @@
         "sport": [
           "muscu"
         ],
-        "temps_min": 10
+        "temps_min": 5
       },
       "base_servings": 1,
       "ingredients": [
-        {
-          "ref": "soja_texture",
-          "qty": 32,
-          "macro_role": "protein",
-          "scalable": true
-        },
         {
           "ref": "wrap_sans_gluten",
           "qty": 50,
@@ -30520,19 +30493,24 @@
           "qty": 25,
           "macro_role": "fat",
           "scalable": true
+        },
+        {
+          "ref": "jambon_vegetal",
+          "qty": 65,
+          "macro_role": "protein",
+          "scalable": true
         }
       ],
       "instructions": [
-        "Couvre le soja texturé d'eau bouillante salée, laisse-le gonfler 5 minutes puis presse-le entre tes mains.",
-        "Écrase l'avocat à la fourchette avec du jus de citron, du sel et du paprika, puis mélange-le au soja.",
-        "Étale sur le wrap, roule serré et coupe en deux."
+        "Écrase l'avocat à la fourchette avec du jus de citron, du sel et du paprika.",
+        "Étale-le sur le wrap, ajoute le jambon végétal en tranches, roule serré et coupe en deux."
       ],
       "why": "Une collation salée à emporter, à la fois vegan et sans gluten, quand le catalogue n'en avait aucune.",
       "macros_per_serving": {
-        "kcal": 319.1,
-        "protein": 20.1,
-        "carbs": 38.6,
-        "fat": 8.3
+        "kcal": 285.5,
+        "protein": 16.1,
+        "carbs": 31.5,
+        "fat": 9.4
       },
       "wave": "2026-08-02-b6-collations-vegan"
     },
@@ -30957,7 +30935,7 @@
     },
     {
       "id": "col91",
-      "name": "Galettes de riz au soja et tomate",
+      "name": "Galettes de riz au jambon végétal et tomate",
       "category": "collation",
       "tags": {
         "objectif": [
@@ -30966,16 +30944,10 @@
         "sport": [
           "muscu"
         ],
-        "temps_min": 8
+        "temps_min": 5
       },
       "base_servings": 1,
       "ingredients": [
-        {
-          "ref": "soja_texture",
-          "qty": 24,
-          "macro_role": "protein",
-          "scalable": true
-        },
         {
           "ref": "galette_riz",
           "qty": 11,
@@ -30993,25 +30965,30 @@
           "qty": 60,
           "macro_role": "vegetable",
           "scalable": false
+        },
+        {
+          "ref": "jambon_vegetal",
+          "qty": 65,
+          "macro_role": "protein",
+          "scalable": true
         }
       ],
       "instructions": [
-        "Couvre le soja texturé d'eau bouillante salée, laisse-le gonfler 5 minutes, puis presse-le pour l'essorer.",
-        "Coupe la tomate en dés et mélange-la au soja texturé avec l'huile d'olive, sale et poivre.",
-        "Répartis la préparation sur les galettes de riz et sers aussitôt."
+        "Coupe la tomate en dés et assaisonne-la avec l'huile d'olive, du sel et du poivre.",
+        "Pose le jambon végétal sur les galettes de riz, répartis la tomate dessus et sers aussitôt."
       ],
       "why": "Une collation salée croquante, montée en cinq minutes.",
       "macros_per_serving": {
-        "kcal": 180.5,
-        "protein": 13.7,
-        "carbs": 17.8,
-        "fat": 5.9
+        "kcal": 174.4,
+        "protein": 13.9,
+        "carbs": 13.1,
+        "fat": 7.1
       },
       "wave": "2026-08-02-b7-collations-vegan"
     },
     {
       "id": "col92",
-      "name": "Champignons poêlés à la châtaigne",
+      "name": "Champignons poêlés au jambon végétal et châtaigne",
       "category": "collation",
       "tags": {
         "objectif": [
@@ -31024,12 +31001,6 @@
       },
       "base_servings": 1,
       "ingredients": [
-        {
-          "ref": "soja_texture",
-          "qty": 23,
-          "macro_role": "protein",
-          "scalable": true
-        },
         {
           "ref": "chataigne",
           "qty": 22,
@@ -31047,19 +31018,24 @@
           "qty": 60,
           "macro_role": "vegetable",
           "scalable": false
+        },
+        {
+          "ref": "jambon_vegetal",
+          "qty": 65,
+          "macro_role": "protein",
+          "scalable": true
         }
       ],
       "instructions": [
-        "Couvre le soja texturé d'eau bouillante salée et laisse-le gonfler 5 minutes, puis presse-le pour l'essorer.",
         "Émince les champignons et fais-les saisir 4 minutes à feu vif dans l'huile d'olive, sans les remuer au début.",
-        "Ajoute le soja texturé et les châtaignes écrasées, mélange 1 minute et sers chaud."
+        "Ajoute le jambon végétal coupé en dés et les châtaignes écrasées, mélange 2 minutes et sers chaud."
       ],
       "why": "La châtaigne apporte des glucides doux à une collation salée.",
       "macros_per_serving": {
-        "kcal": 178.5,
-        "protein": 13.7,
-        "carbs": 16.1,
-        "fat": 5.9
+        "kcal": 175.8,
+        "protein": 14.4,
+        "carbs": 11.7,
+        "fat": 7.1
       },
       "wave": "2026-08-02-b7-collations-vegan"
     },
@@ -31379,7 +31355,7 @@
     },
     {
       "id": "col99",
-      "name": "Polenta au poivron et soja texturé",
+      "name": "Polenta au poivron et jambon végétal",
       "category": "collation",
       "tags": {
         "objectif": [
@@ -31392,12 +31368,6 @@
       },
       "base_servings": 1,
       "ingredients": [
-        {
-          "ref": "soja_texture",
-          "qty": 22,
-          "macro_role": "protein",
-          "scalable": true
-        },
         {
           "ref": "polenta",
           "qty": 12,
@@ -31415,25 +31385,30 @@
           "qty": 60,
           "macro_role": "vegetable",
           "scalable": false
+        },
+        {
+          "ref": "jambon_vegetal",
+          "qty": 65,
+          "macro_role": "protein",
+          "scalable": true
         }
       ],
       "instructions": [
-        "Couvre le soja texturé d'eau bouillante salée, laisse gonfler 5 minutes puis presse-le pour l'essorer.",
-        "Fais revenir le poivron taillé en dés 4 minutes à feu vif dans l'huile d'olive, puis ajoute le soja texturé.",
+        "Fais revenir le poivron taillé en dés 4 minutes à feu vif dans l'huile d'olive, puis ajoute le jambon végétal coupé en dés pour 1 minute.",
         "Porte trois fois le volume de la polenta en eau salée à frémissement et verse-la en pluie, en remuant 5 minutes, puis couronne-la de la poêlée, sale et poivre."
       ],
       "why": "Une collation salée chaude, prête en dix minutes.",
       "macros_per_serving": {
-        "kcal": 185.6,
-        "protein": 12.9,
-        "carbs": 17.6,
-        "fat": 6.6
+        "kcal": 186.4,
+        "protein": 14.1,
+        "carbs": 13.5,
+        "fat": 7.8
       },
       "wave": "2026-08-03-b8-collations-vegan-sg"
     },
     {
       "id": "col100",
-      "name": "Châtaignes et carottes au soja texturé",
+      "name": "Châtaignes et carottes au jambon végétal, sauce tahini",
       "category": "collation",
       "tags": {
         "objectif": [
@@ -31442,16 +31417,10 @@
         "sport": [
           "muscu"
         ],
-        "temps_min": 10
+        "temps_min": 7
       },
       "base_servings": 1,
       "ingredients": [
-        {
-          "ref": "soja_texture",
-          "qty": 23,
-          "macro_role": "protein",
-          "scalable": true
-        },
         {
           "ref": "chataigne",
           "qty": 25,
@@ -31469,19 +31438,24 @@
           "qty": 60,
           "macro_role": "vegetable",
           "scalable": false
+        },
+        {
+          "ref": "jambon_vegetal",
+          "qty": 65,
+          "macro_role": "protein",
+          "scalable": true
         }
       ],
       "instructions": [
-        "Couvre le soja texturé d'eau bouillante salée, laisse gonfler 5 minutes et presse-le pour l'essorer.",
-        "Râpe la carotte et écrase grossièrement les châtaignes à la fourchette.",
-        "Délie le tahini avec une cuillère d'eau et un filet de citron, mélange-le au reste, sale, poivre et sers tiède."
+        "Râpe la carotte, écrase grossièrement les châtaignes à la fourchette et coupe le jambon végétal en lanières.",
+        "Délie le tahini avec une cuillère d'eau et un filet de citron, mélange-le au reste, sale, poivre et sers."
       ],
-      "why": "La châtaigne apporte des glucides doux sans cuisson longue.",
+      "why": "La châtaigne apporte des glucides doux, sans rien faire cuire.",
       "macros_per_serving": {
-        "kcal": 195.1,
-        "protein": 14.4,
-        "carbs": 20.3,
-        "fat": 5.3
+        "kcal": 192.4,
+        "protein": 15.1,
+        "carbs": 16,
+        "fat": 6.5
       },
       "wave": "2026-08-03-b8-collations-vegan-sg"
     },
@@ -31805,7 +31779,7 @@
     },
     {
       "id": "col107",
-      "name": "Maïs au soja texturé et haricots verts",
+      "name": "Maïs aux haricots verts et jambon végétal",
       "category": "collation",
       "tags": {
         "objectif": [
@@ -31820,14 +31794,8 @@
       "base_servings": 1,
       "ingredients": [
         {
-          "ref": "soja_texture",
-          "qty": 31,
-          "macro_role": "protein",
-          "scalable": true
-        },
-        {
           "ref": "mais",
-          "qty": 169,
+          "qty": 144,
           "macro_role": "carb",
           "scalable": true
         },
@@ -31842,19 +31810,24 @@
           "qty": 70,
           "macro_role": "vegetable",
           "scalable": false
+        },
+        {
+          "ref": "jambon_vegetal",
+          "qty": 50,
+          "macro_role": "protein",
+          "scalable": true
         }
       ],
       "instructions": [
-        "Couvre le soja texturé d'eau bouillante salée, laisse gonfler 5 minutes puis presse-le pour l'essorer.",
         "Fais cuire les haricots verts 6 minutes à la vapeur, ils doivent rester fermes.",
-        "Réunis le maïs égoutté, le soja texturé et les haricots verts avec l'huile d'olive, sale et poivre."
+        "Réunis le maïs égoutté, les haricots verts et le jambon végétal coupé en dés avec l'huile d'olive, sale et poivre."
       ],
       "why": "Un plat de collation complet, sans gluten et sans produit animal.",
       "macros_per_serving": {
-        "kcal": 405.7,
-        "protein": 22,
-        "carbs": 43.1,
-        "fat": 14.3
+        "kcal": 331.5,
+        "protein": 14.9,
+        "carbs": 31.2,
+        "fat": 14.7
       },
       "wave": "2026-08-03-b9-collations-grand-format"
     },
@@ -32722,8 +32695,8 @@
       ],
       "why": "Beaucoup de protéines pour peu de calories, avec du pain de seigle pour l'énergie.",
       "macros_per_serving": {
-        "kcal": 613.0,
-        "protein": 43.0,
+        "kcal": 613,
+        "protein": 43,
         "carbs": 59.6,
         "fat": 20.7
       },
@@ -32777,7 +32750,7 @@
       ],
       "why": "Sarrasin et fruits rouges pour les glucides, fromage blanc pour les protéines.",
       "macros_per_serving": {
-        "kcal": 608.0,
+        "kcal": 608,
         "protein": 34.1,
         "carbs": 78.4,
         "fat": 14.4
@@ -33066,7 +33039,7 @@
       "why": "Riz et lait pour l'énergie, skyr pour la charge protéique du matin.",
       "macros_per_serving": {
         "kcal": 576.2,
-        "protein": 40.0,
+        "protein": 40,
         "carbs": 71.3,
         "fat": 13.5
       },
@@ -33126,7 +33099,7 @@
       ],
       "why": "Millet et lait pour les glucides lents, cottage cheese pour les protéines.",
       "macros_per_serving": {
-        "kcal": 608.0,
+        "kcal": 608,
         "protein": 38.3,
         "carbs": 63.4,
         "fat": 20.7
@@ -33181,10 +33154,10 @@
       ],
       "why": "Le quinoa complète les protéines du cottage cheese et apporte des glucides.",
       "macros_per_serving": {
-        "kcal": 582.0,
+        "kcal": 582,
         "protein": 38.9,
-        "carbs": 56.0,
-        "fat": 19.0
+        "carbs": 56,
+        "fat": 19
       },
       "wave": "2026-09-07-b10-registre-francais"
     },
@@ -33236,7 +33209,7 @@
       ],
       "why": "Une collation salée à protéine franche, sans matière grasse ajoutée.",
       "macros_per_serving": {
-        "kcal": 250.0,
+        "kcal": 250,
         "protein": 18.8,
         "carbs": 25.5,
         "fat": 7.1
@@ -33291,7 +33264,7 @@
       ],
       "why": "Un œuf dur couvre les protéines, la galette de riz apporte les glucides.",
       "macros_per_serving": {
-        "kcal": 276.0,
+        "kcal": 276,
         "protein": 14.7,
         "carbs": 25.9,
         "fat": 11.9
@@ -33346,7 +33319,7 @@
       ],
       "why": "Thon au naturel et avocat : des protéines et de bons lipides, sans gluten.",
       "macros_per_serving": {
-        "kcal": 264.0,
+        "kcal": 264,
         "protein": 20.8,
         "carbs": 23.8,
         "fat": 8.7
@@ -33402,7 +33375,7 @@
       "why": "Pain complet et jambon : un en-cas salé rassasiant qui se mange à la main.",
       "macros_per_serving": {
         "kcal": 245.6,
-        "protein": 17.0,
+        "protein": 17,
         "carbs": 24.9,
         "fat": 8.4
       },
