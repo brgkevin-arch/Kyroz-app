@@ -4,6 +4,7 @@ import {
   normalizeCalorieBank, normalizeGoal, normalizeMeals, normalizeMealSlots,
   normalizeProfileActivity, normalizeVariety,
 } from './syncGuard';
+import { normalizeRestrictions } from './regime';
 
 // ── La lecture du profil au démarrage — et pourquoi elle vit ICI ─────────────
 //
@@ -77,8 +78,8 @@ export function bootProfile(
   let stored: UserProfile | null = null;
   try {
     stored = raw
-      ? normalizeCalorieBank(normalizeMeals(normalizeMealSlots(normalizeVariety(
-          normalizeMacroMode(normalizeGoal(normalizeProfileActivity(JSON.parse(raw))))))))
+      ? normalizeRestrictions(normalizeCalorieBank(normalizeMeals(normalizeMealSlots(normalizeVariety(
+          normalizeMacroMode(normalizeGoal(normalizeProfileActivity(JSON.parse(raw)))))))))
       : null;
   } catch (e) {
     return {

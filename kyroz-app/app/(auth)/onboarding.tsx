@@ -26,6 +26,7 @@ import {
   AGE_BOUNDS, WEIGHT_BOUNDS, HEIGHT_BOUNDS, checkEligibility, eligibilityMessage,
 } from '../../lib/safety';
 import { DislikedFoodsField } from '../../components/DislikedFoodsField';
+import { basculerRegime, normaliserRegimes } from '../../lib/regime';
 import {
   ActivityLevel, BodyFatSource, DietaryRestriction, Goal, MealSlot, MealType, NeatLevel, Sex, SportSession, UserProfile, VarietyPreference,
 } from '../../lib/types';
@@ -77,11 +78,11 @@ const TOTAL_STEPS = 7;
 const GOALS: Goal[] = ['cut', 'recomp', 'maintain', 'lean_bulk'];
 
 const RESTRICTIONS: { label: string; value: DietaryRestriction }[] = [
+  { label: 'Omnivore', value: 'omnivore' },
   { label: 'Végétarien', value: 'vegetarian' },
   { label: 'Vegan', value: 'vegan' },
   { label: 'Pescétarien', value: 'pescatarian' },
   { label: 'Halal', value: 'halal' },
-  { label: 'Sans porc', value: 'no_pork' },
   { label: 'Sans lactose', value: 'lactose_free' },
   { label: 'Sans gluten', value: 'gluten_free' },
 ];
@@ -232,7 +233,6 @@ export default function Onboarding() {
   // vide chez presque tout le monde, et le réglage ne pilote alors rien.
   const [goutPdj, setGoutPdj] = useState<GoutChoix | null>(null);
   const [goutCollation, setGoutCollation] = useState<GoutChoix | null>(null);
-  const [regimeLibre, setRegimeLibre] = useState(false);
   const [dislikes, setDislikes] = useState<string[]>([]);
   // ⚠️ `null` ET PAS `DEFAULT_NEAT_LEVEL` : rien n'est présélectionné, et l'étape ne
   // se valide pas tant que la réponse manque. Pré-cocher « journées assises » aurait
@@ -260,7 +260,7 @@ export default function Onboarding() {
   // sans rien à brancher ailleurs.
   const brouillon: OnboardingDraft = {
     step, firstName, sex, birthDate, weight, height, bodyFat, bodyFatSource,
-    sports, noSport, goal, restrictions, regimeLibre, proteins, proteinesEgales, goutPdj, goutCollation, dislikes, neat, variety,
+    sports, noSport, goal, restrictions, proteins, proteinesEgales, goutPdj, goutCollation, dislikes, neat, variety,
     planWeekdays, restWeekdays, restTouched, meals, customSlots,
   };
   // ⚠️ La dépendance de l'effet est la forme SÉRIALISÉE, pas l'objet : `brouillon` est
@@ -288,7 +288,7 @@ export default function Onboarding() {
         setBirthDate(d.birthDate); setWeight(d.weight); setHeight(d.height);
         setBodyFat(d.bodyFat); setBodyFatSource(d.bodyFatSource);
         setSports(d.sports); setNoSport(d.noSport); setGoal(d.goal);
-        setRestrictions(d.restrictions); setRegimeLibre(d.regimeLibre); setProteins(d.proteins);
+        setRestrictions(normaliserRegimes(d.restrictions)); setProteins(d.proteins);
         setProteinesEgales(d.proteinesEgales); setDislikes(d.dislikes);
         setGoutPdj(d.goutPdj); setGoutCollation(d.goutCollation);
         setNeat(d.neat); setVariety(d.variety);
@@ -836,21 +836,12 @@ export default function Onboarding() {
               {RESTRICTIONS.map((r) => (
                 <Chip
                   key={r.value} t={t} label={r.label} selected={restrictions.includes(r.value)}
-                  // Cocher un régime annule « Peu importe », exactement comme pour les
-                  // protéines juste en dessous : les deux réponses ne peuvent pas coexister.
-                  onPress={() => { setRegimeLibre(false); toggle(restrictions, r.value, setRestrictions); }}
+                  // « Omnivore » s'exclut avec végétarien, vegan et pescétarien (D36, `lib/regime.ts`).
+                  onPress={() => setRestrictions(basculerRegime(restrictions, r.value))}
                 />
               ))}
-              {/* 🔴 « PEU IMPORTE » EST UNE RÉPONSE, PAS UN VIDE (demande fondateur,
-                  2026-09-08). Sans lui, ne rien cocher voulait dire deux choses à la fois —
-                  « je n'ai aucun régime » et « je n'ai pas encore répondu » — et rien à
-                  l'écran ne les distinguait. Il ne change AUCUNE donnée : la liste reste
-                  vide dans les deux cas. C'est la lecture de l'écran qu'il répare, pas le
-                  moteur. Même forme que la réponse jumelle des protéines. */}
-              <Chip
-                t={t} label="Peu importe" selected={regimeLibre}
-                onPress={() => { setRegimeLibre((v) => !v); setRestrictions([]); }}
-              />
+              {/* D36 : plus de « Peu importe » au régime. Ne rien cocher reste permis et vaut
+                  l'omnivore d'avant (plafond D29) ; « Omnivore » est la réponse qui pèse. */}
             </View>
 
             <SectionLabel t={t}>Protéines préférées</SectionLabel>

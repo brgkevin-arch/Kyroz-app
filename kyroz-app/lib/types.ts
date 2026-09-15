@@ -257,6 +257,7 @@ export interface GoalTarget {
 
 // Restrictions alimentaires (régime / interdits)
 export type DietaryRestriction =
+  | 'omnivore' // case « Omnivore » (D36) : pas une restriction d'ingrédient, une règle de plats végétaux
   | 'vegetarian'
   | 'pescatarian'
   | 'no_pork'

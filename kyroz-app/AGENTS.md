@@ -855,6 +855,37 @@ produit en suspens — il ne reste qu'à coder.
      `lib/__tests__/omnivoreSansSojaTofu.test.ts`, vérifié par mutation (règle désactivée : rouge).
      ⚠️ « Réalisable » ne propose plus ces 40 recettes à un omnivore, même tofu en réserve : c'est
      la règle, pas un oubli.
+  3 ter. ✅ **D36 · La case « Omnivore », et « Sans porc » retiré — 2026-09-15** (décisions fondateur :
+     *« ceux qui cochent omnivore n'auront pas de protéines végétales ; omnivore et protéines
+     végétales, un ratio de 8 à 10 % »*, *« halal c'est sans porc, on l'enlève »*). Ce point tient
+     lieu de fiche. Tranché par questions le même jour : la règle porte sur les **déjeuners et
+     dîners** (mesuré : les retirer aussi du matin et de la collation faisait passer les repas mal
+     calibrés de 8 à 94 sur 5 376 ; les plats principaux seuls, 8 → 8) ; le ratio vaut **10 % des
+     déjeuners et dîners** ; et le régime n'a plus de « Peu importe » à l'inscription (le Profil
+     n'en avait jamais eu), les protéines gardent le leur.
+     **Code** : `'omnivore'` ajouté à `DietaryRestriction` (colonne `text[]`, aucune migration) ;
+     `lib/regime.ts` (pur) : `basculerRegime` (Omnivore ↔ végétarien, vegan, pescétarien
+     s'excluent), `normaliserRegimes` / `normalizeRestrictions` (`no_pork` → `halal` à la lecture,
+     branché dans `profileBoot` et `sync`) ; `planEngine::regleVegetal` : Omnivore sans « Végétal »
+     → plafond 0, avec « Végétal » → `VEGETAL_OMNIVORE_PART` 10 % des déjeuners et dîners (1 sur
+     14) ; `recipeAllowed` ignore `omnivore` (pas une restriction d'ingrédient) ; mise en retrait
+     végétale (v50) armée par la case comme par halal. Écrans : inscription et Profil.
+     **« Sans porc » ne coûte rien** : halal et sans porc ouvraient les MÊMES 524 recettes (compté
+     par le test). Les mentions « halal et sans porc » plus haut (D29) sont historiques.
+     **Pas d'`ENGINE_VERSION`** : aucun profil existant ne change de règle (la case est neuve, et
+     `no_pork` → `halal` sert les mêmes recettes) ; changer le régime régénère déjà le plan
+     (`profileSignature`).
+     **Mesuré** (12 profils × 4 régimes × 4 tirages, viandes cochées) : déjeuners et dîners
+     végétaux 2,2 % sans la case → **0 %** avec ; avec « Végétal » 34,7 % → **7,0 %** ; repas mal
+     calibrés 8 → 8 et 0 → 0, écart calorique du jour inchangé à 0,01 point près. Garde-fou
+     `lib/__tests__/caseOmnivore.test.ts` (11 cas, **vérifié par mutation** : 3 rougissent) ;
+     `preferencesInscription.test.ts` verrouille la nouvelle décision ; le harnais `test/_harness.mjs`
+     attend désormais 3 « Peu importe » à l'étape 6.
+     ➡️ **Répondu au fondateur** (« la section protéines préférées fonctionne réellement ? ») :
+     oui, mesuré le 2026-09-15 — part des déjeuners et dîners contenant la protéine, sans
+     préférence → cochée seule : poisson 30 → 80 %, bœuf 18 → 51 %, poulet 14 → 40 %, œufs
+     16 → 28 %, végétal 32 → 84 % ; whey 0 % (aucun plat principal n'en contient). C'est une
+     orientation forte, pas une exclusivité.
   4. ✅ **OTA** : D32 et D33 publiés dans la 35ᵉ, D27.1 et D34 dans la 36ᵉ, le 2026-09-15 (ligne « OTA publiées »).
      Prochaine OTA : comparer à nouveau l'empreinte au build (22) avant de publier.
   5. 🧑 **Petits-déjeuners salés « à la française »** à commander pour le vegan et le

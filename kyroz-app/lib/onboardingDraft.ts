@@ -51,7 +51,6 @@ export type OnboardingDraft = {
   goal: Goal | null;
   restrictions: DietaryRestriction[];
   /** « Peu importe » côté RÉGIME — une réponse, distincte d'une liste vide non renseignée. */
-  regimeLibre: boolean;
   proteins: string[];
   /** « Peu importe » — une RÉPONSE, distincte d'une liste vide non renseignée. */
   proteinesEgales: boolean;
@@ -80,7 +79,7 @@ const NEATS: Record<NeatLevel, true> = { desk: true, light: true, active: true, 
 const VARIETES: Record<VarietyPreference, true> = { repetitive: true, balanced: true, max: true };
 const GOUTS: Record<GoutChoix, true> = { sucre: true, sale: true, egal: true };
 const REGIMES: Record<DietaryRestriction, true> = {
-  vegetarian: true, pescatarian: true, no_pork: true, lactose_free: true,
+  omnivore: true, vegetarian: true, pescatarian: true, no_pork: true, lactose_free: true,
   gluten_free: true, vegan: true, halal: true,
 };
 const OBJECTIFS: Record<Goal, true> = {
@@ -179,7 +178,6 @@ export function analyser(raw: string | null, totalEtapes: number): OnboardingDra
       const l = chaines(v);
       return l && l.every((x) => dans(REGIMES, x)) ? (l as DietaryRestriction[]) : echoue;
     }, []),
-    regimeLibre: lire('regimeLibre', booleen, false),
     proteins: lire('proteins', chaines, [] as string[]),
     // ⚠️ Sans ce champ, quelqu'un qui répond « Peu importe » puis ferme l'app revient
     // sur une étape 6 de nouveau bloquée, sans comprendre pourquoi — la réponse existe
