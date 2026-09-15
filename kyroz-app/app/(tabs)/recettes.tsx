@@ -22,6 +22,7 @@ import {
 import { Recipe } from '../../lib/types';
 import { OBJ_LABEL } from '../../lib/recipeLabels';
 import { revelation, libelleRevelation } from '../../lib/revelation';
+import { ordreCatalogue } from '../../lib/ordreCatalogue';
 import { BoutonRevelation, Segmented } from '../../components/ui';
 import { animerMiseEnPage } from '../../components/Mouvement';
 
@@ -113,9 +114,13 @@ export default function RecettesScreen() {
   // enregistrée que plus aucune étape ne vise se relit comme une bulle perdue en
   // route (même motif que `frigo-vue-cuisiner` le 2026-08-14).
 
+  // Ce que le plan peut servir d'abord, le reste ensuite — rien n'est caché (décision
+  // fondateur du 2026-09-15, `lib/ordreCatalogue.ts`).
+  const catalogueOrdonne = useMemo(() => ordreCatalogue(recipes, profile), [recipes, profile]);
+
   const q = norm(query.trim());
   const surReserve = vueListe === 'reserve';
-  const tous = (surReserve ? parReserve.map((c) => c.recipe) : recipes).filter((r) => {
+  const tous = (surReserve ? parReserve.map((c) => c.recipe) : catalogueOrdonne).filter((r) => {
     if (q && !norm(r.name_fr).includes(q)) return false;
     // ⚠️ Les puces de genre ne s'appliquent QU'AU catalogue : sur « Ma réserve »,
     // l'ordre est déjà celui de la faisabilité, et filtrer par créneau y ferait
