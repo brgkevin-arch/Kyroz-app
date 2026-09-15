@@ -22,7 +22,7 @@ import {
 import { Recipe } from '../../lib/types';
 import { OBJ_LABEL } from '../../lib/recipeLabels';
 import { revelation, libelleRevelation } from '../../lib/revelation';
-import { ordreCatalogue } from '../../lib/ordreCatalogue';
+import { partagerCatalogue, libelleAutres } from '../../lib/ordreCatalogue';
 import { BoutonRevelation, Segmented } from '../../components/ui';
 import { animerMiseEnPage } from '../../components/Mouvement';
 
@@ -114,13 +114,15 @@ export default function RecettesScreen() {
   // enregistrée que plus aucune étape ne vise se relit comme une bulle perdue en
   // route (même motif que `frigo-vue-cuisiner` le 2026-08-14).
 
-  // Ce que le plan peut servir d'abord, le reste ensuite — rien n'est caché (décision
-  // fondateur du 2026-09-15, `lib/ordreCatalogue.ts`).
-  const catalogueOrdonne = useMemo(() => ordreCatalogue(recipes, profile), [recipes, profile]);
+  // Le Catalogue montre ce que le plan peut servir ; le reste attend derrière un bouton en fin
+  // de liste — rien n'est supprimé (décisions fondateur du 2026-09-15, D38 et D39,
+  // `lib/ordreCatalogue.ts`).
+  const partage = useMemo(() => partagerCatalogue(recipes, profile), [recipes, profile]);
+  const [voirAutres, setVoirAutres] = useState(false);
 
   const q = norm(query.trim());
   const surReserve = vueListe === 'reserve';
-  const tous = (surReserve ? parReserve.map((c) => c.recipe) : catalogueOrdonne).filter((r) => {
+  const garde = (r: Recipe) => {
     if (q && !norm(r.name_fr).includes(q)) return false;
     // ⚠️ Les puces de genre ne s'appliquent QU'AU catalogue : sur « Ma réserve »,
     // l'ordre est déjà celui de la faisabilité, et filtrer par créneau y ferait
@@ -128,7 +130,14 @@ export default function RecettesScreen() {
     if (surReserve || tag === 'Tout') return true;
     if (tag === 'fav') return isFavorite(r.id);
     return r.tags.includes(tag);
-  });
+  };
+  const autres = surReserve ? [] : partage.autres.filter(garde);
+  const tous = surReserve
+    ? parReserve.map((c) => c.recipe).filter(garde)
+    : [...partage.servables.filter(garde), ...(voirAutres ? autres : [])];
+  // Le compteur annonce TOUT ce que le filtre trouve, bouton compris : une recette derrière
+  // le bouton existe, et le chiffre ne doit pas changer au moment où on l'ouvre.
+  const totalTrouve = voirAutres ? tous.length : tous.length + autres.length;
 
   // ── Révélation par paliers (décision fondateur, 2026-08-14) ───────────────
   //
@@ -144,7 +153,7 @@ export default function RecettesScreen() {
   const [tout, setTout] = useState(false);
   const cle = `${vueListe}·${tag}·${q}·${recipes.length}·${parReserve.length}`;
   const cleVue = useRef(cle);
-  if (cleVue.current !== cle) { cleVue.current = cle; if (paliers !== 0) setPaliers(0); if (tout) setTout(false); }
+  if (cleVue.current !== cle) { cleVue.current = cle; if (paliers !== 0) setPaliers(0); if (tout) setTout(false); if (voirAutres) setVoirAutres(false); }
 
   const vue = revelation(tous.length, PAS_RECETTES, paliers, tout);
 
@@ -271,7 +280,7 @@ export default function RecettesScreen() {
           <Text style={s.countN}>
             {surReserve
               ? `${pretes.length} maintenant · ${presque.length} presque`
-              : `${tous.length} recette${tous.length > 1 ? 's' : ''}`}
+              : `${totalTrouve} recette${totalTrouve > 1 ? 's' : ''}`}
           </Text>
         </View>
     </View>
@@ -296,19 +305,38 @@ export default function RecettesScreen() {
         // réglage ; posé dessous, il est la suite de la lecture. Sur tablette la
         // grille a deux colonnes — un pied traverse toute la largeur, donc rien
         // à faire de particulier.
+        //
+        // Le bouton « hors de tes préférences » n'arrive qu'au BOUT des recettes compatibles
+        // (D39) : tant qu'il en reste à déplier, c'est le « Voir + » des paliers qui parle.
         ListFooterComponent={
-          <BoutonRevelation
-            t={t}
-            libelle={libelleRevelation(vue.action, vue.reste)}
-            onPress={reveler}
-          />
+          vue.action === null && !voirAutres && autres.length > 0 ? (
+            <BoutonRevelation
+              t={t}
+              libelle={libelleAutres(autres.length)}
+              onPress={() => { animerMiseEnPage(); setVoirAutres(true); }}
+            />
+          ) : (
+            <BoutonRevelation
+              t={t}
+              libelle={libelleRevelation(vue.action, vue.reste)}
+              onPress={reveler}
+            />
+          )
         }
         {...repli.scrollProps}
         ListEmptyComponent={
           <View style={s.empty}>
             <Ionicons name={q ? 'search-outline' : surReserve ? 'file-tray-outline' : 'heart-outline'} size={Icone.nav} color={t.textTertiary} />
             <Text style={s.emptyTxt}>
-              {q
+              {/* Une liste vide avec un bouton dessous ne dit pas « aucune recette » :
+                  il y en a, hors des préférences. */}
+              {autres.length > 0 && !voirAutres
+                ? q
+                  ? `Aucune recette dans tes préférences pour « ${query.trim()} ».`
+                  : tag === 'fav'
+                  ? 'Aucun de tes favoris ne correspond à tes préférences.'
+                  : 'Aucune recette de ce type dans tes préférences.'
+                : q
                 ? `Aucune recette pour « ${query.trim()} ».`
                 : surReserve
                 ? reserve.length === 0
