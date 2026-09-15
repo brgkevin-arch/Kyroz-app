@@ -34,7 +34,10 @@
     .top { position: sticky; top: 0; z-index: 1; display: flex; align-items: center;
            justify-content: space-between; gap: 16px; padding: 20px 0 12px;
            background: rgba(0,0,0,0.88); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
-    .logo { font-size: 22px; font-weight: 900; letter-spacing: 4px; color: #fff; text-decoration: none; }
+    .logo { display: inline-block; margin-top: 12px; font-size: 22px; font-weight: 900; letter-spacing: 4px;
+            color: #fff; text-decoration: none; }
+    .retour { font-size: 14px; font-weight: 600; color: #fff; border: 1px solid rgba(255,255,255,0.24);
+              border-radius: 100px; padding: 8px 16px; text-decoration: none; white-space: nowrap; }
     .ouvrir { font-size: 14px; font-weight: 700; color: #000; background: #fff; border-radius: 100px;
               padding: 9px 18px; text-decoration: none; white-space: nowrap; }
     a { color: #fff; }
@@ -43,9 +46,10 @@
 <body>
   <div class="wrap">
     <header class="top">
-      <a class="logo" href="https://kyroz.app/">KYROZ</a>
+      <a class="retour" href="https://kyroz.app/">← Retour au site</a>
       <a class="ouvrir" id="ouvrir" href="https://apps.apple.com/fr/app/kyroz/id6796427402">Ouvrir Kyroz</a>
     </header>
+    <a class="logo" href="https://kyroz.app/">KYROZ</a>
 
     <h1>Politique de confidentialité</h1>
     <p class="updated">Dernière mise à jour : 8 septembre 2026</p>

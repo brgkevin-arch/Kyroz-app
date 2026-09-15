@@ -41,7 +41,8 @@ const RACINE = join(__dirname, '..');
  * La page publique s'ouvre surtout HORS de l'app : depuis la fiche App Store (URL de
  * confidentialité déclarée) et le pied de page de kyroz.app. Elle n'avait AUCUN lien —
  * arrivé là, on ne pouvait aller nulle part (demande fondateur du 2026-09-15).
- * ➡️ Le logo ramène au site ; « Ouvrir Kyroz » tente le schéma de l'app sur iPhone et
+ * ➡️ « ← Retour au site » (un vrai bouton : un logo cliquable ne se devine pas, demande
+ * fondateur du même jour) ramène au site ; « Ouvrir Kyroz » tente le schéma de l'app sur iPhone et
  * retombe sur la fiche App Store. ⚠️ Pas de lien universel : `kyroz.app` ne sert aucun
  * `apple-app-site-association`, donc un lien https ne peut pas ouvrir l'app lui-même.
  */
@@ -127,7 +128,10 @@ export function renderHtml(): string {
     .top { position: sticky; top: 0; z-index: 1; display: flex; align-items: center;
            justify-content: space-between; gap: 16px; padding: 20px 0 12px;
            background: rgba(0,0,0,0.88); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
-    .logo { font-size: 22px; font-weight: 900; letter-spacing: 4px; color: #fff; text-decoration: none; }
+    .logo { display: inline-block; margin-top: 12px; font-size: 22px; font-weight: 900; letter-spacing: 4px;
+            color: #fff; text-decoration: none; }
+    .retour { font-size: 14px; font-weight: 600; color: #fff; border: 1px solid rgba(255,255,255,0.24);
+              border-radius: 100px; padding: 8px 16px; text-decoration: none; white-space: nowrap; }
     .ouvrir { font-size: 14px; font-weight: 700; color: #000; background: #fff; border-radius: 100px;
               padding: 9px 18px; text-decoration: none; white-space: nowrap; }
     a { color: #fff; }
@@ -136,9 +140,10 @@ export function renderHtml(): string {
 <body>
   <div class="wrap">
     <header class="top">
-      <a class="logo" href="${SITE_URL}">${echapHtml(LEGAL.appName.toUpperCase())}</a>
+      <a class="retour" href="${SITE_URL}">← Retour au site</a>
       <a class="ouvrir" id="ouvrir" href="${APP_STORE_URL}">Ouvrir ${echapHtml(LEGAL.appName)}</a>
     </header>
+    <a class="logo" href="${SITE_URL}">${echapHtml(LEGAL.appName.toUpperCase())}</a>
 
     <h1>Politique de confidentialité</h1>
     <p class="updated">Dernière mise à jour : ${echapHtml(LEGAL.effectiveDate)}</p>
