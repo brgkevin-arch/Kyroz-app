@@ -3,7 +3,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import { ThemePalette, Type, Spacing } from '../constants/theme';
 import { Chip, Field, SectionLabel } from './ui';
 import { getEffectiveRecipes } from '../lib/recipes';
-import { foodKeywordMatches, normalizeFood } from '../lib/avoidance';
+import { foodKeywordMatches, normalizeFood, suggestionsAliments } from '../lib/avoidance';
 
 // 🔴 LES SEPT BULLES « COURANTES » SONT PARTIES (décision fondateur, 2026-09-08).
 // Saumon, Thon, Œufs, Brocolis, Avocat, Quinoa, Patate douce s'affichaient en un tap.
@@ -49,6 +49,15 @@ export function DislikedFoodsField({
     setDraft('');
   };
 
+  // Les sortes que le catalogue connaît pour ce qui est tapé (2026-09-15) : « tofu »
+  // propose Tofu ferme, Tofu fumé, Tofu soyeux. Toucher une sorte l'enregistre, seule.
+  const suggestions = useMemo(() => suggestionsAliments(recipes, draft, value), [recipes, draft, value]);
+  const choisir = (nom: string) => {
+    const kw = normalizeKw(nom);
+    if (!value.includes(kw)) onChange([...value, kw]);
+    setDraft('');
+  };
+
   // Tout ce qui est enregistré s'affiche : il n'y a plus de bulles pré-cochées dont il
   // faudrait distinguer les entrées libres.
   const custom = value;
@@ -83,6 +92,13 @@ export function DislikedFoodsField({
         onSubmitEditing={add}
         blurOnSubmit={false}
       />
+      {suggestions.length ? (
+        <View style={styles.wrap}>
+          {suggestions.map((nom) => (
+            <Chip key={nom} t={t} label={nom} selected={false} onPress={() => choisir(nom)} />
+          ))}
+        </View>
+      ) : null}
       {compteBrouillon !== null ? (
         <Text style={{ ...Type.caption, color: compteBrouillon === 0 ? t.textTertiary : t.textSecondary }}>
           {compteBrouillon === 0

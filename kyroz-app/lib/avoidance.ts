@@ -125,3 +125,38 @@ export function foodKeywordMatches(recipes: Recipe[], keyword: string): number {
   if (!kw) return 0;
   return recipes.filter((r) => recipeContainsFood(r, kw)).length;
 }
+
+/** En deçà, une frappe propose presque tout le catalogue : ce n'est plus une suggestion. */
+export const SUGGESTION_MIN_LETTRES = 2;
+
+/**
+ * Les noms d'ingrédients du catalogue qu'une frappe peut désigner (demande fondateur du
+ * 2026-09-15 : « s'il y a écrit tofu, il doit être proposé tous les mots commençant par
+ * TOFU qui sont répertoriés »).
+ *
+ * Même règle que le filtre du moteur, `matchesAtWordStart` : « tofu » propose Tofu ferme,
+ * Tofu fumé et Tofu soyeux, « œuf » ne propose pas le bœuf. Une suggestion ne peut donc
+ * jamais être un mot sans effet — elle sort d'une recette, elle en écarte au moins une.
+ *
+ * ⚠️ Les noms viennent des RECETTES, pas de la table de référence : un ingrédient que
+ * plus aucune recette n'emploie proposerait un mot qui n'écarte rien.
+ * ⚠️ Ce qu'un mot déjà enregistré couvre n'est plus proposé : « tofu » enregistré écarte
+ * déjà les trois sortes, « Tofu fumé » en plus ne ferait qu'une bulle redondante.
+ * ⚠️ Le mot tapé reste enregistrable tel quel (Entrée) : choisir UNE sorte laisse passer
+ * les autres, et c'est le mot entier qui les écarte toutes.
+ */
+export function suggestionsAliments(recipes: Recipe[], frappe: string, deja: readonly string[] = []): string[] {
+  const kw = normalizeFood(frappe);
+  if (kw.length < SUGGESTION_MIN_LETTRES) return [];
+  const couverts = deja.map(normalizeFood).filter(Boolean);
+  const noms = new Map<string, string>();
+  for (const r of recipes) {
+    for (const i of r.ingredients) {
+      const cle = normalizeFood(i.name);
+      if (noms.has(cle) || !matchesAtWordStart(cle, kw)) continue;
+      if (couverts.some((c) => matchesAtWordStart(cle, c))) continue;
+      noms.set(cle, i.name.trim());
+    }
+  }
+  return [...noms.values()].sort((a, b) => a.localeCompare(b, 'fr'));
+}
