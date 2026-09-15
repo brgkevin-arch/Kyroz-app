@@ -25,19 +25,27 @@
     body { margin: 0; background: #000; color: rgba(255,255,255,0.85);
            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
            line-height: 1.6; }
-    .wrap { max-width: 720px; margin: 0 auto; padding: 32px 20px 80px; }
+    .wrap { max-width: 720px; margin: 0 auto; padding: 0 20px 80px; }
     h1 { font-size: 26px; font-weight: 800; letter-spacing: -0.5px; color: #fff; margin: 32px 0 4px; }
     h2 { font-size: 16px; font-weight: 700; color: #fff; margin: 24px 0 6px; }
     .updated { color: rgba(255,255,255,0.4); font-size: 13px; margin-bottom: 8px; }
     p { font-size: 15px; color: rgba(255,255,255,0.7); margin: 0 0 10px; }
     hr { border: none; border-top: 1px solid rgba(255,255,255,0.12); margin: 36px 0; }
-    .logo { font-size: 22px; font-weight: 900; letter-spacing: 4px; color: #fff; }
+    .top { position: sticky; top: 0; z-index: 1; display: flex; align-items: center;
+           justify-content: space-between; gap: 16px; padding: 20px 0 12px;
+           background: rgba(0,0,0,0.88); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
+    .logo { font-size: 22px; font-weight: 900; letter-spacing: 4px; color: #fff; text-decoration: none; }
+    .ouvrir { font-size: 14px; font-weight: 700; color: #000; background: #fff; border-radius: 100px;
+              padding: 9px 18px; text-decoration: none; white-space: nowrap; }
     a { color: #fff; }
   </style>
 </head>
 <body>
   <div class="wrap">
-    <div class="logo">KYROZ</div>
+    <header class="top">
+      <a class="logo" href="https://kyroz.app/">KYROZ</a>
+      <a class="ouvrir" id="ouvrir" href="https://apps.apple.com/fr/app/kyroz/id6796427402">Ouvrir Kyroz</a>
+    </header>
 
     <h1>Politique de confidentialité</h1>
     <p class="updated">Dernière mise à jour : 8 septembre 2026</p>
@@ -135,5 +143,23 @@
     <h2>10. Droit applicable</h2>
     <p>Les présentes conditions sont soumises au droit français. Contact : contact@kyroz.app. Pour toute question relative à vos données, vous pouvez saisir la CNIL.</p>
   </div>
+  <script>
+    // Sur iPhone et iPad, le bouton ouvre l'app si elle est installée. Sinon, et partout
+    // ailleurs, le lien mène à la fiche App Store.
+    (function () {
+      var lien = document.getElementById('ouvrir');
+      var ios = /iPhone|iPad|iPod/.test(navigator.userAgent) ||
+        (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+      if (!lien || !ios) return;
+      lien.addEventListener('click', function (e) {
+        e.preventDefault();
+        var repli = setTimeout(function () { location.href = lien.href; }, 1500);
+        document.addEventListener('visibilitychange', function () {
+          if (document.hidden) clearTimeout(repli);
+        }, { once: true });
+        location.href = 'kyroz://';
+      });
+    })();
+  </script>
 </body>
 </html>
