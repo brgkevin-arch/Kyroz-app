@@ -33,6 +33,7 @@ import { useScreenTour, resetAllTours } from '../../components/GuidedTour';
 import { profilTour, TOURS } from '../../lib/tours';
 import { BodyFatPicker } from '../../components/BodyFatPicker';
 import { DislikedFoodsField } from '../../components/DislikedFoodsField';
+import { basculerRegime } from '../../lib/regime';
 import { MacroSplit } from '../../components/MacroSplit';
 import { WeightCheckin } from '../../components/WeightCheckin';
 import { OffPlanHistory } from '../../components/OffPlanHistory';
@@ -91,9 +92,9 @@ import { frnum } from '../../lib/units';
 // sous les doigts de la personne au rechargement — un choix qui ne tient pas.
 const GOALS: Goal[] = ['cut', 'recomp', 'maintain', 'lean_bulk'];
 const RESTRICTIONS: { label: string; value: DietaryRestriction }[] = [
-  { label: 'Végétarien', value: 'vegetarian' }, { label: 'Vegan', value: 'vegan' },
+  { label: 'Omnivore', value: 'omnivore' }, { label: 'Végétarien', value: 'vegetarian' }, { label: 'Vegan', value: 'vegan' },
   { label: 'Pescétarien', value: 'pescatarian' }, { label: 'Halal', value: 'halal' },
-  { label: 'Sans porc', value: 'no_pork' }, { label: 'Sans lactose', value: 'lactose_free' },
+  { label: 'Sans lactose', value: 'lactose_free' },
   { label: 'Sans gluten', value: 'gluten_free' },
 ];
 const PROTEINS = ['Poulet', 'Bœuf', 'Poisson', 'Œufs', 'Whey', 'Végétal'];
@@ -109,7 +110,7 @@ const VARIETY: { value: VarietyPreference; title: string; sub: string }[] = [
 const SEX_LABELS: Record<Sex, string> = { male: 'Homme', female: 'Femme' };
 const VARIETY_LABELS: Record<VarietyPreference, string> = { repetitive: 'Répétitif', balanced: 'Équilibré', max: 'Variété max' };
 const RESTRICTION_LABELS: Record<DietaryRestriction, string> = {
-  vegetarian: 'Végétarien', vegan: 'Vegan', pescatarian: 'Pescétarien', halal: 'Halal', no_pork: 'Sans porc', lactose_free: 'Sans lactose', gluten_free: 'Sans gluten',
+  omnivore: 'Omnivore', vegetarian: 'Végétarien', vegan: 'Vegan', pescatarian: 'Pescétarien', halal: 'Halal', no_pork: 'Sans porc', lactose_free: 'Sans lactose', gluten_free: 'Sans gluten',
 };
 
 function activityFromDays(d: number): ActivityLevel {
@@ -1688,7 +1689,7 @@ function PrefEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }: Edit
   return (
     <EditorShell t={t} title="Préférences" onSave={submit} dragHandlers={dragHandlers} sheetScrollProps={sheetScrollProps}>
       <SectionLabel t={t}>Régime</SectionLabel>
-      <View style={styles.wrap}>{RESTRICTIONS.map((r) => <Chip key={r.value} t={t} label={r.label} selected={restrictions.includes(r.value)} onPress={() => tog(restrictions, r.value, setRestrictions)} />)}</View>
+      <View style={styles.wrap}>{RESTRICTIONS.map((r) => <Chip key={r.value} t={t} label={r.label} selected={restrictions.includes(r.value)} onPress={() => setRestrictions(basculerRegime(restrictions, r.value))} />)}</View>
       <SectionLabel t={t}>Protéines préférées</SectionLabel>
       <View style={styles.wrap}>{PROTEINS.map((p) => <Chip key={p} t={t} label={p} selected={proteins.includes(p.toLowerCase())} onPress={() => tog(proteins, p.toLowerCase(), setProteins)} />)}</View>
       <SectionLabel t={t}>Petit-déjeuner</SectionLabel>

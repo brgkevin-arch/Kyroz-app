@@ -571,6 +571,7 @@ function fitScore(macros: Macros, target: AdaptTarget, flags: AdaptFlag[], goalD
 
 // Mots-clés exclus par régime
 const RESTRICTION_BLOCKLIST: Record<DietaryRestriction, string[]> = {
+  omnivore: [], // pas une restriction d'ingrédient (D36) : la règle vit dans `regleVegetal`
   vegetarian: ['poulet', 'boeuf', 'bœuf', 'steak', 'saumon', 'thon', 'jambon', 'porc', 'dinde', 'poisson', 'cabillaud', 'crevette'],
   // vegan = végétarien + œufs + laitiers + miel. Mots-clés laitiers ciblés pour ne
   // PAS bloquer les alternatives végétales (lait d'amande/coco, yaourt de soja, beurre de cacahuète).
@@ -642,6 +643,8 @@ export function recipeAllowed(recipe: Recipe, profile: UserProfile): boolean {
   // Régimes : restrictions_ok autoritaire si présent (recettes Kyroz), sinon repli
   // mots-clés (recettes legacy/overrides sans classification diététique).
   for (const r of profile.dietary_restrictions ?? []) {
+    // « Omnivore » n'interdit aucun ingrédient : il règle les plats végétaux (D36, `regleVegetal`).
+    if (r === 'omnivore') continue;
     if (recipe.restrictions_ok) {
       if (!recipe.restrictions_ok.includes(r)) return false;
     } else if (RESTRICTION_BLOCKLIST[r].some((kw) => text.includes(kw))) {
@@ -787,7 +790,8 @@ function vegetalEnRetraitIds(profile: UserProfile): Set<string> {
   if (prefs.includes('végétal')) return new Set();
   const regimes = profile.dietary_restrictions ?? [];
   if (regimes.includes('vegan') || regimes.includes('vegetarian')) return new Set();
-  const commeUnOmnivoreQuiCoche = regimes.includes('halal') || regimes.includes('no_pork');
+  // D36 : la case « Omnivore » dit la même chose que halal et sans porc — de la viande.
+  const commeUnOmnivoreQuiCoche = regimes.includes('halal') || regimes.includes('no_pork') || regimes.includes('omnivore');
   if (prefs.length === 0 && !commeUnOmnivoreQuiCoche) return new Set();
   const vegetal = new Set(PROTEIN_REFS['végétal']);
   const ids = new Set<string>();
@@ -800,6 +804,8 @@ function vegetalEnRetraitIds(profile: UserProfile): Set<string> {
 
 /** Omnivore : déjeuners ou dîners à protéine 100 % végétale servis au plus par semaine (D29). */
 export const VEGETAL_MAX_SEMAINE = 3;
+/** Case « Omnivore » + « Végétal » : part des déjeuners et dîners de la semaine à protéine végétale (D36). */
+export const VEGETAL_OMNIVORE_PART = 0.1;
 /** Omnivore : au plus un déjeuner ou dîner 100 % végétal par jour. */
 export const VEGETAL_MAX_JOUR = 1;
 /** Pescétarien : au plus un déjeuner ou dîner SANS poisson par jour (œufs et laitages admis). */
@@ -836,6 +842,24 @@ export interface RegleVegetal {
 export function regleVegetal(profile: UserProfile): RegleVegetal | null {
   const prefs = profile.preferred_proteins ?? [];
   const regimes = profile.dietary_restrictions ?? [];
+  // 🔴 CASE « OMNIVORE » (décision fondateur du 2026-09-15, D36). Sans « Végétal » coché :
+  // AUCUN déjeuner ni dîner à protéine 100 % végétale. Avec « Végétal » : environ 10 % des
+  // déjeuners et dîners de la semaine (au moins 1). Le petit-déjeuner et la collation ne
+  // comptent pas, comme pour D29 — mesuré : les en retirer aussi multipliait par 12 les repas
+  // mal calibrés (8 → 94 sur 5 376), ne retirer que les plats principaux n'en coûtait aucun.
+  if (regimes.includes('omnivore') && !regimes.some((r) => r === 'vegan' || r === 'vegetarian' || r === 'pescatarian')) {
+    const vegetalOmni = new Set(PROTEIN_REFS['végétal']);
+    const idsOmni = new Set<string>();
+    for (const r of getEffectiveRecipes()) {
+      const pr = proteinRefsOf(r);
+      if (pr.length > 0 && pr.every((x) => vegetalOmni.has(x))) idsOmni.add(r.id);
+    }
+    if (!prefs.includes('végétal')) return { ids: idsOmni, maxSemaine: 0, maxJour: 0 };
+    const slots = knownSlots(profile);
+    const principaux = (profile.meals ?? []).filter((id) => slotOrFallback(slots, id).pool === 'meal').length
+      * Math.min(profile.plan_days ?? 7, 7);
+    return { ids: idsOmni, maxSemaine: Math.max(1, Math.round(VEGETAL_OMNIVORE_PART * principaux)), maxJour: 1 };
+  }
   if (prefs.includes('végétal') || regimes.includes('vegan') || regimes.includes('vegetarian')) return null;
   const ids = new Set<string>();
   if (regimes.includes('pescatarian')) {

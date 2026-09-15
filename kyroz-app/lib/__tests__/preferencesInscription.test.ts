@@ -32,13 +32,17 @@ describe('l’étape « activité » respire', () => {
 });
 
 describe('l’étape « préférences » dit ce que le fondateur a demandé', () => {
-  it('« Peu importe » existe AUSSI pour le régime, pas seulement pour les protéines', () => {
-    expect(onboarding).toMatch(/selected=\{regimeLibre\}/);
-    expect(onboarding).toMatch(/setRegimeLibre/);
+  // 🔴 DÉCISION REMPLACÉE LE 2026-09-15 (D36). Le « Peu importe » du régime (demande du
+  // 2026-09-08) laisse la place à la case « Omnivore » : « il n'y a pas de peu importe dans la
+  // préférence de régime, on ajoute juste une case omnivore ». Les protéines gardent le leur.
+  it('le régime propose « Omnivore » et n’a plus de « Peu importe » (D36)', () => {
+    expect(onboarding).toContain("{ label: 'Omnivore', value: 'omnivore' }");
+    expect(onboarding).not.toMatch(/regimeLibre/);
+    expect(onboarding).toMatch(/setProteinesEgales/);
   });
 
-  it('cocher un régime annule « Peu importe » — les deux ne coexistent pas', () => {
-    expect(onboarding).toMatch(/setRegimeLibre\(false\);\s*toggle\(restrictions/);
+  it('cocher « Omnivore » et un régime sans viande ne coexistent pas — la règle vit dans lib/regime.ts', () => {
+    expect(onboarding).toMatch(/setRestrictions\(basculerRegime\(restrictions, r\.value\)\)/);
   });
 
   it('la phrase « passe avant tout le reste » a disparu', () => {

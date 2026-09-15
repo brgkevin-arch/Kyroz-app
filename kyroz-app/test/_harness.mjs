@@ -437,9 +437,11 @@ export async function runOnboarding(page, p = DEFAULT_PERSONA) {
   // On les répond tous : chacun enregistre l'absence de préférence, donc les plans des
   // scripts en aval restent ceux d'avant.
   const peuImporte = page.getByText('Peu importe', { exact: true });
+  // D36 (2026-09-15) : le régime n'a plus de « Peu importe » (case « Omnivore », non obligatoire) —
+  // il en reste TROIS : protéines, petit-déjeuner, collations. Ne rien cocher au régime garde les plans d'avant.
   const nPeuImporte = await peuImporte.count().catch(() => 0);
-  if (nPeuImporte < 4) {
-    await panne(page, 'onboarding-preferences', `l'étape 6 exige quatre réponses et ${nPeuImporte} « Peu importe » seulement sont visibles`);
+  if (nPeuImporte < 3) {
+    await panne(page, 'onboarding-preferences', `l'étape 6 exige trois réponses et ${nPeuImporte} « Peu importe » seulement sont visibles`);
     return { ok: false, etape: 6, repas: 0 };
   }
   for (let i = 0; i < nPeuImporte; i++) {
