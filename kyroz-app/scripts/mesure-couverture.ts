@@ -106,6 +106,62 @@ export function servable(r: Recipe, t: AdaptTarget): boolean {
   return !f.includes('over_target_kcal') && !f.includes('under_target_kcal') && !f.includes('protein_below_target');
 }
 
+// ── D27.1 : sur les cibles de QUI une recette est jugée ──────────────────────
+
+/**
+ * Décision fondateur du 2026-09-15 (D27.1) : une recette SANS VIANDE est jugée sur les cibles des
+ * régimes sans viande qui la reçoivent — végane, végétarien, pescétarien —, une recette avec viande
+ * sur celles d'un omnivore.
+ *
+ * Le défaut corrigé : R8 construisait toujours `ciblesDe(g)`, sans régime. Depuis la détente
+ * protéique végane (`ENGINE_REV` 11), une recette végane était notée sur une assiette qu'aucun
+ * végane ne reçoit. Mesuré le 2026-09-15 sur les 215 recettes véganes, cibles omnivores → cibles
+ * véganes : 12 jugées « à réécrire » à tort, 7 jugées « bonnes » à tort.
+ * ⚠️ Le score retenu est le PIRE des régimes jugés, comme le pire créneau : promettre la recette
+ * aux trois, c'est la tenir pour les trois. Avec cette règle, 18 recettes sans viande passent sous
+ * le seuil et 1 le franchit (presque toutes à 8 → 7) — c'est une porte plus exigeante, pas plus large.
+ * ⚠️ Les cibles végétariennes et pescétariennes ont les mêmes macros que l'omnivore : ce qui les
+ * distingue est la COMPOSITION du plan servi (`ciblesDe` lit les repas réellement servis).
+ */
+export type RegimeJuge = 'omnivore' | 'vegan' | 'vegetarian' | 'pescatarian';
+
+export function regimesJuges(restrictionsOk: readonly string[] = []): RegimeJuge[] {
+  if (restrictionsOk.includes('vegan')) return ['vegan', 'vegetarian', 'pescatarian'];
+  if (restrictionsOk.includes('vegetarian')) return ['vegetarian', 'pescatarian'];
+  if (restrictionsOk.includes('pescatarian')) return ['pescatarian'];
+  return ['omnivore'];
+}
+
+export type CiblesProfils = { nom: string; c: Record<MealType, AdaptTarget> }[];
+export type CiblesR8 = Record<RegimeJuge, CiblesProfils>;
+
+const RESTRICTIONS_JUGEES: Record<RegimeJuge, DietaryRestriction[]> = {
+  omnivore: [], vegan: ['vegan'], vegetarian: ['vegetarian'], pescatarian: ['pescatarian'],
+};
+
+/** Les cibles des 12 profils de référence, pour chacun des quatre régimes jugés. */
+export function ciblesR8(): CiblesR8 {
+  const out = {} as CiblesR8;
+  for (const regime of Object.keys(RESTRICTIONS_JUGEES) as RegimeJuge[]) {
+    out[regime] = PROFILS_REF.map((g) => ({ nom: g.nom, c: ciblesDe(g, RESTRICTIONS_JUGEES[regime]) }));
+  }
+  return out;
+}
+
+/** Profils servis sur les créneaux donnés : le PIRE créneau du PIRE régime jugé. */
+export function profilsServisR8(
+  r: Recipe, slots: MealType[], cibles: CiblesR8,
+): { servis: string[]; regime: RegimeJuge; slot: MealType } {
+  let pire: { servis: string[]; regime: RegimeJuge; slot: MealType } | null = null;
+  for (const regime of regimesJuges(r.restrictions_ok)) {
+    for (const slot of slots) {
+      const servis = cibles[regime].filter(({ c }) => servable(r, c[slot])).map(({ nom }) => nom);
+      if (!pire || servis.length < pire.servis.length) pire = { servis, regime, slot };
+    }
+  }
+  return pire!;
+}
+
 // ── Mode --enveloppe : contrôle R8 d'un lot livré ────────────────────────────
 
 /**
@@ -166,8 +222,10 @@ function versRuntime(raw: RawRecipe): { r: Recipe; inconnus: string[] } {
  * queue : la seule recette capable de nourrir une femme de 55 kg en sèche (cible 115 kcal)
  * ne sert qu'elle, donc score 1/12, donc rejetée… et le profil reste à zéro pour toujours.
  */
-function profilsAffames(slot: MealType, cibles: { nom: string; c: Record<MealType, AdaptTarget> }[]): Set<string> {
-  const pool = getEffectiveRecipes().filter((r) => r.tags.includes(slot));
+function profilsAffames(slot: MealType, regime: RegimeJuge, cibles: CiblesProfils): Set<string> {
+  // D27.1 : un profil est affamé DANS SON RÉGIME — le vivier d'un végane n'est pas celui d'un omnivore.
+  const pool = getEffectiveRecipes().filter((r) => r.tags.includes(slot)
+    && (regime === 'omnivore' || (r.restrictions_ok ?? []).includes(regime)));
   return new Set(cibles.filter(({ c }) => pool.filter((r) => servable(r, c[slot])).length < 3).map(({ nom }) => nom));
 }
 
@@ -175,25 +233,21 @@ function controleEnveloppe(chemin: string): number {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   const brut = require('node:fs').readFileSync(chemin, 'utf8');
   const lot: RawRecipe[] = JSON.parse(brut).recipes;
-  const cibles = PROFILS_REF.map((g) => ({ nom: g.nom, c: ciblesDe(g) }));
-  // Un jeu par créneau RÉELLEMENT servi — `dinner` manquait, ce qui faisait planter le
-  // contrôle dès qu'une recette avait le soir pour pire créneau.
-  const affames: Record<string, Set<string>> = {
-    breakfast: profilsAffames('breakfast', cibles),
-    lunch: profilsAffames('lunch', cibles),
-    dinner: profilsAffames('dinner', cibles),
-    snack: profilsAffames('snack', cibles),
+  const cibles = ciblesR8();
+  // Un jeu par RÉGIME et par créneau RÉELLEMENT servi — `dinner` manquait, ce qui faisait
+  // planter le contrôle dès qu'une recette avait le soir pour pire créneau. Calculé à la
+  // demande : un lot sans recette végane ne paie pas le vivier végane.
+  const memo = new Map<string, Set<string>>();
+  const affames = (regime: RegimeJuge, slot: MealType): Set<string> => {
+    const k = `${regime}|${slot}`;
+    if (!memo.has(k)) memo.set(k, profilsAffames(slot, regime, cibles[regime]));
+    return memo.get(k)!;
   };
 
   console.log(`Contrôle d'enveloppe (règle R8) — ${lot.length} recettes · ${chemin}`);
   console.log(`Seuils : ${Object.entries(SEUIL_R8).map(([k, v]) => `${k} ≥ ${v}/12`).join(' · ')}`);
-  const tousAffames = [...new Set(Object.values(affames).flatMap((s) => [...s]))];
-  if (tousAffames.length) {
-    console.log(`Dérogation : une recette servant un profil AFFAMÉ passe quel que soit son score.`);
-    console.log(`  affamés — collation : ${[...affames.snack].join(', ') || 'aucun'}`);
-    if (affames.lunch.size) console.log(`  affamés — repas complet : ${[...affames.lunch].join(', ')}`);
-    if (affames.breakfast.size) console.log(`  affamés — petit-déj : ${[...affames.breakfast].join(', ')}`);
-  }
+  console.log(`Cibles (D27.1) : recette sans viande → pire des régimes sans viande qui la reçoivent ; sinon omnivore.`);
+  console.log(`Dérogation : une recette servant un profil AFFAMÉ de son régime passe quel que soit son score.`);
   console.log('\nid       | catégorie      | base kcal · P | sert  | verdict | profils non servis');
 
   let echecs = 0;
@@ -214,21 +268,20 @@ function controleEnveloppe(chemin: string): number {
     // est tagué `lunch` ET `dinner` : le noter sur le seul midi laissait passer des
     // recettes systématiquement trop grosses le soir.
     const slots = CATEGORIE_VERS_SLOTS[raw.category] ?? [slot];
-    const parSlot = slots.map((s) => ({
-      s,
-      servis: cibles.filter(({ c }) => servable(r, c[s])).map(({ nom }) => nom),
-    }));
+    // Chaque créneau est jugé sur le PIRE des régimes qui reçoivent la recette (D27.1).
+    const parSlot = slots.map((s) => ({ s, ...profilsServisR8(r, [s], cibles) }));
     // Le score retenu est le PIRE créneau : promettre les deux, c'est tenir les deux.
     const pire = parSlot.reduce((a, b) => (b.servis.length < a.servis.length ? b : a));
     const servis = pire.servis;
-    const rates = cibles.filter(({ nom }) => !servis.includes(nom)).map(({ nom }) => nom);
+    const rates = PROFILS_REF.map(({ nom }) => nom).filter((nom) => !servis.includes(nom));
     const seuil = SEUIL_R8[raw.category];
-    const nourritAffame = servis.some((n) => affames[pire.s].has(n));
+    const nourritAffame = servis.some((n) => affames(pire.regime, pire.s).has(n));
     const ok = servis.length >= seuil || nourritAffame;
     if (!ok) echecs++;
     if (raw.category === 'collation') servis.forEach((n) => couvertureCollations.add(n));
     const verdict = !ok ? '❌ ÉCHEC' : nourritAffame && servis.length < seuil ? '✅ AFFAMÉ' : '✅ ok   ';
-    const detail = slots.length > 1 ? ` [${parSlot.map((p) => `${p.s === 'lunch' ? 'midi' : 'soir'} ${p.servis.length}`).join('/')}]` : '';
+    const detail = (slots.length > 1 ? ` [${parSlot.map((p) => `${p.s === 'lunch' ? 'midi' : 'soir'} ${p.servis.length}`).join('/')}]` : '')
+      + (pire.regime === 'omnivore' ? '' : ` (cibles ${pire.regime})`);
     console.log(
       `${raw.id.padEnd(8)} | ${raw.category.padEnd(14)} | ` +
       `${String(Math.round(r.macros_per_portion.kcal)).padStart(4)} · ${String(Math.round(r.macros_per_portion.protein_g)).padStart(2)} P | ` +
@@ -340,10 +393,11 @@ function etatCatalogue(avecFlags: boolean, csv: boolean): void {
  * qu'on s'en aperçoive.
  */
 function distributionSeuils(): void {
-  const cibles = PROFILS_REF.map((g) => ({ nom: g.nom, c: ciblesDe(g) }));
+  const cibles = ciblesR8();
   const pool = getEffectiveRecipes();
   console.log('DISTRIBUTION R8 DU CATALOGUE LIVE — profils servis par recette, créneau par créneau.');
-  console.log('⚠️ Une recette est jugée sur le PIRE de ses créneaux (un repas complet est servi midi ET soir).\n');
+  console.log('⚠️ Une recette est jugée sur le PIRE de ses créneaux (un repas complet est servi midi ET soir),');
+  console.log('   et une recette sans viande sur le PIRE des régimes sans viande qui la reçoivent (D27.1).\n');
   // La colonne « AVEC `carb` » a été ajoutée le 2026-08-02 : D19 citait ce contraste
   // (2,69 contre 9,02 en petit-déj) comme sa cause première, mais AUCUNE commande ne
   // l'imprimait — il n'était donc pas revérifiable, et l'écart est justement tout
@@ -354,7 +408,7 @@ function distributionSeuils(): void {
     const recettes = pool.filter((r) => r.tags.includes(slots[0]));
     const scores = recettes.map((r) => ({
       r,
-      n: Math.min(...slots.map((s) => cibles.filter(({ c }) => servable(r, c[s])).length)),
+      n: profilsServisR8(r, slots, cibles).servis.length,
       carb: r.ingredients.some((i) => i.macro_role === 'carb'),
     }));
     const moy = (xs: typeof scores) => (xs.length ? xs.reduce((s, x) => s + x.n, 0) / xs.length : 0);
@@ -431,11 +485,11 @@ function vivierCroise(): void {
   // La question était posée dans AGENTS.md et n'avait jamais été mesurée. Une recette
   // sous le seuil qui n'est jamais servie ne coûte rien à l'utilisateur — c'est
   // exactement le piège qui a fait ouvrir D5 et D7 pour rien.
-  const ciblesNeutres = PROFILS_REF.map((g) => ({ nom: g.nom, c: ciblesDe(g) }));
+  const ciblesJugees = ciblesR8();
   const sousSeuil = new Set<string>();
   for (const [cat, slots] of Object.entries(CATEGORIE_VERS_SLOTS) as [string, MealType[]][]) {
     for (const r of pool.filter((x) => x.tags.includes(CATEGORIE_VERS_SLOT[cat]))) {
-      const n = Math.min(...slots.map((s) => ciblesNeutres.filter(({ c }) => servable(r, c[s])).length));
+      const n = profilsServisR8(r, slots, ciblesJugees).servis.length;
       if (n < SEUIL_R8[cat]) sousSeuil.add(r.id);
     }
   }

@@ -1298,7 +1298,20 @@ produit en suspens — il ne reste qu'à coder.
   ancres encore ouvertes dans chaque §7.
 
 - **D27 · Suites de la vague B11 et de la détente protéique végane — 4 points ouverts (2026-09-13)**
-  1. 🔴 **Le contrôle R8 juge les recettes véganes sur des cibles d'OMNIVORE.** Le contrôle
+  1. ✅ **TRANCHÉ LE 2026-09-15** (fondateur : *« cible végan, végétarien, pescé et tous ceux qui
+     ne mangent pas de viande »*). Une recette sans viande est jugée sur le PIRE des régimes sans
+     viande qui la reçoivent (végane → végane, végétarien, pescétarien ; végétarien → végétarien,
+     pescétarien ; poisson → pescétarien) ; une recette avec viande reste sur l'omnivore.
+     `scripts/mesure-couverture.ts::regimesJuges` / `profilsServisR8`, dans `--enveloppe`,
+     `--seuils` et le bilan D19 ; garde-fou `lib/__tests__/regimesJuges.test.ts`. Mesuré sur le
+     catalogue live : 18 recettes sans viande passent sous le seuil, 1 le franchit (presque
+     toutes 8 → 7). ⚠️ **Conséquence à connaître pour toute vague végétale** : les végétariens
+     et pescétariens gardent la cible protéique pleine, donc un plat de légumineuses sans
+     protéine très dense ne peut plus rétrécir assez pour les petits gabarits en sèche
+     (F 55/65/80, H 65) — la plupart plafonnent à 7/12. ℹ️ `gen-brief-lot.ts` publie toujours
+     des cibles omnivores dans les briefs : à aligner à la prochaine vague commandée.
+     Constat d'origine :
+     🔴 **Le contrôle R8 juge les recettes véganes sur des cibles d'OMNIVORE.** Le contrôle
      d'enveloppe (`scripts/mesure-couverture.ts`) construit ses cibles par `ciblesDe(g)`, sans
      restriction. Depuis la détente protéique végane (PR #267, `ENGINE_REV` 11), une recette
      végane est donc jugée sur une cible protéique qu'aucun végane ne reçoit. Meilleur point
