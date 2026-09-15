@@ -37,6 +37,20 @@ import { LEGAL, PRIVACY_POLICY, TERMS_OF_USE, type LegalSection } from '../const
 
 const RACINE = join(__dirname, '..');
 
+/**
+ * La page publique s'ouvre surtout HORS de l'app : depuis la fiche App Store (URL de
+ * confidentialité déclarée) et le pied de page de kyroz.app. Elle n'avait AUCUN lien —
+ * arrivé là, on ne pouvait aller nulle part (demande fondateur du 2026-09-15).
+ * ➡️ « ← Retour au site » (un vrai bouton : un logo cliquable ne se devine pas, demande
+ * fondateur du même jour) ramène au site ; « Ouvrir Kyroz » tente le schéma de l'app sur iPhone et
+ * retombe sur la fiche App Store. ⚠️ Pas de lien universel : `kyroz.app` ne sert aucun
+ * `apple-app-site-association`, donc un lien https ne peut pas ouvrir l'app lui-même.
+ */
+const SITE_URL = 'https://kyroz.app/';
+const APP_STORE_URL = 'https://apps.apple.com/fr/app/kyroz/id6796427402';
+// Lu dans `app.json` plutôt que recopié : c'est le schéma que le binaire déclare.
+const SCHEMA_APP: string = JSON.parse(readFileSync(join(RACINE, 'app.json'), 'utf8')).expo.scheme;
+
 /** Les surfaces fabriquées depuis la source. Une entrée = un fichier que personne
  *  ne réécrit plus à la main. `kyroz-site` n'est pas là : dépôt séparé, non cloné
  *  ici — voir la note en fin de fichier. */
@@ -105,19 +119,31 @@ export function renderHtml(): string {
     body { margin: 0; background: #000; color: rgba(255,255,255,0.85);
            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
            line-height: 1.6; }
-    .wrap { max-width: 720px; margin: 0 auto; padding: 32px 20px 80px; }
+    .wrap { max-width: 720px; margin: 0 auto; padding: 0 20px 80px; }
     h1 { font-size: 26px; font-weight: 800; letter-spacing: -0.5px; color: #fff; margin: 32px 0 4px; }
     h2 { font-size: 16px; font-weight: 700; color: #fff; margin: 24px 0 6px; }
     .updated { color: rgba(255,255,255,0.4); font-size: 13px; margin-bottom: 8px; }
     p { font-size: 15px; color: rgba(255,255,255,0.7); margin: 0 0 10px; }
     hr { border: none; border-top: 1px solid rgba(255,255,255,0.12); margin: 36px 0; }
-    .logo { font-size: 22px; font-weight: 900; letter-spacing: 4px; color: #fff; }
+    .top { position: sticky; top: 0; z-index: 1; display: flex; align-items: center;
+           justify-content: space-between; gap: 16px; padding: 20px 0 12px;
+           background: rgba(0,0,0,0.88); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
+    .logo { display: inline-block; margin-top: 12px; font-size: 22px; font-weight: 900; letter-spacing: 4px;
+            color: #fff; text-decoration: none; }
+    .retour { font-size: 14px; font-weight: 600; color: #fff; border: 1px solid rgba(255,255,255,0.24);
+              border-radius: 100px; padding: 8px 16px; text-decoration: none; white-space: nowrap; }
+    .ouvrir { font-size: 14px; font-weight: 700; color: #000; background: #fff; border-radius: 100px;
+              padding: 9px 18px; text-decoration: none; white-space: nowrap; }
     a { color: #fff; }
   </style>
 </head>
 <body>
   <div class="wrap">
-    <div class="logo">${echapHtml(LEGAL.appName.toUpperCase())}</div>
+    <header class="top">
+      <a class="retour" href="${SITE_URL}">← Retour au site</a>
+      <a class="ouvrir" id="ouvrir" href="${APP_STORE_URL}">Ouvrir ${echapHtml(LEGAL.appName)}</a>
+    </header>
+    <a class="logo" href="${SITE_URL}">${echapHtml(LEGAL.appName.toUpperCase())}</a>
 
     <h1>Politique de confidentialité</h1>
     <p class="updated">Dernière mise à jour : ${echapHtml(LEGAL.effectiveDate)}</p>
@@ -130,6 +156,24 @@ ${sectionsHtml(PRIVACY_POLICY)}
 
 ${sectionsHtml(TERMS_OF_USE)}
   </div>
+  <script>
+    // Sur iPhone et iPad, le bouton ouvre l'app si elle est installée. Sinon, et partout
+    // ailleurs, le lien mène à la fiche App Store.
+    (function () {
+      var lien = document.getElementById('ouvrir');
+      var ios = /iPhone|iPad|iPod/.test(navigator.userAgent) ||
+        (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+      if (!lien || !ios) return;
+      lien.addEventListener('click', function (e) {
+        e.preventDefault();
+        var repli = setTimeout(function () { location.href = lien.href; }, 1500);
+        document.addEventListener('visibilitychange', function () {
+          if (document.hidden) clearTimeout(repli);
+        }, { once: true });
+        location.href = '${SCHEMA_APP}://';
+      });
+    })();
+  </script>
 </body>
 </html>
 `;
