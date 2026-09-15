@@ -61,7 +61,7 @@ Vérifié en générant dans un dossier jetable, sans toucher au dépôt du site
 
 ## Avant de commencer
 
-- Le clone du site est dans **`/Users/kevinberger/Kyroz_Site`** (majuscule,
+- Le clone du site est dans **`/Users/kevinberger/Docs/Kyroz_Site`** (majuscule,
   underscore) — chercher `kyroz-site` en minuscules ne le trouve pas.
 - Il **peut être en retard** sur `origin/main` — il l'était de trois commits le
   2026-08-26, ce qui a suffi à me faire décrire une page qui n'existait plus.
@@ -157,7 +157,7 @@ cette procédure — ne pas le commiter, ne pas le supprimer.
 ## Étape 1 — remettre le clone du site à jour
 
 ```bash
-cd /Users/kevinberger/Kyroz_Site && git checkout main && git pull
+cd /Users/kevinberger/Docs/Kyroz_Site && git checkout main && git pull
 ```
 
 **Attendu :** `Fast-forward`, et `git status` propre. Si `git status` montre des
@@ -172,10 +172,10 @@ Depuis le dépôt de l'**app** (pas celui du site), et seulement si l'étape 0 e
 verte :
 
 ```bash
-cd /Users/kevinberger/Kyroz_Code/kyroz-app && KYROZ_SITE=/Users/kevinberger/Kyroz_Site npm run gen:legal
+cd /Users/kevinberger/Kyroz_Code/kyroz-app && KYROZ_SITE=/Users/kevinberger/Docs/Kyroz_Site npm run gen:legal
 ```
 
-**Attendu :** trois lignes, dont `→ site  régénéré — /Users/kevinberger/Kyroz_Site/legal.html`.
+**Attendu :** trois lignes, dont `→ site  régénéré — /Users/kevinberger/Docs/Kyroz_Site/legal.html`.
 
 ⚠️ Ce message dit que le fichier a été ÉCRIT, pas qu'il a été écrit avec le bon
 contenu. C'est l'étape 0 qui garantit le contenu, et l'étape 3 qui le montre.
@@ -185,7 +185,7 @@ contenu. C'est l'étape 0 qui garantit le contenu, et l'étape 3 qui le montre.
 ## Étape 3 — regarder ce qui a changé
 
 ```bash
-cd /Users/kevinberger/Kyroz_Site && git diff --stat && git diff legal.html | head -60
+cd /Users/kevinberger/Docs/Kyroz_Site && git diff --stat && git diff legal.html | head -60
 ```
 
 **Attendu :** un seul fichier touché, `legal.html`. Dans le diff : la date qui passe
@@ -198,13 +198,13 @@ signale-le.
 ## Étape 4 — publier
 
 ```bash
-cd /Users/kevinberger/Kyroz_Site && git checkout -b legal-2026-08-26 && git add legal.html && git commit -m "legal: la page publique rattrape la source — Resend, PostHog et l'age minimum a 18 ans" && git push -u origin legal-2026-08-26
+cd /Users/kevinberger/Docs/Kyroz_Site && git checkout -b legal-2026-08-26 && git add legal.html && git commit -m "legal: la page publique rattrape la source — Resend, PostHog et l'age minimum a 18 ans" && git push -u origin legal-2026-08-26
 ```
 
 Puis ouvrir la PR :
 
 ```bash
-cd /Users/kevinberger/Kyroz_Site && gh pr create --base main --fill
+cd /Users/kevinberger/Docs/Kyroz_Site && gh pr create --base main --fill
 ```
 
 ⚠️ **La branche `main` de ce dépôt EST le site en ligne** (GitHub Pages). La fusion
@@ -242,7 +242,7 @@ site** et dit vert. C'est ce silence qui a laissé la page mentir deux mois.
 Le contrôle complet, à lancer avant chaque soumission aux stores :
 
 ```bash
-cd /Users/kevinberger/Kyroz_Code/kyroz-app && KYROZ_SITE=/Users/kevinberger/Kyroz_Site npm run gen:legal -- --check
+cd /Users/kevinberger/Kyroz_Code/kyroz-app && KYROZ_SITE=/Users/kevinberger/Docs/Kyroz_Site npm run gen:legal -- --check
 ```
 
 **Attendu :** `= site  à jour`.
