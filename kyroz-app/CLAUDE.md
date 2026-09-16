@@ -152,7 +152,16 @@ App mobile React Native (Expo Router, **SDK 57** depuis le 2026-08-27) de plans 
 > à la première connexion lente. Vérifié dans le manifeste généré :
 > `EXPO_UPDATES_LAUNCH_WAIT_MS = 0`.
 >
-> **Publier un correctif** : `npx eas-cli update --branch production --message "…"`.
+> **Publier un correctif** : `npx eas-cli update --branch production --platform ios --message "…"`.
+>
+> 🔴 **SUR iOS SEULEMENT** (décision fondateur du 2026-09-16 : « publie sur iOS »). **Aucun
+> binaire Android n'est distribué** : un groupe Android publié n'atteint donc personne, et
+> son existence a fait annoncer trois fois une livraison « iPhone et Android » qui n'en était
+> pas une (39ᵉ, 40ᵉ, 41ᵉ OTA). Ce n'est pas une économie technique, c'est §10 — ce qui est
+> annoncé doit être ce qui est servi.
+> ➡️ `--platform ios` tant qu'aucun build Android n'est distribué. Le jour où il y en a un :
+> retirer le drapeau **et** comparer l'empreinte Android de l'arbre à celle de ce binaire
+> avant de publier, exactement comme pour iOS.
 >
 > 🔴 **PUBLIER UNE OTA, C'EST TROIS GESTES, PAS UN** (2026-08-26). Le second est celui
 > qu'on saute : la publication se consigne à **DEUX endroits** — la ligne « OTA publiées »
