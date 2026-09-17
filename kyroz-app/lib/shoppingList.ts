@@ -9,11 +9,17 @@ import { mealIngredients } from './planEngine';
 // - Le garde-manger est SOUSTRAIT : on ne propose que ce qui MANQUE pour le plan.
 //   Couverture partielle → on n'achète que le reste (ex. 200 g au frigo sur
 //   500 g requis → 300 g) ; entièrement couvert → l'article est masqué.
-export function buildShoppingList(plan: MealPlan, pantry: PantryItem[] = []): ShoppingList {
+export function buildShoppingList(plan: MealPlan, pantry: PantryItem[] = [], jours?: number[]): ShoppingList {
   // name conserve la casse d'origine du 1er ingrédient agrégé (pour l'affichage).
   const aggregated: Map<string, { name: string; quantity: number; unit: string }> = new Map();
 
   for (const meal of plan.meals) {
+    // Les jours DÉJÀ PASSÉS au moment où le plan a été généré ne se font pas acheter
+    // (décision fondateur du 2026-09-17, cf. `lib/coursesDepuis.ts`) : quelqu'un qui
+    // s'inscrit un jeudi n'a pas à acheter le lundi de la semaine en cours.
+    // ⚠️ Une LISTE de jours, pas une borne : le dimanche est en tête de `plan_weekdays`
+    // (0 = dimanche) alors qu'il tombe en fin de semaine — une borne l'aurait effacé.
+    if (jours && !jours.includes(meal.day)) continue;
     if (meal.fixed) continue; // repas géré par l'user → il achète/prépare lui-même
     // Quantités EFFECTIVES (adaptées par ingrédient si présentes, sinon recette×portions).
     for (const ingredient of mealIngredients(meal)) {

@@ -15,6 +15,8 @@ import { ActionSheet } from '../../components/ActionSheet';
 import { PrimaryButton, Chip, Field } from '../../components/ui';
 import { MealPlan, ShoppingItem, ShoppingList } from '../../lib/types';
 import { buildShoppingList } from '../../lib/shoppingList';
+import { joursAAcheter, mentionDepart } from '../../lib/coursesDepuis';
+import { useProfile } from '../../hooks/useProfile';
 import { formatQuantity, toBaseUnit } from '../../lib/units';
 import { searchFoods } from '../../lib/foods';
 import { loadPantry, savePantry, addOrMerge, isStaple } from '../../lib/pantry';
@@ -59,6 +61,11 @@ export default function CoursesScreen() {
   const s = useMemo(() => makeStyles(t), [t]);
   const layout = useLayout();
   const repli = useCollapsingTitle();
+  const { profile } = useProfile();
+  // Ce que la liste couvre, dit à l'écran (vide quand elle couvre tout le plan).
+  // Ce que la liste couvre, dit à l'écran. Posé là où le plan est LU (`load`), parce que
+  // cet écran ne garde pas le plan en état — il le relit à chaque venue sur l'onglet.
+  const [depart, setDepart] = useState('');
   const { confirm, choose } = useDialog();
   const [list, setList] = useState<ShoppingList | null>(null);
   // Articles écartés (`lib/shoppingRemoved.ts`). ⚠️ Ils vivent HORS de `list` :
@@ -120,6 +127,7 @@ export default function CoursesScreen() {
     const planRaw = await AsyncStorage.getItem(PLAN_KEY);
     if (!planRaw) return null;
     const plan: MealPlan = JSON.parse(planRaw);
+    setDepart(mentionDepart(plan, profile?.plan_weekdays));
     // ── LA RÉSERVE EST TOUJOURS SOUSTRAITE (2026-08-24) ──────────────────────
     //
     // L'interrupteur « Tenir compte du frigo » a été RETIRÉ (décision fondateur).
@@ -129,7 +137,10 @@ export default function CoursesScreen() {
     // sur-estimé DISPARAÎT de la liste. Depuis, elle ne se remplit qu'à la CLÔTURE
     // d'une sortie (`terminer`), c'est-à-dire une fois les courses réellement faites.
     const pantry = await loadPantry();
-    const l = buildShoppingList(plan, pantry);
+    // La liste part du jour où le plan a été généré, jamais des jours déjà passés
+    // (décision fondateur du 2026-09-17, `lib/coursesDepuis.ts`). ⚠️ Sans profil encore
+    // chargé, `premierJourAcheter` rend 1 : on achète toute la semaine, c'est le repli SÛR.
+    const l = buildShoppingList(plan, pantry, joursAAcheter(plan, profile?.plan_weekdays));
     // Ne pas mettre en cache une liste vide (tout couvert) : sinon l'onglet
     // resterait bloqué sur « rien à acheter » même après avoir vidé la réserve.
     // Sans cache, load() la reconstruit à chaque focus et les articles
@@ -602,6 +613,10 @@ export default function CoursesScreen() {
         {/* La jauge rattrapait le doigt d'un saut. « Tout cocher » la faisait
             passer de 0 à 100 % en une frame — le seul geste de l'écran qui dise
             « ça avance » n'avait aucune durée pour le dire. */}
+        {/* Une liste qui ne couvre pas toute la semaine doit le DIRE : sinon elle se lit
+            comme une liste incomplète, et c'est le mensonge que §10 interdit. */}
+        {depart !== '' && <Text style={s.depart}>{depart}</Text>}
+
         <Jauge style={s.track} remplissage={s.fill} pct={pct} couleur={done ? t.success : t.accent} />
 
         {/* Contrôles */}
@@ -776,6 +791,7 @@ function makeStyles(t: ThemePalette) {
     sub: { ...Type.bodySmall, color: t.textSecondary, lineHeight: 19 },
     counter: { ...Type.h2, color: t.text, letterSpacing: -0.6 },
     counterTot: { ...Type.bodySmall, color: t.textTertiary, letterSpacing: 0 },
+    depart: { ...Type.caption, color: t.textTertiary, marginTop: -Spacing.sm, marginBottom: Spacing.sm },
 
     track: { height: 5, backgroundColor: t.fill, borderRadius: 3, overflow: 'hidden' },
     fill: { height: 5, borderRadius: 3 },
