@@ -219,7 +219,15 @@ installation neuve part du binaire, donc du (6).
   encore `0639ecc` après la compilation, 0 PR ouverte — le piège du 11 août ne s'est pas
   rejoué). *(Le précédent :)* le **(6)** — `ceec1b17`, commit
   `1047b9f`, terminé le 2026-08-11 à 20 h 37. Il a **62 commits de retard** sur `main` — chiffre RE-MESURÉ le 2026-08-26 (il en annonçait 40, mesurés le 2026-08-23), qui **grandit à chaque merge** : le relire avec `git rev-list --count 1047b9f..origin/main` plutôt que de le recopier (même défaut que le décompte d'OTA tenu à la main).
-- **OTA** : la dernière est la **41ᵉ** (groupe `6d76348d` pour iOS et groupe `0e18c099`
+- **OTA** : la dernière est la **42ᵉ** (groupe `a2883e81`, **iOS seulement**, 2026-09-17),
+  publiée sur le commit `996e3f8` — `main`, arbre propre.
+  ✅ **Runtime iOS `823c89db…` = le build (22)**, empreinte comparée AVANT publication.
+  Contenu : trois correctifs (pluriel et article des aliments évités, renouvellement du plan
+  d'une semaine à l'autre, plafond des 7 pièces végétales) ; `ENGINE_VERSION` 57 → 58, donc
+  chaque plan se régénère une fois. Aucun changement natif : rien à soumettre à Apple.
+  ⚠️ **Plus de groupe Android** (décision fondateur du 2026-09-16) : aucun binaire Android
+  n'est distribué, donc le publier n'atteignait personne.
+  **La 41ᵉ** (groupe `6d76348d` pour iOS et groupe `0e18c099`
   pour Android, 2026-09-15), publiée sur le commit `2870eb4` — `main`, arbre propre.
   ✅ **Runtime iOS `823c89db…` = le build (22)**, empreinte comparée AVANT publication.
   Contenu : D39 (recettes hors préférences derrière un bouton en fin de Catalogue) ;
