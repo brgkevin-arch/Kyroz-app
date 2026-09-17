@@ -78,6 +78,25 @@ export const FOOD_FAMILIES: Record<string, string[]> = {
   patate: ['pomme_de_terre'],
 };
 
+/**
+ * CE QUI PORTE LE MOT SANS ÊTRE L'ALIMENT (décision fondateur, 2026-09-18).
+ *
+ * « pomme » retirait les 23 recettes à la POMME DE TERRE en plus des 20 à la pomme. Le
+ * mot est bien là, au début d'un nom composé — mais ce n'est pas le même aliment.
+ *
+ * 🔴 **AUCUNE RÈGLE D'ÉCRITURE NE PEUT TRANCHER ÇA, et c'est pour ça que la table est
+ * écrite à la main.** Le catalogue n'a QUE deux noms d'un seul mot qui commencent un nom
+ * composé : « pomme » → « pomme de terre », et « tomate » → « tomate concassée ». Les deux
+ * se ressemblent et s'opposent : une tomate concassée EST une tomate (qui écrit « tomate »
+ * veut l'écarter), une pomme de terre n'est PAS une pomme. Une règle syntaxique ferait donc
+ * forcément une erreur sur l'un des deux ; seul le SENS décide.
+ *
+ * ⚠️ La clé est le `ref`, jamais le nom affiché — un nom peut être réécrit demain.
+ */
+const PAS_LE_MEME_ALIMENT: Record<string, string[]> = {
+  pomme_de_terre: ['pomme'],
+};
+
 /** Refs couverts par un mot, s'il désigne une famille (déjà normalisé ou non). */
 export function familyRefs(keyword: string): string[] {
   return FOOD_FAMILIES[normalizeFood(keyword)] ?? [];
@@ -152,9 +171,18 @@ export function singulier(kw: string): string | null {
   return change ? out.join(' ') : null;
 }
 
-/** Le chemin d'origine : le nom (début de mot), puis la FAMILLE (par `ref`). */
+/**
+ * Le chemin d'origine : le nom (mot entier, pluriel toléré), puis la FAMILLE (par `ref`).
+ *
+ * ⚠️ Ingrédient par ingrédient, et non sur le texte concaténé de la recette : c'est la
+ * seule façon d'écarter un ingrédient NOMMÉMENT (`PAS_LE_MEME_ALIMENT`). Sur un texte
+ * collé, « pomme » ne peut pas savoir quel ingrédient il vient d'attraper.
+ */
 function correspond(recipe: Recipe, kw: string): boolean {
-  if (correspondAuMot(recipeSearchText(recipe), kw)) return true;
+  const parLeNom = recipe.ingredients.some((i) =>
+    !(i.ref !== undefined && (PAS_LE_MEME_ALIMENT[i.ref] ?? []).includes(kw))
+    && correspondAuMot(normalizeFood(i.name), kw));
+  if (parLeNom) return true;
   const refs = FOOD_FAMILIES[kw];
   return refs !== undefined && recipe.ingredients.some((i) => i.ref !== undefined && refs.includes(i.ref));
 }
@@ -185,10 +213,9 @@ export function recipeContainsFood(recipe: Recipe, keyword: string): boolean {
   const nu = sansArticle(kw);
   if (nu !== kw && correspond(recipe, nu)) return true;
   const sing = singulier(nu);
-  if (sing === null) return false;
-  if (correspondAuMot(recipeSearchText(recipe), sing)) return true;
-  const refs = FOOD_FAMILIES[sing];
-  return refs !== undefined && recipe.ingredients.some((i) => i.ref !== undefined && refs.includes(i.ref));
+  // Le singulier deviné repasse par le MÊME chemin : sinon « pommes » rattraperait la
+  // pomme de terre que « pomme » vient d'épargner.
+  return sing !== null && correspond(recipe, sing);
 }
 
 /**

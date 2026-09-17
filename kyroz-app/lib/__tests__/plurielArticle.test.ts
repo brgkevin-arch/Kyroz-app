@@ -63,6 +63,23 @@ describe('un mot n’en attrape pas un autre (2026-09-18)', () => {
   });
 });
 
+describe('un mot au début d’un nom composé (2026-09-18)', () => {
+  it('« pomme » ne retire plus la POMME DE TERRE', () => {
+    expect(compte('pomme')).toBe(20);            // 43 avant : le fruit + les pommes de terre
+    expect(compte('pommes')).toBe(20);           // le pluriel ne rattrape pas ce qu'on épargne
+    expect(compte('pomme de terre')).toBe(23);
+  });
+
+  it('…mais « tomate » retire bien la TOMATE CONCASSÉE — c’est le même aliment', () => {
+    // Les deux seuls cas du catalogue s'opposent : c'est le SENS qui tranche, pas la
+    // syntaxe. Sans cette sonde, on pourrait « généraliser » la règle de la pomme et
+    // casser la tomate sans que rien ne le dise.
+    expect(compte('tomate')).toBeGreaterThan(compte('tomate concassee'));
+    expect(compte('tomate concassee')).toBe(45);
+    expect(compte('tomate')).toBe(110);
+  });
+});
+
 describe('ce que le repli ne doit PAS attraper', () => {
   it('« courges » n’attrape pas la COURGETTE — le singulier deviné exige un mot ENTIER', () => {
     // Le piège est réel et vient du catalogue : « courge » est le préfixe de « courgette ».
