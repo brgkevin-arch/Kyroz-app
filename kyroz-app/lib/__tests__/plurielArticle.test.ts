@@ -1,0 +1,85 @@
+import { describe, it, expect } from 'vitest';
+import { getEffectiveRecipes } from '../recipes';
+import { foodKeywordMatches, recipeContainsFood, sansArticle, singulier } from '../avoidance';
+
+/**
+ * LE PLURIEL ET L'ARTICLE DES ALIMENTS ÉVITÉS (corrigé le 2026-09-17).
+ *
+ * Né du retour du 2026-09-15 : « tofu » écartait 39 recettes, « tofus » et « le tofu »
+ * zéro. Le champ le disait, mais il fallait comprendre pourquoi et réessayer.
+ *
+ * ⚠️ Le garde-fou qui compte n'est pas « le pluriel marche » : c'est que la forme DEVINÉE
+ * ne morde pas plus large que le mot écrit. « pois » ne doit jamais attraper « poivron ».
+ */
+const CAT = getEffectiveRecipes();
+const compte = (kw: string) => foodKeywordMatches(CAT, kw);
+
+describe('ce que l’utilisateur écrit spontanément', () => {
+  it('« tofus » et « le tofu » écartent exactement ce que « tofu » écarte', () => {
+    const ref = compte('tofu');
+    expect(ref, 'la sonde doit avoir du tofu à trouver').toBeGreaterThan(0);
+    expect(compte('tofus')).toBe(ref);
+    expect(compte('le tofu')).toBe(ref);
+    expect(compte('du tofu')).toBe(ref);
+  });
+
+  it('l’article marche aussi devant une FAMILLE', () => {
+    expect(compte('les fruits a coque')).toBe(compte('fruits a coque'));
+    expect(compte('du poisson')).toBe(compte('poisson'));
+  });
+
+  it('un pluriel déjà écrit dans le catalogue continue de marcher', () => {
+    expect(compte('poivrons')).toBe(compte('poivron'));
+  });
+});
+
+describe('ce que le repli ne doit PAS attraper', () => {
+  it('« courges » n’attrape pas la COURGETTE — le singulier deviné exige un mot ENTIER', () => {
+    // Le piège est réel et vient du catalogue : « courge » est le préfixe de « courgette ».
+    // Ancré au seul début de mot, le singulier deviné retirerait tous les plats à la
+    // courgette à qui n'aime pas la courge. C'est le défaut `bœuf` ⊃ `œuf`, à l'envers.
+    const mot = (r: typeof CAT[number], m: string) =>
+      new RegExp(`(?:^|[^a-z])${m}(?![a-z])`).test(r.ingredients.map((i) => i.name.toLowerCase()).join(' '));
+    const courgetteSeule = CAT.filter((r) => mot(r, 'courgette') && !mot(r, 'courge'));
+    expect(courgetteSeule.length, 'la sonde doit avoir des plats à la courgette').toBeGreaterThan(0);
+    for (const r of courgetteSeule.slice(0, 20)) expect(recipeContainsFood(r, 'courges'), r.name_fr).toBe(false);
+    // …et la sonde sait dire OUI : « courges » attrape bien la courge quand elle est là.
+    const courge = CAT.filter((r) => mot(r, 'courge'));
+    if (courge.length > 0) expect(recipeContainsFood(courge[0], 'courges')).toBe(true);
+  });
+
+  it('un mot court en -s n’est pas déplié du tout : « pois » reste « pois »', () => {
+    // Protégé par la LONGUEUR, pas par la règle du mot entier — les deux gardes existent.
+    expect(singulier('pois')).toBeNull();
+    const poivronSansPois = CAT.filter((r) => {
+      const noms = r.ingredients.map((i) => i.name.toLowerCase()).join(' ');
+      return noms.includes('poivron') && !noms.includes('pois');
+    });
+    expect(poivronSansPois.length).toBeGreaterThan(0);
+    for (const r of poivronSansPois.slice(0, 10)) expect(recipeContainsFood(r, 'pois'), r.name_fr).toBe(false);
+  });
+
+  it('« œuf » et « œufs » n’attrapent toujours pas le bœuf', () => {
+    const boeuf = CAT.filter((r) => r.ingredients.some((i) => (i.ref ?? '').startsWith('boeuf')) &&
+      !r.ingredients.some((i) => (i.ref ?? '').startsWith('oeuf')));
+    expect(boeuf.length).toBeGreaterThan(0);
+    for (const r of boeuf.slice(0, 20)) {
+      expect(recipeContainsFood(r, 'œuf'), r.name_fr).toBe(false);
+      expect(recipeContainsFood(r, 'œufs'), r.name_fr).toBe(false);
+    }
+  });
+
+  it('les mots courts en -s ne sont pas des pluriels', () => {
+    expect(singulier('jus')).toBeNull();
+    expect(singulier('ris')).toBeNull();
+    expect(singulier('tofus')).toBe('tofu');
+    expect(singulier('tofu')).toBeNull();
+  });
+
+  it('sansArticle ne touche pas un mot qui n’en porte pas', () => {
+    expect(sansArticle('tofu')).toBe('tofu');
+    expect(sansArticle('le tofu')).toBe('tofu');
+    expect(sansArticle("l'avocat")).toBe('avocat');
+    expect(sansArticle('lentilles')).toBe('lentilles');
+  });
+});

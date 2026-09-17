@@ -39,6 +39,7 @@ import { usePlanCheckin } from '../../hooks/usePlanCheckin';
 import { useNotificationIntent, consommerNotificationIntent } from '../../hooks/useNotificationIntent';
 import { useReminder } from '../../hooks/useReminder';
 import { useRouter, useFocusEffect } from 'expo-router';
+import { semaineEcoulee } from '../../lib/semainePlan';
 import { buildLocalPlan, carryTracking, nextPlanSeed, profileSignature, swapMeal, computeDailyTotals, rebalanceDay, resetTracking, adaptDayOptions, AdaptOption, mealIngredients, reAdaptMealRecipe, mealPoolSize, dayTargetKcal, baseDayTargets, ON_TARGET_TOLERANCE_KCAL } from '../../lib/planEngine';
 import { DISLIKE_THRESHOLD, dislikeCandidates, applyDislikedIngredient } from '../../lib/dislike';
 import { todayStamp, localStamp } from '../../lib/weight';
@@ -74,7 +75,7 @@ const SEED_KEY = '@kyroz:planSeed';
  * aurait créé une valeur qui ne sort jamais — donc un zéro qu'on aurait fini par
  * lire comme « personne ne recale », alors que `off_plan_logged` le mesure déjà.
  */
-type PlanOrigine = 'profil_modifie' | 'manuel';
+type PlanOrigine = 'profil_modifie' | 'manuel' | 'semaine_ecoulee';
 // Drapeau posé par Profil (« Régénérer mon plan ») → l'écran Plan rejoue une
 // génération « reroll » au prochain focus. Découple les deux écrans sans prop.
 const REROLL_KEY = '@kyroz:planReroll';
@@ -318,6 +319,24 @@ export default function PlanScreen() {
     if (plan.profile_sig === sig || syncedSig.current === sig) return;
     syncedSig.current = sig;
     generate(false, 'profil_modifie');
+  }, [profile, plan, generating]);
+
+  // ── La semaine servie est révolue → on en sert une neuve (2026-09-17) ──────
+  //
+  // 🔴 Le plan ne se renouvelait JAMAIS de lui-même : rien ne regardait
+  // `week_start_date`, et `resetTracking` ne périme que le SUIVI du jour. Qui
+  // n'ouvrait pas Kyroz pendant dix jours retrouvait la même semaine de menus.
+  // ⚠️ `reroll = true` : reprendre le même tirage resservirait les mêmes plats,
+  // c'est-à-dire le défaut qu'on corrige. Le suivi de la journée survit quand
+  // même (`carryTracking`, dans `generate`).
+  // ⚠️ Une seule tentative par montage (`semaineTentee`) : `generate` repose une
+  // `week_start_date` du jour, mais si la génération échoue, on ne boucle pas.
+  const semaineTentee = React.useRef(false);
+  useEffect(() => {
+    if (!profile || !plan || generating || semaineTentee.current) return;
+    if (!semaineEcoulee(plan, todayStamp())) return;
+    semaineTentee.current = true;
+    generate(true, 'semaine_ecoulee');
   }, [profile, plan, generating]);
 
   // Le jour de plan qui correspond EXACTEMENT à un jour de la semaine (0 = dimanche),

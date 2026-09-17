@@ -100,18 +100,74 @@ function matchesAtWordStart(text: string, kw: string): boolean {
 }
 
 /**
+ * Le mot apparaît-il comme un MOT ENTIER ? (début ET fin)
+ *
+ * Sert au seul repli du pluriel ci-dessous. L'ancrage au début suffit pour ce que
+ * l'utilisateur écrit lui-même (« lentille » doit attraper « lentilles corail »),
+ * mais il est trop large pour une forme que le programme DEVINE.
+ */
+function matchesWholeWord(text: string, kw: string): boolean {
+  const echappe = kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return new RegExp(`(?:^|[^a-z0-9])${echappe}(?![a-z0-9])`).test(text);
+}
+
+/** Articles qu'on écrit sans y penser devant un aliment. */
+const ARTICLES = ['le ', 'la ', 'les ', "l'", 'du ', 'de la ', "de l'", 'des ', 'de ', "d'", 'un ', 'une ', 'au ', 'aux '];
+
+/** « le tofu » → « tofu ». Rend le mot inchangé s'il ne commence pas par un article. */
+export function sansArticle(kw: string): string {
+  for (const a of ARTICLES) if (kw.startsWith(a)) return kw.slice(a.length).trim();
+  return kw;
+}
+
+/**
+ * « tofus » → « tofu ». `null` quand il n'y a pas de pluriel plausible à retirer.
+ *
+ * ⚠️ Le dernier mot doit faire au moins 4 lettres : « ris » ou « jus » ne sont pas des
+ * pluriels, et les amputer fabriquerait des mots qui n'existent pas.
+ */
+export function singulier(kw: string): string | null {
+  const dernier = kw.split(' ').pop() ?? '';
+  return /^[a-z]{4,}[sx]$/.test(dernier) ? kw.slice(0, -1) : null;
+}
+
+/** Le chemin d'origine : le nom (début de mot), puis la FAMILLE (par `ref`). */
+function correspond(recipe: Recipe, kw: string): boolean {
+  if (matchesAtWordStart(recipeSearchText(recipe), kw)) return true;
+  const refs = FOOD_FAMILIES[kw];
+  return refs !== undefined && recipe.ingredients.some((i) => i.ref !== undefined && refs.includes(i.ref));
+}
+
+/**
  * La recette contient-elle l'aliment évité ?
  *
- * Deux chemins, dans cet ordre : le nom (début de mot, normalisé), puis la FAMILLE
- * (par `ref`, cf. `FOOD_FAMILIES`).
+ * Trois essais, du plus littéral au plus deviné : le mot tel qu'il est écrit, puis
+ * sans son article, puis au singulier.
+ *
+ * 🔴 **LE PLURIEL ET L'ARTICLE NE FILTRAIENT RIEN (corrigé le 2026-09-17).** Mesuré le
+ * 2026-09-15 sur le retour d'une personne au régime sans gluten : « tofu » écartait
+ * 39 recettes, « tofus » et « le tofu » en écartaient **zéro**. Le champ le disait
+ * (« aucun ingrédient ne correspond »), donc personne n'était trompé en silence — mais
+ * il fallait comprendre pourquoi et réessayer, sur le seul écran qui protège un dégoût
+ * ou une allergie.
+ *
+ * ⚠️ **Le singulier deviné exige un MOT ENTIER, et c'est tout le correctif.** Avec
+ * l'ancrage au seul début de mot, « pois » (dont le singulier deviné est « poi »)
+ * attraperait « poivron », et « ananas » → « anana » n'importe quoi qui commence
+ * pareil. La forme devinée doit donc correspondre à un mot COMPLET du nom : c'est le
+ * même garde-fou que `bœuf` ⊃ `œuf`, appliqué à l'autre bout du mot.
  */
 export function recipeContainsFood(recipe: Recipe, keyword: string): boolean {
   const kw = normalizeFood(keyword);
   if (!kw) return false;
-  if (matchesAtWordStart(recipeSearchText(recipe), kw)) return true;
-  const refs = FOOD_FAMILIES[kw];
-  if (!refs) return false;
-  return recipe.ingredients.some((i) => i.ref !== undefined && refs.includes(i.ref));
+  if (correspond(recipe, kw)) return true;
+  const nu = sansArticle(kw);
+  if (nu !== kw && correspond(recipe, nu)) return true;
+  const sing = singulier(nu);
+  if (sing === null) return false;
+  if (matchesWholeWord(recipeSearchText(recipe), sing)) return true;
+  const refs = FOOD_FAMILIES[sing];
+  return refs !== undefined && recipe.ingredients.some((i) => i.ref !== undefined && refs.includes(i.ref));
 }
 
 /**

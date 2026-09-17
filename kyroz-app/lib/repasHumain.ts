@@ -78,6 +78,14 @@ export const PROTEINES_VEGETALES_RARES = [
   'edamame', 'seitan', 'tempeh', 'tofu_ferme', 'tofu_fume', 'tofu_soyeux', 'soja_texture',
   'yaourt_soja_proteine', 'levure_maltee', 'falafel',
   'steak_soja', 'emince_vegetal', 'hache_vegetal', 'galette_vegetale', 'boulette_vegetale', 'nuggets_vegetal', 'saucisse_vegetale',
+  // 🔴 LES SEPT PIÈCES DE D32 MANQUAIENT, et elles étaient donc « courantes » (2026-09-17).
+  // Ajoutées au catalogue le 2026-09-10 puis servies en masse par D34, elles n'ont jamais
+  // été inscrites ici : mesuré le 2026-09-17, un plafond de 5 repas par semaine là où le
+  // tofu, le tempeh et le haché végétal sont à 2. Un pescétarien pouvait donc recevoir du
+  // jambon végétal cinq fois dans la même semaine, ce que la règle de D30 interdit
+  // précisément pour les protéines végétales travaillées.
+  'filets_poulet_vegetal', 'aiguillettes_poulet_vegetal', 'jambon_vegetal', 'chorizo_vegetal',
+  'lardons_vegetaux', 'merguez_vegetale', 'escalope_vegetale',
 ];
 
 /** Refs des ingrédients de BASE d'une recette : ses protéines et ses féculents, sans doublon. */
