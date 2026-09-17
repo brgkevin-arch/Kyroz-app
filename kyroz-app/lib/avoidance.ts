@@ -72,6 +72,10 @@ export const FOOD_FAMILIES: Record<string, string[]> = {
   viande: ['poulet_filet', 'dinde_escalope', 'boeuf_5', 'boeuf_bavette', 'porc_filet', 'jambon_blanc'],
   volaille: ['poulet_filet', 'dinde_escalope'],
   porc: ['porc_filet', 'jambon_blanc'],
+  // « patate » est le mot courant pour la POMME DE TERRE (décision fondateur, 2026-09-18).
+  // Il attrape déjà la patate douce par le nom ; la pomme de terre, elle, ne porte pas le
+  // mot — sans cette ligne, quelqu'un qui écrit « patates » en recevait 23 assiettes.
+  patate: ['pomme_de_terre'],
 };
 
 /** Refs couverts par un mot, s'il désigne une famille (déjà normalisé ou non). */
@@ -85,30 +89,39 @@ export function recipeSearchText(recipe: Recipe): string {
 }
 
 /**
- * Le mot apparaît-il en DÉBUT DE MOT dans ce texte ?
+ * Le mot écrit correspond-il à un MOT de ce texte — son pluriel toléré ?
  *
- * ⚠️ Pas une sous-chaîne libre, et c'est un vrai bug corrigé — pas un raffinement.
- * `bœuf` CONTIENT `œuf` : avant le 2026-08-02, un utilisateur qui écrivait « œuf » pour
- * éviter les œufs perdait aussi **23 plats de bœuf** sur les 24 du catalogue, en silence.
- * La normalisation des ligatures aggravait le piège en le rendant vrai pour les deux
- * orthographes. L'ancrage se fait au DÉBUT seulement, jamais à la fin : « lentille » doit
- * continuer d'attraper « lentilles corail », et « pate » « pâtes complètes ».
+ * ⚠️ **Le DÉBUT est ancré depuis le 2026-08-02**, et c'est un vrai bug corrigé : `bœuf`
+ * CONTIENT `œuf`, donc écrire « œuf » retirait **23 plats de bœuf** sur 24, en silence —
+ * la normalisation des ligatures rendant le piège vrai pour les deux orthographes.
+ *
+ * 🔴 **ET LA FIN L'EST DEPUIS LE 2026-09-18** (décision fondateur : *« corrige pour que ça
+ * ne retire plus les recettes à la courgette »*). Le même défaut vivait à l'autre bout du
+ * mot : « courge » emportait les **32 plats à la COURGETTE**, deux légumes que personne ne
+ * confond. Mesuré le jour même : « courge » écartait 63 recettes, dont 32 de courgette.
+ *
+ * ⚠️ **Le `s`/`x` final reste toléré, et c'est tout l'équilibre de cette fonction** : il ne
+ * change pas l'aliment. Sans lui, « lentille » cesserait d'attraper « lentilles corail » et
+ * « pate » « pâtes complètes » — on aurait corrigé un faux positif en créant des faux
+ * négatifs, c'est-à-dire un filtre qui laisse passer ce qu'on lui demande d'écarter.
  */
-function matchesAtWordStart(text: string, kw: string): boolean {
+function correspondAuMot(text: string, kw: string): boolean {
   const echappe = kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  return new RegExp(`(?:^|[^a-z0-9])${echappe}`).test(text);
+  return new RegExp(`(?:^|[^a-z0-9])${echappe}(?:s|x)?(?![a-z0-9])`).test(text);
 }
 
 /**
- * Le mot apparaît-il comme un MOT ENTIER ? (début ET fin)
+ * Le texte contient-il un mot qui COMMENCE par cette frappe ?
  *
- * Sert au seul repli du pluriel ci-dessous. L'ancrage au début suffit pour ce que
- * l'utilisateur écrit lui-même (« lentille » doit attraper « lentilles corail »),
- * mais il est trop large pour une forme que le programme DEVINE.
+ * 🔴 **Ce n'est pas la même question que `correspondAuMot`, et les confondre a cassé les
+ * suggestions** (attrapé par la suite le 2026-09-18) : quand la fin du mot a été ancrée
+ * pour que « courge » n'emporte plus la courgette, taper « tof » a cessé de proposer
+ * « Tofu ferme » — une frappe EN COURS est un préfixe, jamais un mot fini.
+ * ➡️ Le FILTRE ancre les deux bouts ; la SUGGESTION n'ancre que le début.
  */
-function matchesWholeWord(text: string, kw: string): boolean {
-  const echappe = kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  return new RegExp(`(?:^|[^a-z0-9])${echappe}(?![a-z0-9])`).test(text);
+function debutDeMot(text: string, frappe: string): boolean {
+  const echappe = frappe.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return new RegExp(`(?:^|[^a-z0-9])${echappe}`).test(text);
 }
 
 /** Articles qu'on écrit sans y penser devant un aliment. */
@@ -127,13 +140,21 @@ export function sansArticle(kw: string): string {
  * pluriels, et les amputer fabriquerait des mots qui n'existent pas.
  */
 export function singulier(kw: string): string | null {
-  const dernier = kw.split(' ').pop() ?? '';
-  return /^[a-z]{4,}[sx]$/.test(dernier) ? kw.slice(0, -1) : null;
+  // ⚠️ CHAQUE mot, pas seulement le dernier (2026-09-18) : « pommes de terre » — la façon
+  // la plus naturelle de l'écrire — n'écartait RIEN, parce que le catalogue dit « Pomme de
+  // terre » et que le pluriel était sur le PREMIER mot.
+  let change = false;
+  const out = kw.split(' ').map((m) => {
+    if (!/^[a-z]{4,}[sx]$/.test(m)) return m;
+    change = true;
+    return m.slice(0, -1);
+  });
+  return change ? out.join(' ') : null;
 }
 
 /** Le chemin d'origine : le nom (début de mot), puis la FAMILLE (par `ref`). */
 function correspond(recipe: Recipe, kw: string): boolean {
-  if (matchesAtWordStart(recipeSearchText(recipe), kw)) return true;
+  if (correspondAuMot(recipeSearchText(recipe), kw)) return true;
   const refs = FOOD_FAMILIES[kw];
   return refs !== undefined && recipe.ingredients.some((i) => i.ref !== undefined && refs.includes(i.ref));
 }
@@ -165,7 +186,7 @@ export function recipeContainsFood(recipe: Recipe, keyword: string): boolean {
   if (nu !== kw && correspond(recipe, nu)) return true;
   const sing = singulier(nu);
   if (sing === null) return false;
-  if (matchesWholeWord(recipeSearchText(recipe), sing)) return true;
+  if (correspondAuMot(recipeSearchText(recipe), sing)) return true;
   const refs = FOOD_FAMILIES[sing];
   return refs !== undefined && recipe.ingredients.some((i) => i.ref !== undefined && refs.includes(i.ref));
 }
@@ -190,7 +211,7 @@ export const SUGGESTION_MIN_LETTRES = 2;
  * 2026-09-15 : « s'il y a écrit tofu, il doit être proposé tous les mots commençant par
  * TOFU qui sont répertoriés »).
  *
- * Même règle que le filtre du moteur, `matchesAtWordStart` : « tofu » propose Tofu ferme,
+ * Règle VOISINE de celle du filtre, mais pas la même (cf. `debutDeMot`) : « tofu » propose Tofu ferme,
  * Tofu fumé et Tofu soyeux, « œuf » ne propose pas le bœuf. Une suggestion ne peut donc
  * jamais être un mot sans effet — elle sort d'une recette, elle en écarte au moins une.
  *
@@ -209,8 +230,8 @@ export function suggestionsAliments(recipes: Recipe[], frappe: string, deja: rea
   for (const r of recipes) {
     for (const i of r.ingredients) {
       const cle = normalizeFood(i.name);
-      if (noms.has(cle) || !matchesAtWordStart(cle, kw)) continue;
-      if (couverts.some((c) => matchesAtWordStart(cle, c))) continue;
+      if (noms.has(cle) || !debutDeMot(cle, kw)) continue;
+      if (couverts.some((c) => correspondAuMot(cle, c))) continue;
       noms.set(cle, i.name.trim());
     }
   }

@@ -8,6 +8,7 @@ import { MIN_KCAL, bankFloorKcal, calculateBMR, neatPal, FAT_MIN_PER_KG_BW, FAT_
 import { exerciseKcalPerWeek, exerciseKcalPerDay } from './sport';
 import { goutAImposer, goutGarantiPour, goutLu, goutRecette, quotaGout, type GoutPreference } from './gout';
 import { feculentsDe, ingredientsDeBase, plafondIngredient, platDuMidi, surLePouce } from './repasHumain';
+import { localStamp } from './weight';
 import { bankedDailyTargets, offsetsForPlan, BankResult } from './calorieBank';
 import { RYTHME_HEBDOMADAIRE_ACTIF } from './featureFlags';
 import { dailyBudgets } from './dailyBudget';
@@ -1917,7 +1918,12 @@ export function buildLocalPlan(profile: UserProfile, seed: number = 0): MealPlan
   return {
     id: `plan-${Date.now()}`,
     user_id: profile.id,
-    week_start_date: new Date().toISOString().split('T')[0],
+    // 🔴 DATE LOCALE, PAS UTC (2026-09-18). `toISOString()` rend la date UTC : mesuré à
+    // 00 h 04 à Paris, le plan se datait du JOUR PRÉCÉDENT — alors que tout le reste de
+    // l'app (jour affiché, auto-coche, `todayStamp`) raisonne en heure locale. La liste de
+    // courses partait donc d'un jour trop tôt, et le renouvellement arrivait un jour trop
+    // tard, pour quiconque génère son plan après minuit.
+    week_start_date: localStamp(new Date()),
     generated_at: new Date().toISOString(),
     days,
     meals,

@@ -33,6 +33,36 @@ describe('ce que l’utilisateur écrit spontanément', () => {
   });
 });
 
+describe('un mot n’en attrape pas un autre (2026-09-18)', () => {
+  // Mesuré avant/après sur 38 mots : SEULS ces trois-là changent. « lentille »,
+  // « pate », « œuf », « poisson », « riz », « poulet », « lait », « soja » : inchangés.
+  it('« courge » ne retire plus les recettes à la COURGETTE', () => {
+    expect(compte('courge')).toBe(31);          // 63 avant — dont 32 courgettes
+    expect(compte('courgette')).toBe(32);
+    expect(compte('courges')).toBe(31);
+  });
+
+  it('« pommes de terre » écarte enfin quelque chose — le catalogue écrit « Pomme de terre »', () => {
+    expect(compte('pomme de terre')).toBe(23);
+    expect(compte('pommes de terre')).toBe(23); // 0 avant : le pluriel était sur le PREMIER mot
+  });
+
+  it('« patate » est le mot courant pour la pomme de terre, et retire les deux', () => {
+    expect(compte('patate')).toBe(49);          // 26 avant : la patate douce seulement
+    expect(compte('patates')).toBe(49);
+    // …et l'inverse n'est pas vrai : « pomme de terre » ne touche pas la patate douce.
+    expect(compte('patate douce')).toBe(26);
+  });
+
+  it('AUCUN faux négatif : le pluriel du catalogue reste attrapé', () => {
+    expect(compte('lentille')).toBe(compte('lentilles'));
+    expect(compte('pate')).toBe(27);            // « pâtes complètes »
+    expect(compte('oeuf')).toBe(64);
+    expect(compte('poulet')).toBe(62);
+    expect(compte('lait')).toBe(76);
+  });
+});
+
 describe('ce que le repli ne doit PAS attraper', () => {
   it('« courges » n’attrape pas la COURGETTE — le singulier deviné exige un mot ENTIER', () => {
     // Le piège est réel et vient du catalogue : « courge » est le préfixe de « courgette ».
