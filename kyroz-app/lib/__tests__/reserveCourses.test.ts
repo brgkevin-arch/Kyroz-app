@@ -65,7 +65,7 @@ describe('ce que la réserve fait DISPARAÎTRE quand on la soustrait', () => {
 describe('l’écran Courses soustrait TOUJOURS, sans condition', () => {
   it('la liste charge la réserve à chaque calcul', () => {
     expect(courses).toContain('const pantry = await loadPantry();');
-    expect(courses).toContain('buildShoppingList(plan, pantry)');
+    expect(courses).toContain('buildShoppingList(plan, pantry, joursAAcheter(plan, profile?.plan_weekdays))');
   });
 
   it('plus aucun interrupteur de suivi ne subsiste', () => {
