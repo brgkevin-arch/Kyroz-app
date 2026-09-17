@@ -153,7 +153,19 @@ ligne(
   fiche.groupe,
 );
 ligne('commit publié', (tete.gitCommitHash ?? '').slice(0, fiche.commit.length), fiche.commit);
-ligne('plateformes', publication.plateformes.join(' + '), 'android + ios');
+// 🔴 « android + ios » ÉTAIT EXIGÉ EN DUR, et c'est devenu FAUX le 2026-09-16 (décision
+// fondateur : « publie sur iOS »). Aucun binaire Android n'est distribué, donc un groupe
+// Android n'atteint personne — la 42ᵉ OTA est partie sur iOS seul, et ce contrôle l'a
+// déclarée en écart. ⚠️ Un contrôle qui ignore la dernière décision accuse la livraison
+// correcte : c'est le contrôle qu'on corrige, jamais la publication qu'on refait.
+// ➡️ iOS est OBLIGATOIRE (c'est le seul parc servi) ; Android est toléré et SIGNALÉ.
+const plateformes = publication.plateformes;
+const iosServi = plateformes.includes('ios');
+ligne('plateformes (iOS obligatoire)', iosServi ? plateformes.join(' + ') : `${plateformes.join(' + ')} — iOS MANQUANT`, iosServi ? plateformes.join(' + ') : 'ios');
+if (plateformes.includes('android')) {
+  console.log("    ℹ️  un groupe Android a été publié : aucun binaire Android n'est distribué,");
+  console.log('       donc il n\'atteint personne (cf. CLAUDE.md §2, « sur iOS seulement »).');
+}
 // 🔴 LE RUNTIME NE SE COMPARE PLUS À UN LITTÉRAL DEPUIS LE PASSAGE EN `fingerprint`
 // (2026-08-27, constat 03-03). Avec `appVersion`, la valeur attendue était lisible dans
 // `app.json` — donc vérifiable ici. Avec `fingerprint`, c'est un hachage de la SURFACE
