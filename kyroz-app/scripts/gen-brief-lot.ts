@@ -20,6 +20,8 @@ import raw from '../Recette/recettes-kyroz.json';
 import { restrictionsOkFor } from '../lib/recipeDiet';
 import { RECIPE_INGREDIENTS, RECIPE_CONFIG, macrosForRefIngredients } from '../lib/recipeData';
 import { PROFILS_REF, ciblesDe, ciblesR8, servable, type RegimeJuge } from './mesure-couverture';
+import { familyKey } from '../lib/planEngine';
+import { RECIPES as RECIPES_MOTEUR } from '../lib/recipeMap';
 import type { MealType, Recipe } from '../lib/types';
 
 type Per100 = { kcal: number; protein: number; carbs: number; fat: number };
@@ -597,6 +599,18 @@ function tripletsSatures(cat: Recette['category']): { cle: string; n: number; id
   }
   return [...m.entries()].filter(([, ids]) => ids.length >= 2)
     .map(([cle, ids]) => ({ cle, n: ids.length, ids })).sort((a, b) => b.n - a.n);
+}
+
+/**
+ * Familles DÉJÀ OCCUPÉES sur la catégorie (règle R6, 2026-09-18) — la clé `familyKey` du moteur :
+ * protéines × féculents, ou protéines × fruit sans féculent, et le goût. Une recette neuve ne doit
+ * en rejoindre AUCUNE : `check:doublons` la rejetterait au retour.
+ */
+function famillesOccupees(cat: Recette['category']): string[] {
+  const tag = { petit_dej: 'breakfast', collation: 'snack', repas_complet: 'lunch' }[cat];
+  const ids = new Set(RECIPES.filter((r) => r.category === cat).map((r) => r.id));
+  const cles = RECIPES_MOTEUR.filter((r) => ids.has(r.id) && r.tags.includes(tag as never)).map(familyKey);
+  return [...new Set(cles)].sort();
 }
 
 const fmt = (n: number) => (Number.isInteger(n) ? String(n) : n.toFixed(1));
@@ -1219,6 +1233,11 @@ Les trois règles qui refusent une recette :
    catégorie. Les recettes font 4 à 6 refs, donc 4 en commun = quasi-clone.
 3. **Triplet structurel** : au plus **2** recettes par couple (ensemble des protéines × ensemble
    des féculents).
+4. **Famille neuve** (R6) : ta recette ne rejoint **aucune** famille déjà présente. La famille, c'est
+   ce que l'application fait tourner d'un jour à l'autre : l'ensemble des protéines × l'ensemble des
+   féculents — ou, **sans féculent, le fruit** — et le goût (sucré / salé). Deux yaourts de soja à la
+   banane sont la même famille, même garnis autrement ; à la mangue, c'est une autre. La liste des
+   familles prises est juste en dessous.
 
 Ces contrôles s'appliquent aussi **entre les ${lot.volume} recettes de ce lot**.
 
@@ -1229,6 +1248,12 @@ ${trip.length === 0 ? '_Aucun couple saturé sur cette catégorie._' : `Ces ${tr
 | Protéines × féculents | Déjà | Recettes |
 |---|---|---|
 ${trip.slice(0, 30).map((t) => `| ${t.cle} | ${t.n} | ${t.ids.join(', ')} |`).join('\n')}${trip.length > 30 ? `\n\n_(+ ${trip.length - 30} autres couples à 2 occurrences ; la règle générale « au plus 2 » suffit à les couvrir.)_` : ''}`}
+
+### Familles déjà occupées en \`${lot.categorie}\` — INTERDITES (R6)
+
+${(() => { const f = famillesOccupees(lot.categorie); return `${f.length} familles (protéines × féculent ou fruit | goût). Choisis une combinaison ABSENTE de cette liste :
+
+${f.map((k) => `\`${k}\``).join(' · ')}`; })()}
 
 ### Plafond par ancre sur ce lot
 

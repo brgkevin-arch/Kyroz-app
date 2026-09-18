@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { makeProfile } from './helpers';
 import { recalcProfile } from '../tdee';
-import { buildLocalPlan, PROTEIN_REFS, regleVegetal, VEGETAL_MAX_JOUR, VEGETAL_MAX_SEMAINE } from '../planEngine';
+import { buildLocalPlan, PROTEIN_REFS, regleVegetal } from '../planEngine';
 import { DietaryRestriction, Meal, UserProfile, VarietyPreference } from '../types';
 
 // ── UNE JOURNÉE QUI RESSEMBLE À UNE JOURNÉE (D29) ────────────────────────────
@@ -53,7 +53,12 @@ function semaines(over: Partial<UserProfile>): Meal[][] {
 const jour = (meals: Meal[], d: number) => meals.filter((m) => m.day === d);
 const regimes = (...r: DietaryRestriction[]) => ({ dietary_restrictions: r });
 
-describe('omnivore : au plus 3 déjeuners ou dîners 100 % végétaux par semaine', () => {
+describe('qui mange de la viande, sans « Végétal » coché : AUCUN déjeuner ni dîner 100 % végétal', () => {
+  // 🔴 Décision fondateur du 2026-09-19 : « un omnivore qui ne coche rien ne doit pas avoir de
+  // végétal ». Jusque-là ces profils avaient le plafond souple de D29 (3 par semaine, 1 par jour)
+  // et, en « Répétitif », pouvaient recevoir trois fois le même poulet végétal. Ils reçoivent
+  // désormais ce que reçoit la case « Omnivore » (D36) : zéro. Le petit-déjeuner et la collation
+  // ne comptent pas, comme pour la case.
   it.each([
     ['« Peu importe »', {}],
     ['sans lactose', regimes('lactose_free')],
@@ -61,26 +66,24 @@ describe('omnivore : au plus 3 déjeuners ou dîners 100 % végétaux par semain
     ['halal', regimes('halal')],
     ['sans porc', regimes('no_pork')],
   ] as [string, Partial<UserProfile>][])('%s', (_nom, over) => {
+    expect(regleVegetal(profil(over))?.maxSemaine).toBe(0);
     for (const meals of semaines(over)) {
-      let cumul = 0;
-      for (let d = 1; d <= 7; d++) {
-        const vegDuJour = jour(meals, d).filter((m) => principal(m) && toutVegetal(m)).length;
-        expect(vegDuJour, `jour ${d} : ${vegDuJour} plats végétaux`).toBeLessThanOrEqual(VEGETAL_MAX_JOUR);
-        cumul += vegDuJour;
-        // Le plafond s'étale : les trois ne tombent pas lundi, mardi, mercredi.
-        expect(cumul, `${cumul} plats végétaux au soir du jour ${d}`).toBeLessThanOrEqual(Math.ceil((VEGETAL_MAX_SEMAINE * d) / 7));
-      }
-      expect(cumul).toBeLessThanOrEqual(VEGETAL_MAX_SEMAINE);
+      const veg = meals.filter((m) => principal(m) && toutVegetal(m));
+      expect(veg.map((m) => `J${m.day} ${m.recipe.id}`), 'plats principaux végétaux').toEqual([]);
     }
   });
 
-  it('la sonde sait dire OUI : « Végétal » coché lève le plafond, et on le voit', () => {
+  it('la sonde sait dire OUI : chez un végétarien, le même compteur voit bien des plats végétaux', () => {
     // Sans ce cas, un compteur aveugle (qui ne reconnaîtrait aucun plat végétal) passerait
-    // tous les tests ci-dessus. Mesuré : 104 semaines sur 108 au-delà de 3.
-    expect(regleVegetal(profil({ preferred_proteins: ['poulet', 'végétal'] }))).toBeNull();
-    const auDela = semaines({ preferred_proteins: ['poulet', 'végétal'] })
-      .filter((meals) => meals.filter((m) => principal(m) && toutVegetal(m)).length > VEGETAL_MAX_SEMAINE);
-    expect(auDela.length).toBeGreaterThan(0);
+    // le test ci-dessus.
+    const vus = semaines(regimes('vegetarian')).reduce((s, meals) => s + meals.filter((m) => principal(m) && toutVegetal(m)).length, 0);
+    expect(vus).toBeGreaterThan(0);
+  });
+
+  it('« Végétal » coché sans régime : comme la case Omnivore + Végétal, 10 % des déjeuners et dîners', () => {
+    expect(regleVegetal(profil({ preferred_proteins: ['poulet', 'végétal'] }))?.maxSemaine).toBe(1);
+    for (const meals of semaines({ preferred_proteins: ['poulet', 'végétal'] }))
+      expect(meals.filter((m) => principal(m) && toutVegetal(m)).length).toBeLessThanOrEqual(1);
   });
 
   it('halal et sans porc « Peu importe » sont servis comme un omnivore qui a coché ses protéines', () => {
@@ -121,7 +124,6 @@ describe('aucune règle végétale pour qui mange végétal', () => {
   it.each([
     ['végétarien', regimes('vegetarian')],
     ['vegan', regimes('vegan')],
-    ['« Végétal » coché', { preferred_proteins: ['végétal'] }],
   ] as [string, Partial<UserProfile>][])('%s', (_nom, over) => {
     expect(regleVegetal(profil(over))).toBeNull();
   });

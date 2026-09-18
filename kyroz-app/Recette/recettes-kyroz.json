@@ -7633,41 +7633,41 @@
     },
     {
       "id": "pd21",
-      "name": "Porridge vanille, banane et cacahuète",
+      "name": "Pain perdu à la banane et beurre de cacahuète",
       "category": "petit_dej",
       "tags": {
         "objectif": [
-          "maintien",
-          "prise_de_masse"
+          "perte_de_gras",
+          "maintien"
         ],
         "sport": [
           "muscu"
         ],
-        "temps_min": 8
+        "temps_min": 15
       },
       "base_servings": 1,
       "ingredients": [
         {
-          "ref": "flocons_avoine",
-          "qty": 70,
+          "ref": "pain_complet",
+          "qty": 80,
           "macro_role": "carb",
           "scalable": true
         },
         {
-          "ref": "whey",
-          "qty": 30,
+          "ref": "blanc_oeuf",
+          "qty": 150,
           "macro_role": "protein",
           "scalable": true
         },
         {
           "ref": "lait_demi_ecreme",
-          "qty": 200,
+          "qty": 100,
           "macro_role": "dairy",
           "scalable": true
         },
         {
           "ref": "banane",
-          "qty": 80,
+          "qty": 90,
           "macro_role": "fruit",
           "scalable": true
         },
@@ -7679,15 +7679,17 @@
         }
       ],
       "instructions": [
-        "Cuire les flocons dans le lait 4 min.",
-        "Hors du feu, incorporer la whey, garnir de banane et beurre de cacahuète."
+        "Bats les blancs d’œufs avec le lait et une pincée de cannelle dans une assiette creuse.",
+        "Trempe les tranches de pain complet 20 secondes de chaque côté dans le mélange, pour qu’elles s’en imbibent sans se défaire.",
+        "Fais-les dorer 3 minutes de chaque côté dans une poêle antiadhésive à feu moyen.",
+        "Sers le pain perdu avec la banane en rondelles et le beurre de cacahuète."
       ],
-      "why": "Muscu/prise de masse : glucides lents + shot protéique au réveil.",
+      "why": "Les blancs d’œufs font du pain perdu un petit-déjeuner protéiné, sans friture.",
       "macros_per_serving": {
-        "kcal": 627,
-        "protein": 42.9,
-        "carbs": 71.8,
-        "fat": 17.6
+        "kcal": 482.9,
+        "protein": 31.1,
+        "carbs": 59.3,
+        "fat": 11.4
       },
       "wave": "2026-06-19-vegan"
     },
@@ -9258,7 +9260,7 @@
     },
     {
       "id": "col26",
-      "name": "Shake de yaourt de soja banane-cacahuète",
+      "name": "Shake de yaourt de soja aux fruits rouges et cacahuète",
       "category": "collation",
       "tags": {
         "objectif": [
@@ -9279,34 +9281,34 @@
           "scalable": true
         },
         {
-          "ref": "banane",
-          "qty": 90,
+          "ref": "fruits_rouges",
+          "qty": 160,
           "macro_role": "fruit",
           "scalable": true
         },
         {
           "ref": "lait_amande",
-          "qty": 150,
+          "qty": 100,
           "macro_role": "dairy",
           "scalable": true
         },
         {
           "ref": "beurre_cacahuete",
-          "qty": 12,
+          "qty": 10,
           "macro_role": "fat",
           "scalable": true
         }
       ],
       "instructions": [
-        "Mixer le yaourt de soja, banane et lait d'amande.",
-        "Ajouter le beurre de cacahuète."
+        "Mixe le yaourt de soja, les fruits rouges et le lait d’amande jusqu’à obtenir un mélange lisse.",
+        "Ajoute le beurre de cacahuète et mixe encore quelques secondes."
       ],
-      "why": "Vegan prise de masse : ancre protéique soja + énergie.",
+      "why": "Le yaourt de soja porte les protéines, les fruits rouges le goût et les fibres.",
       "macros_per_serving": {
-        "kcal": 319,
-        "protein": 22.8,
-        "carbs": 31.9,
-        "fat": 10.9
+        "kcal": 310.3,
+        "protein": 22.9,
+        "carbs": 24.8,
+        "fat": 12
       },
       "wave": "2026-06-19-vegan"
     },
@@ -11391,41 +11393,40 @@
     },
     {
       "id": "rep80",
-      "name": "Tempeh laqué, riz et chou-fleur",
+      "name": "Nouilles sautées au tempeh laqué et brocoli",
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "perte_de_gras",
-          "maintien"
+          "perte_de_gras"
         ],
         "sport": [
           "muscu"
         ],
-        "temps_min": 30
+        "temps_min": 20
       },
       "base_servings": 1,
       "ingredients": [
         {
-          "ref": "riz_complet",
+          "ref": "nouilles_completes",
           "qty": 80,
           "macro_role": "carb",
           "scalable": true
         },
         {
           "ref": "tempeh",
-          "qty": 150,
+          "qty": 120,
           "macro_role": "protein",
           "scalable": true
         },
         {
-          "ref": "chou_fleur",
-          "qty": 120,
+          "ref": "brocoli",
+          "qty": 100,
           "macro_role": "vegetable",
           "scalable": false
         },
         {
           "ref": "huile_olive",
-          "qty": 7,
+          "qty": 5,
           "macro_role": "fat",
           "scalable": true
         },
@@ -11437,19 +11438,17 @@
         }
       ],
       "instructions": [
-        "Rince le riz complet, puis fais-le cuire 25 minutes à couvert et à feu doux dans deux fois et demie son volume d'eau salée.",
-        "Préchauffe le four à 210 °C, détaille le chou-fleur en petits bouquets et étale-les sur une plaque avec la moitié de l'huile d'olive, sans les superposer : entassés, ils cuisent à la vapeur au lieu de rôtir.",
-        "Enfourne 20 minutes en remuant à mi-cuisson : les pointes doivent brunir.",
-        "Fais dorer le tempeh 3 minutes par face dans une poêle chaude avec le reste d'huile : c'est cette croûte qui lui enlève son amertume.",
-        "Verse la sauce soja sur le tempeh et laisse-la réduire 1 minute à feu vif, jusqu'à ce qu'elle le laque et brille.",
-        "Dresse le riz au fond du bol, ajoute le chou-fleur rôti et le tempeh laqué."
+        "Fais cuire les nouilles le temps indiqué sur le paquet, en ajoutant les bouquets de brocoli pour les 4 dernières minutes, puis égoutte.",
+        "Coupe le tempeh en tranches et fais-le dorer 3 minutes par face dans une poêle chaude avec l’huile d’olive : c’est cette croûte qui lui enlève son amertume.",
+        "Verse la sauce soja sur le tempeh et laisse-la réduire 1 minute à feu vif, jusqu’à ce qu’elle le laque et brille.",
+        "Ajoute les nouilles et le brocoli, fais sauter le tout 1 minute et sers."
       ],
-      "why": "Vegan : tempeh fermenté très protéiné, laqué à la sauce soja.",
+      "why": "Le tempeh fermenté porte les protéines, laqué à la sauce soja.",
       "macros_per_serving": {
-        "kcal": 658,
-        "protein": 38.7,
-        "carbs": 72.5,
-        "fat": 25.9
+        "kcal": 551.8,
+        "protein": 32.4,
+        "carbs": 65.8,
+        "fat": 12.8
       },
       "wave": "2026-06-19-vegan"
     },
@@ -14410,23 +14409,23 @@
     },
     {
       "id": "rep129",
-      "name": "Nouilles de riz sautées au tofu et cacahuète",
+      "name": "Riz complet sauté au tofu et cacahuète",
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "maintien",
-          "prise_de_masse"
+          "perte_de_gras",
+          "maintien"
         ],
         "sport": [
           "endurance"
         ],
-        "temps_min": 20
+        "temps_min": 35
       },
       "base_servings": 1,
       "ingredients": [
         {
-          "ref": "nouilles_riz",
-          "qty": 90,
+          "ref": "riz_complet",
+          "qty": 60,
           "macro_role": "carb",
           "scalable": true
         },
@@ -14444,25 +14443,25 @@
         },
         {
           "ref": "beurre_cacahuete",
-          "qty": 18,
+          "qty": 12,
           "macro_role": "fat",
           "scalable": true
         }
       ],
       "instructions": [
-        "Presse le tofu 5 minutes entre deux feuilles de papier absorbant sous une assiette lestée : moins il est gorgé d'eau, mieux il dore.",
-        "Plonge les nouilles de riz dans un grand volume d'eau bouillante, coupe le feu et laisse-les gonfler 4 minutes, puis égoutte et rince à l'eau froide pour qu'elles ne collent pas.",
-        "Coupe le tofu en cubes de deux centimètres et fais-les colorer 8 minutes dans une poêle très chaude, en ne les retournant que lorsqu'une face est franchement dorée.",
+        "Rince le riz complet, puis fais-le cuire 25 minutes à couvert et à feu doux dans deux fois et demie son volume d’eau salée.",
+        "Presse le tofu 5 minutes entre deux feuilles de papier absorbant sous une assiette lestée : moins il est gorgé d’eau, mieux il dore.",
+        "Coupe le tofu en cubes de deux centimètres et fais-les colorer 8 minutes dans une poêle très chaude, en ne les retournant que lorsqu’une face est franchement dorée.",
         "Ajoute les légumes wok et saute-les 4 minutes à feu vif en remuant : ils doivent rester croquants.",
-        "Délaye le beurre de cacahuète avec trois cuillères d'eau chaude, du sel et du poivre, jusqu'à obtenir une sauce fluide.",
-        "Verse les nouilles et la sauce dans la poêle, mélange 1 minute hors du feu et sers aussitôt."
+        "Délaye le beurre de cacahuète avec trois cuillères d’eau chaude, du sel et du poivre, jusqu’à obtenir une sauce fluide.",
+        "Verse le riz et la sauce dans la poêle, mélange 1 minute hors du feu et sers aussitôt."
       ],
-      "why": "Vegan & sans gluten : pad thaï végétal, énergie pour l'endurance.",
+      "why": "Le tofu doré et la sauce cacahuète sur un riz complet, pour un plat sans gluten.",
       "macros_per_serving": {
-        "kcal": 741,
-        "protein": 39.3,
-        "carbs": 88.6,
-        "fat": 24.2
+        "kcal": 587.8,
+        "protein": 32.8,
+        "carbs": 56.1,
+        "fat": 23.4
       },
       "wave": "2026-06-19-vegan"
     },
@@ -16303,7 +16302,7 @@
     },
     {
       "id": "col45",
-      "name": "Pudding de chia banane-amande",
+      "name": "Pudding de chia aux dattes et lait d’amande",
       "category": "collation",
       "tags": {
         "objectif": [
@@ -16319,7 +16318,7 @@
       "ingredients": [
         {
           "ref": "graines_chia",
-          "qty": 18,
+          "qty": 12,
           "macro_role": "fat",
           "scalable": true
         },
@@ -16330,31 +16329,30 @@
           "scalable": true
         },
         {
-          "ref": "banane",
-          "qty": 100,
+          "ref": "dattes",
+          "qty": 40,
           "macro_role": "fruit",
           "scalable": true
         },
         {
           "ref": "lait_amande",
-          "qty": 70,
+          "qty": 100,
           "macro_role": "fat",
           "scalable": true
         }
       ],
       "instructions": [
-        "Verse le yaourt de soja et le lait d'amande dans un bocal, mélange bien au fouet pour qu'il ne reste aucun grumeau.",
-        "Ajoute les graines de chia et remue 30 secondes, puis attends 5 minutes et remue une seconde fois : c'est ce deuxième mélange qui empêche les graines de s'agglomérer au fond.",
-        "Ferme le bocal et laisse prendre au moins 3 heures au réfrigérateur : la texture doit être celle d'un flan souple.",
-        "Au moment de servir, écrase la moitié de la banane à la fourchette et incorpore-la au pudding.",
-        "Coupe le reste en rondelles et dispose-les sur le dessus."
+        "Verse le yaourt de soja et le lait d’amande dans un bocal, mélange bien au fouet pour qu’il ne reste aucun grumeau.",
+        "Ajoute les graines de chia et remue 30 secondes, puis attends 5 minutes et remue une seconde fois : c’est ce deuxième mélange qui empêche les graines de s’agglomérer au fond.",
+        "Ferme le bocal et laisse prendre au moins 3 heures au réfrigérateur : la texture doit être celle d’un flan souple.",
+        "Au moment de servir, dénoyaute les dattes, coupe-les en morceaux et dispose-les sur le pudding."
       ],
-      "why": "Vegan & sans gluten : oméga-3, protéines et glucides doux.",
+      "why": "Les dattes sucrent le pudding sans sucre ajouté, le chia l’épaissit.",
       "macros_per_serving": {
-        "kcal": 292.5,
-        "protein": 18,
-        "carbs": 29.5,
-        "fat": 8.9
+        "kcal": 302.8,
+        "protein": 17.3,
+        "carbs": 33.5,
+        "fat": 9.2
       },
       "wave": "2026-06-19-vegan"
     },
@@ -16735,7 +16733,7 @@
     },
     {
       "id": "col53",
-      "name": "Banane-cacahuète et yaourt de soja",
+      "name": "Yaourt de soja à la mangue, cacahuète et graines de courge",
       "category": "collation",
       "tags": {
         "objectif": [
@@ -16750,40 +16748,40 @@
       "base_servings": 1,
       "ingredients": [
         {
-          "ref": "banane",
-          "qty": 110,
+          "ref": "mangue",
+          "qty": 150,
           "macro_role": "fruit",
           "scalable": true
         },
         {
           "ref": "beurre_cacahuete",
-          "qty": 20,
+          "qty": 10,
           "macro_role": "fat",
           "scalable": true
         },
         {
           "ref": "graines_courge",
-          "qty": 12,
+          "qty": 8,
           "macro_role": "fat",
           "scalable": true
         },
         {
           "ref": "yaourt_soja_proteine",
-          "qty": 120,
+          "qty": 150,
           "macro_role": "protein",
           "scalable": true
         }
       ],
       "instructions": [
-        "Couper la banane, napper de beurre de cacahuète.",
-        "Parsemer de graines de courge, servir avec le yaourt de soja."
+        "Coupe la mangue en dés et dispose-la sur le yaourt de soja.",
+        "Nappe d’un filet de beurre de cacahuète et parsème de graines de courge."
       ],
-      "why": "Vegan & sans gluten : recharge glucidique + ancre protéique.",
+      "why": "La mangue sucre sans ajout, la cacahuète et les graines donnent du croquant.",
       "macros_per_serving": {
-        "kcal": 364,
-        "protein": 20.1,
-        "carbs": 30.5,
-        "fat": 17.5
+        "kcal": 317.7,
+        "protein": 19,
+        "carbs": 29.6,
+        "fat": 12.1
       },
       "wave": "2026-06-19-vegan"
     },
@@ -23146,11 +23144,12 @@
     },
     {
       "id": "rep209",
-      "name": "Seitan doré au chou-fleur et patate douce",
+      "name": "Seitan doré au chou-fleur et riz complet",
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "perte_de_gras"
+          "perte_de_gras",
+          "maintien"
         ],
         "sport": [
           "muscu"
@@ -23166,8 +23165,8 @@
           "scalable": true
         },
         {
-          "ref": "patate_douce",
-          "qty": 295,
+          "ref": "riz_complet",
+          "qty": 75,
           "macro_role": "carb",
           "scalable": true
         },
@@ -23191,19 +23190,18 @@
         }
       ],
       "instructions": [
-        "Préchauffe le four à 210 °C.",
-        "Épluche la patate douce, coupe-la en cubes de deux centimètres et étale-les sur une plaque avec le chou-fleur détaillé en bouquets.",
-        "Sale et enfourne 25 minutes : les bords doivent être dorés et la pointe du couteau entrer sans résistance.",
-        "Coupe le seitan en tranches épaisses et saisis-les 2 minutes par face dans une poêle très chaude, jusqu'à ce que les bords croustillent.",
-        "Délie le tahini avec trois cuillères d'eau tiède et une pincée de sel jusqu'à ce que la sauce nappe.",
-        "Dresse les légumes rôtis et le seitan, ajoute la roquette, nappe de sauce au sésame et poivre."
+        "Préchauffe le four à 210 °C. Rince le riz complet, puis fais-le cuire 25 minutes à couvert et à feu doux dans deux fois et demie son volume d’eau salée.",
+        "Détaille le chou-fleur en bouquets, étale-les sur une plaque, sale et enfourne 20 minutes : les pointes doivent brunir.",
+        "Coupe le seitan en tranches épaisses et saisis-les 2 minutes par face dans une poêle très chaude, jusqu’à ce que les bords croustillent.",
+        "Délie le tahini avec trois cuillères d’eau tiède et une pincée de sel jusqu’à ce que la sauce nappe.",
+        "Dresse le riz, le chou-fleur rôti et le seitan, ajoute la roquette, nappe de sauce au sésame et poivre."
       ],
-      "why": "Seitan et sésame : une protéine végétale dense et des lipides insaturés sur un féculent doux.",
+      "why": "Seitan et sésame : une protéine végétale dense et des lipides insaturés sur un riz complet.",
       "macros_per_serving": {
-        "kcal": 550.4,
-        "protein": 31.9,
-        "carbs": 64.5,
-        "fat": 15
+        "kcal": 573.9,
+        "protein": 32.4,
+        "carbs": 67.6,
+        "fat": 16.8
       },
       "wave": "2026-08-01-b1-lot2-repas"
     },

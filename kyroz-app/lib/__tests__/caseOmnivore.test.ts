@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { makeProfile } from './helpers';
 import { recalcProfile } from '../tdee';
-import { buildLocalPlan, PROTEIN_REFS, recipeAllowed, regleVegetal, VEGETAL_MAX_SEMAINE } from '../planEngine';
+import { buildLocalPlan, PROTEIN_REFS, recipeAllowed, regleVegetal } from '../planEngine';
 import { getEffectiveRecipes } from '../recipes';
 import { basculerRegime, normaliserRegimes, normalizeRestrictions } from '../regime';
 import type { DietaryRestriction, Meal, UserProfile, VarietyPreference } from '../types';
@@ -50,14 +50,20 @@ describe('D36 — la case « Omnivore » change le plan', () => {
     expect(toutes.some((meals) => vegPrincipaux(meals) === 1)).toBe(true);
   });
 
-  it('elle est UTILE : sans la case, le même profil reçoit des plats végétaux', () => {
-    const sans = semaines({ dietary_restrictions: [], preferred_proteins: [] });
-    expect(sans.reduce((s, meals) => s + vegPrincipaux(meals), 0)).toBeGreaterThan(0);
+  // 🔴 AMENDÉ le 2026-09-19 (décision fondateur : « un omnivore qui ne coche rien ne doit pas
+  // avoir de végétal »). Ces deux tests disaient l'inverse — « sans la case, le même profil reçoit
+  // des plats végétaux », « le plafond D29 reste celui d'avant ». La case n'a plus à être UTILE
+  // contre le vide : ne rien cocher vaut désormais la case, pour qui mange de la viande.
+  it('sans la case, le même profil est servi COMME la case : aucun déjeuner ni dîner végétal', () => {
+    for (const meals of semaines({ dietary_restrictions: [], preferred_proteins: [] })) expect(vegPrincipaux(meals)).toBe(0);
+    expect(regleVegetal(profil({ dietary_restrictions: [], preferred_proteins: [] }))?.maxSemaine).toBe(0);
   });
 
-  it('…et elle ne change rien pour qui ne la coche pas : le plafond D29 reste celui d’avant', () => {
-    expect(regleVegetal(profil({ dietary_restrictions: [], preferred_proteins: [] }))?.maxSemaine).toBe(VEGETAL_MAX_SEMAINE);
-    expect(regleVegetal(profil({ dietary_restrictions: [], preferred_proteins: ['végétal'] }))).toBeNull();
+  it('…et « Végétal » sans la case vaut « Végétal » avec la case : 10 %', () => {
+    const avec = regleVegetal(profil({ dietary_restrictions: ['omnivore'], preferred_proteins: ['végétal'] }));
+    const sans = regleVegetal(profil({ dietary_restrictions: [], preferred_proteins: ['végétal'] }));
+    expect(sans?.maxSemaine).toBe(avec?.maxSemaine);
+    expect(sans?.maxJour).toBe(avec?.maxJour);
   });
 
   it('« Omnivore » n’interdit aucun ingrédient : une recette de viande et un dahl restent permis', () => {

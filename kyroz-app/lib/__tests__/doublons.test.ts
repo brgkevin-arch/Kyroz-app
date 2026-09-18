@@ -57,10 +57,17 @@ import { findViolations, nameKey, norm, type CheckRecipe } from '../../scripts/c
 //               Chaque remplacement a été choisi AUSSI contre les doublons : le tofu donnait 8 au
 //               dahl de fèves mais le copiait sur rep10, le poulet végétal copiait rep91 sur
 //               rep159. Aucune violation créée, 21 défaites.
+//   R1 64 → 58, R2 59 → 56, R4 14 → 13, + R6 = 82 : les familles qui revenaient dans la même
+//               semaine (2026-09-18). Sept recettes différenciées : trois collations banane-cacahuète
+//               au yaourt de soja passent aux fruits rouges, aux dattes et à la mangue ; un porridge
+//               banane-cacahuète devient un pain perdu ; tempeh-riz-chou-fleur, tofu-nouilles et
+//               seitan-patate douce changent de féculent. R6 naît le même jour : une recette NOUVELLE
+//               ne rejoint aucune famille occupée (clé `familyKey` du moteur, avec fruit et goût) ;
+//               82 = les familles à plusieurs recettes du catalogue, figées, qui ne peuvent que baisser.
 // Ce qui reste est du quasi-doublon de composition, pas du clone : R4 est dominé par des
 // familles saturées (whey+avoine ×6, yaourt de soja sans féculent ×8) qui se règlent en
 // écrivant AILLEURS, pas en réécrivant l'existant.
-const PLAFOND = { R1: 64, R2: 59, R4: 14, R5: 0, R7: 0 } as const;
+const PLAFOND = { R1: 58, R2: 56, R4: 13, R5: 0, R6: 82, R7: 0 } as const;
 
 const RECIPES = (raw as { recipes: unknown[] }).recipes as CheckRecipe[];
 
@@ -83,6 +90,21 @@ describe('anti-doublons du catalogue (cliquet)', () => {
     const v = findViolations([clone], RECIPES);
     expect(v.some((x) => x.rule === 'R1' && x.ids.includes('rep999'))).toBe(true);
     expect(v.some((x) => x.rule === 'R2' && x.ids.includes('rep999'))).toBe(true);
+  });
+
+  it('R6 : une recette neuve qui rejoint une famille occupée est rejetée, même sans autre ressemblance', () => {
+    // Le cas que R1/R2/R4 laissaient passer : même protéine, même féculent, même goût, mais
+    // d'autres légumes et un autre gras — « la même assiette autrement racontée ».
+    const cible = RECIPES.find((r) => r.id === 'rep41')!; // seitan × patate douce, salé
+    const autrementRacontee: CheckRecipe = {
+      id: 'rep997', name: 'Assiette test de seitan racontée autrement', category: 'repas_complet',
+      tags: { objectif: ['maintien'] },
+      ingredients: [{ ref: 'seitan', macro_role: 'protein' }, { ref: 'patate_douce', macro_role: 'carb' },
+        { ref: 'poivron', macro_role: 'vegetable' }, { ref: 'avocat', macro_role: 'fat' }],
+    };
+    const v = findViolations([autrementRacontee], RECIPES);
+    expect(v.filter((x) => x.rule !== 'R6'), 'la sonde ne doit déclencher QUE R6').toEqual([]);
+    expect(v.some((x) => x.rule === 'R6' && x.ids.includes('rep997') && x.ids.includes(cible.id))).toBe(true);
   });
 
   it('un lot de test sans similarité passe', () => {

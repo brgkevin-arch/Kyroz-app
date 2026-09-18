@@ -840,8 +840,8 @@ export default function Onboarding() {
                   onPress={() => setRestrictions(basculerRegime(restrictions, r.value))}
                 />
               ))}
-              {/* D36 : plus de « Peu importe » au régime. Ne rien cocher reste permis et vaut
-                  l'omnivore d'avant (plafond D29) ; « Omnivore » est la réponse qui pèse. */}
+              {/* D36 : plus de « Peu importe » au régime. Ne rien cocher reste permis et vaut,
+                  depuis le 2026-09-19, la case « Omnivore » : aucun plat principal végétal. */}
             </View>
 
             <SectionLabel t={t}>Protéines préférées</SectionLabel>

@@ -36,13 +36,13 @@ function profil(over: Partial<UserProfile>): UserProfile {
 
 const cache = new Map<string, { p: UserProfile; plan: MealPlan }[]>();
 /** 3 objectifs × 3 variétés × 2 tirages (plan canonique et premier « Nouveau plan »). */
-function plans(over: Partial<UserProfile>, varietes: VarietyPreference[] = ['repetitive', 'balanced', 'max']) {
-  const cle = JSON.stringify([over, varietes]);
+function plans(over: Partial<UserProfile>, varietes: VarietyPreference[] = ['repetitive', 'balanced', 'max'], seeds: number[] = [0, 1]) {
+  const cle = JSON.stringify([over, varietes, seeds]);
   if (!cache.has(cle)) {
     const out: { p: UserProfile; plan: MealPlan }[] = [];
     for (const goal of ['cut', 'maintain', 'lean_bulk'] as const)
       for (const variety of varietes)
-        for (const seed of [0, 1]) { const p = profil({ goal, variety, ...over }); out.push({ p, plan: buildLocalPlan(p, seed) }); }
+        for (const seed of seeds) { const p = profil({ goal, variety, ...over }); out.push({ p, plan: buildLocalPlan(p, seed) }); }
     cache.set(cle, out);
   }
   return cache.get(cle)!;
@@ -106,7 +106,12 @@ describe('ce qui revient (« Équilibré » et « Variété max »)', () => {
 describe('« Équilibré » : le même plat au dîner puis au déjeuner du lendemain', () => {
   it.each(PROFILS)('%s : chaque mention a sa paire, et seulement les lendemains des jours 1, 3 et 5', (_n, over) => {
     let paires = 0, semaines = 0;
-    for (const { plan } of plans(over, ['balanced'])) {
+    // ⚠️ 24 SEMAINES, pas 6 (2026-09-18). Sur 3 objectifs × 2 tirages, le taux se jouait à une
+    // paire près : une vague de recettes a fait tomber le sans-gluten à 5 paires sur 6 semaines
+    // (0,83) et déclaré « la règle est morte » alors qu'elle servait 1,83 paire par semaine,
+    // exactement comme avant, mesuré sur 24 semaines. La sonde garde son seuil ; elle cesse de
+    // voter sur un échantillon qu'un effet d'enchaînement suffit à faire basculer.
+    for (const { plan } of plans(over, ['balanced'], [0, 1, 2, 3, 4, 5, 6, 7])) {
       semaines++;
       for (const m of plan.meals) {
         if (m.same_dish_yesterday) {
