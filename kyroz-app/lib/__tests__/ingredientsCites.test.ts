@@ -218,8 +218,6 @@ const AVEC_REF: { mot: RegExp; refs: string[] }[] = [
  * avoir rien lu. Une par une, avec leur raison — jamais par motif.
  */
 const EN_VEILLE: Record<string, string> = {
-  '\\bporc\\b|filet mignon': "le `ref` porc_filet existe dans la table mais AUCUNE des 512 "
-    + 'recettes ne le sert : le mot est là pour la première qui le fera.',
   '\\bcroutons?\\b': "plus aucune instruction ne l'écrit depuis la réécriture de rep112 "
     + '(2026-09-09), qui taille et fait dorer le pain complet déclaré au lieu de servir des '
     + 'croûtons venus de nulle part.',

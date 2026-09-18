@@ -70,17 +70,40 @@ Aujourd'hui cocher une protéine ne fait que la FAVORISER (départage), sans par
 
 ## 4. Prérequis catalogue
 
-- **Porc** : 0 recette de filet de porc, 9 plats complets au jambon. **~10 plats de porc à
-  écrire AVANT d'ouvrir la case** (filet mignon, côtes, sauté, rôti…), sous les règles R6
-  (famille neuve) et anti-remplissage.
+- ✅ **Porc — 10 plats écrits le 2026-09-19 (vague B13, `rep293` → `rep302`)** : un féculent
+  différent par plat (dix familles neuves, R6 à 0), garnitures choisies contre R1/R2, 8 à 12
+  profils servis sur 12 (`check:enveloppe`). Effet immédiat, sans quota : un omnivore « rien
+  coché » reçoit **12 %** de porc (6 % avant), le poisson passe de 35 à 32 %.
 - Vérifier le vivier de chaque sorte végétale par créneau et par gabarit avant de garantir
   60 % d'une seule (ex. tempeh seul pour une femme de 55 kg en sèche).
+
+## 4 bis. Les parts sont-elles tenables ? — mesuré le 2026-09-19 (`scripts/mesure-parts.ts`)
+
+Recettes servables midi ET soir au profil le plus contraint, contre le nombre de repas exigé.
+
+| Régime | Tenable | Limite |
+|---|---|---|
+| Omnivore | poulet, bœuf, poisson : toutes les parts ✅ ; porc « rien coché » (10 %) ✅ | **porc coché seul (60 % = 8 repas)** : 5 recettes servables chez H 110 masse → une recette servie deux fois |
+| Halal | toutes les parts ✅ (8 recettes minimum pour poulet et bœuf, juste assez) | — |
+| Pescétarien | toutes les parts ✅ (poisson 15 recettes min, végétal 43) | — |
+| Végétarien | légumineuses ✅, pièces végétales ✅ | **tofu** (4 chez F 55 sèche) et **œufs** (6) → répétition ; **seitan** (3) ❌ ; **tempeh** (0 chez F 55 sèche) ❌ |
+| Vegan | légumineuses ✅ | tofu, pièces végétales → répétition ; **tempeh** (2) et **seitan** (2) ❌ |
+| Vegan sans gluten | — | tofu, légumineuses → répétition ; **tempeh** (1) et **pièces végétales** (2) ❌ |
+
+➡️ **Les parts de l'omnivore, du halal et du pescétarien sont tenables telles quelles.** Le
+plafond D30 (5 repas par ingrédient) ne gêne pas : poulet et bœuf ont deux ingrédients chacun
+(filet + dinde, haché + bavette), soit 10 repas possibles.
+➡️ **Le 60 % d'une seule sorte végétale ne l'est pas** pour tempeh et seitan, et seulement
+avec répétition pour le tofu : trop peu de recettes calibrées pour les gabarits extrêmes. Trois
+sorties à trancher : baisser la part de ces sortes, écrire des recettes, ou servir « autant que
+le vivier le permet, jusqu'à 60 % ».
+⚠️ Mesure STATIQUE : le coût d'un quota sur le calibrage ne se verra qu'une fois codé.
 
 ## 5. Ordre proposé
 
 1. ✅ « Protéine végé » confirmé (pièces végétales).
-2. Mesurer la faisabilité de chaque part (moteur + catalogue) — sans rien livrer.
-3. Écrire les ~10 plats de porc.
+2. ✅ Faisabilité mesurée (§4 bis).
+3. ✅ 10 plats de porc écrits (B13).
 4. Moteur : parts garanties par régime ; retrait de la case Végétal omnivore.
 5. Écran d'inscription et Profil : régime d'abord, protéines dépendantes, whey retirée.
 6. Comptes existants : redemander les préférences.

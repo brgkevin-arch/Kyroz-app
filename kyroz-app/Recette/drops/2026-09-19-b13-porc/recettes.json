@@ -1,0 +1,619 @@
+{
+  "recipes": [
+    {
+      "id": "rep293",
+      "name": "Filet mignon rôti, pommes de terre et champignons",
+      "category": "repas_complet",
+      "tags": {
+        "objectif": [
+          "perte_de_gras"
+        ],
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 40
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "porc_filet",
+          "qty": 120,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "pomme_de_terre",
+          "qty": 300,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "huile_olive",
+          "qty": 8,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "champignons",
+          "qty": 150,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Préchauffe le four à 200 °C. Coupe les pommes de terre en quartiers, mélange-les avec la moitié de l’huile d’olive, sale et enfourne 35 minutes.",
+        "Fais dorer le filet mignon sur toutes ses faces 4 minutes dans une poêle chaude avec le reste d’huile, puis pose-le sur les pommes de terre pour les 18 dernières minutes de cuisson.",
+        "Pendant ce temps, fais sauter les champignons émincés 6 minutes dans la poêle de la viande, avec de l’ail et du persil.",
+        "Laisse reposer la viande 5 minutes avant de la trancher, puis sers avec les pommes de terre et les champignons, poivre et thym."
+      ],
+      "why": "Le filet mignon est l’une des viandes les plus maigres : beaucoup de protéines, peu de gras.",
+      "macros_per_serving": {
+        "kcal": 491,
+        "protein": 34.6,
+        "carbs": 51.8,
+        "fat": 13.8
+      },
+      "wave": "2026-09-19-b13-porc"
+    },
+    {
+      "id": "rep294",
+      "name": "Sauté de porc basquaise aux olives et riz",
+      "category": "repas_complet",
+      "tags": {
+        "objectif": [
+          "perte_de_gras"
+        ],
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 35
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "porc_filet",
+          "qty": 120,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "riz_basmati",
+          "qty": 75,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "olives",
+          "qty": 30,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "poivron",
+          "qty": 120,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "tomate_concassee",
+          "qty": 100,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Rince le riz et fais-le cuire 11 minutes dans une casserole d’eau salée bouillante, puis égoutte-le.",
+        "Coupe le porc en cubes et fais-les dorer 5 minutes à feu vif dans une cocotte antiadhésive, puis réserve-les.",
+        "Dans la même cocotte, fais revenir le poivron en lanières 6 minutes, ajoute la tomate concassée, de l’ail, du piment d’Espelette et du thym, sale.",
+        "Remets le porc avec les olives, couvre et laisse mijoter 15 minutes à feu doux. Sers sur le riz."
+      ],
+      "why": "Le sauté de porc mijoté aux poivrons, un plat du quotidien riche en protéines.",
+      "macros_per_serving": {
+        "kcal": 516.1,
+        "protein": 33.3,
+        "carbs": 67.2,
+        "fat": 11.6
+      },
+      "wave": "2026-09-19-b13-porc"
+    },
+    {
+      "id": "rep295",
+      "name": "Porc laqué au miel, nouilles de riz et brocoli",
+      "category": "repas_complet",
+      "tags": {
+        "objectif": [
+          "perte_de_gras",
+          "maintien"
+        ],
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 25
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "porc_filet",
+          "qty": 120,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "nouilles_riz",
+          "qty": 90,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "huile_olive",
+          "qty": 5,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "brocoli",
+          "qty": 120,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "miel",
+          "qty": 10,
+          "macro_role": "flavor",
+          "scalable": false
+        },
+        {
+          "ref": "sauce_soja",
+          "qty": 10,
+          "macro_role": "flavor",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Plonge les nouilles de riz dans un grand volume d’eau bouillante, coupe le feu et laisse-les gonfler 4 minutes, puis égoutte et rince à l’eau froide.",
+        "Fais cuire les bouquets de brocoli 5 minutes à la vapeur.",
+        "Coupe le porc en fines lanières et saisis-les 4 minutes à feu vif dans une poêle avec l’huile d’olive.",
+        "Ajoute le miel et la sauce soja, et laisse réduire 1 minute jusqu’à ce que la viande soit laquée. Ajoute les nouilles et le brocoli, mélange et sers."
+      ],
+      "why": "Une viande maigre laquée au miel, sur des nouilles de riz sans gluten ajouté.",
+      "macros_per_serving": {
+        "kcal": 596.6,
+        "protein": 36.4,
+        "carbs": 83.8,
+        "fat": 11.3
+      },
+      "wave": "2026-09-19-b13-porc"
+    },
+    {
+      "id": "rep296",
+      "name": "Porc à la crème de champignons et petits pois, pâtes complètes",
+      "category": "repas_complet",
+      "tags": {
+        "objectif": [
+          "perte_de_gras",
+          "maintien"
+        ],
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 25
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "porc_filet",
+          "qty": 120,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "pates_completes",
+          "qty": 75,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "creme_soja",
+          "qty": 40,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "champignons",
+          "qty": 120,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "petits_pois",
+          "qty": 80,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Fais cuire les pâtes dans une grande casserole d’eau salée bouillante le temps indiqué sur le paquet, puis égoutte-les.",
+        "Coupe le porc en lanières et fais-les dorer 4 minutes dans une poêle antiadhésive chaude, puis réserve-les.",
+        "Dans la même poêle, fais revenir les champignons émincés 6 minutes jusqu’à ce qu’ils rendent leur eau et dorent, puis ajoute les petits pois et laisse-les chauffer 3 minutes.",
+        "Ajoute la crème de soja et le porc, sale, poivre, et laisse napper 2 minutes à feu doux. Sers sur les pâtes."
+      ],
+      "why": "Une sauce crémeuse sans crème de vache, sur une viande maigre et des pâtes complètes.",
+      "macros_per_serving": {
+        "kcal": 572,
+        "protein": 42,
+        "carbs": 65.1,
+        "fat": 13.6
+      },
+      "wave": "2026-09-19-b13-porc"
+    },
+    {
+      "id": "rep297",
+      "name": "Filet mignon, purée de patate douce et roquette",
+      "category": "repas_complet",
+      "tags": {
+        "objectif": [
+          "perte_de_gras"
+        ],
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 35
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "porc_filet",
+          "qty": 120,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "patate_douce",
+          "qty": 300,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "huile_olive",
+          "qty": 8,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "roquette",
+          "qty": 60,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Épluche la patate douce, coupe-la en morceaux et fais-la cuire 20 minutes à la vapeur, puis écrase-la à la fourchette avec la moitié de l’huile d’olive, sel et muscade.",
+        "Coupe le filet mignon en médaillons épais et fais-les dorer 3 minutes de chaque côté dans une poêle chaude avec le reste d’huile.",
+        "Assaisonne la roquette d’un filet de jus de citron et de poivre.",
+        "Sers les médaillons sur la purée, avec la roquette à côté."
+      ],
+      "why": "La patate douce apporte des glucides lents et du bêta-carotène, le filet mignon les protéines.",
+      "macros_per_serving": {
+        "kcal": 479.3,
+        "protein": 31.8,
+        "carbs": 53,
+        "fat": 13.6
+      },
+      "wave": "2026-09-19-b13-porc"
+    },
+    {
+      "id": "rep298",
+      "name": "Curry de porc au lait de coco et riz complet",
+      "category": "repas_complet",
+      "tags": {
+        "objectif": [
+          "perte_de_gras",
+          "maintien"
+        ],
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 40
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "porc_filet",
+          "qty": 120,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "riz_complet",
+          "qty": 90,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "lait_coco",
+          "qty": 40,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "courgette",
+          "qty": 100,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "poivron",
+          "qty": 80,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Rince le riz complet, puis fais-le cuire 25 minutes à couvert et à feu doux dans deux fois et demie son volume d’eau salée.",
+        "Coupe le porc en cubes et fais-les dorer 5 minutes dans une poêle antiadhésive chaude.",
+        "Ajoute la courgette et le poivron en dés et une cuillère de curry en poudre, et fais sauter 5 minutes.",
+        "Verse le lait de coco, sale, et laisse mijoter 8 minutes à feu doux. Sers sur le riz complet."
+      ],
+      "why": "Un curry doux où le lait de coco reste un appoint, sur une viande maigre.",
+      "macros_per_serving": {
+        "kcal": 577.6,
+        "protein": 34.3,
+        "carbs": 71.1,
+        "fat": 15.7
+      },
+      "wave": "2026-09-19-b13-porc"
+    },
+    {
+      "id": "rep299",
+      "name": "Brochettes de porc, semoule et courgettes grillées",
+      "category": "repas_complet",
+      "tags": {
+        "objectif": [
+          "perte_de_gras",
+          "maintien"
+        ],
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 30
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "porc_filet",
+          "qty": 120,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "semoule_couscous",
+          "qty": 90,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "huile_olive",
+          "qty": 12,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "courgette",
+          "qty": 150,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "oignon",
+          "qty": 40,
+          "macro_role": "flavor",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Coupe le porc en cubes, mélange-les avec la moitié de l’huile d’olive, du paprika, du cumin et du sel, et laisse reposer 10 minutes.",
+        "Enfile les cubes sur des piques en alternant avec des morceaux d’oignon, et fais-les griller 10 minutes à la poêle ou au gril, en les retournant.",
+        "Fais griller les rondelles de courgette 6 minutes avec le reste d’huile.",
+        "Verse la semoule dans un bol, couvre-la d’eau bouillante salée à hauteur, laisse gonfler 5 minutes et égraine-la à la fourchette. Sers avec les brochettes et les courgettes."
+      ],
+      "why": "Des brochettes épicées et une semoule vite prête, pour un plat complet et équilibré.",
+      "macros_per_serving": {
+        "kcal": 611.6,
+        "protein": 38.3,
+        "carbs": 68.5,
+        "fat": 18.8
+      },
+      "wave": "2026-09-19-b13-porc"
+    },
+    {
+      "id": "rep300",
+      "name": "Porc aux lentilles et carottes",
+      "category": "repas_complet",
+      "tags": {
+        "objectif": [
+          "perte_de_gras"
+        ],
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 35
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "porc_filet",
+          "qty": 80,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "lentilles_cuites",
+          "qty": 100,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "pomme_de_terre",
+          "qty": 200,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "huile_olive",
+          "qty": 5,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "carotte",
+          "qty": 80,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Épluche les pommes de terre, coupe-les en morceaux et fais-les cuire 20 minutes à la vapeur.",
+        "Coupe le porc en morceaux et fais-les dorer 5 minutes dans une cocotte avec l’huile d’olive.",
+        "Ajoute la carotte en rondelles, un peu d’eau, du thym et une feuille de laurier, couvre et laisse mijoter 15 minutes.",
+        "Ajoute les lentilles égouttées et rincées, sale, poivre, et laisse chauffer 5 minutes. Sers avec les pommes de terre."
+      ],
+      "why": "Un plat de bistrot plus léger que le petit salé : viande maigre et lentilles pour les protéines.",
+      "macros_per_serving": {
+        "kcal": 452.4,
+        "protein": 31.7,
+        "carbs": 53.1,
+        "fat": 9.5
+      },
+      "wave": "2026-09-19-b13-porc"
+    },
+    {
+      "id": "rep301",
+      "name": "Wrap de porc effiloché, avocat, maïs et carotte",
+      "category": "repas_complet",
+      "tags": {
+        "objectif": [
+          "perte_de_gras",
+          "maintien"
+        ],
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 30
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "porc_filet",
+          "qty": 120,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "tortilla_complete",
+          "qty": 100,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "avocat",
+          "qty": 50,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "mais",
+          "qty": 60,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "carotte",
+          "qty": 60,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Fais cuire le filet mignon entier 20 minutes à feu doux dans une casserole d’eau frémissante salée, avec du paprika fumé et de l’ail.",
+        "Égoutte-le et effiloche-le à deux fourchettes.",
+        "Écrase l’avocat avec du jus de citron, du sel et du poivre.",
+        "Tartine les tortillas d’avocat, garnis de porc effiloché, de maïs égoutté et de carotte râpée, puis roule-les."
+      ],
+      "why": "Le porc effiloché, maigre et parfumé, se roule avec l’avocat en guise de sauce.",
+      "macros_per_serving": {
+        "kcal": 650.1,
+        "protein": 36.3,
+        "carbs": 67.6,
+        "fat": 24
+      },
+      "wave": "2026-09-19-b13-porc"
+    },
+    {
+      "id": "rep302",
+      "name": "Pita au porc grillé, sauce fromage blanc-concombre",
+      "category": "repas_complet",
+      "tags": {
+        "objectif": [
+          "perte_de_gras"
+        ],
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 25
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "porc_filet",
+          "qty": 100,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "pain_pita_complet",
+          "qty": 85,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "fromage_blanc_0",
+          "qty": 80,
+          "macro_role": "dairy",
+          "scalable": true
+        },
+        {
+          "ref": "huile_olive",
+          "qty": 5,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "tomate",
+          "qty": 80,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "concombre",
+          "qty": 80,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Coupe le porc en fines tranches, mélange-les avec l’huile d’olive, de l’origan, de l’ail et du sel, puis fais-les griller 5 minutes à feu vif.",
+        "Râpe la moitié du concombre, presse-le pour en retirer l’eau et mélange-le au fromage blanc avec du jus de citron, sel et poivre.",
+        "Coupe la tomate et le reste du concombre en dés.",
+        "Réchauffe les pitas, ouvre-les et garnis-les de porc, de crudités et de sauce."
+      ],
+      "why": "La sauce au fromage blanc remplace une sauce grasse et ajoute des protéines.",
+      "macros_per_serving": {
+        "kcal": 446,
+        "protein": 34.4,
+        "carbs": 50.3,
+        "fat": 10.9
+      },
+      "wave": "2026-09-19-b13-porc"
+    }
+  ]
+}
