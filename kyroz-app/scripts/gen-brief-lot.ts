@@ -12,13 +12,14 @@
  * Usage :
  *   npx tsx scripts/gen-brief-lot.ts              → génère les 6 lots dans Recette/lots/
  *   npx tsx scripts/gen-brief-lot.ts b2           → un seul lot
+ *   npx tsx scripts/gen-brief-lot.ts b7-coll --apercu → imprime le brief (même livré), n'écrit rien
  */
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import raw from '../Recette/recettes-kyroz.json';
 import { restrictionsOkFor } from '../lib/recipeDiet';
 import { RECIPE_INGREDIENTS, RECIPE_CONFIG, macrosForRefIngredients } from '../lib/recipeData';
-import { PROFILS_REF, ciblesDe, servable } from './mesure-couverture';
+import { PROFILS_REF, ciblesDe, ciblesR8, servable, type RegimeJuge } from './mesure-couverture';
 import type { MealType, Recipe } from '../lib/types';
 
 type Per100 = { kcal: number; protein: number; carbs: number; fat: number };
@@ -737,6 +738,57 @@ function tableauFacteurs(): string {
 // Cibles réelles des 12 profils, calculées une seule fois (48 générations de plan).
 const CIBLES = PROFILS_REF.map((g) => ({ nom: g.nom, c: ciblesDe(g) }));
 
+// ── D27.1 : les cibles publiées sont celles des régimes qui RECEVRONT le lot ────────
+//
+// ⚠️ Corrigé le 2026-09-18. Le tableau des 12 profils était écrit EN DUR depuis le 2026-07-30
+// (vague 113), sur des cibles omnivores, et n'avait jamais été régénéré : sept semaines et
+// plusieurs `ENGINE_REV` plus tard, il annonçait 115 kcal · 4 g P de collation à une femme de
+// 55 kg en sèche quand le moteur lui en sert ~185 · 13, et ignorait le dîner, qui est le
+// créneau exigeant du repas complet. R8 (`check:enveloppe`) juge chaque recette sur le PIRE des
+// régimes qui la reçoivent (`regimesJuges`) : le brief publie désormais ces mêmes cibles.
+
+const REGIME_FR: Record<RegimeJuge, string> = {
+  omnivore: 'omnivore', vegan: 'végane', vegetarian: 'végétarien', pescatarian: 'pescétarien',
+};
+
+/** Régimes jugés par R8 pour au moins une recette du lot, d'après sa répartition. */
+function regimesDuLot(lot: Lot): RegimeJuge[] {
+  const out = new Set<RegimeJuge>();
+  if (lot.regimes.libre > 0) out.add('omnivore');
+  if (lot.regimes.vegetarien > 0) { out.add('vegetarian'); out.add('pescatarian'); }
+  if (lot.regimes.vegan > 0) { out.add('vegan'); out.add('vegetarian'); out.add('pescatarian'); }
+  return (['omnivore', 'vegan', 'vegetarian', 'pescatarian'] as RegimeJuge[]).filter((r) => out.has(r));
+}
+
+let CIBLES_R8_CACHE: ReturnType<typeof ciblesR8> | null = null;
+const CIBLES_R8 = () => (CIBLES_R8_CACHE ??= ciblesR8());
+
+const SLOTS_CAT: Record<Recette['category'], MealType[]> = {
+  petit_dej: ['breakfast'], collation: ['snack'], repas_complet: ['lunch', 'dinner'],
+};
+const SLOT_FR: Record<MealType, string> = { breakfast: 'Petit-déj', lunch: 'Midi', dinner: 'Soir', snack: 'Collation' };
+
+function tableauProfils(lot: Lot): string {
+  const regimes = regimesDuLot(lot);
+  const slots = SLOTS_CAT[lot.categorie];
+  const plage = (xs: number[]) => {
+    const lo = Math.round(Math.min(...xs)); const hi = Math.round(Math.max(...xs));
+    return lo === hi ? `${lo}` : `${lo}–${hi}`;
+  };
+  const lignes = PROFILS_REF.map((g, i) => {
+    const cellules = slots.map((slot) => {
+      const t = regimes.map((r) => CIBLES_R8()[r][i].c[slot]);
+      return `${plage(t.map((x) => x.kcalMeal))} kcal · ${plage(t.map((x) => x.proteinMeal))} g P`;
+    });
+    return `| ${g.nom} | ${cellules.join(' | ')} |`;
+  });
+  return [
+    `| Profil | ${slots.map((s) => SLOT_FR[s]).join(' | ')} |`,
+    `|---|${slots.map(() => '---').join('|')}|`,
+    ...lignes,
+  ].join('\n');
+}
+
 /** Recette synthétique minimale, pour MESURER une enveloppe au lieu de l'affirmer. */
 function eprouvette(slot: MealType, parts: [string, number, string][]): Recipe {
   const ings = parts.map(([ref, qty, role]) => ({ ref, qty, macro_role: role, scalable: role !== 'vegetable' && role !== 'flavor' }));
@@ -755,7 +807,9 @@ const CAT_VERS_SLOT: Record<Recette['category'], MealType> = {
 
 /** Profils servis par une éprouvette, MESURÉ par `adaptRecipe` — jamais estimé. */
 function profilsServis(r: Recipe, slot: MealType): number {
-  return CIBLES.filter(({ c }) => servable(r, c[slot])).length;
+  // Un repas complet est servi midi ET soir : comme R8, on retient le pire des deux.
+  const slots = slot === 'lunch' ? (['lunch', 'dinner'] as MealType[]) : [slot];
+  return Math.min(...slots.map((s) => CIBLES.filter(({ c }) => servable(r, c[s])).length));
 }
 
 // ── Auto-contrôle du brief ───────────────────────────────────────────────────
@@ -942,23 +996,12 @@ pour ça que \`check:enveloppe\` note recette par recette.
 
 ### Les 12 profils que ta recette doit couvrir
 
-Cibles réelles calculées par l'application, moyennées sur 4 semaines de plans. La colonne qui
-compte pour toi est **${catFr}**.
+Cibles réelles calculées par l'application **au moment où ce brief a été généré**, moyennées sur
+4 semaines de plans, pour les régimes qui recevront les recettes de ce lot
+(${regimesDuLot(lot).map((r) => REGIME_FR[r]).join(', ')}). Une fourchette signale que ces régimes
+n'ont pas tout à fait la même cible : ta recette doit tenir pour les deux bouts.
 
-| Profil | kcal/jour | Petit-déj | Repas complet | Collation |
-|---|---|---|---|---|
-| Femme 55 kg, sèche | 1342 | 332 · 24 P | 421 · 31 P | 115 · 4 P |
-| Femme 60 kg, maintien | 1728 | 449 · 22 P | 540 · 26 P | 190 · 1 P |
-| Femme 65 kg, sèche | 1531 | 390 · 29 P | 477 · 35 P | 162 · 11 P |
-| Femme 65 kg, maintien | 1816 | 470 · 24 P | 568 · 28 P | 203 · 1 P |
-| Femme 70 kg, prise de masse | 2295 | 597 · 25 P | 720 · 28 P | 240 · 1 P |
-| Femme 80 kg, sèche | 1731 | 450 · 34 P | 549 · 41 P | 213 · 15 P |
-| Homme 65 kg, sèche | 1779 | 463 · 33 P | 563 · 40 P | 212 · 15 P |
-| Homme 70 kg, maintien | 2147 | 558 · 28 P | 677 · 33 P | 227 · 4 P |
-| Homme 80 kg, sèche | 2104 | 548 · 39 P | 671 · 48 P | 263 · 18 P |
-| Homme 80 kg, maintien | 2328 | 605 · 32 P | 738 · 38 P | 276 · 8 P |
-| Homme 95 kg, prise de masse | 2967 | 771 · 36 P | 928 · 41 P | 358 · 5 P |
-| Homme 110 kg, prise de masse | 3206 | 834 · 41 P | 1005 · 46 P | 381 · 7 P |
+${tableauProfils(lot)}
 
 Rien n'est genré dans une recette. Ce qui change entre un homme et une femme, c'est **la cible** :
 à poids et taille égaux la formule de dépense énergétique retire 161 kcal, et la moitié basse de
@@ -1292,6 +1335,11 @@ const aFaire = filtre ? LOTS.filter((l) => l.cle === filtre) : LOTS;
 if (!aFaire.length) {
   console.error(`Lot inconnu : ${filtre}. Disponibles : ${LOTS.map((l) => l.cle).join(', ')}`);
   process.exit(2);
+}
+
+if (process.argv.includes('--apercu')) {
+  for (const lot of aFaire) process.stdout.write(genere(lot));
+  process.exit(0);
 }
 
 let total = 0;

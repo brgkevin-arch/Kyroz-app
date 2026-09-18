@@ -1536,8 +1536,14 @@ produit en suspens — il ne reste qu'à coder.
      toutes 8 → 7). ⚠️ **Conséquence à connaître pour toute vague végétale** : les végétariens
      et pescétariens gardent la cible protéique pleine, donc un plat de légumineuses sans
      protéine très dense ne peut plus rétrécir assez pour les petits gabarits en sèche
-     (F 55/65/80, H 65) — la plupart plafonnent à 7/12. ℹ️ `gen-brief-lot.ts` publie toujours
-     des cibles omnivores dans les briefs : à aligner à la prochaine vague commandée.
+     (F 55/65/80, H 65) — la plupart plafonnent à 7/12. ✅ **Briefs alignés le 2026-09-18** :
+     `gen-brief-lot.ts` publiait un tableau des 12 profils écrit EN DUR le 2026-07-30 (cibles
+     omnivores d'un moteur périmé, sans le soir). Il est désormais CALCULÉ à la génération sur
+     les régimes jugés du lot (`regimesDuLot` → `ciblesR8`), midi ET soir pour un repas complet.
+     Mesuré : le vrai écart n'était pas vegan/omnivore (≤ 5 g P, et une recette vegan doit
+     tenir aussi pour le végétarien, dont la cible = l'omnivore) mais la PÉREMPTION — collation
+     F 55 sèche annoncée 115 kcal · 4 g P, servie ~183 · 12. Aperçu sans écrire :
+     `npx tsx scripts/gen-brief-lot.ts <lot> --apercu`.
      Constat d'origine :
      🔴 **Le contrôle R8 juge les recettes véganes sur des cibles d'OMNIVORE.** Le contrôle
      d'enveloppe (`scripts/mesure-couverture.ts`) construit ses cibles par `ciblesDe(g)`, sans
