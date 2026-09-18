@@ -75,8 +75,8 @@ describe('un mot au début d’un nom composé (2026-09-18)', () => {
     // syntaxe. Sans cette sonde, on pourrait « généraliser » la règle de la pomme et
     // casser la tomate sans que rien ne le dise.
     expect(compte('tomate')).toBeGreaterThan(compte('tomate concassee'));
-    expect(compte('tomate concassee')).toBe(46);
-    expect(compte('tomate')).toBe(111);
+    expect(compte('tomate concassee')).toBe(47);
+    expect(compte('tomate')).toBe(112);
   });
 });
 

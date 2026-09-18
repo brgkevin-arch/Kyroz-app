@@ -35,7 +35,8 @@ describe('recipeData', () => {
       // 2026-09-13 (après B11, d'où l'ordre des nombres). 516 → 541.
       '2026-09-07-b10-registre-francais': 25,
       // B12 : 4 repas complets sur quatre pièces végétales qu'aucune recette n'employait
-      // (saucisse, steak de soja, nuggets, lardons), chacune avec UNE seconde protéine.
+      // (saucisse, steak de soja, nuggets, lardons), chacune avec UNE seconde protéine
+      // (lentilles, lentilles corail, tempeh, seitan).
       // L'escalope végétale n'a pas tenu R8. 541 → 545.
       '2026-09-18-b12-pieces-vegetales': 4,
       '2026-08-03-b8-collations-vegan-sg': 8,

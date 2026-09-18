@@ -39,9 +39,9 @@ describe('les trois familles', () => {
   });
 
   it('« légumineuses » marche au singulier, au pluriel et avec l’article', () => {
-    expect(compte('legumineuses')).toBe(100);
-    expect(compte('legumineuse')).toBe(100);
-    expect(compte('les legumineuses')).toBe(100);
+    expect(compte('legumineuses')).toBe(98);
+    expect(compte('legumineuse')).toBe(98);
+    expect(compte('les legumineuses')).toBe(98);
   });
 });
 

@@ -1560,21 +1560,26 @@ produit en suspens — il ne reste qu'à coder.
      peu de légumineuse ou une deuxième source de protéine, une ou deux recettes par aliment »*.
      4 repas complets, **deux protéines au plus** (une troisième aurait été du remplissage) :
      `rep285` saucisses-lentilles-pommes de terre, `rep286` steak de soja et pâtes à la sauce
-     tomate aux lentilles corail, `rep287` nuggets et riz sauté aux edamame et courgette, `rep288`
-     pâtes aux lardons végétaux, petits pois et edamame. **Tous à 8/12 exactement** sur
-     `check:enveloppe` : les marges sont MINCES, et les cibles se relisent sur le catalogue, donc
-     une vague suivante peut en faire retomber un à 7 (vu deux fois pendant l'écriture).
-     Dosages choisis au CENTRE d'une zone à 8, jamais sur un point isolé.
+     tomate aux lentilles corail, `rep287` nuggets et riz sauté au tempeh et courgette, `rep288`
+     pâtes à la bolognaise de seitan et lardons végétaux. `check:enveloppe` : **9, 8, 8, 9 / 12**.
+     🔴 **Première version : trois plats sur quatre à l'edamame** (le chercheur de dosages le
+     trouvait partout, 8,8 g P / 100 kcal). Relevé par le fondateur (*« il n'y a pas autre chose
+     que les edamame ? »*) : tempeh et seitan tiennent AUSSI bien, haricots et pois chiches
+     plafonnent à 7. ➡️ **Diversifier la seconde protéine est une contrainte de départ**, pas
+     un réglage de fin : un optimiseur rend toujours le même ingrédient.
+     ⚠️ **Marges minces, et elles bougent avec le catalogue** : les cibles R8 se relisent sur les
+     plans servis, donc réécrire deux recettes a fait passer les deux AUTRES de 8 à 7 (vérifié :
+     même verdict avec 16 semaines au lieu de 4, ce n'est pas du bruit d'échantillon, c'est un
+     vrai déplacement des cibles végé/vegan). Une vague suivante peut en refaire tomber un.
      🚫 **L'escalope végétale n'a pas de recette** : panée et peu dense (13 g P / 221 kcal), elle
      plafonne à 7/12 avec toute seconde protéine sauf le seitan (deux pièces au blé dans la même
      assiette), et à 8 sur deux points isolés seulement.
-     ⚠️ Le steak de soja perd le sans-gluten (pâtes) : sans gluten, aucune association ne passait 8.
+     ⚠️ Seules les saucisses restent sans gluten : sans gluten, le steak ne passait pas 8.
      ⚠️ Les pièces portent leur gras : `recipeMap.test` exige un ingrédient `fat` au-delà de
      12 g — d'où l'huile de cuisson de `rep287`/`rep288`, les deux autres restant « maigres ».
-     **Servis, mesuré sur 96 semaines par régime** : vegan 4,4 % des repas midi/soir, végétarien
-     3,8 %, pescétarien 1,6 %, vegan sans gluten 1,3 % (saucisses seules), **omnivore 1,3 %**
-     (nuggets, lardons — permis : le mur D35 ne vise que tofu et soja texturé). Steak et
-     saucisses sortent rarement.
+     **Servis, mesuré sur 96 semaines par régime** (part des repas midi/soir) : végétarien
+     3,9 %, vegan 2,9 %, vegan sans gluten 2,1 % (saucisses), pescétarien 1,2 %, omnivore 0,4 %
+     (nuggets, bolognaise — permis : le mur D35 ne vise que tofu et soja texturé).
   3. **Plats salés servis au petit-déjeuner ou en collation** (arbitrage du 2026-09-10, §2.3).
      `pd118` « Châtaigne fondante au soja texturé » (avec haricots verts) et `col92`
      « Champignons poêlés à la châtaigne » sont **inchangés** au 2026-09-13. Le « ~6 » de

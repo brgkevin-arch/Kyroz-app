@@ -34,7 +34,7 @@
         "2026-08-03-b9-collations-grand-format": 8,
         "2026-09-10-b11-pieces-vegetales": "4 repas complets vegan bâtis sur les PIÈCES végétales ajoutées le même jour (haché, émincé, boulettes, galette) plutôt que sur un yaourt ou une poudre.",
         "2026-09-07-b10-registre-francais": 25,
-        "2026-09-18-b12-pieces-vegetales": "4 repas complets sur quatre des cinq pièces végétales qu’aucune recette n’employait (saucisse, steak de soja, nuggets, lardons), chacune associée à UNE seconde protéine — lentilles ou edamame, jamais une troisième. L’escalope végétale n’a PAS de recette : panée et peu dense (13 g de protéines pour 221 kcal), aucune association à deux protéines ne tient R8 ailleurs que sur un point isolé (mesuré le 2026-09-18)."
+        "2026-09-18-b12-pieces-vegetales": "4 repas complets sur quatre des cinq pièces végétales qu’aucune recette n’employait (saucisse, steak de soja, nuggets, lardons), chacune associée à UNE seconde protéine — lentilles, tempeh ou seitan, jamais une troisième. L’escalope végétale n’a PAS de recette : panée et peu dense (13 g de protéines pour 221 kcal), aucune association à deux protéines ne tient R8 ailleurs que sur un point isolé (mesuré le 2026-09-18)."
       },
       "convention": "Toute nouvelle vague reprend le NOM DU DOSSIER de son drop (AAAA-MM-JJ-<bloc>), pour qu'on retrouve la matière première d'une recette sans fouiller l'historique git."
     }
@@ -32314,7 +32314,7 @@
         },
         {
           "ref": "lentilles_cuites",
-          "qty": 300,
+          "qty": 350,
           "macro_role": "protein",
           "scalable": true
         },
@@ -32346,10 +32346,10 @@
       ],
       "why": "Les lentilles apportent autant de protéines que la saucisse, sans ajouter de gras.",
       "macros_per_serving": {
-        "kcal": 697.6,
-        "protein": 43,
-        "carbs": 88.8,
-        "fat": 12.2
+        "kcal": 760.1,
+        "protein": 48.1,
+        "carbs": 96.9,
+        "fat": 12.5
       },
       "wave": "2026-09-18-b12-pieces-vegetales"
     },
@@ -32359,7 +32359,8 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "perte_de_gras"
+          "perte_de_gras",
+          "maintien"
         ],
         "sport": [
           "muscu"
@@ -32370,7 +32371,7 @@
       "ingredients": [
         {
           "ref": "steak_soja",
-          "qty": 60,
+          "qty": 70,
           "macro_role": "protein",
           "scalable": true
         },
@@ -32401,21 +32402,20 @@
       ],
       "why": "Les lentilles corail épaississent la sauce et complètent les protéines du steak de soja.",
       "macros_per_serving": {
-        "kcal": 542.9,
-        "protein": 32.8,
-        "carbs": 68.7,
-        "fat": 10.8
+        "kcal": 568.1,
+        "protein": 34.3,
+        "carbs": 69.6,
+        "fat": 12.3
       },
       "wave": "2026-09-18-b12-pieces-vegetales"
     },
     {
       "id": "rep287",
-      "name": "Nuggets végétaux, riz sauté aux edamame et courgette",
+      "name": "Nuggets végétaux, riz sauté au tempeh et courgette",
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "perte_de_gras",
-          "maintien"
+          "perte_de_gras"
         ],
         "sport": [
           "muscu"
@@ -32431,14 +32431,14 @@
           "scalable": true
         },
         {
-          "ref": "edamame",
-          "qty": 130,
+          "ref": "tempeh",
+          "qty": 80,
           "macro_role": "protein",
           "scalable": true
         },
         {
           "ref": "riz_basmati",
-          "qty": 55,
+          "qty": 60,
           "macro_role": "carb",
           "scalable": true
         },
@@ -32453,42 +32453,35 @@
           "qty": 100,
           "macro_role": "vegetable",
           "scalable": false
-        },
-        {
-          "ref": "sauce_soja",
-          "qty": 10,
-          "macro_role": "flavor",
-          "scalable": false
         }
       ],
       "instructions": [
         "Préchauffe le four à 200 °C et fais cuire les nuggets végétaux 12 à 15 minutes sur une plaque, en les retournant à mi-cuisson.",
-        "Fais cuire le riz 11 minutes dans une casserole d'eau salée bouillante ; ajoute les edamame pour les 4 dernières minutes, puis égoutte. Coupe la courgette en petits dés.",
-        "Chauffe l'huile d'olive dans une poêle et fais-y sauter la courgette 4 minutes à feu vif, puis ajoute le riz, les edamame, la sauce soja et une gousse d'ail hachée, et fais sauter encore 2 minutes.",
-        "Sers le riz sauté avec les nuggets à côté."
+        "Fais cuire le riz 11 minutes dans une casserole d'eau salée bouillante, puis égoutte-le. Coupe le tempeh et la courgette en petits dés.",
+        "Chauffe l'huile d'olive dans une poêle et fais dorer le tempeh 4 minutes à feu vif, puis ajoute la courgette, une gousse d'ail hachée et du paprika fumé, et fais sauter encore 4 minutes.",
+        "Ajoute le riz, sale, poivre, mélange 2 minutes à feu vif et sers avec les nuggets à côté."
       ],
-      "why": "Les edamame doublent les protéines des nuggets, la courgette donne du volume au riz.",
+      "why": "Le tempeh doré double les protéines des nuggets, la courgette donne du volume au riz.",
       "macros_per_serving": {
-        "kcal": 572.1,
-        "protein": 29.4,
-        "carbs": 68.6,
-        "fat": 18.7
+        "kcal": 548.8,
+        "protein": 27.7,
+        "carbs": 67,
+        "fat": 16
       },
       "wave": "2026-09-18-b12-pieces-vegetales"
     },
     {
       "id": "rep288",
-      "name": "Pâtes aux lardons végétaux, petits pois et edamame",
+      "name": "Pâtes à la bolognaise de seitan et lardons végétaux",
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "perte_de_gras",
-          "maintien"
+          "perte_de_gras"
         ],
         "sport": [
           "muscu"
         ],
-        "temps_min": 20
+        "temps_min": 25
       },
       "base_servings": 1,
       "ingredients": [
@@ -32499,14 +32492,14 @@
           "scalable": true
         },
         {
-          "ref": "edamame",
-          "qty": 120,
+          "ref": "seitan",
+          "qty": 80,
           "macro_role": "protein",
           "scalable": true
         },
         {
           "ref": "pates_completes",
-          "qty": 70,
+          "qty": 60,
           "macro_role": "carb",
           "scalable": true
         },
@@ -32517,29 +32510,24 @@
           "scalable": true
         },
         {
-          "ref": "petits_pois",
-          "qty": 60,
+          "ref": "tomate_concassee",
+          "qty": 120,
           "macro_role": "vegetable",
-          "scalable": false
-        },
-        {
-          "ref": "oignon",
-          "qty": 30,
-          "macro_role": "flavor",
           "scalable": false
         }
       ],
       "instructions": [
-        "Fais cuire les pâtes dans une grande casserole d'eau salée bouillante le temps indiqué sur le paquet ; ajoute les petits pois et les edamame 4 minutes avant la fin, puis égoutte en gardant une louche d'eau de cuisson.",
-        "Pendant ce temps, émince l'oignon et fais-le dorer 5 minutes avec les lardons végétaux dans l'huile d'olive, à feu moyen.",
-        "Verse les pâtes et les légumes dans la poêle avec un peu d'eau de cuisson, poivre, et mélange 1 minute à feu vif pour lier le tout."
+        "Hache finement le seitan au couteau.",
+        "Fais dorer les lardons végétaux 3 minutes dans l'huile d'olive à feu moyen, ajoute le seitan haché et une gousse d'ail écrasée, et laisse colorer 3 minutes.",
+        "Verse la tomate concassée, ajoute de l'origan, sale, poivre, et laisse mijoter 12 minutes à feu doux.",
+        "Pendant ce temps, fais cuire les pâtes dans une grande casserole d'eau salée bouillante le temps indiqué sur le paquet, égoutte-les et mélange-les à la sauce."
       ],
-      "why": "Les edamame portent l’essentiel des protéines, les lardons donnent le goût fumé.",
+      "why": "Le seitan fait la base protéinée de la sauce, les lardons lui donnent le goût fumé.",
       "macros_per_serving": {
-        "kcal": 596.2,
-        "protein": 30.7,
-        "carbs": 70.6,
-        "fat": 19.2
+        "kcal": 478.8,
+        "protein": 31,
+        "carbs": 52.6,
+        "fat": 14.9
       },
       "wave": "2026-09-18-b12-pieces-vegetales"
     },
