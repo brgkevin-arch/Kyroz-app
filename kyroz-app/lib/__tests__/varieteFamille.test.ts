@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { buildLocalPlan, familyKey } from '../planEngine';
+import { goutRecette } from '../gout';
 import { recalcProfile } from '../tdee';
 import { getEffectiveRecipes } from '../recipes';
 import type { DietaryRestriction, Recipe, UserProfile } from '../types';
@@ -38,23 +39,17 @@ const gabarit = (over: Partial<UserProfile> = {}): UserProfile => recalcProfile(
 } as UserProfile);
 
 /**
- * Miroir du groupement de `familyKey`, créneau compris (les pools sont par créneau).
+ * Le groupement de `familyKey`, créneau compris (les pools sont par créneau) — la clé du
+ * MOTEUR, pas une copie.
  *
- * 🔴 UNE RECETTE SANS FÉCULENT EST SA PROPRE FAMILLE — décision fondateur du 2026-09-14.
- * `familyKey` range toutes les recettes sans féculent d'une même protéine dans une seule
- * famille (`yaourt_soja_proteine×∅`). CLAUDE.md §6 l'avait noté : c'est une question de
- * PRODUIT, pas de métrique. Elle a été posée quand D30 (collations « sur le pouce ») a
- * fait remonter la mesure : sur 60 plans canoniques, 21 des 31 « jumelles » étaient deux
- * collations au yaourt de soja différentes (fruits rouges, amandes). Réponse : « non,
- * c'est normal ». Seules comptent désormais les vraies jumelles, même protéine ET même
- * féculent. ⚠️ Le MOTEUR, lui, n'a pas changé : `familyKey` et sa pénalité sont intacts.
- * Mesuré avec cette clé (moteur D30) : panel de 16 semaines 4 semaines / 5 paires, et
- * **10 semaines / 11 paires sans la rotation par famille** (`famActive` à false) — les
- * bornes ci-dessous tombent toujours quand le mécanisme disparaît.
+ * Historique : le 2026-09-14, le fondateur avait tranché que deux collations au yaourt de soja
+ * à des fruits différents ne sont pas une répétition (« non, c'est normal ») ; seul CE test
+ * l'avait appris (« une recette sans féculent est sa propre famille »), le moteur et
+ * `mesure-variete.ts` non. Depuis le 2026-09-18, c'est `familyKey` qui le porte, plus finement :
+ * sans féculent, le FRUIT fait le second axe (même fruit = clone, fruit différent = autre plat),
+ * et le GOÛT sépare sucré et salé. Tout le monde lit la même clé.
  */
-const cle = (r: Recipe) => familyKey(r).endsWith('×∅')
-  ? `seule|${r.id}`
-  : `${r.tags.includes('snack') ? 'c' : r.tags.includes('breakfast') ? 'p' : 'r'}|${familyKey(r)}`;
+const cle = (r: Recipe) => `${r.tags.includes('snack') ? 'c' : r.tags.includes('breakfast') ? 'p' : 'r'}|${familyKey(r)}`;
 
 /** Nb de semaines contenant ≥ 2 recettes DIFFÉRENTES d'une même famille, et nb de paires. */
 function quasiDoublons(): { semaines: number; avecClone: number; paires: number } {
@@ -98,14 +93,31 @@ describe('rotation par FAMILLE (protéine × féculent)', () => {
     expect(paires, `${paires} paires servies (12 mesuré, 21 sans la clé)`).toBeLessThanOrEqual(15);
   });
 
-  it('la clé de famille est le MIROIR du triplet anti-doublons R4', () => {
-    // Si les deux divergent, le moteur arbitre sur autre chose que ce que le catalogue
-    // contrôle — et les deux mesures cessent de parler du même objet.
-    for (const r of getEffectiveRecipes().slice(0, 60)) {
+  it('la clé de famille AFFINE le triplet anti-doublons R4, sans jamais le contredire', () => {
+    // R4 (catalogue) compte protéine × féculent ; `familyKey` y ajoute le goût, et le fruit quand
+    // il n'y a pas de féculent (2026-09-18). Deux recettes de même clé ont donc TOUJOURS le même
+    // triplet R4 : le moteur ne regroupe jamais ce que le catalogue sépare.
+    for (const r of getEffectiveRecipes()) {
       const P = r.ingredients.filter((i) => i.macro_role === 'protein').map((i) => i.ref).sort().join('+') || '∅';
       const C = r.ingredients.filter((i) => i.macro_role === 'carb').map((i) => i.ref).sort().join('+') || '∅';
-      expect(familyKey(r), r.id).toBe(`${P}×${C}`);
+      const F = r.ingredients.filter((i) => i.macro_role === 'fruit').map((i) => i.ref).sort().join('+') || '∅';
+      const second = C !== '∅' ? C : F !== '∅' ? `fruit:${F}` : '∅';
+      expect(familyKey(r), r.id).toBe(`${P}×${second}|${goutRecette(r)}`);
     }
+  });
+
+  it('même fruit sans féculent = même famille ; autre fruit ou autre goût = autre famille', () => {
+    const R = getEffectiveRecipes();
+    const col = (id: string) => familyKey(R.find((r) => r.id === id)!);
+    // col43 (banane, chocolat, cacahuète) et la même assiette garnie autrement : même yaourt,
+    // même banane — la répétition que le fondateur VOIT (col26/col53 l'étaient avant le 2026-09-18).
+    const c43 = R.find((r) => r.id === 'col43')!;
+    const garnieAutrement = { ...c43, id: 'clone', ingredients: c43.ingredients.map((i) => i.ref === 'chocolat_noir' ? { ...i, ref: 'graines_courge' } : i) };
+    expect(familyKey(garnieAutrement)).toBe(col('col43'));
+    // col39 (chia-framboises) et col54 (compote pomme-chia) : même yaourt, autre fruit — « normal ».
+    expect(col('col39')).not.toBe(col('col54'));
+    // pd21 (pain perdu banane) et pd87 (blancs brouillés sur pain) : même couple, goût opposé.
+    expect(familyKey(R.find((r) => r.id === 'pd21')!)).not.toBe(familyKey(R.find((r) => r.id === 'pd87')!));
   });
 
   it('le PREMIER plan servi n\'est pas le moins varié (FAMILY_SELECT_W_CANON)', () => {

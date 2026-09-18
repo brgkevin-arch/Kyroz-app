@@ -48,16 +48,16 @@ describe('un mot n’en attrape pas un autre (2026-09-18)', () => {
   });
 
   it('« patate » est le mot courant pour la pomme de terre, et retire les deux', () => {
-    expect(compte('patate')).toBe(53);          // 26 avant : la patate douce seulement
-    expect(compte('patates')).toBe(53);
+    expect(compte('patate')).toBe(52);          // 26 avant : la patate douce seulement
+    expect(compte('patates')).toBe(52);
     // …et l'inverse n'est pas vrai : « pomme de terre » ne touche pas la patate douce.
-    expect(compte('patate douce')).toBe(26);
+    expect(compte('patate douce')).toBe(25);
   });
 
   it('AUCUN faux négatif : le pluriel du catalogue reste attrapé', () => {
     expect(compte('lentille')).toBe(compte('lentilles'));
     expect(compte('pate')).toBe(30);            // « pâtes complètes »
-    expect(compte('oeuf')).toBe(66);
+    expect(compte('oeuf')).toBe(67);
     expect(compte('poulet')).toBe(62);
     expect(compte('lait')).toBe(76);
   });

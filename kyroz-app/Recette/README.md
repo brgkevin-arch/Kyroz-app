@@ -144,7 +144,10 @@ fichiers de `lots/` en sont la projection opérationnelle.
    mauvais. Une recette rejetée est **réécrite**, pas retouchée : une correction locale déplace le
    problème au lieu de le supprimer.
    - `npm run check:doublons -- <drop.json>` → confronte le lot au catalogue live **et** les
-     recettes du lot entre elles (Jaccard, refs communs, triplet structurel, noms).
+     recettes du lot entre elles (Jaccard, refs communs, triplet structurel, noms) — et, depuis
+     le 2026-09-18, **R6 : aucune recette ne rejoint une famille déjà occupée** (protéines ×
+     féculent, ou × fruit sans féculent, et le goût — la clé que le moteur fait tourner). Le
+     brief de chaque lot publie la liste des familles prises.
    - `npm run check:enveloppe -- <drop.json>` → règle R8 : chaque recette est adaptée **par le
      moteur** sur les 12 profils de référence, **6 femmes et 6 hommes**. C'est le contrôle qui
      manquait le plus longtemps, et son absence coûte cher : mesuré le 2026-07-29, **48 des 66

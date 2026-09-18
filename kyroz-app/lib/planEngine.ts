@@ -803,12 +803,8 @@ function vegetalEnRetraitIds(profile: UserProfile): Set<string> {
   return ids;
 }
 
-/** Omnivore : déjeuners ou dîners à protéine 100 % végétale servis au plus par semaine (D29). */
-export const VEGETAL_MAX_SEMAINE = 3;
 /** Case « Omnivore » + « Végétal » : part des déjeuners et dîners de la semaine à protéine végétale (D36). */
 export const VEGETAL_OMNIVORE_PART = 0.1;
-/** Omnivore : au plus un déjeuner ou dîner 100 % végétal par jour. */
-export const VEGETAL_MAX_JOUR = 1;
 /** Pescétarien : au plus un déjeuner ou dîner SANS poisson par jour (œufs et laitages admis). */
 export const PESCE_SANS_POISSON_MAX_JOUR = 1;
 
@@ -831,11 +827,13 @@ export interface RegleVegetal {
  * 100 % végétal. La mise en retrait de la v50 ne le touchait pas : elle ne s'arme que
  * sur des protéines cochées, et « Peu importe » est une liste vide.
  *
- *  - omnivore (« Peu importe » compris, sans lactose, sans gluten, halal, sans porc) :
- *    au plus 3 déjeuners ou dîners à protéine 100 % végétale par semaine, et un par jour ;
+ *  - qui mange de la viande (case « Omnivore », « Peu importe », sans lactose, sans gluten,
+ *    halal, sans porc) : AUCUN déjeuner ni dîner à protéine 100 % végétale ; avec « Végétal »
+ *    coché, 10 % d'entre eux (D36, étendu à tous les mangeurs de viande le 2026-09-19 — le
+ *    plafond de 3 par semaine de D29 n'existe plus) ;
  *  - pescétarien : au plus un déjeuner ou dîner sans poisson par jour. Ce repas-là est
  *    VÉGÉTARIEN, pas forcément végan : les œufs et les laitages y comptent ;
- *  - « Végétal » coché, végétarien, vegan : aucune règle.
+ *  - végétarien, vegan (et pescétarien avec « Végétal » coché) : aucune règle.
  *
  * ⚠️ Le petit-déjeuner et la collation ne comptent pas : un yaourt de soja à 16 h n'est
  * pas « un repas végétal » pour qui le mange.
@@ -848,7 +846,12 @@ export function regleVegetal(profile: UserProfile): RegleVegetal | null {
   // déjeuners et dîners de la semaine (au moins 1). Le petit-déjeuner et la collation ne
   // comptent pas, comme pour D29 — mesuré : les en retirer aussi multipliait par 12 les repas
   // mal calibrés (8 → 94 sur 5 376), ne retirer que les plats principaux n'en coûtait aucun.
-  if (regimes.includes('omnivore') && !regimes.some((r) => r === 'vegan' || r === 'vegetarian' || r === 'pescatarian')) {
+  // 🔴 ET SANS RIEN COCHER, C'EST LA MÊME RÈGLE (décision fondateur du 2026-09-19 : « un omnivore
+  // qui ne coche rien ne doit pas avoir de végétal »). Jusque-là, un profil sans régime (ancien
+  // compte, case laissée vide, ou seulement halal / sans porc / sans gluten / sans lactose) gardait
+  // la règle souple de D29 — 3 plats végétaux par semaine — et, en « Répétitif », pouvait recevoir
+  // trois fois le même poulet végétal. Qui mange de la viande reçoit ce que reçoit la case Omnivore.
+  if (mangeDeLaViande(profile)) {
     const vegetalOmni = new Set(PROTEIN_REFS['végétal']);
     const idsOmni = new Set<string>();
     for (const r of getEffectiveRecipes()) {
@@ -862,18 +865,14 @@ export function regleVegetal(profile: UserProfile): RegleVegetal | null {
     return { ids: idsOmni, maxSemaine: Math.max(1, Math.round(VEGETAL_OMNIVORE_PART * principaux)), maxJour: 1 };
   }
   if (prefs.includes('végétal') || regimes.includes('vegan') || regimes.includes('vegetarian')) return null;
+  if (!regimes.includes('pescatarian')) return null;
+  // Pescétarien (le seul cas restant : qui mange de la viande est traité plus haut, végétarien
+  // et vegan n'ont aucune règle). L'ancien plafond « omnivore » de D29 (3 par semaine, 1 par
+  // jour) a disparu le 2026-09-19 : plus aucun profil ne l'atteignait.
   const ids = new Set<string>();
-  if (regimes.includes('pescatarian')) {
-    const poisson = new Set(PROTEIN_REFS.poisson);
-    for (const r of getEffectiveRecipes()) if (!proteinRefsOf(r).some((x) => poisson.has(x))) ids.add(r.id);
-    return { ids, maxSemaine: Infinity, maxJour: PESCE_SANS_POISSON_MAX_JOUR };
-  }
-  const vegetal = new Set(PROTEIN_REFS['végétal']);
-  for (const r of getEffectiveRecipes()) {
-    const pr = proteinRefsOf(r);
-    if (pr.length > 0 && pr.every((x) => vegetal.has(x))) ids.add(r.id);
-  }
-  return { ids, maxSemaine: VEGETAL_MAX_SEMAINE, maxJour: VEGETAL_MAX_JOUR };
+  const poisson = new Set(PROTEIN_REFS.poisson);
+  for (const r of getEffectiveRecipes()) if (!proteinRefsOf(r).some((x) => poisson.has(x))) ids.add(r.id);
+  return { ids, maxSemaine: Infinity, maxJour: PESCE_SANS_POISSON_MAX_JOUR };
 }
 
 interface AdaptedChoice {
@@ -908,7 +907,12 @@ interface AdaptedChoice {
  * Un tag de contenu ne peut pas arbitrer mieux que le moteur qui, lui, mesure.
  */
 /**
- * Clé de FAMILLE d'une recette : `refs protéine × refs glucide`.
+ * Clé de FAMILLE d'une recette : `refs protéine × refs glucide` (× fruit sans glucide).
+ *
+ * ⚠️ SOURCE UNIQUE : `mesure-variete.ts`, `mesure-reglages.ts` et `varieteFamille.test.ts`
+ * l'IMPORTENT. Jusqu'au 2026-09-18 chacun en recopiait la formule ; le script de mesure n'a
+ * donc jamais appris la décision du 2026-09-14, et il a accusé D30 d'une hausse de 5 à 25 %
+ * qui était, pour moitié, ce que le fondateur venait de déclarer normal.
  *
  * C'est le même triplet que la règle anti-doublons R4 du catalogue, moins la catégorie
  * (les pools sont déjà séparés par créneau). Deux recettes qui partagent cette clé sont
@@ -919,7 +923,18 @@ interface AdaptedChoice {
 export function familyKey(r: Recipe): string {
   const refs = (role: string) =>
     r.ingredients.filter((i) => i.macro_role === role).map((i) => i.ref ?? i.name).sort().join('+') || '∅';
-  return `${refs('protein')}×${refs('carb')}`;
+  const carb = refs('carb');
+  // 🔴 SANS FÉCULENT, LE FRUIT FAIT LE SECOND AXE (décision fondateur du 2026-09-18).
+  // `protéine × ∅` rangeait dans UNE famille huit collations au yaourt de soja qu'un humain
+  // distingue (pudding de chia aux framboises, compote pomme-chia, smoothie à l'ananas) — le
+  // fondateur l'avait tranché le 2026-09-14 (« non, c'est normal »), mais seul un test l'avait
+  // appris. À l'inverse, « chaque recette sans féculent est sa propre famille » laisserait
+  // passer les vrais clones (même yaourt, même banane). Même fruit = même assiette ; fruit
+  // différent = autre plat. Sans fruit non plus, la clé reste `∅`.
+  // Et le GOÛT (D28) sépare ce que protéine × féculent confond : un pain perdu à la banane et
+  // des blancs d'œufs brouillés sur pain complet ont la même clé, pas la même assiette.
+  const fruit = refs('fruit');
+  return `${refs('protein')}×${carb !== '∅' ? carb : fruit !== '∅' ? `fruit:${fruit}` : '∅'}|${goutRecette(r)}`;
 }
 
 /**
@@ -1330,7 +1345,7 @@ export function nextPlanSeed(stored: string | null, reroll: boolean): number {
 // Version du moteur de génération : à incrémenter quand le scoring/sélection
 // change, pour que les plans EN CACHE se régénèrent automatiquement (la signature
 // change → l'auto-refresh de l'écran Plan rejoue la génération). v2 = lipides cadrés.
-const ENGINE_VERSION = 59; // v59 = vague B12 : 4 repas complets sur les pièces végétales jamais servies (saucisse, steak de soja, nuggets, lardons), et « lardons_vegetaux » rangé dans la case Végétal des préférences : familles neuves, les plans en cache ne les verraient pas ; v58 = trois correctifs du 2026-09-17 : le pluriel et l’article des aliments évités filtrent enfin (« tofus », « le tofu »), les sept pièces végétales de D32 passent « rares » (2 repas par semaine au lieu de 5) et la semaine révolue se renouvelle ; la sélection change, un plan en cache servirait l’ancienne ; v57 = ni soja texturé ni tofu chez un omnivore (D35) : mur dur dans recipeAllowed, 40 recettes sortent du vivier de qui mange de la viande, la sélection change, un plan en cache servirait l’ancienne ; v56 = plus de soja texturé de remplissage (D34) : 46 recettes réécrites sous les mêmes ids (le soja texturé remplacé par les protéines végétales de la liste : poulet végétal, jambon, chorizo, haché, émincés, boulettes, tempeh ; noms sans « soja »), composition changée, un plan en cache servirait l’ancienne recette ; v55 = pas de remplissage (D33) : 104 recettes réécrites sous les mêmes ids (graines, purées d’oléagineux, crème et poudre protéinée retirées des plats salés, laitages géants remplacés, macros et objectifs recalculés), composition changée, un plan en cache servirait l’ancienne recette ; v54 = lecture humaine (D30, lib/repasHumain.ts) : plus de plat du midi au petit-déjeuner, collations de 10 minutes au plus sans cuisson, le même féculent une fois par jour, ingrédient de base courant 5 repas par semaine et rare 2, et en « Équilibré » le même plat au dîner des jours 1, 3 et 5 puis au déjeuner du lendemain, chaque repas avec ses propres quantités. La sélection change, un plan en cache servirait l’ancienne ; v53 = cohérence de la journée (D29) : au plus 3 déjeuners ou dîners 100 % végétaux par semaine chez l’omnivore (« Peu importe » compris), un par jour, étalés sur la semaine ; halal et sans porc servis comme un omnivore qui a coché ses protéines ; au plus un déjeuner ou dîner sans poisson par jour chez le pescétarien ; jamais la même recette deux fois le même jour. La sélection change, un plan en cache servirait l’ancienne ; v52 = goût déclaré au petit-déjeuner et à la collation (sucré ou salé, lib/gout.ts, D28) : pénalité hors goût et part garantie de 70 %, la sélection change pour qui a répondu ; v51 = vague B10 (25 recettes du registre quotidien français : 15 petits-déjeuners pd123 à pd137, 10 collations salées col111 à col120) ET rotation par REGISTRE (registreKey, D25) : un porridge déjà servi pousse le suivant hors du panier, ce que la rotation par famille ne voyait pas. Repris de deux PR fermées sans merge le 2026-09-07 ; la composition de la semaine change, un plan en cache servirait l’ancienne ; v50 = les protéines préférées se lisent sur les REFS de protéine (plus sur tout le texte), les recettes 100 % végétales passent en retrait chez l’omnivore qui n’a pas coché « Végétal », et « répétitif » suit enfin les préférences avec un plafond de ceil(jours/2) services par recette : la sélection change, un plan en cache servirait l’ancienne ; v49 = détente de 10 % de la cible protéique sur les profils VÉGANES (voir tdee.ts, facteurProteineVegetal) : la cible protéique du repas vegan baisse, donc le moteur peut rétrécir les plats au lieu de les gonfler pour atteindre la protéine, donc un plan en cache servirait une sélection périmée ; v48 = vague B11 : 4 repas complets vegan bâtis sur les PIÈCES végétales (haché, émincé, boulettes, galette) ajoutées le même jour — familles neuves, les plans en cache ne les verraient pas ; v47 = créneaux de repas libres : l'ordre canonique de la journée devient CHRONOLOGIQUE (la collation de 16 h passe avant le dîner, elle était servie en dernier), donc le report de budget de repas en repas ne se fait plus dans le même ordre et un plan en cache servirait l'ancienne répartition ; v46 = le budget du jour suit la dépense RÉELLE du jour (`lib/dailyBudget.ts`) : le plan n'est plus isocalorique entre jours d'entraînement et jours de repos, un plan en cache servirait l'ancienne répartition ; v45 = `tags.objectif` (192 recettes) et `tags.sport` (148) recalculés mécaniquement depuis les kcal du moteur, et `recup_jour_repos` supprimé : le départage `needMatch` lit objectif+sport, donc la sélection change et un plan en cache servirait l'ancienne ; v44 = 47 recettes dont la légumineuse était pesée SÈCHE alors que les instructions la cuisinaient en moins de 40 min : 44 passent sur un `ref` prêt à consommer (macros ET composition changées sous les mêmes ids, un plan en cache servirait l'ancienne pesée), 3 gardent le sec avec un `temps_min` corrigé ; v43 = rep10 réécrit (curry de pois chiches → tofu + pois chiches au lait de coco) : composition changée sous le même id, un plan en cache servirait l'ancienne recette ; v42 = vague B9 : 8 collations GRAND FORMAT (col103–col110, 380–460 kcal) — un format inédit, les gros gabarits n'étaient servis que par étirement ; v41 = vague B8 : 8 collations vegan + sans gluten (col95–col102), familles neuves — les plans en cache ne les verraient pas ; v40 = vague B7 : 30 recettes végétales ajoutées — 12 petits-déjeuners (pd111–pd122), 10 repas complets (rep271–rep280), 8 collations (col87–col94) ; les plans en cache ne les verraient pas ; v39 = la pénalité de FAMILLE s'applique aussi au plan canonique (`FAMILY_SELECT_W_CANON`) — le 1er plan servi passe de 45,0 à 23,3 % de semaines avec quasi-doublon ; un plan en cache servirait encore l'ancienne composition ; v38 = rotation par FAMILLE (`FAMILY_FIBER_TOL`) — la composition de la semaine change, un plan en cache servirait l'ancienne rotation ; v37 = lot B6, 7 collations vegan ajoutées (col80–col86) — les plans en cache ne les verraient pas ; v36 = plancher protéique par repas (`PROT_SHARE_FLOOR`) — la répartition intra-journée change, les plans en cache serviraient l’ancienne ; v35 = lot B5, 20 collations réécrites (composition changée sous le même id → les plans en cache serviraient l’ancienne recette) ; v34 = lot B4, 32 recettes à l’enveloppe corrigée (rep251–rep270, pd99–pd110) — les plans en cache ne les verraient pas ; v33 = lot B3, 20 petits-déjeuners (pd79–pd98) — tous les lots commandés sont livrés ; v32 = lot B1-lot4, 20 repas complets — la vague B1 est complète (rep171–rep250) ; v31 = lot B1-lot3, 20 repas complets ; v30 = lot B1-lot2, 20 repas complets ; v29 = lot B1-lot1, 20 repas complets (les plans en cache ne les verraient pas) ; v28 = cible lipidique visée 15 % au-dessus du plancher (A9) — les plans en cache serviraient l'ancienne répartition ; v27 = lot B2, 13 collations légères (les plans en cache ne les verraient pas) ; v26 = banque de calories (les plans en cache ignoraient les écarts déclarés) ; v25 = borne basse de l'ancre protéine 1,0 → 0,5 (les plans en cache servaient l'ancien plancher) ; v24 = 9 recettes différenciées (nettoyage des doublons : composition modifiée) ; v23 = ancre protéine rendue à 8 recettes ; v22 = le temps de prépa ne filtre plus ; v21 = yaourt_grec démappé
+const ENGINE_VERSION = 60; // v60 = la famille voit le fruit (sans féculent) et le goût, donc la rotation change ; sept recettes qui revenaient la même semaine différenciées (2026-09-18) ; v59 = vague B12 : 4 repas complets sur les pièces végétales jamais servies (saucisse, steak de soja, nuggets, lardons), et « lardons_vegetaux » rangé dans la case Végétal des préférences : familles neuves, les plans en cache ne les verraient pas ; v58 = trois correctifs du 2026-09-17 : le pluriel et l’article des aliments évités filtrent enfin (« tofus », « le tofu »), les sept pièces végétales de D32 passent « rares » (2 repas par semaine au lieu de 5) et la semaine révolue se renouvelle ; la sélection change, un plan en cache servirait l’ancienne ; v57 = ni soja texturé ni tofu chez un omnivore (D35) : mur dur dans recipeAllowed, 40 recettes sortent du vivier de qui mange de la viande, la sélection change, un plan en cache servirait l’ancienne ; v56 = plus de soja texturé de remplissage (D34) : 46 recettes réécrites sous les mêmes ids (le soja texturé remplacé par les protéines végétales de la liste : poulet végétal, jambon, chorizo, haché, émincés, boulettes, tempeh ; noms sans « soja »), composition changée, un plan en cache servirait l’ancienne recette ; v55 = pas de remplissage (D33) : 104 recettes réécrites sous les mêmes ids (graines, purées d’oléagineux, crème et poudre protéinée retirées des plats salés, laitages géants remplacés, macros et objectifs recalculés), composition changée, un plan en cache servirait l’ancienne recette ; v54 = lecture humaine (D30, lib/repasHumain.ts) : plus de plat du midi au petit-déjeuner, collations de 10 minutes au plus sans cuisson, le même féculent une fois par jour, ingrédient de base courant 5 repas par semaine et rare 2, et en « Équilibré » le même plat au dîner des jours 1, 3 et 5 puis au déjeuner du lendemain, chaque repas avec ses propres quantités. La sélection change, un plan en cache servirait l’ancienne ; v53 = cohérence de la journée (D29) : au plus 3 déjeuners ou dîners 100 % végétaux par semaine chez l’omnivore (« Peu importe » compris), un par jour, étalés sur la semaine ; halal et sans porc servis comme un omnivore qui a coché ses protéines ; au plus un déjeuner ou dîner sans poisson par jour chez le pescétarien ; jamais la même recette deux fois le même jour. La sélection change, un plan en cache servirait l’ancienne ; v52 = goût déclaré au petit-déjeuner et à la collation (sucré ou salé, lib/gout.ts, D28) : pénalité hors goût et part garantie de 70 %, la sélection change pour qui a répondu ; v51 = vague B10 (25 recettes du registre quotidien français : 15 petits-déjeuners pd123 à pd137, 10 collations salées col111 à col120) ET rotation par REGISTRE (registreKey, D25) : un porridge déjà servi pousse le suivant hors du panier, ce que la rotation par famille ne voyait pas. Repris de deux PR fermées sans merge le 2026-09-07 ; la composition de la semaine change, un plan en cache servirait l’ancienne ; v50 = les protéines préférées se lisent sur les REFS de protéine (plus sur tout le texte), les recettes 100 % végétales passent en retrait chez l’omnivore qui n’a pas coché « Végétal », et « répétitif » suit enfin les préférences avec un plafond de ceil(jours/2) services par recette : la sélection change, un plan en cache servirait l’ancienne ; v49 = détente de 10 % de la cible protéique sur les profils VÉGANES (voir tdee.ts, facteurProteineVegetal) : la cible protéique du repas vegan baisse, donc le moteur peut rétrécir les plats au lieu de les gonfler pour atteindre la protéine, donc un plan en cache servirait une sélection périmée ; v48 = vague B11 : 4 repas complets vegan bâtis sur les PIÈCES végétales (haché, émincé, boulettes, galette) ajoutées le même jour — familles neuves, les plans en cache ne les verraient pas ; v47 = créneaux de repas libres : l'ordre canonique de la journée devient CHRONOLOGIQUE (la collation de 16 h passe avant le dîner, elle était servie en dernier), donc le report de budget de repas en repas ne se fait plus dans le même ordre et un plan en cache servirait l'ancienne répartition ; v46 = le budget du jour suit la dépense RÉELLE du jour (`lib/dailyBudget.ts`) : le plan n'est plus isocalorique entre jours d'entraînement et jours de repos, un plan en cache servirait l'ancienne répartition ; v45 = `tags.objectif` (192 recettes) et `tags.sport` (148) recalculés mécaniquement depuis les kcal du moteur, et `recup_jour_repos` supprimé : le départage `needMatch` lit objectif+sport, donc la sélection change et un plan en cache servirait l'ancienne ; v44 = 47 recettes dont la légumineuse était pesée SÈCHE alors que les instructions la cuisinaient en moins de 40 min : 44 passent sur un `ref` prêt à consommer (macros ET composition changées sous les mêmes ids, un plan en cache servirait l'ancienne pesée), 3 gardent le sec avec un `temps_min` corrigé ; v43 = rep10 réécrit (curry de pois chiches → tofu + pois chiches au lait de coco) : composition changée sous le même id, un plan en cache servirait l'ancienne recette ; v42 = vague B9 : 8 collations GRAND FORMAT (col103–col110, 380–460 kcal) — un format inédit, les gros gabarits n'étaient servis que par étirement ; v41 = vague B8 : 8 collations vegan + sans gluten (col95–col102), familles neuves — les plans en cache ne les verraient pas ; v40 = vague B7 : 30 recettes végétales ajoutées — 12 petits-déjeuners (pd111–pd122), 10 repas complets (rep271–rep280), 8 collations (col87–col94) ; les plans en cache ne les verraient pas ; v39 = la pénalité de FAMILLE s'applique aussi au plan canonique (`FAMILY_SELECT_W_CANON`) — le 1er plan servi passe de 45,0 à 23,3 % de semaines avec quasi-doublon ; un plan en cache servirait encore l'ancienne composition ; v38 = rotation par FAMILLE (`FAMILY_FIBER_TOL`) — la composition de la semaine change, un plan en cache servirait l'ancienne rotation ; v37 = lot B6, 7 collations vegan ajoutées (col80–col86) — les plans en cache ne les verraient pas ; v36 = plancher protéique par repas (`PROT_SHARE_FLOOR`) — la répartition intra-journée change, les plans en cache serviraient l’ancienne ; v35 = lot B5, 20 collations réécrites (composition changée sous le même id → les plans en cache serviraient l’ancienne recette) ; v34 = lot B4, 32 recettes à l’enveloppe corrigée (rep251–rep270, pd99–pd110) — les plans en cache ne les verraient pas ; v33 = lot B3, 20 petits-déjeuners (pd79–pd98) — tous les lots commandés sont livrés ; v32 = lot B1-lot4, 20 repas complets — la vague B1 est complète (rep171–rep250) ; v31 = lot B1-lot3, 20 repas complets ; v30 = lot B1-lot2, 20 repas complets ; v29 = lot B1-lot1, 20 repas complets (les plans en cache ne les verraient pas) ; v28 = cible lipidique visée 15 % au-dessus du plancher (A9) — les plans en cache serviraient l'ancienne répartition ; v27 = lot B2, 13 collations légères (les plans en cache ne les verraient pas) ; v26 = banque de calories (les plans en cache ignoraient les écarts déclarés) ; v25 = borne basse de l'ancre protéine 1,0 → 0,5 (les plans en cache servaient l'ancien plancher) ; v24 = 9 recettes différenciées (nettoyage des doublons : composition modifiée) ; v23 = ancre protéine rendue à 8 recettes ; v22 = le temps de prépa ne filtre plus ; v21 = yaourt_grec démappé
 
 export function profileSignature(p: UserProfile): string {
   // NB : `hidden_recipes` (👎) est VOLONTAIREMENT absent. Un 👎 remplace UN repas

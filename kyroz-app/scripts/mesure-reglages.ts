@@ -12,7 +12,7 @@
  *      touche un réglage → l'auto-refresh de l'écran Plan rejoue `generate()`
  *      SANS reroll (seed remis à 0). Que perd-il ?
  */
-import { buildLocalPlan, dayTargetKcal } from '../lib/planEngine';
+import { buildLocalPlan, dayTargetKcal, familyKey } from '../lib/planEngine';
 import { recalcProfile } from '../lib/tdee';
 import { recipeFiberPerPortion } from '../lib/fiber';
 import { PROFILS_REF } from './mesure-couverture';
@@ -178,10 +178,8 @@ console.log(`Retours EXACTS au plan canonique (celui qu'il avait rejeté en rég
 // reprises telles quelles de `mesure-variete.ts` — surtout pas ré-inventées.
 console.log('\n\n═══ 3. GARDER LE SEED COÛTE-T-IL EN QUALITÉ ? ═══\n');
 const familleDe = (r: Recipe): string => {
-  const refs = (role: string) =>
-    r.ingredients.filter((i) => i.macro_role === role).map((i) => i.ref ?? i.name).sort().join('+') || '∅';
   const creneau = r.tags.includes('snack') ? 'collation' : r.tags.includes('breakfast') ? 'petit_dej' : 'repas_complet';
-  return `${creneau} | ${refs('protein')} × ${refs('carb')}`;
+  return `${creneau} | ${familyKey(r)}`; // la clé du moteur, importée — jamais recopiée
 };
 // ⚠️ Panel de RÉFÉRENCE (12 profils), pas les 4 de l'audit d'inertie ci-dessus. Un
 // panel réduit sous-estime : mesuré le 2026-08-02, un drapeau bloquant n'apparaissait

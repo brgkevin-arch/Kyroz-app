@@ -23,7 +23,7 @@
  * (`REROLL_PAR_VARIETE`). Le défaut reste `max` : c'est sur lui que sont calibrés les
  * chiffres de référence. Pour auditer un autre réglage, passer `--variete=`.
  */
-import { buildLocalPlan, dayTargetKcal } from '../lib/planEngine';
+import { buildLocalPlan, dayTargetKcal, familyKey } from '../lib/planEngine';
 import { recalcProfile } from '../lib/tdee';
 import { getEffectiveRecipes } from '../lib/recipes';
 import { recipeFiberPerPortion } from '../lib/fiber';
@@ -59,15 +59,13 @@ if (FILTRE && REGIMES.length === 0) {
 }
 
 /**
- * Clé de FAMILLE — doit rester le miroir exact de `familyKey` dans `lib/planEngine.ts`,
- * et du triplet de la règle R4 (`scripts/check-doublons.ts`). Si les deux divergent, on
- * mesure autre chose que ce que le moteur arbitre.
+ * Clé de FAMILLE — c'est `familyKey` du moteur, IMPORTÉE, plus recopiée (2026-09-18) : la
+ * copie n'avait jamais reçu la décision du 2026-09-14 et mesurait autre chose que ce que le
+ * moteur arbitre. Seul le créneau est ajouté (les pools sont séparés par créneau).
  */
 function familleDe(r: Recipe): string {
-  const refs = (role: string) =>
-    r.ingredients.filter((i) => i.macro_role === role).map((i) => i.ref ?? i.name).sort().join('+') || '∅';
   const creneau = r.tags.includes('snack') ? 'collation' : r.tags.includes('breakfast') ? 'petit_dej' : 'repas_complet';
-  return `${creneau} | ${refs('protein')} × ${refs('carb')}`;
+  return `${creneau} | ${familyKey(r)}`;
 }
 
 function profil(g: Gabarit, restrictions: DietaryRestriction[] = []): UserProfile {

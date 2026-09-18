@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { makeProfile } from './helpers';
 import { recalcProfile } from '../tdee';
-import { buildLocalPlan, PROTEIN_REFS, recipeAllowed, swapMeal, VEGETAL_MAX_JOUR, VEGETAL_MAX_SEMAINE } from '../planEngine';
+import { buildLocalPlan, PROTEIN_REFS, recipeAllowed, regleVegetal, swapMeal } from '../planEngine';
 import { adaptRecipe, FLAG_AUDIENCE } from '../adaptRecipe';
 import { getEffectiveRecipes } from '../recipes';
 import { feculentsDe, ingredientsDeBase, plafondIngredient, platDuMidi, surLePouce } from '../repasHumain';
@@ -82,8 +82,13 @@ describe('« Remplacer ce repas » tient les règles du plan', () => {
         for (const m of apres.meals) for (const ref of ingredientsDeBase(m.recipe)) n[ref] = (n[ref] ?? 0) + 1;
         for (const [ref, k] of Object.entries(n)) expect(k, `${quoi} — ${ref} dans ${k} repas`).toBeLessThanOrEqual(plafondIngredient(ref, p));
 
-        expect(apres.meals.filter((m) => principal(m) && toutVegetal(m)).length, quoi).toBeLessThanOrEqual(VEGETAL_MAX_SEMAINE);
-        expect(jour.filter((m) => principal(m) && toutVegetal(m)).length, quoi).toBeLessThanOrEqual(VEGETAL_MAX_JOUR);
+        // La règle DU PROFIL, pas une constante : depuis le 2026-09-19, qui mange de la viande
+        // sans « Végétal » coché a un plafond de ZÉRO, et le bouton doit le tenir aussi.
+        const regle = regleVegetal(p);
+        if (regle) {
+          expect(apres.meals.filter((m) => principal(m) && regle.ids.has(m.recipe.id)).length, quoi).toBeLessThanOrEqual(regle.maxSemaine);
+          expect(jour.filter((m) => principal(m) && regle.ids.has(m.recipe.id)).length, quoi).toBeLessThanOrEqual(regle.maxJour);
+        }
       }
     }
   });

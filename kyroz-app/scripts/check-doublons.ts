@@ -17,10 +17,14 @@
  *   R2 ≥ 4 `ref` en commun entre deux recettes de même catégorie
  *   R4 plus de 2 recettes pour un même triplet (catégorie, refs protéine, refs glucide)
  *   R5 nom exact dupliqué, ou 3 premiers mots significatifs partagés dans une catégorie
+ *   R6 une recette qui rejoint une FAMILLE déjà occupée dans sa catégorie (clé `familyKey` du
+ *      moteur : protéine × féculent, ou protéine × fruit sans féculent) — 2026-09-18
  *   R7 même set de refs dans une catégorie mais `tags.objectif` divergents
  */
 import { readFileSync } from 'node:fs';
 import live from '../Recette/recettes-kyroz.json';
+import { familyKey } from '../lib/planEngine';
+import type { Recipe } from '../lib/types';
 
 export interface CheckRecipe {
   id: string;
@@ -31,7 +35,7 @@ export interface CheckRecipe {
 }
 
 export interface Violation {
-  rule: 'R1' | 'R2' | 'R4' | 'R5' | 'R7';
+  rule: 'R1' | 'R2' | 'R4' | 'R5' | 'R6' | 'R7';
   ids: string[];
   detail: string;
 }
@@ -104,6 +108,23 @@ export function findViolations(incoming: CheckRecipe[], existing: CheckRecipe[] 
     }
   }
 
+  // R6 — une recette NOUVELLE ne rejoint aucune famille déjà occupée (décision fondateur du
+  // 2026-09-18 : « l'ajouter directement aux nouvelles recettes pour éviter qu'on tombe sur plein
+  // de clones »). La famille est celle que le MOTEUR fait tourner (`familyKey`, importée et non
+  // recopiée : une copie de cette clé a déjà dérivé une fois). R4 tolère 2 recettes par couple et
+  // ne voit pas le fruit ; R6 refuse la deuxième. Sur le catalogue entier, chaque famille à
+  // plusieurs recettes compte une fois, et le cliquet de `doublons.test.ts` en fige le nombre.
+  const familles = new Map<string, string[]>();
+  for (const r of all) {
+    const k = `${r.category} | ${familyKey(r as unknown as Recipe)}`;
+    familles.set(k, [...(familles.get(k) ?? []), r.id]);
+  }
+  for (const [k, ids] of familles) {
+    if (ids.length > 1 && ids.some((id) => isNew.has(id))) {
+      out.push({ rule: 'R6', ids, detail: `${ids.length} recettes dans la famille ${k} : change la protéine, le féculent ou, sans féculent, le fruit` });
+    }
+  }
+
   // R5 — noms exacts dupliqués (toutes catégories) et amorces de 3 mots (même catégorie).
   const exact = new Map<string, string[]>();
   const starts = new Map<string, string[]>();
@@ -136,7 +157,7 @@ const readDrop = (path: string): CheckRecipe[] => {
 const report = (violations: Violation[]) => {
   const byRule = new Map<string, Violation[]>();
   for (const v of violations) byRule.set(v.rule, [...(byRule.get(v.rule) ?? []), v]);
-  for (const rule of ['R1', 'R2', 'R4', 'R5', 'R7'] as const) {
+  for (const rule of ['R1', 'R2', 'R4', 'R5', 'R6', 'R7'] as const) {
     const list = byRule.get(rule) ?? [];
     console.log(`\n${rule} — ${list.length} violation(s)`);
     for (const v of list.slice(0, 40)) console.log(`   ${v.ids.join(' / ')} : ${v.detail}`);
