@@ -311,8 +311,10 @@ aucun test ne les attrapera. Elles font pourtant partie du même lot.
       de l'app (elle n'en avait aucune) : e-mail, santé et ID utilisateur en *Fonctionnalité
       de l'app* et liés à l'identité ; **Interaction avec le produit** en *Analyses*, **non
       liée**, **sans suivi**. Photos non déclarées — elles ne quittent pas l'appareil.
-- [ ] **Play Console** → Sécurité des données : ajouter les **actions dans l'app**, consenties,
-      non partagées à des fins publicitaires. Même source : `STORE-RELEASE.md` §4.
+- [x] ~~**Play Console** → Sécurité des données : ajouter les **actions dans l'app**~~ —
+      🚫 **SANS OBJET depuis le 2026-08-26** (PostHog éteint avant que la case soit cochée) :
+      NE PAS l'ajouter. Au prochain passage Android, remplir sans analytics
+      (`STORE-RELEASE.md` §4). Côté Apple, *Données d'utilisation* retirée le 2026-08-28 (#198).
 - [x] **URL de politique — App Store Connect** → `https://kyroz.app/legal.html`, posée le
       2026-08-18 (*Confidentialité de l'app* → Politique de confidentialité → Modifier).
       ⏳ Ne s'affichera sur la fiche qu'à la **prochaine version publiée** : d'ici là,
