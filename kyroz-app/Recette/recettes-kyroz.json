@@ -1,7 +1,7 @@
 {
   "_meta": {
     "version": "2.0",
-    "count": 541,
+    "count": 545,
     "source_macros": "CIQUAL 2025 (ANSES) pour 115 des 139 ref, via lib/recipeFoodMap.ts : la table officielle est INTÉGRÉE (lib/foods.generated.ts), ce n'est plus une estimation. Les 24 ref restants portent une valeur manuelle assumée, faute d'entrée Ciqual propre : protéines en poudre, skyr, yaourt grec, cottage, yaourts de soja, levure maltée, soja texturé, edamame, haricots noirs, millet, wrap sans gluten, trois mélanges, et sept aliments végétaux dont la valeur est la MOYENNE d'étiquettes relevées (lib/etiquettesVegetales.ts). Recompté le 2026-09-15. ⚠️ Ce champ a longtemps dit « remplacer par le CSV officiel avant prod » : c'est FAIT depuis le 2026-08-01.",
     "precision": "±5-10%.",
     "poids_basis": "basis=dry -> poids cru/sec (riz, pâtes, légumineuses sèches) ; basis=raw -> viande/poisson cru ; aucun basis -> poids PRÊT À CONSOMMER (conserve égouttée, aliment cuit). ⚠️ La cohérence n'est pas qu'une convention de pesée : les INSTRUCTIONS doivent correspondre. Une légumineuse pesée sèche ne se cuisine pas en 18 minutes — 47 recettes le faisaient jusqu'au 2026-08-03. Verrouillé par lib/__tests__/legumineuses.test.ts.",
@@ -33,7 +33,8 @@
         "2026-08-03-b8-collations-vegan-sg": 8,
         "2026-08-03-b9-collations-grand-format": 8,
         "2026-09-10-b11-pieces-vegetales": "4 repas complets vegan bâtis sur les PIÈCES végétales ajoutées le même jour (haché, émincé, boulettes, galette) plutôt que sur un yaourt ou une poudre.",
-        "2026-09-07-b10-registre-francais": 25
+        "2026-09-07-b10-registre-francais": 25,
+        "2026-09-18-b12-pieces-vegetales": "4 repas complets sur quatre des cinq pièces végétales qu’aucune recette n’employait (saucisse, steak de soja, nuggets, lardons), chacune associée à UNE seconde protéine — lentilles ou edamame, jamais une troisième. L’escalope végétale n’a PAS de recette : panée et peu dense (13 g de protéines pour 221 kcal), aucune association à deux protéines ne tient R8 ailleurs que sur un point isolé (mesuré le 2026-09-18)."
       },
       "convention": "Toute nouvelle vague reprend le NOM DU DOSSIER de son drop (AAAA-MM-JJ-<bloc>), pour qu'on retrouve la matière première d'une recette sans fouiller l'historique git."
     }
@@ -32288,6 +32289,259 @@
         "fat": 22.1
       },
       "wave": "2026-09-10-b11-pieces-vegetales"
+    },
+    {
+      "id": "rep285",
+      "name": "Saucisses végétales aux lentilles et pommes de terre",
+      "category": "repas_complet",
+      "tags": {
+        "objectif": [
+          "maintien",
+          "prise_de_masse"
+        ],
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 30
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "saucisse_vegetale",
+          "qty": 60,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "lentilles_cuites",
+          "qty": 300,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "pomme_de_terre",
+          "qty": 200,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "carotte",
+          "qty": 60,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "oignon",
+          "qty": 20,
+          "macro_role": "flavor",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Épluche les pommes de terre, coupe-les en morceaux et fais-les cuire 20 minutes à la vapeur.",
+        "Émince l'oignon, coupe la carotte en rondelles et fais-les revenir 8 minutes à feu moyen dans une casserole avec un fond d'eau, jusqu'à ce que la carotte soit tendre.",
+        "Ajoute les lentilles égouttées et rincées, du thym et une feuille de laurier, sale, poivre, et laisse chauffer 5 minutes à feu doux.",
+        "Fais dorer les saucisses végétales 6 à 8 minutes dans une poêle antiadhésive, en les retournant souvent, sans matière grasse : elles en contiennent déjà.",
+        "Sers les saucisses sur les lentilles, avec les pommes de terre à côté."
+      ],
+      "why": "Les lentilles apportent autant de protéines que la saucisse, sans ajouter de gras.",
+      "macros_per_serving": {
+        "kcal": 697.6,
+        "protein": 43,
+        "carbs": 88.8,
+        "fat": 12.2
+      },
+      "wave": "2026-09-18-b12-pieces-vegetales"
+    },
+    {
+      "id": "rep286",
+      "name": "Steak de soja, pâtes à la sauce tomate aux lentilles corail",
+      "category": "repas_complet",
+      "tags": {
+        "objectif": [
+          "perte_de_gras"
+        ],
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 25
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "steak_soja",
+          "qty": 60,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "lentilles_corail",
+          "qty": 60,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "pates_completes",
+          "qty": 50,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "tomate_concassee",
+          "qty": 80,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Dans une casserole, verse les lentilles corail rincées, la tomate concassée, un verre d'eau, une gousse d'ail écrasée et de l'origan, sale, poivre, et laisse mijoter 15 minutes à feu doux en remuant : les lentilles fondent et épaississent la sauce.",
+        "Pendant ce temps, fais cuire les pâtes dans une grande casserole d'eau salée bouillante le temps indiqué sur le paquet, puis égoutte-les.",
+        "Fais cuire le steak de soja 3 minutes de chaque côté dans une poêle antiadhésive bien chaude.",
+        "Mélange les pâtes à la sauce et sers avec le steak de soja."
+      ],
+      "why": "Les lentilles corail épaississent la sauce et complètent les protéines du steak de soja.",
+      "macros_per_serving": {
+        "kcal": 542.9,
+        "protein": 32.8,
+        "carbs": 68.7,
+        "fat": 10.8
+      },
+      "wave": "2026-09-18-b12-pieces-vegetales"
+    },
+    {
+      "id": "rep287",
+      "name": "Nuggets végétaux, riz sauté aux edamame et courgette",
+      "category": "repas_complet",
+      "tags": {
+        "objectif": [
+          "perte_de_gras",
+          "maintien"
+        ],
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 25
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "nuggets_vegetal",
+          "qty": 60,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "edamame",
+          "qty": 130,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "riz_basmati",
+          "qty": 55,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "huile_olive",
+          "qty": 5,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "courgette",
+          "qty": 100,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "sauce_soja",
+          "qty": 10,
+          "macro_role": "flavor",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Préchauffe le four à 200 °C et fais cuire les nuggets végétaux 12 à 15 minutes sur une plaque, en les retournant à mi-cuisson.",
+        "Fais cuire le riz 11 minutes dans une casserole d'eau salée bouillante ; ajoute les edamame pour les 4 dernières minutes, puis égoutte. Coupe la courgette en petits dés.",
+        "Chauffe l'huile d'olive dans une poêle et fais-y sauter la courgette 4 minutes à feu vif, puis ajoute le riz, les edamame, la sauce soja et une gousse d'ail hachée, et fais sauter encore 2 minutes.",
+        "Sers le riz sauté avec les nuggets à côté."
+      ],
+      "why": "Les edamame doublent les protéines des nuggets, la courgette donne du volume au riz.",
+      "macros_per_serving": {
+        "kcal": 572.1,
+        "protein": 29.4,
+        "carbs": 68.6,
+        "fat": 18.7
+      },
+      "wave": "2026-09-18-b12-pieces-vegetales"
+    },
+    {
+      "id": "rep288",
+      "name": "Pâtes aux lardons végétaux, petits pois et edamame",
+      "category": "repas_complet",
+      "tags": {
+        "objectif": [
+          "perte_de_gras",
+          "maintien"
+        ],
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 20
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "lardons_vegetaux",
+          "qty": 40,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "edamame",
+          "qty": 120,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "pates_completes",
+          "qty": 70,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "huile_olive",
+          "qty": 5,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "petits_pois",
+          "qty": 60,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "oignon",
+          "qty": 30,
+          "macro_role": "flavor",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Fais cuire les pâtes dans une grande casserole d'eau salée bouillante le temps indiqué sur le paquet ; ajoute les petits pois et les edamame 4 minutes avant la fin, puis égoutte en gardant une louche d'eau de cuisson.",
+        "Pendant ce temps, émince l'oignon et fais-le dorer 5 minutes avec les lardons végétaux dans l'huile d'olive, à feu moyen.",
+        "Verse les pâtes et les légumes dans la poêle avec un peu d'eau de cuisson, poivre, et mélange 1 minute à feu vif pour lier le tout."
+      ],
+      "why": "Les edamame portent l’essentiel des protéines, les lardons donnent le goût fumé.",
+      "macros_per_serving": {
+        "kcal": 596.2,
+        "protein": 30.7,
+        "carbs": 70.6,
+        "fat": 19.2
+      },
+      "wave": "2026-09-18-b12-pieces-vegetales"
     },
     {
       "id": "pd123",

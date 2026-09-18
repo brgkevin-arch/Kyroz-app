@@ -39,9 +39,9 @@ describe('les trois familles', () => {
   });
 
   it('« légumineuses » marche au singulier, au pluriel et avec l’article', () => {
-    expect(compte('legumineuses')).toBe(96);
-    expect(compte('legumineuse')).toBe(96);
-    expect(compte('les legumineuses')).toBe(96);
+    expect(compte('legumineuses')).toBe(100);
+    expect(compte('legumineuse')).toBe(100);
+    expect(compte('les legumineuses')).toBe(100);
   });
 });
 
@@ -64,8 +64,8 @@ describe('ce que « légumineuses » ne doit PAS emporter', () => {
   });
 
   it('les mots d’avant sont intacts', () => {
-    expect(compte('lentilles')).toBe(16);
-    expect(compte('tofu')).toBe(39);
+    expect(compte('lentilles')).toBe(18);
+    expect(compte('tofu')).toBe(40);
     expect(compte('viande')).toBe(97);
     expect(compte('jambon')).toBe(31);
   });
