@@ -1,7 +1,7 @@
 {
   "_meta": {
     "version": "2.0",
-    "count": 541,
+    "count": 549,
     "source_macros": "CIQUAL 2025 (ANSES) pour 115 des 139 ref, via lib/recipeFoodMap.ts : la table officielle est INTÉGRÉE (lib/foods.generated.ts), ce n'est plus une estimation. Les 24 ref restants portent une valeur manuelle assumée, faute d'entrée Ciqual propre : protéines en poudre, skyr, yaourt grec, cottage, yaourts de soja, levure maltée, soja texturé, edamame, haricots noirs, millet, wrap sans gluten, trois mélanges, et sept aliments végétaux dont la valeur est la MOYENNE d'étiquettes relevées (lib/etiquettesVegetales.ts). Recompté le 2026-09-15. ⚠️ Ce champ a longtemps dit « remplacer par le CSV officiel avant prod » : c'est FAIT depuis le 2026-08-01.",
     "precision": "±5-10%.",
     "poids_basis": "basis=dry -> poids cru/sec (riz, pâtes, légumineuses sèches) ; basis=raw -> viande/poisson cru ; aucun basis -> poids PRÊT À CONSOMMER (conserve égouttée, aliment cuit). ⚠️ La cohérence n'est pas qu'une convention de pesée : les INSTRUCTIONS doivent correspondre. Une légumineuse pesée sèche ne se cuisine pas en 18 minutes — 47 recettes le faisaient jusqu'au 2026-08-03. Verrouillé par lib/__tests__/legumineuses.test.ts.",
@@ -33,7 +33,8 @@
         "2026-08-03-b8-collations-vegan-sg": 8,
         "2026-08-03-b9-collations-grand-format": 8,
         "2026-09-10-b11-pieces-vegetales": "4 repas complets vegan bâtis sur les PIÈCES végétales ajoutées le même jour (haché, émincé, boulettes, galette) plutôt que sur un yaourt ou une poudre.",
-        "2026-09-07-b10-registre-francais": 25
+        "2026-09-07-b10-registre-francais": 25,
+        "2026-09-18-b12-pieces-vegetales": "8 repas complets sur quatre pièces végétales qu’aucune recette n’employait (saucisse, steak de soja, nuggets, lardons) : une version vegan (lentilles, lentilles corail, tempeh ou seitan) et une version VÉGÉTARIENNE (œufs, skyr ou cottage cheese) de chaque, jamais plus de deux protéines. L’escalope végétale n’a PAS de recette : panée et peu dense (13 g de protéines pour 221 kcal), aucune association à deux protéines ne tient R8 ailleurs que sur un point isolé (mesuré le 2026-09-18)."
       },
       "convention": "Toute nouvelle vague reprend le NOM DU DOSSIER de son drop (AAAA-MM-JJ-<bloc>), pour qu'on retrouve la matière première d'une recette sans fouiller l'historique git."
     }
@@ -32288,6 +32289,479 @@
         "fat": 22.1
       },
       "wave": "2026-09-10-b11-pieces-vegetales"
+    },
+    {
+      "id": "rep285",
+      "name": "Saucisses végétales aux lentilles et pommes de terre",
+      "category": "repas_complet",
+      "tags": {
+        "objectif": [
+          "maintien",
+          "prise_de_masse"
+        ],
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 30
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "saucisse_vegetale",
+          "qty": 60,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "lentilles_cuites",
+          "qty": 350,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "pomme_de_terre",
+          "qty": 200,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "carotte",
+          "qty": 60,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "oignon",
+          "qty": 20,
+          "macro_role": "flavor",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Épluche les pommes de terre, coupe-les en morceaux et fais-les cuire 20 minutes à la vapeur.",
+        "Émince l'oignon, coupe la carotte en rondelles et fais-les revenir 8 minutes à feu moyen dans une casserole avec un fond d'eau, jusqu'à ce que la carotte soit tendre.",
+        "Ajoute les lentilles égouttées et rincées, du thym et une feuille de laurier, sale, poivre, et laisse chauffer 5 minutes à feu doux.",
+        "Fais dorer les saucisses végétales 6 à 8 minutes dans une poêle antiadhésive, en les retournant souvent, sans matière grasse : elles en contiennent déjà.",
+        "Sers les saucisses sur les lentilles, avec les pommes de terre à côté."
+      ],
+      "why": "Les lentilles apportent autant de protéines que la saucisse, sans ajouter de gras.",
+      "macros_per_serving": {
+        "kcal": 760.1,
+        "protein": 48.1,
+        "carbs": 96.9,
+        "fat": 12.5
+      },
+      "wave": "2026-09-18-b12-pieces-vegetales"
+    },
+    {
+      "id": "rep286",
+      "name": "Steak de soja, pâtes à la sauce tomate aux lentilles corail",
+      "category": "repas_complet",
+      "tags": {
+        "objectif": [
+          "perte_de_gras",
+          "maintien"
+        ],
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 25
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "steak_soja",
+          "qty": 70,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "lentilles_corail",
+          "qty": 60,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "pates_completes",
+          "qty": 50,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "tomate_concassee",
+          "qty": 80,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Dans une casserole, verse les lentilles corail rincées, la tomate concassée, un verre d'eau, une gousse d'ail écrasée et de l'origan, sale, poivre, et laisse mijoter 15 minutes à feu doux en remuant : les lentilles fondent et épaississent la sauce.",
+        "Pendant ce temps, fais cuire les pâtes dans une grande casserole d'eau salée bouillante le temps indiqué sur le paquet, puis égoutte-les.",
+        "Fais cuire le steak de soja 3 minutes de chaque côté dans une poêle antiadhésive bien chaude.",
+        "Mélange les pâtes à la sauce et sers avec le steak de soja."
+      ],
+      "why": "Les lentilles corail épaississent la sauce et complètent les protéines du steak de soja.",
+      "macros_per_serving": {
+        "kcal": 568.1,
+        "protein": 34.3,
+        "carbs": 69.6,
+        "fat": 12.3
+      },
+      "wave": "2026-09-18-b12-pieces-vegetales"
+    },
+    {
+      "id": "rep287",
+      "name": "Nuggets végétaux, riz sauté au tempeh et courgette",
+      "category": "repas_complet",
+      "tags": {
+        "objectif": [
+          "perte_de_gras"
+        ],
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 25
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "nuggets_vegetal",
+          "qty": 50,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "tempeh",
+          "qty": 90,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "riz_basmati",
+          "qty": 60,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "huile_olive",
+          "qty": 5,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "courgette",
+          "qty": 100,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Préchauffe le four à 200 °C et fais cuire les nuggets végétaux 12 à 15 minutes sur une plaque, en les retournant à mi-cuisson.",
+        "Fais cuire le riz 11 minutes dans une casserole d'eau salée bouillante, puis égoutte-le. Coupe le tempeh et la courgette en petits dés.",
+        "Chauffe l'huile d'olive dans une poêle et fais dorer le tempeh 4 minutes à feu vif, puis ajoute la courgette, une gousse d'ail hachée et du paprika fumé, et fais sauter encore 4 minutes.",
+        "Ajoute le riz, sale, poivre, mélange 2 minutes à feu vif et sers avec les nuggets à côté."
+      ],
+      "why": "Le tempeh doré double les protéines des nuggets, la courgette donne du volume au riz.",
+      "macros_per_serving": {
+        "kcal": 539.4,
+        "protein": 27.7,
+        "carbs": 65.8,
+        "fat": 15.3
+      },
+      "wave": "2026-09-18-b12-pieces-vegetales"
+    },
+    {
+      "id": "rep288",
+      "name": "Pâtes à la bolognaise de seitan et lardons végétaux",
+      "category": "repas_complet",
+      "tags": {
+        "objectif": [
+          "perte_de_gras"
+        ],
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 25
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "lardons_vegetaux",
+          "qty": 40,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "seitan",
+          "qty": 80,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "pates_completes",
+          "qty": 60,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "huile_olive",
+          "qty": 5,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "tomate_concassee",
+          "qty": 120,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Hache finement le seitan au couteau.",
+        "Fais dorer les lardons végétaux 3 minutes dans l'huile d'olive à feu moyen, ajoute le seitan haché et une gousse d'ail écrasée, et laisse colorer 3 minutes.",
+        "Verse la tomate concassée, ajoute de l'origan, sale, poivre, et laisse mijoter 12 minutes à feu doux.",
+        "Pendant ce temps, fais cuire les pâtes dans une grande casserole d'eau salée bouillante le temps indiqué sur le paquet, égoutte-les et mélange-les à la sauce."
+      ],
+      "why": "Le seitan fait la base protéinée de la sauce, les lardons lui donnent le goût fumé.",
+      "macros_per_serving": {
+        "kcal": 478.8,
+        "protein": 31,
+        "carbs": 52.6,
+        "fat": 14.9
+      },
+      "wave": "2026-09-18-b12-pieces-vegetales"
+    },
+    {
+      "id": "rep289",
+      "name": "Pâtes carbonara aux lardons végétaux",
+      "category": "repas_complet",
+      "tags": {
+        "objectif": [
+          "perte_de_gras"
+        ],
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 20
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "lardons_vegetaux",
+          "qty": 30,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "oeuf_entier",
+          "qty": 100,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "pates_completes",
+          "qty": 80,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "parmesan",
+          "qty": 12,
+          "macro_role": "fat",
+          "scalable": true
+        }
+      ],
+      "instructions": [
+        "Fais cuire les pâtes dans une grande casserole d'eau salée bouillante le temps indiqué sur le paquet, en gardant une louche d'eau de cuisson.",
+        "Pendant ce temps, bats les œufs avec le parmesan râpé et beaucoup de poivre.",
+        "Fais dorer les lardons végétaux 4 minutes à sec dans une grande poêle antiadhésive, à feu moyen.",
+        "Hors du feu, verse les pâtes égouttées dans la poêle, ajoute le mélange œufs-parmesan et un peu d'eau de cuisson, et remue vivement : la sauce doit napper sans cuire en omelette."
+      ],
+      "why": "Les œufs et le parmesan font la sauce et complètent les protéines des lardons.",
+      "macros_per_serving": {
+        "kcal": 537.1,
+        "protein": 30.5,
+        "carbs": 56.1,
+        "fat": 19.8
+      },
+      "wave": "2026-09-18-b12-pieces-vegetales"
+    },
+    {
+      "id": "rep290",
+      "name": "Frittata de pommes de terre aux saucisses végétales",
+      "category": "repas_complet",
+      "tags": {
+        "objectif": [
+          "perte_de_gras"
+        ],
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 35
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "saucisse_vegetale",
+          "qty": 40,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "oeuf_entier",
+          "qty": 50,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "blanc_oeuf",
+          "qty": 100,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "pomme_de_terre",
+          "qty": 300,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "poivron",
+          "qty": 80,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Coupe les pommes de terre en fines rondelles et fais-les cuire 12 minutes à la vapeur.",
+        "Coupe les saucisses végétales en rondelles et le poivron en dés, puis fais-les revenir 5 minutes dans une poêle antiadhésive à feu moyen.",
+        "Bats l'œuf entier avec les blancs, sale, poivre, et ajoute du paprika.",
+        "Ajoute les pommes de terre dans la poêle, verse les œufs par-dessus et laisse prendre 8 minutes à couvert et à feu doux, jusqu'à ce que le dessus soit pris."
+      ],
+      "why": "Les œufs lient les pommes de terre et portent l’essentiel des protéines, avec la saucisse.",
+      "macros_per_serving": {
+        "kcal": 467.6,
+        "protein": 29.3,
+        "carbs": 54.4,
+        "fat": 12.2
+      },
+      "wave": "2026-09-18-b12-pieces-vegetales"
+    },
+    {
+      "id": "rep291",
+      "name": "Steak de soja, pommes de terre et sauce au skyr aux herbes",
+      "category": "repas_complet",
+      "tags": {
+        "objectif": [
+          "perte_de_gras"
+        ],
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 25
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "steak_soja",
+          "qty": 70,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "skyr",
+          "qty": 90,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "pomme_de_terre",
+          "qty": 350,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "haricots_verts",
+          "qty": 100,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Coupe les pommes de terre en morceaux et fais-les cuire 20 minutes à la vapeur, avec les haricots verts pour les 8 dernières minutes.",
+        "Mélange le skyr avec de la ciboulette ciselée, du jus de citron, sel et poivre.",
+        "Fais cuire le steak de soja 3 minutes de chaque côté dans une poêle antiadhésive bien chaude.",
+        "Sers le steak avec les pommes de terre, les haricots verts et la sauce au skyr à côté."
+      ],
+      "why": "La sauce au skyr apporte des protéines sans gras ajouté, le steak de soja fait le reste.",
+      "macros_per_serving": {
+        "kcal": 545.1,
+        "protein": 29.6,
+        "carbs": 70.4,
+        "fat": 11
+      },
+      "wave": "2026-09-18-b12-pieces-vegetales"
+    },
+    {
+      "id": "rep292",
+      "name": "Nuggets végétaux, pommes de terre au four et cottage cheese à la ciboulette",
+      "category": "repas_complet",
+      "tags": {
+        "objectif": [
+          "perte_de_gras"
+        ],
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 40
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "nuggets_vegetal",
+          "qty": 60,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "cottage_cheese",
+          "qty": 90,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "pomme_de_terre",
+          "qty": 350,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "tomate",
+          "qty": 80,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "salade_verte",
+          "qty": 30,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Préchauffe le four à 200 °C. Coupe les pommes de terre en deux dans la longueur et fais-les cuire 35 minutes sur une plaque, face coupée en dessous.",
+        "Enfourne les nuggets végétaux pour les 15 dernières minutes, en les retournant à mi-cuisson.",
+        "Mélange le cottage cheese avec de la ciboulette ciselée, sel et poivre.",
+        "Sers les pommes de terre garnies de cottage cheese, avec les nuggets, la tomate en quartiers et la salade verte."
+      ],
+      "why": "Le cottage cheese garnit les pommes de terre et double les protéines des nuggets.",
+      "macros_per_serving": {
+        "kcal": 537.4,
+        "protein": 26.9,
+        "carbs": 74.4,
+        "fat": 11.2
+      },
+      "wave": "2026-09-18-b12-pieces-vegetales"
     },
     {
       "id": "pd123",

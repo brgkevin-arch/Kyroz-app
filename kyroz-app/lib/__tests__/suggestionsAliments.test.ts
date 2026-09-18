@@ -17,10 +17,14 @@ import { foodKeywordMatches, normalizeFood, recipeContainsFood, suggestionsAlime
 const CATALOGUE = getEffectiveRecipes();
 
 describe('ce que la frappe propose', () => {
-  it('« tofu » propose les trois sortes du catalogue, et rien d’autre', () => {
-    expect(suggestionsAliments(CATALOGUE, 'tofu')).toEqual(['Tofu ferme', 'Tofu fumé', 'Tofu soyeux']);
+  it('« tofu » propose les trois sortes du catalogue et les saucisses au tofu, et rien d’autre', () => {
+    // Les saucisses végétales SONT au tofu (Ciqual « saucisse végétale au tofu ») : qui évite le
+    // tofu les évite aussi — même règle que le mur D35 de l'omnivore, qui lit le même nom.
+    // Proposées depuis qu'une recette les emploie (B12, 2026-09-18).
+    const TOFU = ['Saucisses végétales (tofu)', 'Tofu ferme', 'Tofu fumé', 'Tofu soyeux'];
+    expect(suggestionsAliments(CATALOGUE, 'tofu')).toEqual(TOFU);
     // Casse, accents et début de frappe ne changent rien.
-    expect(suggestionsAliments(CATALOGUE, '  TOF')).toEqual(['Tofu ferme', 'Tofu fumé', 'Tofu soyeux']);
+    expect(suggestionsAliments(CATALOGUE, '  TOF')).toEqual(TOFU);
   });
 
   it('même règle que le moteur : un DÉBUT de mot — « œuf » ne propose pas le bœuf', () => {
@@ -39,7 +43,7 @@ describe('ce que la frappe propose', () => {
   });
 
   it('ce qu’un mot enregistré couvre déjà n’est plus proposé', () => {
-    expect(suggestionsAliments(CATALOGUE, 'tofu', ['tofu fumé'])).toEqual(['Tofu ferme', 'Tofu soyeux']);
+    expect(suggestionsAliments(CATALOGUE, 'tofu', ['tofu fumé'])).toEqual(['Saucisses végétales (tofu)', 'Tofu ferme', 'Tofu soyeux']);
     expect(suggestionsAliments(CATALOGUE, 'tofu', ['Tofu'])).toEqual([]);
   });
 });
