@@ -76,6 +76,24 @@ export const FOOD_FAMILIES: Record<string, string[]> = {
   // Il attrape déjà la patate douce par le nom ; la pomme de terre, elle, ne porte pas le
   // mot — sans cette ligne, quelqu'un qui écrit « patates » en recevait 23 assiettes.
   patate: ['pomme_de_terre'],
+  // ── Trois familles ajoutées le 2026-09-18, après un audit du champ ──────────
+  // Elles n'écartaient RIEN alors que les aliments existent : le champ le disait
+  // (« aucun ingrédient ne correspond »), donc sans mensonge — mais le besoin n'était
+  // pas servi, et « légumineuses » est un mot que les intestins sensibles écrivent.
+  charcuterie: ['jambon_blanc'],
+  // ⚠️ La charcuterie VÉGÉTALE n'y est pas (chorizo, lardons, merguez végétaux) : le mot
+  // désigne un produit de viande, et qui l'écrit ne cherche pas à retirer un produit
+  // végétal qui l'imite. Ceux-là se retirent par leur nom ou par « soja ».
+  'viande rouge': ['boeuf_5', 'boeuf_bavette'],
+  legumineuse: ['lentilles_corail', 'lentilles_cuites', 'pois_chiches_conserve', 'pois_casses',
+    'haricots_rouges_conserve', 'haricots_noirs_conserve', 'haricots_blancs_conserve', 'petits_pois', 'edamame'],
+  legumineuses: ['lentilles_corail', 'lentilles_cuites', 'pois_chiches_conserve', 'pois_casses',
+    'haricots_rouges_conserve', 'haricots_noirs_conserve', 'haricots_blancs_conserve', 'petits_pois', 'edamame'],
+  // ⚠️ **Le HARICOT VERT n'en est pas** : c'est une gousse qu'on mange en légume, pas une
+  // graine sèche — l'y mettre retirerait des plats que personne n'a voulu écarter.
+  // ⚠️ **Le soja TRANSFORMÉ non plus** (tofu, PST, yaourt, crème) : il a sa propre famille,
+  // plus complète, et l'ajouter ici ferait de « légumineuses » un mot qui vide le catalogue
+  // végétal d'un coup. La graine, elle, y est : `edamame`.
 };
 
 /**
