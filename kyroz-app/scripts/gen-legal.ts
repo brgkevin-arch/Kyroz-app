@@ -31,6 +31,7 @@
  * Le `--check` tourne dans `lib/__tests__/legal.test.ts` : oublier de régénérer fait
  * échouer `npm test`, pas la revue de quelqu'un.
  */
+import { createHash } from 'node:crypto';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { LEGAL, PRIVACY_POLICY, TERMS_OF_USE, type LegalSection } from '../constants/legal';
@@ -70,6 +71,48 @@ const sectionsHtml = (sections: LegalSection[]) =>
         sec.paragraphs.map((p) => `    <p>${echapHtml(p)}</p>`).join('\n')
     )
     .join('\n\n');
+
+/**
+ * Le seul script de la page : le bouton « Ouvrir Kyroz ». Il vit ici plutôt qu'inline
+ * dans le gabarit parce que la CSP l'autorise PAR SON EMPREINTE (sha256) — et une
+ * empreinte recopiée à la main casserait le bouton au premier caractère modifié.
+ * ➡️ Calculée à chaque génération : on modifie le script, la CSP suit toute seule.
+ * (Audit sécurité du 2026-09-18 : la page n'avait aucune CSP.)
+ */
+const SCRIPT_OUVRIR = `
+    // Sur iPhone et iPad, le bouton ouvre l'app si elle est installée. Sinon, et partout
+    // ailleurs, le lien mène à la fiche App Store.
+    (function () {
+      var lien = document.getElementById('ouvrir');
+      var ios = /iPhone|iPad|iPod/.test(navigator.userAgent) ||
+        (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+      if (!lien || !ios) return;
+      lien.addEventListener('click', function (e) {
+        e.preventDefault();
+        var repli = setTimeout(function () { location.href = lien.href; }, 1500);
+        document.addEventListener('visibilitychange', function () {
+          if (document.hidden) clearTimeout(repli);
+        }, { once: true });
+        location.href = '${SCHEMA_APP}://';
+      });
+    })();
+  `;
+const SCRIPT_OUVRIR_SHA256 = createHash('sha256').update(SCRIPT_OUVRIR, 'utf8').digest('base64');
+
+/**
+ * CSP en balise meta : GitHub Pages ne laisse poser aucun en-tête HTTP. Aucune
+ * ressource externe — tout vient du site, et le seul script est autorisé par
+ * empreinte, jamais par 'unsafe-inline'.
+ */
+const CSP = [
+  "default-src 'self'",
+  `script-src 'sha256-${SCRIPT_OUVRIR_SHA256}'`,
+  "style-src 'unsafe-inline'",
+  "img-src 'self' data:",
+  "object-src 'none'",
+  "base-uri 'none'",
+  "form-action 'none'",
+].join('; ');
 
 /**
  * La page publique servie en HTTP 200 — l'URL de politique de confidentialité exigée
@@ -113,6 +156,8 @@ export function renderHtml(): string {
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="google" content="notranslate" />
+  <meta http-equiv="Content-Security-Policy" content="${CSP}" />
+  <meta name="referrer" content="strict-origin-when-cross-origin" />
   <title>Confidentialité &amp; CGU — ${echapHtml(LEGAL.appName)}</title>
   <style>
     :root { color-scheme: dark; }
@@ -156,24 +201,7 @@ ${sectionsHtml(PRIVACY_POLICY)}
 
 ${sectionsHtml(TERMS_OF_USE)}
   </div>
-  <script>
-    // Sur iPhone et iPad, le bouton ouvre l'app si elle est installée. Sinon, et partout
-    // ailleurs, le lien mène à la fiche App Store.
-    (function () {
-      var lien = document.getElementById('ouvrir');
-      var ios = /iPhone|iPad|iPod/.test(navigator.userAgent) ||
-        (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-      if (!lien || !ios) return;
-      lien.addEventListener('click', function (e) {
-        e.preventDefault();
-        var repli = setTimeout(function () { location.href = lien.href; }, 1500);
-        document.addEventListener('visibilitychange', function () {
-          if (document.hidden) clearTimeout(repli);
-        }, { once: true });
-        location.href = '${SCHEMA_APP}://';
-      });
-    })();
-  </script>
+  <script>${SCRIPT_OUVRIR}</script>
 </body>
 </html>
 `;
