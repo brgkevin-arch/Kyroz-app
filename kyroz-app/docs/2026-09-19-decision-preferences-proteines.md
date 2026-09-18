@@ -15,11 +15,11 @@
 | Omnivore | Poulet · Bœuf · Poisson · **Porc** (nouvelle case) |
 | Halal | Poulet · Bœuf · Poisson (pas de porc) |
 | Pescétarien | Poisson · Végétal |
-| Végétarien | Tofu · Tempeh · Seitan · Légumineuses · Protéine végé ❓ · **Œufs** |
-| Vegan | Tofu · Tempeh · Seitan · Légumineuses · Protéine végé ❓ |
+| Végétarien | Tofu · Tempeh · Seitan · Légumineuses · Pièces végétales · **Œufs** |
+| Vegan | Tofu · Tempeh · Seitan · Légumineuses · Pièces végétales |
 
-- ❓ **À confirmer** : « Protéine végé » = les **pièces végétales** (steak, nuggets, saucisses,
-  haché, poulet et jambon végétaux) — hypothèse retenue — ou la protéine végétale en poudre.
+- ✅ **Confirmé le 2026-09-19** : « Protéine végé » = les **pièces végétales** (steak, nuggets,
+  saucisses, haché, poulet et jambon végétaux), pas la poudre.
 - Seitan masqué pour « sans gluten » (c'est du blé).
 - **Whey retirée de la liste des protéines préférées.** Les recettes à la whey et à la
   protéine végétale en poudre **restent au catalogue, inchangées**.
@@ -78,7 +78,7 @@ Aujourd'hui cocher une protéine ne fait que la FAVORISER (départage), sans par
 
 ## 5. Ordre proposé
 
-1. Confirmer « Protéine végé » (❓ §1).
+1. ✅ « Protéine végé » confirmé (pièces végétales).
 2. Mesurer la faisabilité de chaque part (moteur + catalogue) — sans rien livrer.
 3. Écrire les ~10 plats de porc.
 4. Moteur : parts garanties par régime ; retrait de la case Végétal omnivore.
