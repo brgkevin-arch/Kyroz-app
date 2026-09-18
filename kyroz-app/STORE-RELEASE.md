@@ -219,7 +219,13 @@ installation neuve part du binaire, donc du (6).
   encore `0639ecc` après la compilation, 0 PR ouverte — le piège du 11 août ne s'est pas
   rejoué). *(Le précédent :)* le **(6)** — `ceec1b17`, commit
   `1047b9f`, terminé le 2026-08-11 à 20 h 37. Il a **62 commits de retard** sur `main` — chiffre RE-MESURÉ le 2026-08-26 (il en annonçait 40, mesurés le 2026-08-23), qui **grandit à chaque merge** : le relire avec `git rev-list --count 1047b9f..origin/main` plutôt que de le recopier (même défaut que le décompte d'OTA tenu à la main).
-- **OTA** : la dernière est la **45ᵉ** (groupe `419eb526`, **iOS seulement**, 2026-09-18),
+- **OTA** : la dernière est la **46ᵉ** (groupe `cf5f445c`, **iOS seulement**, 2026-09-19),
+  publiée sur le commit `aac9f95` — `main`, arbre propre.
+  ✅ **Runtime iOS `823c89db…` = le build (22)**, empreinte comparée AVANT publication.
+  Contenu : B12 (8 plats sur les pièces végétales), familles fruit et goût, sept recettes
+  différenciées, règle anti-clone R6, zéro plat principal végétal sans case cochée ;
+  `ENGINE_VERSION` 58 → 60. Aucun changement natif : rien à soumettre.
+  **La 45ᵉ** (groupe `419eb526`, **iOS seulement**, 2026-09-18),
   publiée sur le commit `905c310` — `main`, arbre propre.
   ✅ **Runtime iOS `823c89db…` = le build (22)**, empreinte comparée AVANT publication.
   Contenu : D43 (trois familles d'aliments évités : charcuterie, viande rouge,
