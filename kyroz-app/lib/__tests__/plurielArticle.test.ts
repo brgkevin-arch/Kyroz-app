@@ -43,21 +43,21 @@ describe('un mot n’en attrape pas un autre (2026-09-18)', () => {
   });
 
   it('« pommes de terre » écarte enfin quelque chose — le catalogue écrit « Pomme de terre »', () => {
-    expect(compte('pomme de terre')).toBe(24);
-    expect(compte('pommes de terre')).toBe(24); // 0 avant : le pluriel était sur le PREMIER mot
+    expect(compte('pomme de terre')).toBe(27);
+    expect(compte('pommes de terre')).toBe(27); // 0 avant : le pluriel était sur le PREMIER mot
   });
 
   it('« patate » est le mot courant pour la pomme de terre, et retire les deux', () => {
-    expect(compte('patate')).toBe(50);          // 26 avant : la patate douce seulement
-    expect(compte('patates')).toBe(50);
+    expect(compte('patate')).toBe(53);          // 26 avant : la patate douce seulement
+    expect(compte('patates')).toBe(53);
     // …et l'inverse n'est pas vrai : « pomme de terre » ne touche pas la patate douce.
     expect(compte('patate douce')).toBe(26);
   });
 
   it('AUCUN faux négatif : le pluriel du catalogue reste attrapé', () => {
     expect(compte('lentille')).toBe(compte('lentilles'));
-    expect(compte('pate')).toBe(29);            // « pâtes complètes »
-    expect(compte('oeuf')).toBe(64);
+    expect(compte('pate')).toBe(30);            // « pâtes complètes »
+    expect(compte('oeuf')).toBe(66);
     expect(compte('poulet')).toBe(62);
     expect(compte('lait')).toBe(76);
   });
@@ -67,7 +67,7 @@ describe('un mot au début d’un nom composé (2026-09-18)', () => {
   it('« pomme » ne retire plus la POMME DE TERRE', () => {
     expect(compte('pomme')).toBe(20);            // 43 avant : le fruit + les pommes de terre
     expect(compte('pommes')).toBe(20);           // le pluriel ne rattrape pas ce qu'on épargne
-    expect(compte('pomme de terre')).toBe(24);
+    expect(compte('pomme de terre')).toBe(27);
   });
 
   it('…mais « tomate » retire bien la TOMATE CONCASSÉE — c’est le même aliment', () => {
@@ -76,7 +76,7 @@ describe('un mot au début d’un nom composé (2026-09-18)', () => {
     // casser la tomate sans que rien ne le dise.
     expect(compte('tomate')).toBeGreaterThan(compte('tomate concassee'));
     expect(compte('tomate concassee')).toBe(47);
-    expect(compte('tomate')).toBe(112);
+    expect(compte('tomate')).toBe(113);
   });
 });
 

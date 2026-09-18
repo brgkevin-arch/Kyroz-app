@@ -2,8 +2,8 @@ import { describe, it, expect } from 'vitest';
 import { RECIPE_INGREDIENTS, RECIPE_CONFIG, RAW_RECIPES, macrosForRefIngredients } from '../recipeData';
 
 describe('recipeData', () => {
-  it('charge 545 recettes brutes', () => {
-    expect(RAW_RECIPES).toHaveLength(545);
+  it('charge 549 recettes brutes', () => {
+    expect(RAW_RECIPES).toHaveLength(549);
   });
   it('chaque recette déclare sa vague de livraison', () => {
     // Sans `wave`, une vague ne sait pas contre quoi se comparer : impossible d'expliquer
@@ -36,9 +36,9 @@ describe('recipeData', () => {
       '2026-09-07-b10-registre-francais': 25,
       // B12 : 4 repas complets sur quatre pièces végétales qu'aucune recette n'employait
       // (saucisse, steak de soja, nuggets, lardons), chacune avec UNE seconde protéine
-      // (lentilles, lentilles corail, tempeh, seitan).
-      // L'escalope végétale n'a pas tenu R8. 541 → 545.
-      '2026-09-18-b12-pieces-vegetales': 4,
+      // (lentilles, lentilles corail, tempeh, seitan), puis leurs 4 variantes VÉGÉTARIENNES
+      // (œufs, skyr, cottage cheese). L'escalope végétale n'a pas tenu R8. 541 → 549.
+      '2026-09-18-b12-pieces-vegetales': 8,
       '2026-08-03-b8-collations-vegan-sg': 8,
       '2026-08-03-b9-collations-grand-format': 8,
       fondation: 92, '2026-06-19-vegan': 156, '2026-07-22-sans-gluten': 46,

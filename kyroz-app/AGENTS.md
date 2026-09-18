@@ -1577,9 +1577,20 @@ produit en suspens — il ne reste qu'à coder.
      ⚠️ Seules les saucisses restent sans gluten : sans gluten, le steak ne passait pas 8.
      ⚠️ Les pièces portent leur gras : `recipeMap.test` exige un ingrédient `fat` au-delà de
      12 g — d'où l'huile de cuisson de `rep287`/`rep288`, les deux autres restant « maigres ».
-     **Servis, mesuré sur 96 semaines par régime** (part des repas midi/soir) : végétarien
-     3,9 %, vegan 2,9 %, vegan sans gluten 2,1 % (saucisses), pescétarien 1,2 %, omnivore 0,4 %
-     (nuggets, bolognaise — permis : le mur D35 ne vise que tofu et soja texturé).
+     ➕ **Variantes VÉGÉTARIENNES (même jour, demande fondateur « avec des œufs ou autres »)** :
+     `rep289` carbonara aux lardons végétaux (œufs + parmesan), `rep290` frittata de pommes de
+     terre aux saucisses végétales (œuf + blancs), `rep291` steak de soja, pommes de terre et
+     sauce au skyr aux herbes, `rep292` nuggets, pommes de terre au four et cottage cheese.
+     R8 : 8, 9, 10, 8. ⚠️ Œufs entiers et fromages sont GRAS : ils plafonnent à 4-6/12 comme
+     seconde protéine ; ce qui passe, ce sont les blancs d'œufs (sous un nom d'omelette/frittata,
+     sinon `remplissage.test` les signale) et les laitages maigres EN SAUCE, sous 100 g.
+     **Servis, mesuré sur 96 semaines par régime** (part des repas midi/soir, les 8 plats) :
+     végétarien 5,2 %, vegan 3,0 %, pescétarien 2,5 %, vegan sans gluten 2,1 % (saucisses),
+     omnivore 1,3 % (nuggets, bolognaise, carbonara, steak — permis : le mur D35 ne vise que
+     tofu et soja texturé).
+     ℹ️ **Ce que reçoit un pescétarien, mesuré le même jour** (repas midi/soir, 96 semaines) :
+     sans préférence cochée, **poisson 55 % · protéines végétales 32 %** · œufs/laitages 11 % ·
+     légumineuses 2 % ; « Poisson » coché → poisson 94 % ; « Végétal » coché → végétal 73 %.
   3. **Plats salés servis au petit-déjeuner ou en collation** (arbitrage du 2026-09-10, §2.3).
      `pd118` « Châtaigne fondante au soja texturé » (avec haricots verts) et `col92`
      « Champignons poêlés à la châtaigne » sont **inchangés** au 2026-09-13. Le « ~6 » de

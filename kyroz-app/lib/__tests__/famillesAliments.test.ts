@@ -65,7 +65,7 @@ describe('ce que « légumineuses » ne doit PAS emporter', () => {
 
   it('les mots d’avant sont intacts', () => {
     expect(compte('lentilles')).toBe(18);
-    expect(compte('tofu')).toBe(40);
+    expect(compte('tofu')).toBe(41);
     expect(compte('viande')).toBe(97);
     expect(compte('jambon')).toBe(31);
   });

@@ -136,13 +136,13 @@
       "ingredients": [
         {
           "ref": "nuggets_vegetal",
-          "qty": 60,
+          "qty": 50,
           "macro_role": "protein",
           "scalable": true
         },
         {
           "ref": "tempeh",
-          "qty": 80,
+          "qty": 90,
           "macro_role": "protein",
           "scalable": true
         },
@@ -173,10 +173,10 @@
       ],
       "why": "Le tempeh doré double les protéines des nuggets, la courgette donne du volume au riz.",
       "macros_per_serving": {
-        "kcal": 548.8,
+        "kcal": 539.4,
         "protein": 27.7,
-        "carbs": 67,
-        "fat": 16
+        "carbs": 65.8,
+        "fat": 15.3
       },
       "wave": "2026-09-18-b12-pieces-vegetales"
     },
@@ -238,6 +238,238 @@
         "protein": 31,
         "carbs": 52.6,
         "fat": 14.9
+      },
+      "wave": "2026-09-18-b12-pieces-vegetales"
+    },
+    {
+      "id": "rep289",
+      "name": "Pâtes carbonara aux lardons végétaux",
+      "category": "repas_complet",
+      "tags": {
+        "objectif": [
+          "perte_de_gras"
+        ],
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 20
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "lardons_vegetaux",
+          "qty": 30,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "oeuf_entier",
+          "qty": 100,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "pates_completes",
+          "qty": 80,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "parmesan",
+          "qty": 12,
+          "macro_role": "fat",
+          "scalable": true
+        }
+      ],
+      "instructions": [
+        "Fais cuire les pâtes dans une grande casserole d'eau salée bouillante le temps indiqué sur le paquet, en gardant une louche d'eau de cuisson.",
+        "Pendant ce temps, bats les œufs avec le parmesan râpé et beaucoup de poivre.",
+        "Fais dorer les lardons végétaux 4 minutes à sec dans une grande poêle antiadhésive, à feu moyen.",
+        "Hors du feu, verse les pâtes égouttées dans la poêle, ajoute le mélange œufs-parmesan et un peu d'eau de cuisson, et remue vivement : la sauce doit napper sans cuire en omelette."
+      ],
+      "why": "Les œufs et le parmesan font la sauce et complètent les protéines des lardons.",
+      "macros_per_serving": {
+        "kcal": 537.1,
+        "protein": 30.5,
+        "carbs": 56.1,
+        "fat": 19.8
+      },
+      "wave": "2026-09-18-b12-pieces-vegetales"
+    },
+    {
+      "id": "rep290",
+      "name": "Frittata de pommes de terre aux saucisses végétales",
+      "category": "repas_complet",
+      "tags": {
+        "objectif": [
+          "perte_de_gras"
+        ],
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 35
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "saucisse_vegetale",
+          "qty": 40,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "oeuf_entier",
+          "qty": 50,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "blanc_oeuf",
+          "qty": 100,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "pomme_de_terre",
+          "qty": 300,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "poivron",
+          "qty": 80,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Coupe les pommes de terre en fines rondelles et fais-les cuire 12 minutes à la vapeur.",
+        "Coupe les saucisses végétales en rondelles et le poivron en dés, puis fais-les revenir 5 minutes dans une poêle antiadhésive à feu moyen.",
+        "Bats l'œuf entier avec les blancs, sale, poivre, et ajoute du paprika.",
+        "Ajoute les pommes de terre dans la poêle, verse les œufs par-dessus et laisse prendre 8 minutes à couvert et à feu doux, jusqu'à ce que le dessus soit pris."
+      ],
+      "why": "Les œufs lient les pommes de terre et portent l’essentiel des protéines, avec la saucisse.",
+      "macros_per_serving": {
+        "kcal": 467.6,
+        "protein": 29.3,
+        "carbs": 54.4,
+        "fat": 12.2
+      },
+      "wave": "2026-09-18-b12-pieces-vegetales"
+    },
+    {
+      "id": "rep291",
+      "name": "Steak de soja, pommes de terre et sauce au skyr aux herbes",
+      "category": "repas_complet",
+      "tags": {
+        "objectif": [
+          "perte_de_gras"
+        ],
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 25
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "steak_soja",
+          "qty": 70,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "skyr",
+          "qty": 90,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "pomme_de_terre",
+          "qty": 350,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "haricots_verts",
+          "qty": 100,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Coupe les pommes de terre en morceaux et fais-les cuire 20 minutes à la vapeur, avec les haricots verts pour les 8 dernières minutes.",
+        "Mélange le skyr avec de la ciboulette ciselée, du jus de citron, sel et poivre.",
+        "Fais cuire le steak de soja 3 minutes de chaque côté dans une poêle antiadhésive bien chaude.",
+        "Sers le steak avec les pommes de terre, les haricots verts et la sauce au skyr à côté."
+      ],
+      "why": "La sauce au skyr apporte des protéines sans gras ajouté, le steak de soja fait le reste.",
+      "macros_per_serving": {
+        "kcal": 545.1,
+        "protein": 29.6,
+        "carbs": 70.4,
+        "fat": 11
+      },
+      "wave": "2026-09-18-b12-pieces-vegetales"
+    },
+    {
+      "id": "rep292",
+      "name": "Nuggets végétaux, pommes de terre au four et cottage cheese à la ciboulette",
+      "category": "repas_complet",
+      "tags": {
+        "objectif": [
+          "perte_de_gras"
+        ],
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 40
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "nuggets_vegetal",
+          "qty": 60,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "cottage_cheese",
+          "qty": 90,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "pomme_de_terre",
+          "qty": 350,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "tomate",
+          "qty": 80,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "salade_verte",
+          "qty": 30,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Préchauffe le four à 200 °C. Coupe les pommes de terre en deux dans la longueur et fais-les cuire 35 minutes sur une plaque, face coupée en dessous.",
+        "Enfourne les nuggets végétaux pour les 15 dernières minutes, en les retournant à mi-cuisson.",
+        "Mélange le cottage cheese avec de la ciboulette ciselée, sel et poivre.",
+        "Sers les pommes de terre garnies de cottage cheese, avec les nuggets, la tomate en quartiers et la salade verte."
+      ],
+      "why": "Le cottage cheese garnit les pommes de terre et double les protéines des nuggets.",
+      "macros_per_serving": {
+        "kcal": 537.4,
+        "protein": 26.9,
+        "carbs": 74.4,
+        "fat": 11.2
       },
       "wave": "2026-09-18-b12-pieces-vegetales"
     }
