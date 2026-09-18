@@ -1738,13 +1738,12 @@ réussie accuse d'abord la fiche ; c'est l'instrument qu'il faut mesurer en prem
 > cf. AGENTS.md E66), pas de pub, pas de tracking inter-applications. Suppression du
 > compte + données possible **dans l'app** (Profil → supprimer le compte).
 >
-> 🔴 **LES DEUX FORMULAIRES SONT PUBLIÉS ET DÉCLARENT ENCORE L'ANALYTICS.** C'est une
-> déclaration publique qui sur-déclare : elle annonce une collecte qui n'a plus lieu.
-> Moins grave que l'inverse, mais faux quand même — et c'est exactement le défaut que
-> ce dépôt traque partout ailleurs. ➡️ **À reprendre dans App Store Connect** (App
-> Privacy → retirer *Product Interaction* / *Analytics*) **et dans Play Console**
-> (Sécurité des données → retirer « actions dans l'app »). Tant que ce n'est pas fait,
-> les tableaux ci-dessous portent la version À DÉCLARER, pas celle qui est en ligne.
+> ✅ **ALIGNÉS SUR LE CODE — re-mesuré le 2026-09-18.** Ce paragraphe disait encore que les
+> deux formulaires déclaraient l'analytics. C'était faux des deux côtés :
+> - **Apple** : App Privacy **republié le 2026-08-28** (#198), *Données d'utilisation* retirée.
+> - **Google** : la case « actions dans l'app » n'a **jamais été cochée** — elle était restée à
+>   faire dans `RGPD-REGISTRE.md` quand PostHog s'est éteint, et Android n'est pas sorti.
+>   Au prochain passage Android, remplir le formulaire tel que ci-dessous, SANS analytics.
 >
 > ⚠️ **Ces deux formulaires se remplissent ENSEMBLE.** Ils décrivent le même flux de
 > données dans deux vocabulaires ; n'en mettre qu'un à jour crée une contradiction que
