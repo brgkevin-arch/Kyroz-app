@@ -1693,8 +1693,9 @@ produit en suspens — il ne reste qu'à coder.
      pour tenir le rythme » (STORE-RELEASE §3) et les captures du Plan montrent la
      pastille. Ni l'une ni l'autre ne se modifie hors d'une nouvelle version.
   ⚠️ Les appareils gardent une clé `@kyroz:streak` orpheline (trois nombres) : plus rien
-  ne la lit, et elle part avec le reste à la déconnexion ou à la suppression du compte
-  (`sessionLocale.ts::clesAPurger`).
+  ne la lit, et elle part avec le reste quand l'appareil change de compte ou que le
+  compte est supprimé (`sessionLocale.ts::clesAPurger`, liste blanche : toute clé non
+  listée est purgée).
 
 - **E68 · Cocher son niveau d'activité ne descend pas jusqu'aux séances**
   🔴 **SIGNALÉ PAR LE FONDATEUR le 2026-09-05**, dans la même répétition que E67 :
