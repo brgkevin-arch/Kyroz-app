@@ -425,8 +425,8 @@ describe('harnais Playwright — les tables recopiées suivent la source', () =>
     }
   });
 
-  // ⚠️ CE QUI REMPLACE L'ÉCRAN N'EST PAS RIEN : son `isVisible({ timeout })` absorbait
-  // le temps de montage de l'assistant. Sans attente explicite derrière, une sonde
+  // ⚠️ CE QUI REMPLACE L'ÉCRAN N'EST PAS RIEN : il absorbait (croyait-on, par un
+  // `isVisible({ timeout })` qui en réalité n'attend pas) le temps de montage de l'assistant. Sans attente explicite derrière, une sonde
   // instantanée rendrait « pas d'assistant » sur une page qui n'a pas fini de monter —
   // donc onboarding SAUTÉ, donc un plan jamais généré, sans une ligne pour le dire.
   it('l\'entrée dans l\'assistant ATTEND l\'étape 1, elle ne la sonde pas', () => {
@@ -437,9 +437,20 @@ describe('harnais Playwright — les tables recopiées suivent la source', () =>
       boot.includes('attendreEtape1'),
       'bootToPlan n\'attend plus l\'étape 1 : un assistant lent à monter serait pris pour une session déjà onboardée',
     ).toBe(true);
+    // 🔴 CE TEST EXIGEAIT `isVisible({ timeout })`, ET C'ÉTAIT LA FORME QUI N'ATTEND PAS.
+    // Mesuré le 2026-09-19 (Playwright 1.61) : `isVisible` ignore son délai et répond en
+    // 8 ms sur un texte qui arrive à 2 s ; `waitFor` patiente (2,3 s). Le test gardait donc
+    // la sonde instantanée qu'il croyait interdire — vert, et gardien du défaut.
+    // ➡️ On exige la forme qui ATTEND, et on refuse celle qui en a seulement l'air.
+    const def = /export const attendreEtape1[\s\S]*?;\n/.exec(harnais)?.[0] ?? '';
+    expect(def, 'attendreEtape1 introuvable').not.toBe('');
     expect(
-      /isVisible\(\{\s*timeout/.test(harnais.slice(harnais.indexOf('attendreEtape1'))),
-      'attendreEtape1 ne pose aucun délai — elle ne remplace donc pas ce que l\'écran supprimé absorbait',
+      /waitFor\(\{[^}]*timeout/.test(def),
+      'attendreEtape1 n\'attend pas (`waitFor({ state, timeout })`) — elle ne remplace donc pas ce que l\'écran supprimé absorbait',
     ).toBe(true);
+    expect(
+      /isVisible\(/.test(def),
+      'attendreEtape1 repasse par `isVisible`, qui ne patiente JAMAIS, délai ou pas',
+    ).toBe(false);
   });
 });

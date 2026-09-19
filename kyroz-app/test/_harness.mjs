@@ -34,6 +34,10 @@ export const BASE_URL = process.env.KYROZ_URL ?? 'http://localhost:8090';
 // KYROZ_HEADLESS=1 pour une passe CI/rapide.
 export const HEADLESS = process.env.KYROZ_HEADLESS === '1';
 
+// KYROZ_SESSION_LOCALE=1 : pas de connexion invité, une session FACTICE posée sur
+// l'appareil (cf. `poserSessionLocale`). Aucun compte n'est créé côté Supabase.
+export const SESSION_LOCALE = process.env.KYROZ_SESSION_LOCALE === '1';
+
 export const PHONE = { width: 430, height: 932 };
 
 // Onglets réellement montés — source : app/(tabs)/_layout.tsx.
@@ -313,7 +317,13 @@ export async function choisirDateNaissance(page, birth) {
  */
 export const attendreEtape1 = (page, maxMs = 5000) =>
   page.getByText('Ton prénom', { exact: false }).first()
-    .isVisible({ timeout: maxMs }).catch(() => false);
+    .waitFor({ state: 'visible', timeout: maxMs }).then(() => true, () => false);
+// 🔴 `waitFor`, PAS `isVisible({ timeout })` — mesuré le 2026-09-19 (Playwright 1.61) :
+// `isVisible` IGNORE son délai et répond tout de suite (8 ms sur un texte qui arrive à
+// 2 s), là où `waitFor` patiente (2,3 s). Cette fonction ne faisait donc qu'UNE sonde,
+// à l'opposé de ce que dit l'appelant. La pause de 3 s de `guestLogin` masquait le
+// défaut ; une session locale (qui attend la synchro jusqu'à 6 s) le rendait fatal.
+// ⚠️ Les autres `isVisible({ timeout })` de ce fichier ont le même comportement.
 
 /** Attend que le plan soit PERSISTÉ (la génération suit l'onboarding d'une poignée de secondes). */
 export async function attendrePlan(page, maxMs = 15000) {
@@ -436,9 +446,15 @@ export async function runOnboarding(page, p = DEFAULT_PERSONA) {
   // régime depuis le 2026-09-08, pas celui des protéines — et laissait l'étape bloquée.
   // On les répond tous : chacun enregistre l'absence de préférence, donc les plans des
   // scripts en aval restent ceux d'avant.
+  // 🔴 LE RÉGIME EST OBLIGATOIRE DEPUIS LE 2026-09-19 (#325, « régime d'abord » :
+  // `onboarding.tsx::preferencesValid` exige `regimeChoisi`). Sans case cochée, l'étape
+  // ne se valide plus et le harnais s'arrêtait ici — cassé le jour même du merge, et
+  // `npm test` restait vert. « Omnivore » est le régime du persona.
+  await tap(page, 'Omnivore', { exact: true });
+  await sleep(300);
   const peuImporte = page.getByText('Peu importe', { exact: true });
-  // D36 (2026-09-15) : le régime n'a plus de « Peu importe » (case « Omnivore », non obligatoire) —
-  // il en reste TROIS : protéines, petit-déjeuner, collations. Ne rien cocher au régime garde les plans d'avant.
+  // D36 (2026-09-15) : le régime n'a plus de « Peu importe » (case « Omnivore ») —
+  // il en reste TROIS : protéines, petit-déjeuner, collations.
   const nPeuImporte = await peuImporte.count().catch(() => 0);
   if (nPeuImporte < 3) {
     await panne(page, 'onboarding-preferences', `l'étape 6 exige trois réponses et ${nPeuImporte} « Peu importe » seulement sont visibles`);
@@ -544,6 +560,66 @@ export const plannedMeals = (page) => page.evaluate(() => {
 }).catch(() => 0);
 
 /**
+ * Pose une session Supabase FACTICE sur l'appareil, puis ramène l'app à sa racine.
+ * Rend `true` quand l'app a quitté l'écran de démarrage (assistant OU plan).
+ *
+ * POURQUOI : la connexion invité appelle `signInAnonymously` sur la base de
+ * `.env.local` — c'est-à-dire, sur une machine de développement, la PRODUCTION. Un
+ * script de captures y créait deux comptes par passage.
+ *
+ * Comment elle passe sans réseau :
+ *  · `lib/supabase.ts::readPersistedSession` accepte toute entrée qui porte
+ *    `access_token` ET `user` ; `expires_at` lointain évite qu'auth-js ne tente un
+ *    rafraîchissement ;
+ *  · la clé de stockage (`AUTH_STORAGE_KEY`) dépend de l'URL du projet : on la LIT dans
+ *    le module chargé (registre de Metro, `__r.getModules()`, serveur de dev seulement)
+ *    plutôt que dans `.env.local`, qu'aucun script ne doit ouvrir.
+ * ⚠️ Contre une vraie URL, les appels de synchro partent avec un jeton invalide et sont
+ *    refusés : rien ne s'écrit, mais ils partent. Contre une URL factice, rien ne part.
+ * ⚠️ L'écran de connexion ne redirige pas tout seul (`app/index.tsx` aiguille), d'où le
+ *    retour à la RACINE. Et sans profil, l'app attend la synchro jusqu'à
+ *    `HYDRATION_BUDGET_MS` (6 s, `lib/boot.ts`) avant d'ouvrir l'assistant.
+ */
+export async function poserSessionLocale(page) {
+  const cle = await page.evaluate(() => {
+    try {
+      const mods = __r.getModules();
+      for (const [, m] of (mods instanceof Map ? mods : Object.entries(mods))) {
+        const e = m && m.isInitialized && m.publicModule && m.publicModule.exports;
+        if (e && typeof e.AUTH_STORAGE_KEY === 'string') return e.AUTH_STORAGE_KEY;
+      }
+    } catch {}
+    return null;
+  }).catch(() => null);
+  if (!cle) {
+    await panne(page, 'session-locale', 'AUTH_STORAGE_KEY introuvable dans les modules chargés — le serveur doit être celui de dev (`expo start --web`)');
+    return false;
+  }
+  const loin = Math.floor(Date.now() / 1000) + 3600 * 24 * 365 * 5;
+  await page.evaluate(([k, exp]) => {
+    localStorage.setItem(k, JSON.stringify({
+      access_token: 'session-locale', refresh_token: 'session-locale', token_type: 'bearer',
+      expires_in: 3600, expires_at: exp,
+      user: {
+        id: '00000000-0000-4000-8000-00000000c0de', aud: 'authenticated', role: 'authenticated',
+        email: 'session-locale@example.invalid', app_metadata: {}, user_metadata: {},
+        created_at: new Date().toISOString(),
+      },
+    }));
+  }, [cle, loin]);
+  await page.goto(new URL('/', page.url()).href, { waitUntil: 'load' });
+  const sorti = await page.waitForFunction(
+    () => (document.body.innerText || '').includes('Ton prénom') || !!localStorage.getItem('@kyroz:plan'),
+    null, { timeout: 15000 },
+  ).then(() => true, () => false);
+  if (!sorti) {
+    await panne(page, 'session-locale', 'session posée, mais l\'app n\'a quitté ni le démarrage ni la connexion en 15 s');
+    return false;
+  }
+  return true;
+}
+
+/**
  * Amène la page jusqu'à l'écran Plan, sans intervention humaine :
  * invité → dépistage → onboarding → reveal. Idempotent : si la session est déjà
  * onboardée (storageState réutilisé), chaque étape se saute d'elle-même.
@@ -554,6 +630,9 @@ export const plannedMeals = (page) => page.evaluate(() => {
  * « écran introuvable ».
  */
 export async function bootToPlan(page, persona = DEFAULT_PERSONA) {
+  // KYROZ_SESSION_LOCALE=1 : la session est posée sur l'appareil, et `guestLogin`
+  // ci-dessous ne trouve plus de bouton invité — il rend « déjà connecté ».
+  if (SESSION_LOCALE && !(await poserSessionLocale(page))) return false;
   if (!(await guestLogin(page))) {
     await panne(page, 'connexion-invite', 'connexion invité refusée — 429 Supabase (plafond par heure et par IP) ou provider anonyme coupé');
     return false;

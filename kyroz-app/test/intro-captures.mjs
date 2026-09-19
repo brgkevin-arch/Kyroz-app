@@ -8,6 +8,11 @@
 //
 // Usage : KYROZ_URL=http://localhost:8097 node test/intro-captures.mjs
 //
+// ⚠️ SANS OPTION, IL CRÉE DEUX COMPTES INVITÉS — un par thème — sur la base Supabase
+// de `.env.local`, c'est-à-dire la PRODUCTION sur une machine de développement.
+// ➡️ Préférer : KYROZ_SESSION_LOCALE=1 KYROZ_URL=http://localhost:8097 node test/intro-captures.mjs
+// (session factice posée sur l'appareil, aucun compte créé — `_harness.mjs::poserSessionLocale`).
+//
 // 🔴 NE JAMAIS VIDER `assets/intro/` AVANT DE LANCER CE SCRIPT. Il pilote l'app pour
 // la photographier, et l'app IMPORTE ces images (`components/IntroCarousel.tsx`,
 // `require` résolu par Metro à la compilation). Sans elles le bundle ne se construit
@@ -84,24 +89,33 @@ const SCHEMA = { sombre: 'dark', clair: 'light' };
 // ta courbe apparaît ici » — une diapo qui vend le suivi du poids en montrant qu'il
 // n'y en a pas.
 //
-// 🔴 LA SÉRIE S'ARRÊTE AVANT AUJOURD'HUI, ET C'EST TOUT LE POINT. L'app pose
-// elle-même une pesée du JOUR au poids du profil (`useWeightLog` : `upsertEntry`
-// quand la liste est vide). Ma première série finissait à 82,0 — exactement le poids
-// du profil — donc les deux dernières pesées étaient identiques : la courbe finissait
-// À PLAT et la carte annonçait « 0 kg depuis la pesée précédente », juste au-dessus
-// d'une courbe qui descend de 84,4 à 82. Mesuré sur l'image le 2026-09-07.
-// ➡️ On laisse l'app poser le dernier point (aujourd'hui, 82 kg) et on s'arrête à
-// 82,6 : l'écart affiché devient −0,6 kg, cohérent avec la pente.
+// 🔴 LE DERNIER POINT EST LA PESÉE DU JOUR, AU POIDS DU PERSONA, ET C'EST LE SCRIPT QUI
+// LA POSE (corrigé le 2026-09-19). Ce commentaire disait le contraire : « l'app pose
+// elle-même une pesée du JOUR » (`useWeightLog` : `upsertEntry` quand la liste est
+// vide). Faux dès que le script RÉÉCRIT le journal après l'inscription — la liste n'est
+// plus vide, l'app ne pose rien, et la diapo montrait « 82 kg » en en-tête au-dessus
+// d'une courbe qui finissait à 82,6 le 13 septembre.
+// ⚠️ Et l'avant-dernier point reste à 82,6, pas à 82,0 : deux dernières pesées égales
+// faisaient finir la courbe À PLAT sous « 0 kg depuis la pesée précédente » (mesuré sur
+// l'image le 2026-09-07). −0,6 kg, cohérent avec la pente.
 //
-// ⚠️ DATES RELATIVES, et c'est un arbitrage assumé contre la stabilité du diff : des
-// dates fixes vieillissent (« 8 août » à côté d'un aujourd'hui de décembre), et une
-// courbe dont le dernier point est à trois mois du précédent ne vend plus un suivi.
-// L'image change donc à chaque regénération — mais un PNG entier change de toute
-// façon dès qu'on le refait.
+// 🔴 LE JOUR DE LA CAPTURE EST FIGÉ À UN LUNDI 9 H 30 (2026-09-19). Les images
+// dépendaient de l'heure de génération : lancé un samedi soir, le script rendait
+// « Bonsoir », « Jour 6 », des repas cochés tout seuls, et sur les Courses « À partir
+// du samedi : ton plan avait déjà commencé ». Le contexte démarre donc sur `FIXE`
+// (`clock.install`), et les pesées se datent depuis lui : les dates ne vieillissent
+// plus et le diff d'une regénération à l'autre ne tient qu'à ce qui a changé.
+// ⚠️ `clock.install`, PAS `clock.setFixedTime` : une horloge FIGÉE casse la roulette de
+// date de naissance de l'inscription (elle mesure le temps qui passe, le harnais
+// s'arrête sur « Valider n'a rien enregistré »). Celle-ci démarre à `FIXE` et avance.
+const FIXE = new Date(2026, 8, 14, 9, 30); // lundi 14 septembre 2026, 9 h 30, heure locale
+// Date LOCALE, comme l'app (`localStamp`) : `toISOString` est en UTC et décalerait
+// d'un jour une capture faite près de minuit.
 const ilYA = (jours) => {
-  const d = new Date();
+  const d = new Date(FIXE);
   d.setDate(d.getDate() - jours);
-  return d.toISOString().slice(0, 10);
+  const deux = (n) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${deux(d.getMonth() + 1)}-${deux(d.getDate())}`;
 };
 const PESEES = [
   { date: ilYA(30), weight_kg: 84.4 },
@@ -109,6 +123,7 @@ const PESEES = [
   { date: ilYA(18), weight_kg: 83.5 },
   { date: ilYA(12), weight_kg: 83.1 },
   { date: ilYA(6),  weight_kg: 82.6 },
+  { date: ilYA(0),  weight_kg: DEFAULT_PERSONA.weight },
 ];
 
 const browser = await chromium.launch();
@@ -121,6 +136,7 @@ for (const theme of THEMES) {
   const ctx = await browser.newContext({
     viewport: PHONE, deviceScaleFactor: SCALE, colorScheme: SCHEMA[theme],
   });
+  await ctx.clock.install({ time: FIXE }); // démarre lundi 9 h 30, puis avance (cf. `FIXE`)
   await neutralizeFirstRun(ctx);
   const page = await ctx.newPage();
   await open(page);
