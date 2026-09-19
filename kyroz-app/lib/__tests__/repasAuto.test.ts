@@ -181,10 +181,6 @@ describe('l’auto-coche vaut EXACTEMENT « J’ai cuisiné »', () => {
     expect(bloc).toContain('rebalanceDay(profile,');
   });
 
-  it('elle compte pour la série (décision fondateur)', () => {
-    expect(bloc).toContain('markActiveToday()');
-  });
-
   it('🔴 la mesure porte `auto: true` — sinon la north star devient un compteur d’installations', () => {
     // « Un jour actif = un jour où un repas a été CUISINÉ » (METRICS.md §1). Sans ce
     // drapeau, PostHog ne peut plus distinguer un geste d'une échéance.
@@ -230,11 +226,10 @@ describe('🔴 la veille se solde AVANT que le suivi soit effacé', () => {
     expect(bloc.slice(0, 900)).toContain('await marquerSolde(hier)');
   });
 
-  it('elle ne crédite NI la série NI un statut', () => {
-    // La série dit « tu as ouvert Kyroz ce jour-là » : la créditer après coup pour
-    // un jour où personne n'a ouvert l'app en ferait un compteur de jours.
+  it('elle ne pose pas de statut', () => {
+    // Un statut « mangé » posé ici serait effacé dans la foulée par `resetTracking`.
+    // (La série, qu'elle ne créditait pas non plus, a été retirée le 2026-09-19.)
     const bloc = plan.slice(plan.indexOf('const solderLaVeille'), plan.indexOf('const load = async'));
-    expect(bloc).not.toContain('markActiveToday');
     expect(bloc).not.toContain('setMealStatus');
   });
 });

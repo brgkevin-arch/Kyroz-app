@@ -231,6 +231,13 @@ import { STATISTIQUES_USAGE_ACTIVES } from '../featureFlags';
  * que le test affiche. Et régénère les miroirs (`npm run gen:legal`).
  */
 const DERNIERE_REVISION = {
+  // 🔴 **NEUVIÈME RÉVISION — LA SÉRIE QUITTE LES DEUX TEXTES** (2026-09-19). Décision
+  // fondateur : la série (streak) est retirée de l'app, écrans, logique et synchro. La
+  // politique la listait dans les données d'usage (§2), les CGU dans le cœur gratuit
+  // (§3). Même règle que PostHog le 26 août, dans le même sens : on cesse de déclarer
+  // ce qu'on ne traite plus — et on cesse de promettre ce qui n'existe plus.
+  // ⚠️ La date suit la LIVRAISON : l'OTA qui retire la série. Si elle part un autre
+  // jour que le 19, c'est la DATE qu'il faut bouger avant de publier.
   // 🔴 **SEPTIÈME RÉVISION — ET C'EST LA DATE SEULE QUI BOUGE** (2026-09-07). Le texte
   // n'a pas changé depuis le 27 août : son empreinte est donc INCHANGÉE. Mais il n'a
   // jamais été SERVI — la ligne OTA est coupée depuis la bascule en `fingerprint`
@@ -248,7 +255,7 @@ const DERNIERE_REVISION = {
   // on se trompe. Le prix à payer est une date qui avance pour une virgule ; le prix de
   // l'inverse est un engagement qui passe inaperçu.
   // ➡️ Ce texte-ci est livré le 8 : 31ᵉ OTA + le binaire qui la suit.
-  date: '8 septembre 2026',
+  date: '19 septembre 2026',
   // ⚠️ **SIXIÈME RÉVISION** (2026-08-27, même jour) : le `DISCLAIMER` disait « l'avis d'un
   // médecin ou diététicien-nutritionniste » quand `lib/methodologie.ts` dit « ou D'UN
   // diététicien-nutritionniste ». Deux variantes d'une phrase OBLIGATOIRE (§6, Apple
@@ -321,7 +328,7 @@ const DERNIERE_REVISION = {
   // d'être déclaré le jour où il ne traite plus, données effacées. C'est la même règle
   // dans l'autre sens ; la garder à sens unique ferait décrire un traitement inexistant.
   // ➡️ La date ne bouge pas — même jour de livraison.
-  empreinte: '547e680ee305',
+  empreinte: 'ccd8357ce170',
 };
 
 /**

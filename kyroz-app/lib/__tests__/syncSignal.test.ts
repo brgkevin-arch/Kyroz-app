@@ -70,12 +70,11 @@ import {
   pushPantry,
   pushProfile,
   pushRecipeOverrides,
-  pushStreak,
   pushWeights,
   unknownColumnOf,
   PROFILE_COLS_LAST_MIGRATION,
 } from '../sync';
-import type { Streak, UserProfile } from '../types';
+import type { UserProfile } from '../types';
 
 /** Erreur PostgREST telle qu'elle arrive quand la migration n'est pas jouée. */
 const PGRST204 = {
@@ -86,7 +85,6 @@ const RESEAU = { message: 'Network request failed' };
 
 const profile = (over: Partial<UserProfile> = {}): UserProfile =>
   ({ sex: 'male', age: 30, weight_kg: 80, height_cm: 180, goal: 'cut', macro_mode: 'auto', ...over } as UserProfile);
-const streak: Streak = { current_streak_days: 3, longest_streak_days: 5, last_active_date: '2026-07-29' };
 
 let warn: ReturnType<typeof vi.spyOn>;
 /** Tous les messages journalisés, concaténés — pratique pour chercher un fragment. */
@@ -218,9 +216,8 @@ describe('pushProfile — le mode de panne « migration non jouée » est nommé
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-describe('les cinq pushs muets ont retrouvé une voix', () => {
+describe('les quatre pushs muets ont retrouvé une voix', () => {
   const cas: { nom: string; libelle: string; run: () => Promise<void>; key: string }[] = [
-    { nom: 'série', libelle: 'série', key: 'streaks.upsert', run: () => pushStreak(streak) },
     { nom: 'réserve', libelle: 'réserve', key: 'pantry.upsert', run: () => pushPantry([]) },
     { nom: 'poids', libelle: 'suivi du poids', key: 'weight_logs.upsert', run: () => pushWeights([]) },
     { nom: 'recettes perso', libelle: 'recettes personnalisées', key: 'recipe_overrides.upsert', run: () => pushRecipeOverrides({}) },
@@ -284,17 +281,17 @@ describe('effacement RGPD — un effacement incomplet ne passe plus inaperçu', 
     const out = logged();
     expect(out).toContain('recipe_overrides');
     expect(out).toContain('effacement RGPD INCOMPLET');
-    expect(out).toContain('1/6');
+    expect(out).toContain('1/5');
     expect(out).toContain('Les autres ont bien été effacées');
   });
 
   it('plusieurs tables en échec : le récapitulatif les compte toutes', async () => {
     state.errors['pantry.delete'] = RESEAU;
-    state.throws.add('streaks.delete');
+    state.throws.add('favorites.delete');
 
     await deleteCloudData();
 
-    expect(logged()).toContain('2/6');
+    expect(logged()).toContain('2/5');
   });
 
   it('effacement complet → silence', async () => {
@@ -323,13 +320,11 @@ describe('invariance : le flux de contrôle n’a pas bougé', () => {
   });
 
   it('les pushs void restent void et ne jettent jamais, même en erreur', async () => {
-    state.errors['streaks.upsert'] = PGRST204;
     state.errors['pantry.upsert'] = RESEAU;
     state.errors['weight_logs.upsert'] = PGRST204;
     state.errors['recipe_overrides.upsert'] = RESEAU;
     state.errors['favorites.insert'] = PGRST204;
 
-    await expect(pushStreak(streak)).resolves.toBeUndefined();
     await expect(pushPantry([])).resolves.toBeUndefined();
     await expect(pushWeights([])).resolves.toBeUndefined();
     await expect(pushRecipeOverrides({})).resolves.toBeUndefined();
@@ -364,7 +359,7 @@ describe('invariance : le flux de contrôle n’a pas bougé', () => {
 
     await expect(pushProfile(profile())).resolves.toBe(false);
 
-    state.errors['streaks.upsert'] = PGRST204;
-    await expect(pushStreak(streak)).resolves.toBeUndefined();
+    state.errors['pantry.upsert'] = PGRST204;
+    await expect(pushPantry([])).resolves.toBeUndefined();
   });
 });

@@ -5,7 +5,7 @@
 
 # Politique de confidentialité — Kyroz
 
-**Dernière mise à jour : 8 septembre 2026**
+**Dernière mise à jour : 19 septembre 2026**
 
 ---
 
@@ -23,7 +23,7 @@ Données de compte : adresse email (lors d’une inscription par email).
 
 Données de santé : sexe, âge, poids, taille, taux de masse grasse, niveau d’activité et sport pratiqué, objectif, restrictions et préférences alimentaires. Ces informations sont des données de santé au sens de l’article 9 du RGPD.
 
-Données d’usage de l’app : plans générés, suivi du poids, série (streak), favoris, réserve alimentaire.
+Données d’usage de l’app : plans générés, suivi du poids, favoris, réserve alimentaire.
 
 Photos de progression (facultatives) : elles restent stockées UNIQUEMENT sur votre appareil et ne sont jamais transmises à nos serveurs.
 
@@ -111,4 +111,4 @@ Si un compte a été créé par une personne mineure, écrivez à contact@kyroz.
 
 ## 11. Modifications
 
-La présente politique peut évoluer. Date de dernière mise à jour : 8 septembre 2026.
+La présente politique peut évoluer. Date de dernière mise à jour : 19 septembre 2026.

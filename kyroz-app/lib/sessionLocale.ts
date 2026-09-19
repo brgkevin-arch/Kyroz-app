@@ -15,7 +15,7 @@ import { relireSyncEnAttente } from './syncEnAttente';
 // 🔴 **ET LE CONSTAT ÉTAIT SOUS-ESTIMÉ** (contre-audit, `lib/sync.ts:440-500`) : ce
 // n'est pas que le profil. Quand la ligne cloud du NOUVEAU compte est vide, favoris,
 // réserve, pesées et recettes personnalisées du PRÉCÉDENT sont **poussés** dans son
-// compte. Et pesées, série et recettes sont *fusionnées*, donc le mélange devient
+// compte. Et pesées et recettes sont *fusionnées*, donc le mélange devient
 // permanent des deux côtés. Le transfert A → B ne demande même pas que le profil soit
 // marqué « à pousser ».
 //

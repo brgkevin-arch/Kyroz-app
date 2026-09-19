@@ -6,8 +6,7 @@
 // ouverture de l'app — le genre de défaut qu'on ne voit qu'au bout de trois semaines.
 
 import { describe, expect, it } from 'vitest';
-import { mergeRecipeOverrides, mergeStreak, mergeWeightEntries } from '../syncGuard';
-import type { StreakLike } from '../syncGuard';
+import { mergeRecipeOverrides, mergeWeightEntries } from '../syncGuard';
 
 describe('mergeWeightEntries — historique, union par date', () => {
   const cloud = [{ date: '2026-06-01', weight_kg: 84 }, { date: '2026-07-01', weight_kg: 81 }];
@@ -40,55 +39,6 @@ describe('mergeWeightEntries — historique, union par date', () => {
       [...local].sort((a, b) => a.date.localeCompare(b.date)),
     );
     expect(mergeWeightEntries([{ date: '', weight_kg: 1 } as any], local)).toHaveLength(2);
-  });
-});
-
-describe('mergeStreak — record au max, série en cours au plus récent', () => {
-  const vieuxCloud: StreakLike = { current_streak_days: 3, longest_streak_days: 5, last_active_date: '2026-07-28' };
-  const localFrais: StreakLike = { current_streak_days: 9, longest_streak_days: 9, last_active_date: '2026-07-29' };
-
-  it('le local plus récent impose sa série en cours', () => {
-    const m = mergeStreak(vieuxCloud, localFrais)!;
-    expect(m.current_streak_days).toBe(9);
-    expect(m.last_active_date).toBe('2026-07-29');
-  });
-
-  it('le cloud plus récent impose la sienne — la règle n’est pas « le local gagne »', () => {
-    const m = mergeStreak(
-      { current_streak_days: 11, longest_streak_days: 11, last_active_date: '2026-07-30' },
-      localFrais,
-    )!;
-    expect(m.current_streak_days).toBe(11);
-  });
-
-  it('le record ne redescend jamais', () => {
-    const m = mergeStreak({ ...vieuxCloud, longest_streak_days: 40 }, localFrais)!;
-    expect(m.longest_streak_days).toBe(40);
-  });
-
-  it('préserve freeze_available, qui n’existe que côté local', () => {
-    expect(mergeStreak(vieuxCloud, { ...localFrais, freeze_available: false })!.freeze_available)
-      .toBe(false);
-  });
-
-  it('à date d’activité ÉGALE, le local tranche (l’appareil en main)', () => {
-    const m = mergeStreak(
-      { current_streak_days: 3, longest_streak_days: 5, last_active_date: '2026-07-29' },
-      localFrais,
-    )!;
-    expect(m.current_streak_days).toBe(9);
-  });
-
-  it('IDEMPOTENT', () => {
-    const once = mergeStreak(vieuxCloud, localFrais)!;
-    expect(mergeStreak(once, once)).toEqual(once);
-    expect(mergeStreak(vieuxCloud, once)).toEqual(once);
-  });
-
-  it('tolère l’absence d’un côté', () => {
-    expect(mergeStreak(null, localFrais)).toEqual(localFrais);
-    expect(mergeStreak(vieuxCloud, null)).toEqual(vieuxCloud);
-    expect(mergeStreak(null, null)).toBeNull();
   });
 });
 

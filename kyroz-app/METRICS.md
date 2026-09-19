@@ -17,10 +17,9 @@
 > ⚠️ **Ne pas lire les recettes de calcul ci-dessous comme un état des lieux** : elles
 > décrivent ce qu'il faudrait faire *si* les événements arrivaient. Aucun tableau de bord
 > ne se remplit aujourd'hui.
-> ⚠️ **Ce qui reste visible dans l'app n'a pas bougé d'un pouce** : la SÉRIE (§2) est un
-> compteur local, affiché à l'utilisateur, indépendant de toute mesure d'audience. Elle
-> n'a jamais été la north star — c'est précisément ce que ce fichier a séparé le
-> 2026-08-20 — et l'extinction ne la touche pas.
+> ⚠️ **La SÉRIE (§2) n'a jamais été la north star** — c'est précisément ce que ce fichier
+> a séparé le 2026-08-20. Elle a été **retirée de l'app le 2026-09-19** (décision
+> fondateur) : la north star n'en dépendait pas et ne perd rien à son départ.
 
 ---
 
@@ -52,38 +51,32 @@ comme un taux d'adhésion réel. (Avertissement repris de l'arbitrage du 2026-08
 
 ---
 
-## 2. La série affichée n'est PAS la north star
+## 2. La série affichée : RETIRÉE le 2026-09-19
 
-**Décision du fondateur, le 2026-08-20 : les deux sont SÉPARÉS.**
+**Décision du fondateur, le 2026-09-19 :** *« Enlève tout ce qui concerne le streak de
+Kyroz, je n'aime pas ce qu'on a fait et si un jour j'ai envie d'en refaire une, j'y
+réfléchirais pour la rendre plus utile »*
 
-| | La série (à l'écran) | La north star (dans PostHog) |
-|---|---|---|
-| Compte | les jours où le plan est **ouvert** | les jours où un repas est **cuisiné** |
-| Se déclenche | `markActiveToday()` au montage de l'écran Plan | `capture(Events.mealCooked)` |
-| Sert à | la rétention, sans pression | décider ce qu'on construit |
-| Pardonne | oui — un gel par semaine (`FREEZE_RECHARGE`) | non, rien à pardonner : personne ne la voit |
+Ce qui est parti : la pastille « N j de série » des en-têtes Plan et Profil, la
+célébration des paliers (3/7/14…), le toast « Série protégée » et son gel d'un jour
+manqué, la logique (`lib/streak.ts`, `hooks/useStreak.ts`, `StreakCelebration.tsx`), sa
+synchronisation (table `streaks`, cf. `supabase/migrations/2026-09-19_drop_streaks.sql`)
+et ses deux événements (`streak_milestone`, `streak_frozen`).
 
-**La série n'a pas été changée, et c'est délibéré.** La rendre exigeante ferait perdre
-sa série à quelqu'un qui suit son plan mais oublie de cocher — une punition pour un tap
-manqué, exactement l'inverse de la charte (« rassurer au lieu de mettre la pression »,
-CLAUDE.md §5).
+**La north star n'en dépendait pas, et c'est ce que ce fichier avait séparé le
+2026-08-20** : la série comptait les jours où le plan était **ouvert**
+(`markActiveToday()` au montage de l'écran Plan) ; la north star compte les jours où un
+repas est **cuisiné** (`capture(Events.mealCooked)`), et se lit dans PostHog. Retirer la
+première ne touche pas la seconde.
 
-🔴 **MAIS L'APP NE LE DIT PLUS À L'UTILISATEUR, DEPUIS LE 2026-08-25.** Ce paragraphe
-s'appuyait sur une bulle de tutoriel — *« Ta série, sans pression — elle avance dès que
-tu ouvres ton plan, cuisiné ou pas »* — pour affirmer que la règle était ANNONCÉE. Cette
-bulle est partie avec la coupe des tutos (20 → 5, puis 4, décision fondateur). La règle reste
-vraie dans le code ; **elle n'est plus écrite nulle part à l'écran**, et la pastille
-« 1 j de série » ne dit pas ce qu'elle compte.
-⚠️ Ce n'est pas un mensonge — rien n'affirme le contraire — mais ce n'est plus une
-preuve : si quelqu'un se demande un jour pourquoi sa série monte sans qu'il ait cuisiné,
-aucun écran ne lui répond. À rouvrir si la question remonte, **et à ne pas citer comme
-argument entre-temps.**
-
-🔴 **NE PAS LES RENOMMER L'UN DANS L'AUTRE.** Le défaut que cette page ferme est né de
-là : `lib/streak.ts` s'annonçait « Logique du streak (North Star : 7 jours consécutifs) »
-et `plan.tsx` commentait son appel au montage par « North Star (jours d'usage
-consécutifs) ». Les deux étaient faux du même coup — ils appelaient north star un
-compteur d'ouvertures. Corrigé le 2026-08-20.
+➡️ **Si une série revient**, elle sera repensée, pas remise telle quelle (c'est le sens
+de la décision). Deux leçons de celle-ci à garder sous la main :
+- **dire ce qu'elle compte.** La pastille « 1 j de série » ne le disait pas : la bulle de
+  tuto qui l'annonçait (*« elle avance dès que tu ouvres ton plan, cuisiné ou pas »*)
+  était partie le 2026-08-25, et plus aucun écran ne l'expliquait ;
+- **ne pas la renommer en north star.** `lib/streak.ts` s'était annoncé « North Star :
+  7 jours consécutifs » jusqu'au 2026-08-20 — un compteur d'ouvertures appelé du nom
+  de l'indicateur qui décide ce qu'on construit.
 
 ---
 
@@ -110,7 +103,8 @@ En France (UTC+1/+2), **un repas coché après 22 h locale tombe le lendemain en
 Grouper par date d'événement éclate donc une soirée en deux jours actifs, ou fusionne
 deux jours en un — sur exactement la population qui cuisine le soir. C'est le même piège
 que le dépôt a déjà payé sur la série (`hooks/useStreak.ts::dayStamp`, corrigé pour la
-même raison) : une journée, ici, est une journée LOCALE.
+même raison, avant le retrait de la série le 2026-09-19) : une journée, ici, est une
+journée LOCALE.
 
 ### Les événements suffisent-ils ? — **oui, rien ne manque**
 
@@ -237,7 +231,7 @@ pas du même objet.
 | `CLAUDE.md` (spec, §5 et §rôle) | « % d'utilisateurs avec 7 jours consécutifs d'**usage** dans les 14 premiers » | **La cible reste**, mais « usage » devient « cuisiné » et « consécutifs » tombe (§1). Note posée sur place. |
 | `MONETISATION.md` | même phrase, comme garde-fou du paywall | L'argument tient mot pour mot sous la nouvelle définition — le paywall ne doit toucher ni la fenêtre de 14 jours ni le geste quotidien. Note posée sur place. |
 | `docs/2026-08-10-…-arbitrage.md` §4.2 | « ne pas trancher maintenant, capter les deux » | ✅ **Tranché le 2026-08-20** — et la consigne a fait son travail : les deux événements étant captés depuis, la north star se calcule rétroactivement, sans rien coder. |
-| `lib/streak.ts`, `app/(tabs)/plan.tsx` | la série appelée « North Star » | ❌ **Faux, corrigé le 2026-08-20.** Voir §2. |
+| `lib/streak.ts`, `app/(tabs)/plan.tsx` | la série appelée « North Star » | ❌ **Faux, corrigé le 2026-08-20** — et la série elle-même est retirée depuis le 2026-09-19. Voir §2. |
 
-⚠️ **Ce fichier ne fixe pas de seuil** (§4) et **ne change rien à l'écran** (§2). Il dit ce
+⚠️ **Ce fichier ne fixe pas de seuil** (§4) et **ne change rien à l'écran**. Il dit ce
 que les chiffres veulent dire — c'est tout ce qu'on lui demande, et c'est ce qui manquait.

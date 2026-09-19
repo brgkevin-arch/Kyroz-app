@@ -9,7 +9,7 @@ import type { Meal } from '../types';
 // 🔴 CE QUI ÉTAIT AFFICHÉ, jusqu'au 2026-08-20. Le mécanisme demandé par le
 // fondateur (tâche 9 : « un état pas-cuisiné posable en un geste, neutre
 // visuellement ») existait déjà en entier — `skipMeal`, un tap depuis la fiche, la
-// journée qui se recale, la série qui ne casse pas. C'est sa RÉDACTION VISUELLE qui
+// journée qui se recale, la série (retirée depuis, le 2026-09-19) qui ne casse pas. C'est sa RÉDACTION VISUELLE qui
 // disait le contraire du mécanisme :
 //   · le surtitre opposait « ✓ MANGÉ » à « ⊘ SAUTÉ » — une récompense contre un
 //     panneau d'interdiction, sur deux faits également neutres ;
@@ -74,16 +74,11 @@ describe('« sauté » est une information que le moteur utilise', () => {
     expect(effectiveMacros(m)).toEqual({ kcal: 0, protein_g: 0, carbs_g: 0, fat_g: 0 });
   });
 
-  it('sauter un repas ne nourrit pas la série', () => {
-    // La série compte des ouvertures (METRICS.md §2) : QUATRE appels — ouverture du
-    // plan, fin de génération, « J'ai cuisiné », et l'auto-coche depuis le
-    // 2026-08-24 (décision fondateur : elle vaut exactement « J'ai cuisiné »).
-    // Aucun dans le geste « je l'ai sauté » : un appel là ferait d'un repas NON
-    // cuisiné une raison de féliciter — l'inverse exact de ce qu'on a retiré.
-    const appels = [...plan.matchAll(/markActiveToday\(\)/g)];
-    expect(appels.length, 'appels à markActiveToday()').toBe(4);
+  it('sauter un repas pose le statut neutre, et rien d’autre', () => {
+    // ⚠️ Ce test vérifiait aussi que sauter un repas ne nourrissait pas la SÉRIE —
+    // retirée de l'app le 2026-09-19 (décision fondateur, METRICS.md §2). Il ne
+    // reste que le geste lui-même.
     const skip = plan.slice(plan.indexOf('const skipMeal'));
     expect(skip.slice(0, 260)).toContain("setMealStatus(meal, 'skipped')");
-    expect(skip.slice(0, 260)).not.toContain('markActiveToday');
   });
 });

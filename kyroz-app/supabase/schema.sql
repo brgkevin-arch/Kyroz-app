@@ -154,14 +154,9 @@ alter table public.profiles
 -- schéma mais n'était jamais écrite (seulement supprimée au cleanup). Retirée le
 -- 2026-06-14. Migration de drop : supabase/migrations/2026-06-14_drop_meal_plans.sql
 
--- ── 3. STREAKS (North Star : 7 jours consécutifs) ───────────────────────────
-create table if not exists public.streaks (
-  user_id uuid primary key references auth.users(id) on delete cascade,
-  current_streak_days int not null default 0,
-  longest_streak_days int not null default 0,
-  last_active_date date,
-  updated_at timestamptz not null default now()
-);
+-- ── 3. (RETIRÉ) STREAKS ─────────────────────────────────────────────────────
+-- La série a été retirée de l'app le 2026-09-19 (décision fondateur, METRICS.md §2).
+-- Migration de drop : supabase/migrations/2026-09-19_drop_streaks.sql
 
 -- ── 4. FAVORIS ──────────────────────────────────────────────────────────────
 create table if not exists public.favorites (
@@ -195,13 +190,12 @@ create table if not exists public.recipe_overrides (
 -- ── PERMISSIONS : seul un utilisateur authentifié accède aux tables ─────────
 grant usage on schema public to anon, authenticated;
 grant select, insert, update, delete on
-  public.profiles, public.streaks, public.favorites,
+  public.profiles, public.favorites,
   public.pantry, public.weight_logs, public.recipe_overrides
   to authenticated;
 
 -- ── ROW LEVEL SECURITY ──────────────────────────────────────────────────────
 alter table public.profiles         enable row level security;
-alter table public.streaks          enable row level security;
 alter table public.favorites        enable row level security;
 alter table public.pantry           enable row level security;
 alter table public.weight_logs      enable row level security;
@@ -210,7 +204,6 @@ alter table public.recipe_overrides enable row level security;
 -- FORCE : applique la RLS même au propriétaire de la table (defense-in-depth,
 -- données de santé). Voir migration 2026-06-18_force_rls.sql.
 alter table public.profiles         force row level security;
-alter table public.streaks          force row level security;
 alter table public.favorites        force row level security;
 alter table public.pantry           force row level security;
 alter table public.weight_logs      force row level security;
@@ -222,10 +215,6 @@ create policy "profiles_rw_own" on public.profiles
   for all using (auth.uid() = id) with check (auth.uid() = id);
 
 -- tables avec user_id : accès uniquement à ses propres lignes
-drop policy if exists "streaks_rw_own" on public.streaks;
-create policy "streaks_rw_own" on public.streaks
-  for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
-
 drop policy if exists "favorites_rw_own" on public.favorites;
 create policy "favorites_rw_own" on public.favorites
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
@@ -252,10 +241,6 @@ drop trigger if exists profiles_set_updated_at on public.profiles;
 create trigger profiles_set_updated_at before update on public.profiles
   for each row execute function public.set_updated_at();
 
-drop trigger if exists streaks_set_updated_at on public.streaks;
-create trigger streaks_set_updated_at before update on public.streaks
-  for each row execute function public.set_updated_at();
-
 drop trigger if exists pantry_set_updated_at on public.pantry;
 create trigger pantry_set_updated_at before update on public.pantry
   for each row execute function public.set_updated_at();
@@ -268,14 +253,12 @@ drop trigger if exists recipe_overrides_set_updated_at on public.recipe_override
 create trigger recipe_overrides_set_updated_at before update on public.recipe_overrides
   for each row execute function public.set_updated_at();
 
--- ── Création auto du profil + streak à l'inscription ────────────────────────
+-- ── Création auto du profil à l'inscription ─────────────────────────────────
 create or replace function public.handle_new_user()
 returns trigger language plpgsql security definer set search_path = public as $$
 begin
   insert into public.profiles (id, email) values (new.id, new.email)
     on conflict (id) do nothing;
-  insert into public.streaks (user_id) values (new.id)
-    on conflict (user_id) do nothing;
   return new;
 end;
 $$;
@@ -285,5 +268,5 @@ create trigger on_auth_user_created
   after insert on auth.users
   for each row execute function public.handle_new_user();
 
--- ✅ Terminé. Tables : profiles, streaks, favorites, pantry,
+-- ✅ Terminé. Tables : profiles, favorites, pantry,
 --    weight_logs, recipe_overrides (RLS activée sur toutes).

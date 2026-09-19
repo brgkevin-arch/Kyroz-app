@@ -369,7 +369,12 @@ App mobile React Native (Expo Router, **SDK 57** depuis le 2026-08-27) de plans 
 > été créées. Vérifié contre `supabase/migrations/*.sql` **et** contre les `from('…')`
 > du code. Ce qui suit distingue désormais ce qui est **en base** de ce qui ne l'est pas.
 
-### Tables Supabase — les 6 qui existent réellement
+### Tables Supabase — les 5 qui existent réellement
+
+> ⚠️ **`streaks` est partie le 2026-09-19** avec la série (décision fondateur, AGENTS.md
+> **E69**) — migration `2026-09-19_drop_streaks.sql`, à jouer APRÈS l'OTA qui retire la
+> série. Tant qu'elle n'est pas jouée, la table existe encore en production, vide de tout
+> lecteur.
 
 ```
 profiles                        ← s'appelle « profiles », PAS « user_profiles »
@@ -394,9 +399,6 @@ profiles                        ← s'appelle « profiles », PAS « user_profil
       peut donc plus vieillir de travers. Il reste la valeur SAISIE pour les comptes
       antérieurs au 2026-08-02, dont on ne peut pas deviner la date (un âge ne donne
       qu'une fourchette d'un an). Cf. `lib/birthday.ts`.
-
-streaks
-  └── user_id, current_streak_days, longest_streak_days, last_active_date
 
 favorites
   └── user_id, recipe_id
@@ -432,7 +434,7 @@ recipe_overrides (recettes personnalisées par l'utilisateur)
 >
 > ⚠️ **« Local-only » n'est pas l'autre branche d'un choix — c'est la première moitié
 > des deux.** Toute donnée synchronisée de Kyroz a **déjà** une clé locale comme source
-> de travail : `lib/sync.ts` fait correspondre 6 clés AsyncStorage à 6 tables. La table
+> de travail : `lib/sync.ts` fait correspondre 5 clés AsyncStorage à 5 tables. La table
 > n'est pas une alternative à la clé, c'est un **miroir posé dessus**. Donc choisir
 > local-only ne ferme aucune porte (le miroir s'ajoute plus tard sans rien réécrire),
 > alors que l'inverse est cher : une table où des utilisateurs ont des données ne se
@@ -581,14 +583,17 @@ OUTPUT         → Plan + liste de courses + recettes
       repas est passé » ailleurs dans l'app, et elle est bornée à la fin de journée.
       Invariant compté : aucun repas ne se ferme moins de deux heures après son début,
       quelle que soit la configuration.
-      C'est **exactement** « J'ai cuisiné » (réserve, macros verrouillées, recalage,
-      série), avec `auto: true` sur `meal_cooked` pour que la north star reste lisible
+      C'est **exactement** « J'ai cuisiné » (réserve, macros verrouillées, recalage),
+      avec `auto: true` sur `meal_cooked` pour que la north star reste lisible
       (METRICS.md §3). Réglage d'appareil **ALLUMÉ par défaut**, dans Profil → Paramètres
       des repas. ⚠️ Défaut inverse de feu « Tenir compte du frigo », et pour la même
       méthode : on choisit la panne qui SE VOIT — un repas coché à tort se décoche d'une
       touche, une réserve périmée faisait disparaître un article en silence.
 - [x] Favoris recettes
-- [x] Streak tracker (7 jours consécutifs)
+- [x] ~~Streak tracker (7 jours consécutifs)~~ — **RETIRÉ le 2026-09-19** (décision
+      fondateur : *« je n'aime pas ce qu'on a fait »*). Écrans, logique, synchro et table
+      `streaks` : tout est parti (AGENTS.md **E69**, METRICS.md §2). S'il revient, il sera
+      **repensé pour être utile**, pas restauré depuis git.
 - [x] Sync cloud Supabase
 - [x] Recaler ma journée (re-plan instantané)
 - [x] ~~Banque de calories~~ — moteur intact (`lib/calorieBank.ts`) mais **ÉTEINTE depuis
@@ -611,12 +616,14 @@ OUTPUT         → Plan + liste de courses + recettes
 > Ce qui est interdit, c'est la **compétition et la collection** : badges, points,
 > classements, comparaison aux autres. Ce qui est **autorisé** : les mécaniques
 > sobres qui servent directement le North Star (`METRICS.md` §1) et qui
-> **rassurent au lieu de mettre la pression** — la série elle-même, et son gel
-> d'un jour manqué (`advanceStreak`), en font partie et sont **déjà livrés**.
-> ⚠️ **La série N'EST PAS la north star** (séparées le 2026-08-20, décision
-> fondateur) : elle compte les jours où le plan est OUVERT, la north star compte
-> les jours où un repas a été CUISINÉ. Les deux servent la rétention, l'une à
-> l'écran sans pression, l'autre dans PostHog pour décider. Détail : `METRICS.md` §2.
+> **rassurent au lieu de mettre la pression** — une série et son gel d'un jour
+> manqué en faisaient partie.
+> 🔴 **LA SÉRIE A ÉTÉ RETIRÉE LE 2026-09-19** (décision fondateur, AGENTS.md E69).
+> **La règle, elle, ne change pas** : ce retrait est un jugement sur CETTE série,
+> pas un nouvel interdit — une série repensée reste autorisée par le test
+> ci-dessous. ⚠️ Et une série n'a jamais été la north star (séparées le
+> 2026-08-20) : elle comptait les jours où le plan est OUVERT, la north star compte
+> les jours où un repas a été CUISINÉ. Détail : `METRICS.md` §2.
 >
 > Test à appliquer en cas de doute : *est-ce que ça compare l'utilisateur à
 > quelqu'un d'autre, ou est-ce que ça l'aide à ne pas décrocher ?* Le second
@@ -1840,7 +1847,7 @@ partis, le dernier le 2026-08-09** (E22).
 
 | Où | Combien | Ce qui l'affichait | Sort |
 |---|---|---|---|
-| ~~`lib/streak.ts` (paliers)~~ | ~~6 — 🔥 🎉 💪 🏆 ⭐ 👑~~ → **0** | `StreakCelebration.tsx` en **fontSize 56**, écran Plan | remplacés par le **nombre de jours** en `Type.hero` (2026-08-09) |
+| ~~`lib/streak.ts` (paliers)~~ | ~~6 — 🔥 🎉 💪 🏆 ⭐ 👑~~ → **0** | `StreakCelebration.tsx` en **fontSize 56**, écran Plan | remplacés par le **nombre de jours** en `Type.hero` (2026-08-09) — puis fichier retiré avec la série (2026-09-19) |
 | ~~`lib/streak.ts` (`streakMessage`)~~ | ~~2 — 🎯 🎉~~ → **0** | `StreakProgress.tsx` *(supprimé le 2026-08-14)* | retirés, phrases reformulées (2026-08-09) |
 | ~~`lib/notifications.ts`~~ | ~~4 — 💪 🍽️ 🔥 ⚖️~~ → **0** | — | les textes ont déménagé dans `lib/reminder.ts` (2026-08-07) |
 | ~~`constants/legal.ts`~~ | ~~1 — ⚠️~~ → **0** | l'écran `/legal` (CGU) | retiré, + le miroir `public/legal.html` (2026-08-09) |
@@ -2712,9 +2719,9 @@ quand il n'est pas dans une liste de réglages.
 
 🔴 **CE QUE PORTE L'ÉCRAN, DEPUIS LE 2026-08-14** (décisions fondateur, cf. AGENTS.md
 E48) — l'ordre compte, il dit ce qui est important :
-· la **série** est une pastille discrète dans l'EN-TÊTE, identique à celle du Plan
-  (« 1 j / de série ») ; le « ? » du tuto lui a cédé sa place, et la porte de sortie
-  du tutoriel vit désormais dans « Revoir les tutos », derrière la roue ;
+· ~~la **série** est une pastille discrète dans l'EN-TÊTE~~ — **retirée le 2026-09-19**
+  avec la série (E69) ; l'en-tête ne porte plus que le titre, le prénom et la roue. La
+  porte de sortie du tutoriel vit dans « Revoir les tutos », derrière la roue ;
 · la **carte du poids** est le sujet de l'écran : chiffre en `Type.hero`, écart,
   courbe MESURÉE (jamais une largeur en dur — cf. §11, `useWindowDimensions`), et un
   bouton pleine largeur à l'accent ;
@@ -2726,10 +2733,11 @@ E48) — l'ordre compte, il dit ce qui est important :
   nouvelle décision : c'est cet écran-là que le fondateur voulait alléger.
 🔴 **ET LE CHAÎNON DE 7 JOURS N'EXISTE PLUS NULLE PART** : retiré du Plan le
 2026-08-05, du Profil le 2026-08-14. `components/StreakProgress.tsx` est supprimé —
-toute mention ailleurs dans ces fichiers est **historique**. Le North Star reste
-mesuré et le compteur reste affiché ; c'est sa visualisation qui part.
-➡️ `chainProgress` et `streakMessage` survivent dans `lib/streak.ts`, testés : le jour
-où le chaînon revient, il n'y a rien à réécrire.
+toute mention ailleurs dans ces fichiers est **historique**.
+🔴 **ET DEPUIS LE 2026-09-19, LA SÉRIE ENTIÈRE EST PARTIE** (E69) : compteur,
+paliers, gel, `lib/streak.ts` avec `chainProgress` et `streakMessage`. La phrase qui
+promettait « le jour où le chaînon revient, il n'y a rien à réécrire » est donc
+fausse, et c'est voulu : une série future sera repensée, pas restaurée.
 
 - ℹ️ **Kyroz+ reste sur le Profil** : il débloque l'objectif daté et la banque de
   calories, tous deux juste au-dessus. Derrière une roue, il devient invisible le jour

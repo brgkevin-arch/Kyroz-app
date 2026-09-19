@@ -246,7 +246,7 @@ export const Icone = {
   /** Illustration d'un état vide — la seule qui se regarde au lieu de se cliquer. */
   vide: 30,
   /** Illustration qui est le SUJET d'une carte plein écran, pas son décor —
-   *  célébration (anniversaire, série atteinte) ou proposition (le rappel).
+   *  célébration (anniversaire) ou proposition (le rappel).
    *  Plus grande que `vide` pour cette raison. Ajoutée le 2026-08-06 : la valeur
    *  44 existait en dur, elle a maintenant un nom. */
   fete: 44,

@@ -17,7 +17,6 @@ import { MealCard } from '../../components/MealCard';
 import { RecipeDetail } from '../../components/RecipeDetail';
 import { RecipeEditor } from '../../components/RecipeEditor';
 import { Sheet } from '../../components/Sheet';
-import { StreakCelebration } from '../../components/StreakCelebration';
 import { PeseeIcon, RepasIcon } from '../../components/Icons';
 import { BirthdayCelebration } from '../../components/BirthdayCelebration';
 import { FirstPlanReveal } from '../../components/FirstPlanReveal';
@@ -34,7 +33,6 @@ import { animerMiseEnPage } from '../../components/Mouvement';
 import { planTour } from '../../lib/tours';
 import { useProfile } from '../../hooks/useProfile';
 import { useFavorites } from '../../hooks/useFavorites';
-import { useStreak } from '../../hooks/useStreak';
 import { useWeightLog } from '../../hooks/useWeightLog';
 import { usePlanCheckin } from '../../hooks/usePlanCheckin';
 import { useNotificationIntent, consommerNotificationIntent } from '../../hooks/useNotificationIntent';
@@ -143,7 +141,6 @@ export default function PlanScreen() {
   const { favorites } = useFavorites();
   const router = useRouter();
   const [hydrationEnabled] = useHydrationEnabled(); // réglage Profil : afficher/masquer la barre
-  const { streak, markActiveToday, celebration, clearCelebration, froze, clearFroze } = useStreak();
   const { due: weighInDue } = useWeightLog();
   const [weighIn, setWeighIn] = useState(false);
   // Lecteur seul : le ré-armement vit au layout racine (E24). Sert ici à ne pas
@@ -280,16 +277,11 @@ export default function PlanScreen() {
     }
   }, [loading, plan, profile, generating]);
 
-  // La SÉRIE (pas la north star — cf. METRICS.md §2, séparées le 2026-08-20) : un
-  // utilisateur qui OUVRE son plan compte pour la journée, qu'il régénère ou non.
-  // C'est l'usage qu'on récompense, pas le fait de cliquer « Nouveau plan », et la
-  // bulle `plan-serie` l'annonce telle quelle (« cuisiné ou pas »).
-  // ⚠️ La north star, elle, ne compte QUE les jours avec un repas cuisiné, et elle
-  // se lit dans PostHog — jamais ici. Ce que cette ligne incrémente n'est pas elle.
-  useEffect(() => { if (profile) { markActiveToday(); capture(Events.planOpened); } }, [profile]);
-
-  // Analytics : palier de série franchi (3/7/14…) — no-op tant que non consenti.
-  useEffect(() => { if (celebration) capture(Events.streakMilestone, { days: celebration }); }, [celebration]);
+  // Ouverture du plan — mesure seulement (no-op tant que non consenti).
+  // ⚠️ LA SÉRIE A ÉTÉ RETIRÉE le 2026-09-19 (décision fondateur) : cette ligne
+  // l'incrémentait aussi. La north star, elle, n'a jamais été comptée ici — elle ne
+  // retient que les jours avec un repas cuisiné, et se lit dans PostHog (METRICS.md).
+  useEffect(() => { if (profile) capture(Events.planOpened); }, [profile]);
 
   // 🎂 Anniversaire — une fois par an, à l'ouverture du Plan.
   // Il ne s'affiche QUE si la date de naissance est connue : les comptes créés
@@ -438,10 +430,8 @@ export default function PlanScreen() {
   // écoulée a consommé AVANT d'effacer son suivi — l'ordre compte, `resetTracking`
   // remet tous les repas à « planifié » et on ne saurait plus lesquels étaient dus.
   //
-  // ⚠️ Ce qui n'est PAS fait ici, et c'est délibéré : ni statut « mangé » (il serait
-  // effacé dans la foulée), ni série. La série dit « tu as ouvert Kyroz ce jour-là » —
-  // la créditer après coup pour un jour où personne n'a ouvert l'app en ferait un
-  // compteur de jours calendaires. Et on ne solde QUE la veille : au-delà, l'app n'a
+  // ⚠️ Ce qui n'est PAS fait ici, et c'est délibéré : pas de statut « mangé » (il
+  // serait effacé dans la foulée). Et on ne solde QUE la veille : au-delà, l'app n'a
   // pas été ouverte depuis deux jours et rien ne dit que le plan a été suivi.
   const resetTried = React.useRef<string | null>(null);
   useEffect(() => {
@@ -552,7 +542,6 @@ export default function PlanScreen() {
         capture(Events.firstPlanViewed, { duree_generation_ms: dureeMoteurMs });
       }
       setPlan(p);
-      await markActiveToday();
     } catch (e) {
       // On CAPTURE puis on relance : le comportement d'avant est inchangé (rien
       // n'attrapait ici, la frontière d'erreur globale reste seule maîtresse).
@@ -574,11 +563,6 @@ export default function PlanScreen() {
   }, [profile]));
 
   const toast = (msg: string) => { setCookedNote(msg); setTimeout(() => setCookedNote(null), 2600); };
-
-  // Bouclier de série : un jour manqué vient d'être pardonné → on rassure l'utilisateur.
-  useEffect(() => {
-    if (froze) { toast('Série protégée : un jour manqué pardonné. Reviens demain'); capture(Events.streakFrozen); clearFroze(); }
-  }, [froze]);
 
   // Persiste un plan modifié + invalide les courses (portions/repas changés) et
   // resynchronise la fiche repas ouverte si besoin.
@@ -607,7 +591,7 @@ export default function PlanScreen() {
   };
 
   // « J'ai mangé » : verrouille le repas (compte dans le consommé), déduit du
-  // réserve, recale les repas restants, compte pour la série.
+  // réserve, recale les repas restants.
   const cookMeal = async (meal: Meal) => {
     // 🔴 LE GESTE CENTRAL DE L'APP, et le plus gros saut de mise en page : la
     // carte perd son bouton « J'ai cuisiné » et sa rangée d'icônes, donc elle
@@ -620,7 +604,6 @@ export default function PlanScreen() {
     await savePantry(next);
     setPantry(next);
     await setMealStatus(meal, 'eaten', meal.macros);
-    await markActiveToday(); // manger selon le plan = adhésion réelle
     // ⚠️ `auto: false` EXPLICITE, et pas une propriété absente : la north star se lit
     // sur ce drapeau (METRICS.md §3), et « absent » ne se filtre pas de la même façon
     // que « faux » dans PostHog. Deux formes pour un même fait, c'est une requête qui
@@ -635,7 +618,7 @@ export default function PlanScreen() {
   // Règle et heures : `lib/repasAuto.ts` (le repas se coche quand le SUIVANT commence).
   // Ici, ce qui se passe quand elle se déclenche — et c'est exactement « J'ai cuisiné »,
   // décision fondateur du 2026-08-24 : déduction de la réserve, macros verrouillées,
-  // recalage de la journée, série, mesure.
+  // recalage de la journée, mesure.
   //
   // ⚠️ UNE SEULE ÉCRITURE POUR TOUS LES REPAS DUS. Boucler sur `cookMeal` aurait
   // enchaîné N `rebalanceDay` sur des états successifs — et surtout N rendus avec une
@@ -668,7 +651,6 @@ export default function PlanScreen() {
       cochés.has(m.id) ? { ...m, status: 'eaten' as MealStatus, locked_macros: m.macros } : m,
     );
     await persistPlan(rebalanceDay(profile, { ...plan, meals, tracking_date: todayStamp() }, jour));
-    await markActiveToday();
     for (const m of dus) capture(Events.mealCooked, { meal_type: m.meal_type, auto: true });
     // On le DIT. Un statut qui change tout seul sans un mot se lit comme un bug.
     // ⚠️ La phrase ne dit PLUS comment le défaire, et ce n'est pas un oubli : depuis le
@@ -940,21 +922,11 @@ export default function PlanScreen() {
               entrevue compte comme VUE (`startTour` marque à l'ouverture, cf.
               GuidedTour.tsx). Sans aucun recours, un tuto passé par erreur serait
               perdu à vie. */}
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.md }}>
-            {/* La série se dit en toutes lettres, sans 🔥 : le compteur porte seul.
-                La progression vers l'objectif 7 jours reste juste dessous. */}
-            <View style={s.streak}>
-              <Text style={s.streakN}>{streak.current_streak_days} j</Text>
-              <Text style={s.streakLbl}>de série</Text>
-            </View>
-          </View>
+          {/* ⚠️ LA PASTILLE « N j DE SÉRIE » EST PARTIE le 2026-09-19 (décision
+              fondateur : la série est retirée de l'app, écrans, logique et synchro).
+              Si une série revient un jour, elle sera repensée pour être utile — pas
+              remise telle quelle. */}
         </View>
-
-        {/* ⚠️ Le bandeau de progression vers l'objectif 7 jours (`StreakProgress`
-            variant="strip") a été RETIRÉ de cet écran le 2026-08-05 (décision
-            fondateur). Le compteur de série reste dans l'en-tête ci-dessus, et le
-            bandeau complet vit toujours dans le Profil (variant="card") — le
-            composant n'est donc pas mort, il n'a plus sa place ICI. */}
 
         {/* ⚠️ La carte de consentement analytics a été RETIRÉE d'ici le 2026-08-10
             (décision fondateur : « ça gâche la page principale de l'app »). Elle est
@@ -1290,8 +1262,6 @@ export default function PlanScreen() {
       {/* « Un rappel par jour ? » — une seule fois, juste après le reveal. */}
       <ReminderOffer visible={showOffer} onClose={() => setShowOffer(false)} />
 
-      {/* Célébration quand un palier de série est franchi (3/7/14…) */}
-      <StreakCelebration milestone={celebration} onClose={clearCelebration} />
       <BirthdayCelebration age={birthdayAge} firstName={firstName} onClose={closeBirthday} />
 
       {/* « J'ai mangé hors plan » → enregistre l'écart, puis propose de réadapter */}
@@ -1425,9 +1395,6 @@ function makeStyles(t: ThemePalette) {
     header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: Spacing.md },
     date: { color: t.textSecondary, lineHeight: 19 },
     h1: { color: t.text, ...Type.display, marginTop: Spacing.xs },
-    streak: { alignItems: 'center', backgroundColor: t.card, borderWidth: Trait.fin, borderColor: t.line, paddingHorizontal: Spacing.lg, paddingVertical: Spacing.sm, borderRadius: Radius.card },
-    streakN: { color: t.text,  },
-    streakLbl: { color: t.textTertiary, marginTop: Spacing.xs },
     banner: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: Spacing.md, backgroundColor: t.fill, borderRadius: Radius.card, padding: Spacing.lg },
     weighBanner: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md, backgroundColor: t.card, borderRadius: Radius.card, padding: Spacing.lg },
     weighTitle: { ...Type.bodyStrong, color: t.text },

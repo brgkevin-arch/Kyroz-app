@@ -99,14 +99,15 @@ La journée, repas par repas, avec ses macros. Une rangée de jours en haut. Sur
   coupe dans Profil → Paramètres des repas. Un repas coché à tort se décoche d'une touche.
 - **« Je l'ai sauté »** — le repas ne compte pas, son budget bascule sur les suivants.
   ⚠️ **C'est un fait, pas une faute** : la carte l'écrit sans signe de jugement, le nom du
-  plat n'est pas barré, et la série n'est pas cassée. On peut annuler.
+  plat n'est pas barré. On peut annuler.
 - **Changer de recette** — une alternative équivalente en macros, qui **privilégie** les
   recettes qu'on a aimées (👍) sans s'y limiter. Le remplacement vaut pour ce plan-là ;
   pour écarter un plat définitivement, c'est 👎.
 - **La fiche** — ingrédients pesés, préparation, temps, et pourquoi ce plat est là.
 
-Plus : la pesée (à la fréquence choisie), la série de jours sous forme d'une petite pastille,
-et un suivi d'hydratation **optionnel** (activable dans les réglages).
+Plus : la pesée (à la fréquence choisie) et un suivi d'hydratation **optionnel** (activable
+dans les réglages). *(La série de jours, une petite pastille dans l'en-tête, a été retirée le
+2026-09-19 — décision fondateur : elle sera repensée pour être utile, ou ne reviendra pas.)*
 
 ### Courses
 
@@ -206,7 +207,7 @@ pas à tenir une date, il l'écrit. Si un plancher de sécurité borne un object
 | Scan de code-barres, saisie d'aliments | Le principe est de **ne pas compter** |
 | Coach IA conversationnel | Le moteur est déterministe et local, pas génératif |
 | Social, partage, classements | Hors périmètre, et anxiogène |
-| Badges, points, collection | La seule mécanique de rétention autorisée est la série de jours, sobre |
+| Badges, points, collection | Seules les mécaniques de rétention sobres sont autorisées (une série de jours, par exemple — celle de Kyroz a été retirée le 2026-09-19, à repenser) |
 | Montres et bracelets connectés | Hors périmètre |
 | Promesse « sans allergène » | Un catalogue générique ne peut pas garantir les traces. On filtre ce qu'on ne veut pas manger, on ne promet aucune sécurité |
 | Validation par une diététicienne | Décision assumée. L'app affiche donc son avertissement |
@@ -291,9 +292,9 @@ elle est discutable.
 ⚠️ **Deux pièges de vocabulaire, tranchés le 2026-08-20 :**
 - ce n'est **pas** « 7 jours d'affilée » : les 7 jours n'ont pas à se suivre, une absence de
   deux jours n'est pas un abandon ;
-- ce n'est **pas** la série affichée dans l'app. Celle-là compte les jours où le plan est
-  **ouvert**, cuisiné ou pas — elle le dit elle-même à l'utilisateur, et elle sert la
-  rétention, pas la décision.
+- ce n'est **pas** la série affichée dans l'app — **retirée le 2026-09-19**, mais le piège
+  survit à son objet : elle comptait les jours où le plan était **ouvert**, cuisiné ou pas.
+  Une série future ne doit pas davantage se confondre avec la north star.
 
 La définition exacte, sa méthode de calcul et son seuil (pas encore posé) vivent dans
 `METRICS.md`.

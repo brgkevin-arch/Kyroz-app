@@ -1568,6 +1568,12 @@ Kyroz est conçu pour des adultes en bonne santé. Ces informations ne remplacen
 pas l'avis d'un médecin ou d'un diététicien-nutritionniste.
 ```
 
+> 🔴 **« • Suivi de série pour tenir le rythme » EST DEVENUE FAUSSE LE 2026-09-19** : la
+> série est retirée de l'app (décision fondateur, AGENTS.md **E69**). La description d'une
+> version publiée ne se modifie pas hors d'une nouvelle soumission : **à retirer à la
+> prochaine version**, en relisant la fiche chez Apple (pas depuis ce bloc). Même chose
+> pour les **captures du Plan et du Profil**, qui montrent la pastille « 1 j de série ».
+
 > ✅ **POSÉE CHEZ APPLE LE 2026-09-10** (voie A, décision fondateur), par l'API et
 > **relue après écriture** : version 1.0 `REJECTED`, locale `fr-FR`, **1 301 → 1 386
 > caractères**, deux liens présents. La description n'a PAS été retapée depuis ce
@@ -1958,7 +1964,8 @@ l'image du build portant déjà l'icône qui a désigné le vrai coupable — un
 
 - **Screenshots iPhone 6.7"** (1290×2796) : **min 1, jusqu'à 10**. Montre les écrans
   forts : (1) plan du jour, (2) une recette + macros, (3) liste de courses,
-  (4) onboarding/objectif, (5) série.
+  (4) onboarding/objectif, (5) série. ⚠️ *(5) est caduc depuis le 2026-09-19 — la série
+  est retirée de l'app (E69) ; et les captures (1) montrent encore sa pastille.*
   ✅ **CORRIGÉ le 2026-08-10, et la SORTIE est mesurée** : `PHONE` passe à `430×932`, les
   5 PNG sur disque font **1290×2796**. *(Le générateur déclarait `390×844` en `×3`, soit
   **1170×2532** — un 6.1", pas le 6.7" que cette ligne annonçait depuis toujours.)*

@@ -37,13 +37,13 @@ interface Props {
   onChoose: (c: AnalyticsConsent) => void;
 }
 
-/** Ce qui part réellement, dit en français. Miroir de `Events` — les cinq lignes
- *  couvrent les 13 events, groupés par ce que la personne RECONNAÎT avoir fait. */
+/** Ce qui part réellement, dit en français. Miroir de `Events` — les quatre lignes
+ *  couvrent les 13 events, groupés par ce que la personne RECONNAÎT avoir fait.
+ *  (« Les paliers de ta série » est parti avec la série, le 2026-09-19.) */
 const MESURE = [
   'Les étapes de l’inscription, pour voir laquelle fait abandonner',
   'L’ouverture de ton plan et les repas que tu coches',
   'Les regénérations de plan et les écarts que tu déclares',
-  'Les paliers de ta série',
   'Les erreurs de l’app et les plans qui échouent à se générer',
 ];
 

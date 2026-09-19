@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { Events } from '../analytics';
 
@@ -18,12 +18,9 @@ import { Events } from '../analytics';
 //   2. il part là où un repas devient `eaten`, et nulle part ailleurs ;
 //   3. `jour_depuis_install` part sur TOUS les envois — c'est la seule clé qui
 //      permette de compter des journées LOCALES (cf. §3) ;
-//   4. la série, elle, continue de compter des OUVERTURES — sans quoi le tableau
-//      du §2, qui oppose les deux, ne décrit plus rien.
-//
-// ⚠️ Il vérifie aussi que la CITATION du §2 est encore le texte de l'app. Une
-// citation dans un document est la forme la plus fragile d'affirmation : elle a
-// l'air d'une preuve et elle vieillit comme un commentaire.
+//   4. la série affichée a été RETIRÉE de l'app le 2026-09-19 (décision fondateur),
+//      et le §2 le dit — une page qui décrirait un compteur disparu, ou qui se
+//      tairait sur un compteur revenu, ne décrirait plus le code.
 
 const RACINE = join(__dirname, '..', '..');
 const lire = (rel: string) => readFileSync(join(RACINE, rel), 'utf8');
@@ -76,57 +73,19 @@ describe('METRICS.md — le calcul reste possible', () => {
   });
 });
 
-describe('METRICS.md — la série et la north star restent DEUX choses', () => {
-  it('la série compte toujours des ouvertures', () => {
-    // Le §2 oppose les deux dans un tableau. Le jour où `markActiveToday()` quitte
-    // le montage, ce tableau devient faux — et c'est le genre de changement qu'on
-    // fait en croyant « corriger la métrique ».
-    expect(plan).toMatch(/if \(profile\) \{ markActiveToday\(\); capture\(Events\.planOpened\)/);
+describe('METRICS.md — la série est RETIRÉE, et la page le dit', () => {
+  it('le §2 dit que la série est partie', () => {
+    // Présence attendue, pas absence redoutée (A38) : la page doit PORTER le retrait.
+    expect(metrics).toMatch(/RETIRÉE le 2026-09-19/);
   });
 
-  it('le §2 ne s’appuie plus sur une bulle qui n’existe plus', () => {
-    // La page se sert de cette phrase comme PREUVE que la règle est annoncée à
-    // l'utilisateur. Si la bulle change, l'argument tombe — et il faut le savoir
-    // avant de continuer à s'appuyer dessus.
-    // 🔴 TROUVÉ PAR MUTATION, et c'est le défaut le plus instructif des trois : la
-    // première version lisait `lib/tours.ts` BRUT. Or la phrase y est deux fois —
-    // dans le texte de la bulle (l. 113) et dans le commentaire qui l'explique
-    // (l. 98). Réécrire la bulle laissait donc le test VERT, le commentaire se
-    // portant garant du libellé qu'il décrit. Exactement la panne
-    // qu'`harnaisEcrans.test.ts` documente. Sans le passage au mutant, ce garde-fou
-    // serait entré au dépôt en ne gardant rien.
-    // 🔴 ET C'EST EXACTEMENT CE QUI EST ARRIVÉ le 2026-08-25 : la bulle `plan-serie`
-    // est partie avec la coupe des tutos, donc la preuve a disparu. Le test tenait —
-    // il a rougi le jour même. Ce qu'il compte désormais : ou bien la phrase est
-    // AFFICHÉE quelque part et la page peut s'en réclamer, ou bien la page DIT
-    // qu'elle ne l'est plus. Ce qui est interdit, c'est de continuer à s'appuyer sur
-    // une bulle supprimée.
-    const affichee = sansCommentairesJS(lire('lib/tours.ts')).includes('cuisiné ou pas');
-    if (affichee) {
-      expect(metrics).toContain('cuisiné ou pas');
-    } else {
-      expect(metrics, 'METRICS §2 cite une bulle que l’app n’affiche plus')
-        .toMatch(/L['’]APP NE LE DIT PLUS/);
+  it('le code n’en porte plus — si une série revient, le §2 doit être réécrit', () => {
+    // Ce n'est pas un interdit : le fondateur la repensera peut-être un jour. C'est
+    // un rappel — une série qui reviendrait sans que le §2 change laisserait la page
+    // affirmer un retrait qui n'est plus vrai.
+    for (const f of ['lib/streak.ts', 'hooks/useStreak.ts', 'components/StreakCelebration.tsx']) {
+      expect(existsSync(join(RACINE, f)), f).toBe(false);
     }
-  });
-
-  it('les fichiers de la série renvoient à METRICS.md au lieu de se dire north star', () => {
-    // ⚠️ PREMIÈRE VERSION REJETÉE, et la leçon vaut d'être gardée : elle interdisait
-    // la chaîne « North Star : » dans ces fichiers. Elle rougissait sur la NOTE qui
-    // corrige le défaut — celle qui cite l'ancien titre pour dire qu'il était faux.
-    // Un test d'ABSENCE ne sait pas distinguer une affirmation de sa rétractation
-    // (A38 : vérifier une présence attendue, pas l'absence d'une forme redoutée).
-    for (const f of ['lib/streak.ts', 'components/StreakCelebration.tsx']) {
-      expect(lire(f), f).toContain('METRICS.md');
-    }
-    // ⚠️ DEUXIÈME VERSION REJETÉE POUR LA MÊME RAISON, et c'est ce qui rend la leçon
-    // solide : « le titre ne contient pas “North Star” » rougissait sur le titre
-    // CORRIGÉ — « UN OUTIL DE RÉTENTION, PAS LA NORTH STAR ». Deux fois de suite,
-    // l'absence a confondu l'erreur avec son démenti.
-    // ➡️ Ce qu'on veut n'est pas que le nom disparaisse, c'est que le fichier DISE
-    // ce qu'il n'est pas. On vérifie donc le démenti, pas l'absence — et restaurer
-    // l'ancien titre (« North Star : 7 jours consécutifs ») le fait rougir.
-    const titre = lire('lib/streak.ts').split('\n')[2] ?? '';
-    expect(titre, 'ligne de titre de lib/streak.ts').toMatch(/PAS LA NORTH STAR/i);
+    expect(plan).not.toMatch(/markActiveToday|useStreak/);
   });
 });

@@ -31,9 +31,10 @@
 // journée, lui, n'aura pas à être refait.
 //
 // ⚠️ Et une salutation reste COURTE parce qu'elle s'affiche en `Type.display`
-// (34 pt) à côté du compteur de série : au-delà de `SALUTATION_MAX`, elle passe à
-// la ligne et l'en-tête change de hauteur d'un créneau à l'autre. Le plafond est
-// tenu par un test, pas par la vigilance.
+// (34 pt), prénom compris : au-delà de `SALUTATION_MAX`, elle passe à la ligne et
+// l'en-tête change de hauteur d'un créneau à l'autre. Le plafond est tenu par un
+// test, pas par la vigilance. (Le compteur de série qui la serrait à droite est
+// parti le 2026-09-19 ; le plafond reste, le prénom suffit à la faire déborder.)
 
 /**
  * Créneau de journée d'une salutation. Plus grossier que `ReminderPeriod` (qui en

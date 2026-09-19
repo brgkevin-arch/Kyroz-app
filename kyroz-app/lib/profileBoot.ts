@@ -98,7 +98,7 @@ export function bootProfile(
   // protéines, qui ne se voient pas.
   //
   // ⚠️ **REFUSER DE SERVIR N'EST PAS EFFACER.** `stored` ressort intact, donc l'appelant
-  // ne réécrit rien, et rien n'est purgé : favoris, pesées, réserve et série survivent.
+  // ne réécrit rien, et rien n'est purgé : favoris, pesées et réserve survivent.
   // La personne repasse par l'inscription, qui est exactement l'endroit où l'on redemande
   // un poids et une taille. C'est la seule destination qui a un sens : il n'existe aucune
   // valeur par défaut pour un corps.
