@@ -80,10 +80,10 @@ describe('qui mange de la viande, sans « Végétal » coché : AUCUN déjeuner 
     expect(vus).toBeGreaterThan(0);
   });
 
-  it('« Végétal » coché sans régime : comme la case Omnivore + Végétal, 10 % des déjeuners et dîners', () => {
-    expect(regleVegetal(profil({ preferred_proteins: ['poulet', 'végétal'] }))?.maxSemaine).toBe(1);
+  it('« Végétal » coché sans régime (ancien compte) : zéro aussi — la case n\'existe plus pour qui mange de la viande', () => {
+    expect(regleVegetal(profil({ preferred_proteins: ['poulet', 'végétal'] }))?.maxSemaine).toBe(0);
     for (const meals of semaines({ preferred_proteins: ['poulet', 'végétal'] }))
-      expect(meals.filter((m) => principal(m) && toutVegetal(m)).length).toBeLessThanOrEqual(1);
+      expect(meals.filter((m) => principal(m) && toutVegetal(m)).length).toBe(0);
   });
 
   it('halal et sans porc « Peu importe » sont servis comme un omnivore qui a coché ses protéines', () => {

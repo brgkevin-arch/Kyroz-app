@@ -40,7 +40,7 @@ d'**enregistrer ce que tu as mangé**. Kyroz te dit **quoi manger**.
 | 3 | Morphologie — on choisit sa silhouette dans une planche, pas un chiffre à deviner |
 | 4 | **Deux choses, comptées séparément** : à quoi ressemblent tes journées **hors sport**, et tes séances (sport, fréquence, durée) |
 | 5 | Objectif : **Sèche · Recomposition · Maintien · Prise de masse propre** |
-| 6 | Régime (végétarien, vegan, sans gluten…), protéines préférées, aliments évités, niveau de variété |
+| 6 | Régime (omnivore, végétarien, vegan, pescétarien, halal, sans gluten…) **d'abord** ; puis les protéines préférées **du régime choisi** (depuis le 2026-09-19 : ce qui est coché devient une part garantie des déjeuners et dîners, cf. `docs/2026-09-19-decision-preferences-proteines.md`) ; aliments évités, niveau de variété |
 | 7 | Quels jours, combien de repas, et à quelles heures |
 
 ⚠️ **L'étape 4 exige une réponse sur les journées hors sport, et c'est récent (2026-08-19).**

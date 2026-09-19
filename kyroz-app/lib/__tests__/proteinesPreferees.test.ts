@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { partsCibles, sortesProposees, VALEUR_SORTE, RIEN_COCHE, regimeProteines } from '../partsProteines';
+import type { DietaryRestriction } from '../types';
 
 // ── LA QUESTION DES PROTÉINES EST POSÉE, ET « PEU IMPORTE » EST UNE RÉPONSE ──
 //
@@ -41,7 +43,9 @@ const motsDe = (src: string): string[] =>
 
 describe('l\'étape 6 exige une réponse', () => {
   it('on ne peut plus la passer sans rien cocher', () => {
-    expect(onboarding).toMatch(/const preferencesValid = proteinesEgales \|\| proteins\.length >= 1/);
+    // Depuis le 2026-09-19 : un régime choisi D'ABORD (les protéines en dépendent), puis une
+    // protéine du régime ou « Peu importe ».
+    expect(onboarding).toMatch(/const preferencesValid = regimeChoisi\(restrictions\) && \(proteinesEgales \|\| cocheesValides\(restrictions, proteins\)\.length >= 1\)/);
     expect(onboarding).toMatch(/step === 6 && preferencesValid/);
     // …et l'étape doit ENTRER dans la liste des étapes gardées : l'oublier ici
     // laisserait `canProceed` retomber sur son `!includes` fourre-tout, donc passer.
@@ -49,6 +53,7 @@ describe('l\'étape 6 exige une réponse', () => {
   });
 
   it('l\'étape dit ce qui manque, et nomme la porte de sortie', () => {
+    expect(onboarding).toContain('Choisis ton régime.');
     expect(onboarding).toContain('Choisis tes protéines préférées, ou « Peu importe ».');
   });
 });
@@ -59,20 +64,24 @@ describe('« Peu importe » ne s\'enregistre pas comme une protéine', () => {
     // chercherait alors `PROTEIN_KEYWORDS['peu importe']`, ne trouverait rien, et
     // rendrait un ensemble vide — un réglage qui a l'air posé et ne pilote rien, soit
     // exactement le défaut que ce chantier ferme.
-    expect(onboarding).toMatch(/preferred_proteins: proteinesEgales \? \[\] : proteins\.map/);
+    expect(onboarding).toMatch(/preferred_proteins: proteinesEgales \? \[\] : cocheesValides\(restrictions, proteins\)/);
   });
 
-  it('les options de l\'écran sont EXACTEMENT les clés du moteur', () => {
+  it('chaque protéine proposée par l\'écran PILOTE le moteur (2026-09-19)', () => {
     // Sans ça, un libellé peut être coché sans que le moteur le reconnaisse — mesuré en
-    // testant « viande », qui n'est pas une clé : la préférence était silencieusement
-    // sans effet. L'écran propose Poulet / Bœuf, le moteur connaît poulet / bœuf.
-    const options = motsDe(onboarding.match(/const PROTEINS = \[([^\]]+)\]/)?.[1] ?? '');
-    const cles = clesDe(moteur.match(/const PROTEIN_KEYWORDS[^=]*= \{([\s\S]*?)\n\};/)?.[1] ?? '');
-    expect(options.length, 'liste de l\'écran introuvable').toBeGreaterThan(0);
-    expect(cles.length, 'table du moteur introuvable').toBeGreaterThan(0);
-    for (const label of options) {
-      expect(cles, `« ${label} » n'est pas une clé du moteur`).toContain(label);
+    // testant « viande », qui n'est pas une clé : la préférence était silencieusement sans
+    // effet. Depuis le 2026-09-19 l'écran et le moteur lisent la MÊME table
+    // (`lib/partsProteines.ts`) ; on vérifie ici l'EFFET, pas une liste recopiée : cocher
+    // chaque option change les parts visées.
+    expect(onboarding).toMatch(/<ProteinesParRegime/);
+    expect(onboarding).not.toMatch(/const PROTEINS = \[/);
+    const regimes: DietaryRestriction[][] = [['omnivore'], ['omnivore', 'halal'], ['pescatarian'], ['vegetarian'], ['vegan']];
+    for (const r of regimes) for (const s of sortesProposees(r)) {
+      const rien = partsCibles({ dietary_restrictions: r, preferred_proteins: [] }, 14);
+      const coche = partsCibles({ dietary_restrictions: r, preferred_proteins: [VALEUR_SORTE[s]] }, 14);
+      expect(JSON.stringify([...(coche ?? [])]), `${r.join('+')} : « ${s} » coché ne change rien`).not.toBe(JSON.stringify([...(rien ?? [])]));
     }
+    expect(RIEN_COCHE[regimeProteines(['omnivore'])]).toBeDefined();
   });
 
   it('…et la sonde sait dire OUI puis NON', () => {

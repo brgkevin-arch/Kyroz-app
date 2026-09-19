@@ -14,6 +14,7 @@ import { subscribeNotificationTaps } from '../lib/notifications';
 import { poserNotificationIntent } from '../hooks/useNotificationIntent';
 import { loadReduceTransparency } from '../lib/reduceTransparency';
 import { loadRepasAuto } from '../lib/repasAuto';
+import { loadPreferencesRevues } from '../lib/revuePreferences';
 import { AuthProvider } from '../hooks/useAuth';
 import { ProfileProvider } from '../hooks/useProfile';
 import { RecipeOverridesProvider } from '../hooks/useRecipeOverrides';
@@ -81,7 +82,7 @@ export default function RootLayout() {
   useEffect(() => {
     loadThemeMode(); loadAccentId(); loadHydrationEnabled();
     loadFirstName(); loadReminder(); loadReduceMotion(); loadReduceTransparency();
-    loadRepasAuto();
+    loadRepasAuto(); loadPreferencesRevues();
     // ⚠️ Une valeur oubliée dans ce chargement repart sur son défaut à chaque démarrage,
     // et ça ne se voit nulle part. Celle-ci vaudrait « rien à synchroniser » — donc
     // l'indicateur mentirait, dans le sens rassurant, exactement au lancement qui suit

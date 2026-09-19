@@ -830,8 +830,14 @@ describe('E8 — l\'écart hors plan : ce qu\'on reprend, et ce qui reste', () =
     const extrasJ3 = { 3: { kcal: 200, protein_g: 5, carbs_g: 20, fat_g: 8 } };
     const avecEcart = { ...plan, meals: mealsJ3, day_extras: extrasJ3, total_macros_per_day: computeDailyTotals(mealsJ3, plan.days, extrasJ3) };
     const opts = adaptDayOptions(p, avecEcart, 3, 10);
-    const plate = adaptDayOptions({ ...p, calorie_bank: undefined }, avecEcart, 3, 10);
-    // Même journée, même écart : mesuré contre la cible haute, il reste moins à reprendre.
-    expect(opts[0].overTargetKcal).toBeLessThan(plate[0].overTargetKcal);
+    // ⚠️ RÉÉCRIT le 2026-09-19. La version d'avant comparait l'option « répartir » calculée
+    // AVEC et SANS banque — mais chacune se recale vers SA cible (2 704 contre 2 104 kcal), donc
+    // qui dépasse de combien dépendait des plats du jour, pas de la règle : les parts de
+    // protéines ont changé le mercredi et le test a rougi sur une journée juste. On vérifie la
+    // règle elle-même : le dépassement de CHAQUE option se lit contre la cible du jour.
+    const cibleHaute = dayTargetKcal(p, plan.days, 3);
+    expect(cibleHaute).toBeGreaterThan(p.target_kcal);
+    expect(opts.length).toBeGreaterThan(0);
+    for (const o of opts) expect(o.overTargetKcal, o.key).toBe(Math.max(0, o.dayKcal - cibleHaute));
   });
 });
