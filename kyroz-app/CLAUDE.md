@@ -1044,6 +1044,12 @@ Toute correction qui déplace les cibles doit incrémenter `ENGINE_REV` : un
 avertissement one-shot (`engine_notice`) explique alors le changement à
 l'utilisateur au-delà de 100 kcal/jour d'écart.
 
+➡️ **Et toute correction qui change une RÈGLE de calcul relit `lib/methodologie.ts`**
+(2026-09-19). La page lit ses chiffres dans le moteur, donc elle suit les constantes
+toute seule ; elle ne suit pas les règles. La détente végane (−10 %) y a manqué huit
+jours, suite entièrement verte — et « à qui s'applique » une protection est une règle
+aussi : l'escalade et la pause y étaient annoncées pour tout le monde depuis août.
+
 ### Variété — la rotation se fait par FAMILLE, pas seulement par recette
 
 `usage` fait tourner les **ids** : il empêche la même recette de revenir, pas deux

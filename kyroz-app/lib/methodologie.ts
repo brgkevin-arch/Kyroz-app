@@ -4,7 +4,7 @@ import {
 } from './safety';
 import {
   NEAT_PAL, FAT_MIN_PER_KG_BW, PROTEIN_MIN_PER_KG_FFM, PROTEIN_MAX_PER_KG_FFM,
-  BF_UNCERTAINTY_PTS,
+  BF_UNCERTAINTY_PTS, DETENTE_PROTEINE_VEGETAL,
 } from './tdee';
 import { MAX_DEFICIT_TDEE_RATIO } from './datedGoal';
 import { CIQUAL_ATTRIBUTION } from './foods';
@@ -83,6 +83,13 @@ export function nb(n: number): string {
   return String(n).replace('.', ',');
 }
 
+/** Un segment de citation suivi de SON point — sans doubler celui d'une abréviation.
+ *  « Ainsworth BE, …, et al. » finit déjà par un point : l'écran en ajoutait un second, et
+ *  trois références s'affichaient « et al.. » (vu à l'écran le 2026-09-19). */
+export function avecPoint(t: string): string {
+  return /[.!?]$/.test(t) ? t : `${t}.`;
+}
+
 /** Milliers séparés par une espace insécable (1 500, jamais 1500). */
 export function millier(n: number): string {
   return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
@@ -146,6 +153,14 @@ export function methodologie(): MethodoSection[] {
       titre: 'La répartition des macronutriments',
       paragraphes: [
         `La cible protéique dépend de l'objectif et se calcule sur un poids ajusté à la composition corporelle. Elle est ensuite bornée entre ${nb(PROTEIN_MIN_PER_KG_FFM)} et ${nb(PROTEIN_MAX_PER_KG_FFM)} g par kg de MASSE MAIGRE, quelle que soit la corpulence.`,
+        // 🔴 CETTE RÈGLE A ÉTÉ SERVIE HUIT JOURS SANS ÊTRE ÉCRITE ICI (détente végétale,
+        // `tdee.ts::facteurProteineVegetal`, livrée le 2026-09-11 sans toucher cette
+        // page). Aucun chiffre de la page n'était faux — la règle manquait, et un manque
+        // ne se voit dans aucun test de valeur. Ajoutée le 2026-09-19.
+        // ⚠️ « ne descend pas sous » est COMPTÉ, pas supposé : le facteur s'applique APRÈS
+        // la borne basse, donc il pourrait la franchir si un coefficient d'objectif
+        // descendait. Balayage : `detenteProteineVegetal.test.ts`.
+        `Chez une personne végane, cette cible est ensuite abaissée de ${Math.round((1 - DETENTE_PROTEINE_VEGETAL) * 100)} % : sans cette détente, trop peu de repas végétaux l'atteignaient sans déborder en calories. Même abaissée, elle ne descend pas sous ${nb(PROTEIN_MIN_PER_KG_FFM)} g par kg de masse maigre.`,
         `Les lipides ne descendent jamais sous ${nb(FAT_MIN_PER_KG_BW)} g par kg de poids de corps, seuil en deçà duquel l'apport en acides gras essentiels et l'absorption des vitamines liposolubles ne sont plus assurés.`,
         'Les glucides reçoivent le budget restant.',
       ],
@@ -186,17 +201,24 @@ export function methodologie(): MethodoSection[] {
         // Garde-fou : `lib/__tests__/plancherServi.test.ts`.
         'Ces limites ne sont pas des réglages : le code les applique à chaque calcul, quel que soit l\'objectif choisi ou la date visée.',
         'Deux d\'entre elles sont infranchissables CHAQUE JOUR : le métabolisme de base et le filet absolu. L\'énergie disponible, elle, se juge sur la SEMAINE : c\'est une moyenne soutenue, et c\'est ainsi que la littérature la définit.',
-        'Le budget d\'un jour suit la dépense de ce jour-là : un jour de séance reçoit plus qu\'un jour de repos, et la semaine conserve son total. Un jour calme peut donc passer sous le seuil d\'énergie disponible sans que la semaine y passe , et le métabolisme de base, lui, reste un plancher quotidien.',
+        'Le budget d\'un jour suit la dépense de ce jour-là : un jour de séance reçoit plus qu\'un jour de repos, et la semaine conserve son total. Un jour calme peut donc passer sous le seuil d\'énergie disponible sans que la semaine y passe, et le métabolisme de base, lui, reste un plancher quotidien.',
         // ⚠️ La conséquence est rattachée au PLANCHER, pas au lecteur (6b-bis-06) : la
         // personne rencontrait le risque avant de rencontrer le fait que Kyroz l'empêche.
         `Énergie disponible : au moins ${EA_HARD_FLOOR} kcal par kg de masse maigre, une fois la dépense sportive retirée. Ce plancher existe parce que la littérature documente, en dessous, des perturbations hormonales et osseuses (déficit énergétique relatif dans le sport, RED-S) : c'est ce que Kyroz tient à distance.`,
-        `Au-delà de ${LOW_EA_BUDGET_WEEKS} semaines cumulées en zone basse, c'est-à-dire entre ${EA_HARD_FLOOR} et ${EA_OPTIMAL} kcal par kg de masse maigre, ce plancher remonte progressivement vers ${EA_OPTIMAL} : l'app force une sortie de déficit au lieu de la laisser durer.`,
+        // 🔴 CES DEUX PARAGRAPHES PARLAIENT À TOUT LE MONDE, ET CHAQUE PERSONNE N'EN VIT QU'UN
+        // (corrigé le 2026-09-19). L'escalade ne remonte que le plancher FÉMININ
+        // (`safety.ts::effectiveEaPerKgFfm` → `isFemaleAtRisk`), et la pause ne s'applique
+        // que là où l'escalade ne peut rien (`dietBreakApplies` : tout homme, et toute
+        // femme au-delà du seuil d'adiposité). « Ce compteur est indépendant du précédent »
+        // faisait lire deux protections empilées ; le code les rend EXCLUSIVES, à dessein
+        // (CLAUDE.md §6 : empilées, elles se battent et l'escalade n'aboutit jamais).
+        `Chez la femme, au-delà de ${LOW_EA_BUDGET_WEEKS} semaines cumulées en zone basse, c'est-à-dire entre ${EA_HARD_FLOOR} et ${EA_OPTIMAL} kcal par kg de masse maigre, ce plancher remonte progressivement vers ${EA_OPTIMAL} : l'app force une sortie de déficit au lieu de la laisser durer.`,
         `Filet absolu : jamais moins de ${millier(MIN_KCAL.male)} kcal par jour chez l'homme et ${millier(MIN_KCAL.female)} kcal chez la femme.`,
         `Déficit plafonné à ${Math.round(MAX_DEFICIT_TDEE_RATIO * 100)} % de la dépense estimée.`,
-        // ⚠️ Les deux compteurs sont indépendants et se comptent différemment (cumulé vs
-        // consécutif) : deux nombres proches sans cette précision se lisent comme un système
-        // à surveiller (6b-bis-07).
-        `Après ${DIET_BREAK_AFTER_WEEKS} semaines de déficit consécutives, la semaine suivante est servie à la maintenance. Ce compteur-là est indépendant du précédent : l'un compte des semaines qui se suivent, l'autre des semaines cumulées.`,
+        // ⚠️ Les deux compteurs se comptent différemment (cumulé vs consécutif) : deux
+        // nombres proches sans cette précision se lisent comme un système à surveiller
+        // (6b-bis-07).
+        `Chez l'homme, et chez la femme au-delà de ${HIGH_ADIPOSITY_PCT.female} % de masse grasse, c'est une pause qui joue ce rôle : après ${DIET_BREAK_AFTER_WEEKS} semaines de déficit consécutives, la semaine suivante est servie à la maintenance. Chaque personne relève de l'une de ces deux protections, jamais des deux : l'une compte des semaines cumulées, l'autre des semaines qui se suivent.`,
         // ⚠️ Seule limite de la page formulée comme un refus opposé à l'utilisateur, sur le
         // seul point qui touche à un état corporel (6b-bis-03). Kyroz redevient le sujet.
         'Sous un indice de masse corporelle de départ de 18,5, Kyroz ne creuse aucun déficit et sert un plan complet à la maintenance, de même que pour tout poids cible sortant de la plage saine.',
@@ -244,8 +266,8 @@ export function methodologie(): MethodoSection[] {
         // déclare tenue toute seule.
         'Tout ce qui précède ne sort pas de la littérature au même titre. Les deux listes ci-dessous rangent chaque valeur citée sur cette page : un chiffre qui n\'y figurerait pas serait un oubli, pas une omission volontaire.',
         `Viennent de la littérature : les deux équations de métabolisme de base et les valeurs MET · le seuil de ${EA_HARD_FLOOR} kcal par kg de masse maigre et son optimum à ${EA_OPTIMAL} · le plancher lipidique de ${nb(FAT_MIN_PER_KG_BW)} g par kg de poids de corps · les fourchettes protéiques, de ${nb(PROTEIN_MIN_PER_KG_FFM)} à ${nb(PROTEIN_MAX_PER_KG_FFM)} g par kg de masse maigre · l'indice de masse corporelle de 18,5 sous lequel un déficit n'a plus de sens · l'âge de ${MIN_AGE} ans en deçà duquel ces équations ne sont pas validées.`,
-        `Sont des choix de Kyroz, prudents par construction : la table d'activité quotidienne, de ${nb(NEAT_PAL.desk)} à ${nb(NEAT_PAL.physical)}, et son plafond · le déficit borné à ${Math.round(MAX_DEFICIT_TDEE_RATIO * 100)} % · le filet absolu de ${millier(MIN_KCAL.male)} et ${millier(MIN_KCAL.female)} kcal · la pause à la maintenance toutes les ${DIET_BREAK_AFTER_WEEKS} semaines · la remontée du plancher après ${LOW_EA_BUDGET_WEEKS} semaines cumulées en zone basse.`,
-        `Sont aussi des choix de Kyroz, et ce sont ceux qui s'écartent le plus de la littérature : le glissement de Mifflin-St Jeor vers Katch-McArdle, la marge de ±${BF_UNCERTAINTY_PTS} points qui définit ce « nettement plus de masse maigre », et le seuil de ${BF_CHART_MAX.male} % (homme) et ${BF_CHART_MAX.female} % (femme) au-delà duquel la provenance du taux est demandée · le retrait progressif des planchers dérivés de la masse maigre au-delà de ${HIGH_ADIPOSITY_PCT.male} % (homme) et ${HIGH_ADIPOSITY_PCT.female} % (femme) de masse grasse : au-delà, la réserve adipeuse est la source d'énergie que ces planchers, conçus pour des athlètes maigres, interdisaient d'utiliser.`,
+        `Sont des choix de Kyroz, prudents par construction : la table d'activité quotidienne, de ${nb(NEAT_PAL.desk)} à ${nb(NEAT_PAL.physical)}, et son plafond · le déficit borné à ${Math.round(MAX_DEFICIT_TDEE_RATIO * 100)} % · le filet absolu de ${millier(MIN_KCAL.male)} et ${millier(MIN_KCAL.female)} kcal · la pause à la maintenance après ${DIET_BREAK_AFTER_WEEKS} semaines de déficit · la remontée du plancher féminin après ${LOW_EA_BUDGET_WEEKS} semaines cumulées en zone basse.`,
+        `Sont aussi des choix de Kyroz, et ce sont ceux qui s'écartent le plus de la littérature : le glissement de Mifflin-St Jeor vers Katch-McArdle, la marge de ±${BF_UNCERTAINTY_PTS} points qui définit ce « nettement plus de masse maigre », et le seuil de ${BF_CHART_MAX.male} % (homme) et ${BF_CHART_MAX.female} % (femme) au-delà duquel la provenance du taux est demandée · le retrait progressif des planchers dérivés de la masse maigre au-delà de ${HIGH_ADIPOSITY_PCT.male} % (homme) et ${HIGH_ADIPOSITY_PCT.female} % (femme) de masse grasse : au-delà, la réserve adipeuse est la source d'énergie que ces planchers, conçus pour des athlètes maigres, interdisaient d'utiliser · la cible protéique abaissée de ${Math.round((1 - DETENTE_PROTEINE_VEGETAL) * 100)} % chez une personne végane : la littérature plaiderait plutôt pour l'inverse, les protéines végétales étant un peu moins bien assimilées, et Kyroz l'échange contre un choix de repas nettement plus large.`,
         'Une estimation de dépense reste une estimation : elle porte une marge d\'erreur individuelle que ces équations ne suppriment pas. Le poids relevé au fil des semaines est le seul juge, et c\'est lui que Kyroz suit.',
       ],
     },
