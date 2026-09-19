@@ -5,6 +5,7 @@ import { PrimaryButton } from './ui';
 import { AnniversaireIcon } from './Icons';
 import { RESSORT, DUREE, ressortRN, ressortReduit, dureeReduite } from '../lib/motion';
 import { reduceMotionActif } from '../lib/reduceMotion';
+import { useModaleRecensee } from '../lib/modalesPresentees';
 
 interface Props {
   /** Âge atteint aujourd'hui ; `null` = masqué. */
@@ -46,6 +47,8 @@ const CONFETTI_COULEURS = ['#F0B429', '#E0524E', '#3B7BE0', '#7FD49B', '#B57BE0'
 export function BirthdayCelebration({ age, firstName, onClose }: Props) {
   const t = useTheme();
   const visible = age != null;
+  // Recensée tant qu'elle est à l'écran : une visite guidée attend qu'elle soit partie (lib/modalesPresentees.ts).
+  useModaleRecensee(visible);
   const scale = useRef(new Animated.Value(0.8)).current;
   const opacity = useRef(new Animated.Value(0)).current;
   const chute = useRef(new Animated.Value(0)).current;

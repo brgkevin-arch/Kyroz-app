@@ -19,14 +19,35 @@ import { relireSyncEnAttente } from './syncEnAttente';
 // permanent des deux côtés. Le transfert A → B ne demande même pas que le profil soit
 // marqué « à pousser ».
 //
-// ➡️ Deux fermetures, à deux endroits, parce qu'elles ne couvrent pas le même trou :
-//  1. **la purge devient une propriété de `signOut()`** (et de l'événement `SIGNED_OUT`,
-//     qui est le seul à voir les pertes de session INVOLONTAIRES) — c'est ce qui
-//     protège les données AU REPOS sur un appareil partagé ;
+// ➡️ Deux fermetures existaient, à deux endroits :
+//  1. ~~la purge, propriété de `signOut()` et de l'événement `SIGNED_OUT`~~ — **RETIRÉE
+//     le 2026-09-19, décision du fondateur** (cf. l'encadré juste en dessous) ;
 //  2. **l'identité entre dans l'hydratation** — c'est le point de passage unique par
 //     lequel toute connexion arrive, donc le seul endroit où l'on peut garantir qu'un
-//     compte n'hérite de rien, même si la purge n'a pas eu lieu (app tuée en plein
-//     milieu, version antérieure, onglet web resté ouvert).
+//     compte n'hérite de rien. C'est elle, désormais, qui porte TOUTE la garantie.
+//
+// 🔴 **SE DÉCONNECTER NE VIDE PLUS L'APPAREIL (2026-09-19, décision du fondateur :
+// « si un plan a été généré et que l'user se déco, il a plus son plan ? nul un peu.
+// Sauf quand l'user désinstalle l'app, on devrait garder les données locales »).**
+// La purge à la déconnexion effaçait TOUT sauf le thème et le rappel — et le plan n'est
+// pas dans le cloud. Se reconnecter faisait donc perdre la semaine, le suivi du jour, les
+// photos de progression (jamais poussées), et rejouait tout l'accueil d'un nouveau : les
+// visites guidées, dont celle du Profil qui a FIGÉ l'app ce jour-là
+// (`lib/modalesPresentees.ts`).
+// ➡️ Ce qui garde désormais contre l'héritage entre comptes : le PROPRIÉTAIRE noté sur
+// l'appareil (`CLE_PROPRIETAIRE`). L'hydratation l'écrit, `signOut()` le confirme ; un
+// AUTRE compte qui se connecte trouve un propriétaire différent → purge AVANT hydratation,
+// et le profil local ne lui est jamais servi, pas même une image (`profilServable`).
+// ⚠️ Pourquoi un propriétaire et pas l'`id` du profil : un profil créé à l'inscription
+// garde `user-<horodatage>` tant qu'aucune hydratation ne l'a remplacé
+// (`ID_SANS_COMPTE`). Sans la purge de déconnexion, ce profil-là passerait pour « sans
+// compte » chez le compte suivant — et partirait dans SON cloud. Le propriétaire, lui, est
+// noté dès la première hydratation, donc dès l'inscription.
+// ⚠️ Coûts assumés : les données d'un compte restent sur le téléphone après sa
+// déconnexion (illisibles sans reconnexion, effacées dès qu'un autre compte se connecte
+// ou que l'app est désinstallée) ; un compte supprimé DEPUIS UN AUTRE APPAREIL laisse sa
+// copie ici jusque-là. « Supprimer mon compte » depuis CET appareil efface tout
+// (`profil.tsx::doDelete`, `AsyncStorage.clear()`), inchangé.
 
 // ── 1. Ce qu'une purge de session ÉPARGNE ────────────────────────────────────
 
@@ -41,6 +62,12 @@ import { relireSyncEnAttente } from './syncEnAttente';
  * défaut que 01-01 décrit, un cran plus bas.
  */
 export const CLES_CONSERVEES: readonly string[] = ['@kyroz:theme', '@kyroz:reminder'];
+
+// ⚠️ (2026-09-19) Les « déjà vu » (visites, reveal du 1er plan, offre du rappel) y sont
+// entrés le matin, pour qu'une reconnexion ne rejoue pas l'accueil — puis en sont
+// ressortis l'après-midi : la déconnexion ne purge plus rien, donc cette liste ne sert
+// plus qu'au CHANGEMENT DE COMPTE. Et là, c'est une autre personne : elle doit voir
+// l'accueil, et « ton premier plan est prêt » est vrai pour elle.
 
 /**
  * Les clés à retirer, à partir de tout ce que le stockage contient.
@@ -103,8 +130,31 @@ export function proprietaireLocal(idLocal: unknown, uid: string): Proprietaire {
  * et les garder ferait lire ses données de santé par quelqu'un d'autre. Une perte
  * délibérée vaut mieux qu'une fuite silencieuse.
  */
-export function doitPurgerAvantHydratation(idLocal: unknown, uid: string): boolean {
+export function doitPurgerAvantHydratation(idLocal: unknown, proprietaire: unknown, uid: string): boolean {
+  // Le propriétaire noté fait foi dès qu'il existe : il couvre le profil d'inscription
+  // (`user-<horodatage>`) qu'un autre compte prendrait sinon pour « sans compte ».
+  if (typeof proprietaire === 'string' && proprietaire.length > 0) return proprietaire !== uid;
+  // Appareil d'avant le 2026-09-19 (aucun propriétaire noté) : la déconnexion purgeait
+  // alors tout, donc il ne peut rester que les données de la session en cours.
   return proprietaireLocal(idLocal, uid) === 'autre';
+}
+
+/**
+ * Le compte à qui appartiennent les données de cet appareil. Écrit par l'hydratation
+ * (après sa garde) et confirmé par `signOut()` ; jamais effacé par une déconnexion.
+ * ⚠️ PAS dans `CLES_CONSERVEES` : la purge de changement de compte l'emporte, et
+ * l'hydratation le réécrit aussitôt au nom du compte entrant.
+ */
+export const CLE_PROPRIETAIRE = '@kyroz:proprietaire';
+
+/**
+ * Le profil local peut-il être SERVI à l'écran ? Jamais sans session, jamais à un autre
+ * compte que son propriétaire — pas même le temps que l'hydratation le purge : sans ça,
+ * le compte entrant verrait une fraction de seconde le poids et les cibles du précédent.
+ */
+export function profilServable(idLocal: unknown, proprietaire: unknown, uid: string | null | undefined): boolean {
+  if (!uid) return false;
+  return !doitPurgerAvantHydratation(idLocal, proprietaire, uid);
 }
 
 // ── 3. La purge elle-même ────────────────────────────────────────────────────
@@ -122,8 +172,8 @@ export function doitPurgerAvantHydratation(idLocal: unknown, uid: string): boole
  *     est dans `CLES_CONSERVEES` et le démarrage la relit ;
  *  3. **les clés enfin**, en liste blanche.
  *
- * ⚠️ Ne lève JAMAIS. Elle est appelée depuis `onAuthStateChange`, où une exception
- * laisserait l'app avec une session morte et des données vivantes — le pire des deux.
+ * ⚠️ Ne lève JAMAIS. Depuis le 2026-09-19 elle n'est plus appelée qu'au CHANGEMENT DE
+ * COMPTE (garde d'identité de `hydrateFromCloud`) — plus à la déconnexion.
  *
  * ⚠️ **`effets` EST REQUIS, PAS OPTIONNEL, et ce n'est pas une commodité de test.**
  * `lib/photos.ts` et `lib/notifications.ts` importent `expo-image-picker`,

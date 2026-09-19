@@ -315,9 +315,13 @@ describe('Visite guidée — un tour affiché compte comme VU', () => {
    *  même `markSeen`). C'est la troisième fois que cette famille de tests fige la
    *  FORME du code au lieu de son invariant — on borne désormais sur « la
    *  déclaration d'après », qui existe quelles que soient les dépendances. */
+  // ⚠️ (2026-09-19) L'OUVERTURE vit dans `demarrer` depuis que `startTour` ATTEND
+  // qu'aucune autre modale ne soit présentée (`lib/modalesPresentees.ts`) : c'est là
+  // que la visite s'affiche, donc là qu'elle se marque. L'invariant n'a pas bougé —
+  // « vue = montrée » ; seul le nom de la fonction qui montre a changé.
   const corpsStartTour = (() => {
-    const debut = SRC.indexOf('const startTour');
-    expect(debut, 'startTour introuvable dans GuidedTour.tsx').toBeGreaterThan(-1);
+    const debut = SRC.indexOf('const demarrer');
+    expect(debut, 'demarrer introuvable dans GuidedTour.tsx').toBeGreaterThan(-1);
     const suivant = SRC.indexOf('\n  const ', debut + 1);
     const fin = suivant > debut ? suivant : SRC.length;
     return SRC.slice(debut, fin);
@@ -326,7 +330,7 @@ describe('Visite guidée — un tour affiché compte comme VU', () => {
   it('le tour est marqué vu à son OUVERTURE', () => {
     expect(
       /markSeen\(\s*tourId\s*\)/.test(corpsStartTour),
-      'startTour n’appelle plus markSeen : un tour interrompu par une app tuée reviendra à chaque lancement',
+      'demarrer n’appelle plus markSeen : un tour interrompu par une app tuée reviendra à chaque lancement',
     ).toBe(true);
   });
 
@@ -337,7 +341,7 @@ describe('Visite guidée — un tour affiché compte comme VU', () => {
     // `(?<!function )` écarte la DÉCLARATION `async function markSeen(tourId)`,
     // qui n'est pas un appel — sans ça le compte vaut 2 pour un seul appel.
     const appels = [...SRC.matchAll(/(?<!function )markSeen\(/g)].length;
-    expect(appels, 'markSeen doit être appelé exactement une fois, dans startTour').toBe(1);
+    expect(appels, 'markSeen doit être appelé exactement une fois, dans demarrer').toBe(1);
   });
 
   it('la sonde sait dire NON', () => {
