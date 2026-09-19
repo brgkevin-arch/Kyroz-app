@@ -1663,6 +1663,19 @@ produit en suspens — il ne reste qu'à coder.
   textes servis (Kyroz+, consentement, suppression de compte, politique §2, CGU §3).
   ⚠️ **La north star n'en dépendait pas** — elle compte les jours avec un repas cuisiné
   (`meal_cooked`), la série comptait les ouvertures du Plan (METRICS.md §2, réécrit).
+  🔴 **LA SURFACE QU'AUCUN `grep` NE TROUVAIT : LE CARROUSEL D'ACCUEIL.** Ses images
+  (`assets/intro/`, clair + sombre) sont des CAPTURES de l'app — la diapo du Plan et
+  celle du Profil montraient la pastille « 1 j de série ». Vu en vérifiant à l'écran, pas
+  en cherchant dans le code. Les 8 images sont regénérées (`test/intro-captures.mjs`).
+  ⚠️ Trois écarts avec le script du dépôt, faits dans une COPIE locale et non versionnés :
+  une session locale factice au lieu d'une connexion invité (**aucun compte créé en
+  production** — le serveur du worktree pointe vers une URL Supabase factice), une horloge
+  qui démarre un **lundi 9 h 30** (générées un samedi soir, les diapos disaient « Bonsoir »,
+  « Jour 6 » et « ton plan avait déjà commencé »), et la **pesée du jour** posée
+  explicitement (l'app ne la pose plus quand le journal est réécrit après l'inscription :
+  l'en-tête disait 82 kg au-dessus d'une courbe finissant à 82,6).
+  ➡️ Au passage, **`test/_harness.mjs` était cassé depuis le merge de #325** (le régime est
+  devenu obligatoire à l'inscription, le harnais n'en cochait aucun) : il coche « Omnivore ».
   ⚠️ **Ce que ça ne touche PAS** : la « série de semaines en déficit » de la pause à la
   maintenance (`safety.ts`, `deficit_weeks`) et la « série datée » des rappels
   (`reminder.ts::serieQuotidienne`) — même mot, autres objets.

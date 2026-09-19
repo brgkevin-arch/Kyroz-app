@@ -436,9 +436,15 @@ export async function runOnboarding(page, p = DEFAULT_PERSONA) {
   // régime depuis le 2026-09-08, pas celui des protéines — et laissait l'étape bloquée.
   // On les répond tous : chacun enregistre l'absence de préférence, donc les plans des
   // scripts en aval restent ceux d'avant.
+  // 🔴 LE RÉGIME EST OBLIGATOIRE DEPUIS LE 2026-09-19 (#325, « régime d'abord » :
+  // `onboarding.tsx::preferencesValid` exige `regimeChoisi`). Sans case cochée, l'étape
+  // ne se valide plus et le harnais s'arrêtait ici — cassé le jour même du merge, et
+  // `npm test` restait vert. « Omnivore » est le régime du persona.
+  await tap(page, 'Omnivore', { exact: true });
+  await sleep(300);
   const peuImporte = page.getByText('Peu importe', { exact: true });
-  // D36 (2026-09-15) : le régime n'a plus de « Peu importe » (case « Omnivore », non obligatoire) —
-  // il en reste TROIS : protéines, petit-déjeuner, collations. Ne rien cocher au régime garde les plans d'avant.
+  // D36 (2026-09-15) : le régime n'a plus de « Peu importe » (case « Omnivore ») —
+  // il en reste TROIS : protéines, petit-déjeuner, collations.
   const nPeuImporte = await peuImporte.count().catch(() => 0);
   if (nPeuImporte < 3) {
     await panne(page, 'onboarding-preferences', `l'étape 6 exige trois réponses et ${nPeuImporte} « Peu importe » seulement sont visibles`);
