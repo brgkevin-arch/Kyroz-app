@@ -2,8 +2,8 @@ import { describe, it, expect } from 'vitest';
 import { RECIPE_INGREDIENTS, RECIPE_CONFIG, RAW_RECIPES, macrosForRefIngredients } from '../recipeData';
 
 describe('recipeData', () => {
-  it('charge 549 recettes brutes', () => {
-    expect(RAW_RECIPES).toHaveLength(549);
+  it('charge 559 recettes brutes', () => {
+    expect(RAW_RECIPES).toHaveLength(559);
   });
   it('chaque recette déclare sa vague de livraison', () => {
     // Sans `wave`, une vague ne sait pas contre quoi se comparer : impossible d'expliquer
@@ -39,6 +39,9 @@ describe('recipeData', () => {
       // (lentilles, lentilles corail, tempeh, seitan), puis leurs 4 variantes VÉGÉTARIENNES
       // (œufs, skyr, cottage cheese). L'escalope végétale n'a pas tenu R8. 541 → 549.
       '2026-09-18-b12-pieces-vegetales': 8,
+      // B13 : 10 repas complets au filet de porc, un féculent par plat (familles neuves) —
+      // prérequis de la case « Porc » décidée le 2026-09-19. 549 → 559.
+      '2026-09-19-b13-porc': 10,
       '2026-08-03-b8-collations-vegan-sg': 8,
       '2026-08-03-b9-collations-grand-format': 8,
       fondation: 92, '2026-06-19-vegan': 156, '2026-07-22-sans-gluten': 46,
