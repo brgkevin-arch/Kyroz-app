@@ -54,8 +54,12 @@ reste possible (s'il ne coche pas poulet, il aura quand même du poulet).
 | 3 ou plus | **80 %** |
 
 **Si le catalogue manque** de recettes d'une sorte pour un profil : **autant que possible** —
-le moteur en sert le maximum faisable sans répéter ni mal calibrer, puis complète avec les
-autres sortes (décision fondateur, même jour). Vaut pour tous les régimes.
+le moteur en sert le maximum faisable sans répéter ni mal calibrer, puis **complète avec des
+PIÈCES VÉGÉTALES** (décision fondateur, même jour : « s'il n'y a pas assez, il cale des
+protéines végé »). Vaut pour le végétarien et le vegan. Si les pièces végétales manquent aussi
+(vegan sans gluten, H 110 masse : 2 recettes), le moteur prend ce qui reste de son régime.
+Pour l'omnivore, le halal et le pescétarien, le complément vient des autres protéines de SON
+régime (jamais de végétal chez l'omnivore).
 
 **Rien coché :**
 
