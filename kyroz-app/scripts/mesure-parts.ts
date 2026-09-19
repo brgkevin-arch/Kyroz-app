@@ -35,9 +35,11 @@ const CAS: [string, DietaryRestriction[], Record<string, [number, number]>][] = 
   ['Omnivore', ['omnivore'], { poulet: [0.60, 0.40], 'bœuf': [0.60, 0.30], poisson: [0.60, 0.20], porc: [0.60, 0.10] }],
   ['Halal', ['omnivore', 'halal'], { poulet: [0.60, 0.45], 'bœuf': [0.60, 0.35], poisson: [0.60, 0.20] }],
   ['Pescétarien', ['pescatarian'], { poisson: [0.70, 0.50], 'végétal': [0.70, 0.50] }],
-  ['Végétarien', ['vegetarian'], { tofu: [0.60, 0], tempeh: [0.60, 0], seitan: [0.60, 0], 'légumineuses': [0.60, 0], 'pièces végétales': [0.60, 0], 'œufs': [0.60, 0] }],
-  ['Vegan', ['vegan'], { tofu: [0.60, 0], tempeh: [0.60, 0], seitan: [0.60, 0], 'légumineuses': [0.60, 0], 'pièces végétales': [0.60, 0] }],
-  ['Vegan sans gluten', ['vegan', 'gluten_free'], { tofu: [0.60, 0], tempeh: [0.60, 0], 'légumineuses': [0.60, 0], 'pièces végétales': [0.60, 0] }],
+  // Révisé par le fondateur le 2026-09-19 : pièces végétales cochées seules 70 % (une quinzaine de
+  // produits différents), toute autre sorte cochée seule 40 % ; 2 sortes 60 %, 3 et plus 80 %.
+  ['Végétarien', ['vegetarian'], { tofu: [0.40, 0], tempeh: [0.40, 0], seitan: [0.40, 0], 'légumineuses': [0.40, 0], 'pièces végétales': [0.70, 0], 'œufs': [0.40, 0] }],
+  ['Vegan', ['vegan'], { tofu: [0.40, 0], tempeh: [0.40, 0], seitan: [0.40, 0], 'légumineuses': [0.40, 0], 'pièces végétales': [0.70, 0] }],
+  ['Vegan sans gluten', ['vegan', 'gluten_free'], { tofu: [0.40, 0], tempeh: [0.40, 0], 'légumineuses': [0.40, 0], 'pièces végétales': [0.70, 0] }],
 ];
 const profil = (g: Gabarit, r: DietaryRestriction[]) => recalcProfile({ id: 'm', sex: g.sex, age: g.age, weight_kg: g.weight_kg, height_cm: g.height_cm,
   activity_level: 'moderate', training_days_per_week: 4, sports: [{ type: 'musculation', sessions_per_week: 4, minutes_per_session: 60 }], neat_level: 'desk',

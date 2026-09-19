@@ -36,13 +36,26 @@ Le petit-déjeuner et la collation gardent leurs propres règles.
 **Ce que l'utilisateur coche = une part GARANTIE, pas une exclusion** : ce qu'il ne coche pas
 reste possible (s'il ne coche pas poulet, il aura quand même du poulet).
 
+**Omnivore et halal :**
+
 | Il coche | Part des protéines cochées (à parts égales) | Le reste |
 |---|---|---|
 | 1 | **60 %** | réparti selon « rien coché » |
 | 2 | **80 %** | idem |
 | 3 ou plus | **95 %** | idem |
 
-Vaut pour l'omnivore, le halal, le végétarien et le vegan.
+**Végétarien et vegan** (révisé par le fondateur le même jour, après la mesure du §4 bis) :
+
+| Il coche | Part des sortes cochées (à parts égales) |
+|---|---|
+| 1 : **pièces végétales** | **70 %** — une quinzaine de produits différents, elles portent une grande part sans répéter |
+| 1 : une autre sorte (tofu, tempeh, seitan, légumineuses, œufs) | **40 %** |
+| 2 | **60 %** |
+| 3 ou plus | **80 %** |
+
+**Si le catalogue manque** de recettes d'une sorte pour un profil : **autant que possible** —
+le moteur en sert le maximum faisable sans répéter ni mal calibrer, puis complète avec les
+autres sortes (décision fondateur, même jour). Vaut pour tous les régimes.
 
 **Rien coché :**
 
@@ -86,17 +99,21 @@ Recettes servables midi ET soir au profil le plus contraint, contre le nombre de
 | Omnivore | poulet, bœuf, poisson : toutes les parts ✅ ; porc « rien coché » (10 %) ✅ | **porc coché seul (60 % = 8 repas)** : 5 recettes servables chez H 110 masse → une recette servie deux fois |
 | Halal | toutes les parts ✅ (8 recettes minimum pour poulet et bœuf, juste assez) | — |
 | Pescétarien | toutes les parts ✅ (poisson 15 recettes min, végétal 43) | — |
-| Végétarien | légumineuses ✅, pièces végétales ✅ | **tofu** (4 chez F 55 sèche) et **œufs** (6) → répétition ; **seitan** (3) ❌ ; **tempeh** (0 chez F 55 sèche) ❌ |
-| Vegan | légumineuses ✅ | tofu, pièces végétales → répétition ; **tempeh** (2) et **seitan** (2) ❌ |
-| Vegan sans gluten | — | tofu, légumineuses → répétition ; **tempeh** (1) et **pièces végétales** (2) ❌ |
+| Végétarien | légumineuses, œufs (40 %) ✅, pièces végétales (70 %) ✅ | tofu, seitan → répétition ; **tempeh** (0 chez F 55 sèche) ❌ |
+| Vegan | tofu, légumineuses (40 %) ✅ | pièces végétales (70 %) → répétition ; **tempeh** et **seitan** (2 chez H 110 masse) ❌ |
+| Vegan sans gluten | légumineuses (40 %) ✅ | tofu → répétition ; **tempeh** (1) et **pièces végétales** (2 chez H 110 masse) ❌ |
+
+(Chiffres végé/vegan remesurés avec les parts RÉVISÉES : 70 % pièces végétales, 40 % toute
+autre sorte. Avec les parts d'avant — 60 % pour tout — tempeh et seitan étaient intenables
+partout et tofu / œufs répétaient.)
 
 ➡️ **Les parts de l'omnivore, du halal et du pescétarien sont tenables telles quelles.** Le
 plafond D30 (5 repas par ingrédient) ne gêne pas : poulet et bœuf ont deux ingrédients chacun
 (filet + dinde, haché + bavette), soit 10 repas possibles.
-➡️ **Le 60 % d'une seule sorte végétale ne l'est pas** pour tempeh et seitan, et seulement
-avec répétition pour le tofu : trop peu de recettes calibrées pour les gabarits extrêmes. Trois
-sorties à trancher : baisser la part de ces sortes, écrire des recettes, ou servir « autant que
-le vivier le permet, jusqu'à 60 % ».
+➡️ **Végé / vegan, après révision : tenable pour la plupart des profils.** Les trous restants
+sont aux gabarits extrêmes (F 55 sèche, H 110 masse) et tombent sous la règle « autant que
+possible » : le tempeh surtout, puis le seitan vegan et les pièces végétales vegan sans gluten.
+Écrire des recettes tempeh pour ces gabarits reste une option pour plus tard.
 ⚠️ Mesure STATIQUE : le coût d'un quota sur le calibrage ne se verra qu'une fois codé.
 
 ## 5. Ordre proposé
