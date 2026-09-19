@@ -1,9 +1,7 @@
 # Préférences de protéines par régime — décisions du fondateur (2026-09-19)
 
-> Statut : **DÉCIDÉ, PAS CODÉ.** Rien n'est implémenté. Avant de coder : mesurer chaque part
-> sur les 12 profils de référence (calibrage, repas mal calibrés, vivier par créneau), et
-> écrire les recettes de porc (§4). Un chiffre intenable se remonte au fondateur, il ne se
-> corrige pas en silence.
+> Statut : **CODÉ le 2026-09-19** (moteur, écrans, comptes existants) — cf. §6. Un chiffre
+> intenable se remonte au fondateur, il ne se corrige pas en silence.
 
 ## 1. Le parcours d'inscription
 
@@ -125,6 +123,48 @@ possible » : le tempeh surtout, puis le seitan vegan et les pièces végétales
 1. ✅ « Protéine végé » confirmé (pièces végétales).
 2. ✅ Faisabilité mesurée (§4 bis).
 3. ✅ 10 plats de porc écrits (B13).
-4. Moteur : parts garanties par régime ; retrait de la case Végétal omnivore.
-5. Écran d'inscription et Profil : régime d'abord, protéines dépendantes, whey retirée.
-6. Comptes existants : redemander les préférences.
+4. ✅ Moteur : parts garanties par régime ; retrait de la case Végétal omnivore.
+5. ✅ Écran d'inscription et Profil : régime d'abord, protéines dépendantes, whey retirée.
+6. ✅ Comptes existants : une carte sur le Plan redemande les préférences.
+
+## 6. Ce qui a été codé, et mesuré (2026-09-19)
+
+**Moteur** (`lib/partsProteines.ts`, pur ; branché dans `planEngine::buildLocalPlan`). À chaque
+déjeuner ou dîner, la sorte la plus en RETARD sur sa part devient la DERNIÈRE couche
+d'exclusion — après toutes les règles de l'assiette. Elle ne garde que des plats **propres**,
+**pas encore servis**, d'une **famille neuve** si possible, et **ajustés à 0,04 près** du
+meilleur plat ; si rien ne passe, elle saute (« autant que possible »). Végé / vegan : seconde
+couche « la sorte ou des pièces végétales ».
+
+Parts servies (`scripts/mesure-parts-servies.ts`, 18 cas × 12 profils × 4 semaines) — avant →
+après, pour la part visée :
+
+| Cas | Avant | Après | Visé |
+|---|---|---|---|
+| Omnivore rien coché : poisson | 32 % | 22 % | 20 % |
+| Omnivore rien coché : poulet | 14 % | 33 % | 40 % |
+| Omnivore coche poulet | 39 % | 49 % | 60 % |
+| Omnivore coche porc | 12 % | 46 % | 60 % |
+| Pescétarien coche poisson | 91 % | 71 % | 70 % |
+| Végétarien coche tofu | 13 % | 30 % | 40 % |
+| Vegan coche tempeh | 8 % | 23 % | 40 % |
+| Vegan sans gluten coche pièces végétales | 41 % | 53 % | 70 % |
+
+Repas à drapeau sur ces 18 cas : **38 → 20**. Panel de référence (`mesure:variete`, profils
+sans préférence) : quasi-doublons 6,7 → 7,5 %, drapeaux 25 → 30 — les 5 de plus tous chez
+l'**omnivore sans gluten**, insensibles à la tolérance (0,02 / 0,03 / 0,04 → 7 / 5 / 6).
+
+⚠️ **Les parts ne sont jamais tenues à 100 %, et c'est la règle** : une part cède devant le
+calibrage (tolérance) et devant les autres règles. La tolérance 0,04 est au creux d'un balayage
+(0,02 → 28 drapeaux · 0,03 → 23 · 0,04 → 20 · 0,05 → 26 · 0,06 → 38 · 0,1 → 80) : la monter
+tient mieux les parts et casse le calibrage.
+
+**Écrans** : `components/ProteinesParRegime.tsx`, un seul composant pour l'inscription et le
+Profil ; à l'inscription, les protéines n'apparaissent qu'une fois le régime choisi, et changer
+de régime retire ce qui n'y a plus de sens (`cocheesValides`). ⚠️ **Non vérifié à l'écran** :
+depuis un worktree, la prévisualisation sert l'app du dépôt principal (mesuré : ancienne liste
+présente, nouvelle absente). Les règles de l'écran sont des fonctions pures testées.
+
+**Comptes existants** : carte « Revois tes protéines préférées » sur le Plan
+(`lib/revuePreferences.ts`, réglage d'appareil — pas de migration), qui part dès que les
+préférences sont enregistrées ; un nouvel inscrit ne la voit jamais.

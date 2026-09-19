@@ -42,7 +42,7 @@ describe('l’étape « préférences » dit ce que le fondateur a demandé', ()
   });
 
   it('cocher « Omnivore » et un régime sans viande ne coexistent pas — la règle vit dans lib/regime.ts', () => {
-    expect(onboarding).toMatch(/setRestrictions\(basculerRegime\(restrictions, r\.value\)\)/);
+    expect(onboarding).toMatch(/basculerRegime\(restrictions, r\.value\)/);
   });
 
   it('la phrase « passe avant tout le reste » a disparu', () => {

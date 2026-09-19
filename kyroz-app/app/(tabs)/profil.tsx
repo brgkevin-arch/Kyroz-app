@@ -33,6 +33,9 @@ import { useScreenTour, resetAllTours } from '../../components/GuidedTour';
 import { profilTour, TOURS } from '../../lib/tours';
 import { BodyFatPicker } from '../../components/BodyFatPicker';
 import { DislikedFoodsField } from '../../components/DislikedFoodsField';
+import { ProteinesParRegime } from '../../components/ProteinesParRegime';
+import { cocheesValides } from '../../lib/partsProteines';
+import { marquerPreferencesRevues } from '../../lib/revuePreferences';
 import { basculerRegime } from '../../lib/regime';
 import { MacroSplit } from '../../components/MacroSplit';
 import { WeightCheckin } from '../../components/WeightCheckin';
@@ -97,7 +100,6 @@ const RESTRICTIONS: { label: string; value: DietaryRestriction }[] = [
   { label: 'Sans lactose', value: 'lactose_free' },
   { label: 'Sans gluten', value: 'gluten_free' },
 ];
-const PROTEINS = ['Poulet', 'Bœuf', 'Poisson', 'Œufs', 'Whey', 'Végétal'];
 const WEEKDAY_OPTS = [
   { label: 'Lun', val: 1 }, { label: 'Mar', val: 2 }, { label: 'Mer', val: 3 }, { label: 'Jeu', val: 4 },
   { label: 'Ven', val: 5 }, { label: 'Sam', val: 6 }, { label: 'Dim', val: 0 },
@@ -1680,18 +1682,19 @@ function PrefEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }: Edit
   const [hidden, setHidden] = useState<string[]>(profile.hidden_recipes ?? []);
   const hiddenNamed = hidden.map((id) => ({ id, name: getRecipeById(id)?.name_fr ?? 'Recette' }));
   const tog = <T,>(arr: T[], v: T, set: (x: T[]) => void) => set(arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v]);
-  const submit = () => onSave({
-    ...profile, dietary_restrictions: restrictions, preferred_proteins: proteins, disliked_foods: dislikes, hidden_recipes: hidden,
+  const submit = () => { marquerPreferencesRevues(); return onSave({
+    // Les protéines enregistrées sont celles du RÉGIME : un ancien compte perd ici « whey »,
+    // et « végétal » / « œufs » s'il mange de la viande (décision du 2026-09-19).
+    ...profile, dietary_restrictions: restrictions, preferred_proteins: cocheesValides(restrictions, proteins), disliked_foods: dislikes, hidden_recipes: hidden,
     // ⚠️ `goutEnregistre` écrit `null` pour « Peu importe », jamais `undefined` : une clé
     // `undefined` ne part pas à Supabase, et l'ancien « Salé » reviendrait.
     gout_petit_dej: goutEnregistre(goutPdj), gout_collation: goutEnregistre(goutCol),
-  });
+  }); };
   return (
     <EditorShell t={t} title="Préférences" onSave={submit} dragHandlers={dragHandlers} sheetScrollProps={sheetScrollProps}>
       <SectionLabel t={t}>Régime</SectionLabel>
-      <View style={styles.wrap}>{RESTRICTIONS.map((r) => <Chip key={r.value} t={t} label={r.label} selected={restrictions.includes(r.value)} onPress={() => setRestrictions(basculerRegime(restrictions, r.value))} />)}</View>
-      <SectionLabel t={t}>Protéines préférées</SectionLabel>
-      <View style={styles.wrap}>{PROTEINS.map((p) => <Chip key={p} t={t} label={p} selected={proteins.includes(p.toLowerCase())} onPress={() => tog(proteins, p.toLowerCase(), setProteins)} />)}</View>
+      <View style={styles.wrap}>{RESTRICTIONS.map((r) => <Chip key={r.value} t={t} label={r.label} selected={restrictions.includes(r.value)} onPress={() => { const suivant = basculerRegime(restrictions, r.value); setRestrictions(suivant); setProteins((p) => cocheesValides(suivant, p)); }} />)}</View>
+      <ProteinesParRegime t={t} restrictions={restrictions} valeurs={cocheesValides(restrictions, proteins)} onChange={setProteins} />
       <SectionLabel t={t}>Petit-déjeuner</SectionLabel>
       <View style={styles.wrap}>{GOUT_CHOIX.map((g) => <Chip key={g.value} t={t} label={g.label} selected={goutPdj === g.value} onPress={() => setGoutPdj(g.value)} />)}</View>
       <SectionLabel t={t}>Collations</SectionLabel>

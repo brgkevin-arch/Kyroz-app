@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react';
+import { usePreferencesRevues } from '../../lib/revuePreferences';
 import { Presse } from '../../components/Presse';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, RefreshControl, AppState,
@@ -159,6 +160,7 @@ export default function PlanScreen() {
     consommerNotificationIntent();
   }, [notifIntent]);
   const { due: checkinDue, snooze: snoozeCheckin, optOutForever: optOutCheckin } = usePlanCheckin();
+  const preferencesRevues = usePreferencesRevues();
   const [checkinOpen, setCheckinOpen] = useState(false);
   const { overrides, saveOverride, resetOverride, isCustom } = useRecipeOverrides();
   const [editingRecipe, setEditingRecipe] = useState<Meal['recipe'] | null>(null);
@@ -981,6 +983,23 @@ export default function PlanScreen() {
             <View style={{ flex: 1 }}>
               <Text style={s.weighTitle}>Ton plan te convient toujours ?</Text>
               <Text style={s.weighSub}>Dis-nous ce qui coince — on ajuste en un tap.</Text>
+            </View>
+            <Text style={s.bannerCta}>→</Text>
+          </Presse>
+        )}
+
+        {/* Préférences de protéines par régime (décision fondateur du 2026-09-19) : un compte
+            d'avant n'a jamais vu la question. La carte part dès que les préférences sont
+            enregistrées, et un nouvel inscrit ne la voit jamais (`lib/revuePreferences.ts`). */}
+        {profile && !preferencesRevues && (
+          <Presse
+            style={s.weighBanner} activeOpacity={OPACITE_PRESSION}
+            onPress={async () => { await AsyncStorage.setItem('@kyroz:openEditor', 'prefs'); router.push('/(tabs)/profil'); }}
+          >
+            <RepasIcon color={t.text} size={Icone.action} />
+            <View style={{ flex: 1 }}>
+              <Text style={s.weighTitle}>Revois tes protéines préférées</Text>
+              <Text style={s.weighSub}>Elles suivent maintenant ton régime, et celles que tu coches reviennent plus souvent.</Text>
             </View>
             <Text style={s.bannerCta}>→</Text>
           </Presse>

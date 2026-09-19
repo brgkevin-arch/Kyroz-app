@@ -26,6 +26,9 @@ import {
   AGE_BOUNDS, WEIGHT_BOUNDS, HEIGHT_BOUNDS, checkEligibility, eligibilityMessage,
 } from '../../lib/safety';
 import { DislikedFoodsField } from '../../components/DislikedFoodsField';
+import { ProteinesParRegime } from '../../components/ProteinesParRegime';
+import { cocheesValides, regimeChoisi } from '../../lib/partsProteines';
+import { marquerPreferencesRevues } from '../../lib/revuePreferences';
 import { basculerRegime, normaliserRegimes } from '../../lib/regime';
 import {
   ActivityLevel, BodyFatSource, DietaryRestriction, Goal, MealSlot, MealType, NeatLevel, Sex, SportSession, UserProfile, VarietyPreference,
@@ -87,7 +90,6 @@ const RESTRICTIONS: { label: string; value: DietaryRestriction }[] = [
   { label: 'Sans gluten', value: 'gluten_free' },
 ];
 
-const PROTEINS = ['Poulet', 'Bœuf', 'Poisson', 'Œufs', 'Whey', 'Végétal'];
 
 
 const VARIETY: { value: VarietyPreference; title: string; sub: string }[] = [
@@ -361,7 +363,7 @@ export default function Onboarding() {
   // Étape 6 — la question des protéines EXIGE une réponse, « peu importe » comprise.
   // Le reste de l'étape (régime, aliments à éviter, variété) garde ses défauts : ce
   // sont des réglages, pas des questions restées sans réponse.
-  const preferencesValid = proteinesEgales || proteins.length >= 1;
+  const preferencesValid = regimeChoisi(restrictions) && (proteinesEgales || cocheesValides(restrictions, proteins).length >= 1);
   const goutsValid = goutPdj !== null && goutCollation !== null;
   const mealsValid = planWeekdays.length >= 1 && meals.length >= 1;                        // étape 7 — jours + repas
   const profileReady = basicsValid && bodyFatValid; // suffisant pour les calculs TDEE/macros
@@ -395,9 +397,6 @@ export default function Onboarding() {
     (step === 6 && preferencesValid && goutsValid) ||
     (step === 7 && mealsValid) ||
     ![1, 2, 3, 4, 5, 6, 7].includes(step);
-
-  const toggle = <T,>(arr: T[], v: T, set: (x: T[]) => void) =>
-    set(arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v]);
 
   const toggleMeal = (v: MealType) =>
     setMeals((arr) => arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v]);
@@ -489,6 +488,7 @@ export default function Onboarding() {
     // POURQUOI — et le pourquoi n'a toujours qu'une seule rédaction.
     if (step === 5 && goal === null) return 'Choisis ton objectif pour continuer.';
     if (step === 5 && objectifBloque) return 'Sèche n\'est pas disponible ici. Choisis Maintien, ou un autre objectif.';
+    if (step === 6 && !regimeChoisi(restrictions)) return 'Choisis ton régime.';
     if (step === 6 && !preferencesValid) return 'Choisis tes protéines préférées, ou « Peu importe ».';
     if (step === 6 && !goutsValid) return 'Dis-nous si tu préfères sucré ou salé, le matin et en collation.';
     if (step === 7 && !mealsValid) return 'Choisis au moins un jour et un repas.';
@@ -605,7 +605,7 @@ export default function Onboarding() {
       disliked_foods: dislikes,
       // `proteinesEgales` ne s'écrit nulle part : le moteur lit une liste VIDE comme
       // « aucune préférence », ce qui est exactement la réponse donnée.
-      preferred_proteins: proteinesEgales ? [] : proteins.map((p) => p.toLowerCase()),
+      preferred_proteins: proteinesEgales ? [] : cocheesValides(restrictions, proteins),
       // « Peu importe » s'écrit `null` (répondu), jamais une clé absente (jamais demandé).
       gout_petit_dej: goutEnregistre(goutPdj),
       gout_collation: goutEnregistre(goutCollation),
@@ -643,6 +643,9 @@ export default function Onboarding() {
     // ⚠️ ICI, et pas au démarrage suivant : tant que le profil n'est pas écrit, le
     // brouillon est la seule copie de ce qui a été saisi.
     await effacerBrouillon();
+    // Un nouvel inscrit vient de répondre à la question des protéines par régime : pas de
+    // carte « revois tes préférences » sur son Plan (`lib/revuePreferences.ts`).
+    marquerPreferencesRevues();
     // ⚠️ `goal`, `restrictions` et `has_sport` ONT ÉTÉ RETIRÉS le 2026-08-10. Ce sont
     // l'objectif, le régime et la pratique sportive — trois données de santé au sens
     // de l'art. 9, nommées une par une dans l'interdit absolu (§6). Elles partaient
@@ -837,28 +840,21 @@ export default function Onboarding() {
                 <Chip
                   key={r.value} t={t} label={r.label} selected={restrictions.includes(r.value)}
                   // « Omnivore » s'exclut avec végétarien, vegan et pescétarien (D36, `lib/regime.ts`).
-                  onPress={() => setRestrictions(basculerRegime(restrictions, r.value))}
+                  // Changer de régime retire les protéines qui n'y ont plus de sens (le poulet
+                  // coché avant de passer vegan).
+                  onPress={() => { const suivant = basculerRegime(restrictions, r.value); setRestrictions(suivant); setProteins((p) => cocheesValides(suivant, p)); }}
                 />
               ))}
-              {/* D36 : plus de « Peu importe » au régime. Ne rien cocher reste permis et vaut,
-                  depuis le 2026-09-19, la case « Omnivore » : aucun plat principal végétal. */}
             </View>
 
-            <SectionLabel t={t}>Protéines préférées</SectionLabel>
-            <View style={s.wrap}>
-              {PROTEINS.map((p) => (
-                <Chip
-                  key={p} t={t} label={p} selected={proteins.includes(p)}
-                  // Cocher une protéine annule « Peu importe » : les deux réponses ne
-                  // peuvent pas coexister sans que l'une des deux soit ignorée.
-                  onPress={() => { setProteinesEgales(false); toggle(proteins, p, setProteins); }}
-                />
-              ))}
-              <Chip
-                t={t} label="Peu importe" selected={proteinesEgales}
-                onPress={() => { setProteinesEgales((v) => !v); setProteins([]); }}
-              />
-            </View>
+            {/* Les protéines n'apparaissent qu'une fois le régime choisi, et ce sont CELLES du
+                régime (décision fondateur du 2026-09-19). Cocher une protéine annule « Peu
+                importe » : les deux réponses ne peuvent pas coexister. */}
+            <ProteinesParRegime
+              t={t} restrictions={restrictions} valeurs={proteins} masquerSansRegime
+              onChange={(v) => { setProteinesEgales(false); setProteins(v); }}
+              peuImporte={{ selected: proteinesEgales, onToggle: () => { setProteinesEgales((v) => !v); setProteins([]); } }}
+            />
 
             {/* Goût du matin et de la collation (D28). Une seule réponse par rangée :
                 ce sont des choix exclusifs, pas des cases à cumuler. */}

@@ -195,3 +195,29 @@ export function couchesDeParts(regime: RegimeProteines, cible: Cible): ((r: Reci
   }
   return couches;
 }
+
+// ── L'écran : régime d'abord, protéines ensuite ────────────────────────────────────────
+
+/** Les régimes qui décident des protéines proposées (les autres — sans gluten, sans lactose — les filtrent). */
+const REGIMES_DE_BASE: readonly DietaryRestriction[] = ['omnivore', 'vegetarian', 'vegan', 'pescatarian', 'halal'];
+
+/**
+ * L'utilisateur a-t-il choisi SON régime ? L'inscription ne montre les protéines qu'à cette
+ * condition (décision fondateur du 2026-09-19 : « il ne voit que les régimes ; en fonction du
+ * régime qu'il choisit, les protéines préférées apparaissent »). Sans gluten ou sans lactose
+ * seuls ne suffisent pas : ils ne disent pas si la personne mange de la viande.
+ */
+export function regimeChoisi(restrictions: readonly DietaryRestriction[] = []): boolean {
+  return restrictions.some((r) => REGIMES_DE_BASE.includes(r));
+}
+
+/**
+ * Les valeurs cochées qui ont encore un sens pour ce régime, dans l'ordre de l'écran. Appelée
+ * quand le régime change (passer d'omnivore à vegan retire « poulet ») et à l'enregistrement
+ * (un ancien compte perd « whey » et, chez l'omnivore, « végétal » et « œufs »). Tolère les
+ * anciennes valeurs en majuscules (« Poulet ») d'un brouillon d'inscription.
+ */
+export function cocheesValides(restrictions: readonly DietaryRestriction[], valeurs: readonly string[]): string[] {
+  const vues = new Set(valeurs.map((v) => v.toLowerCase()));
+  return sortesProposees(restrictions).map((s) => VALEUR_SORTE[s]).filter((v) => vues.has(v));
+}

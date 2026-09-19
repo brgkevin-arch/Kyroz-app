@@ -3,7 +3,7 @@ import { makeProfile } from './helpers';
 import { recalcProfile } from '../tdee';
 import { buildLocalPlan } from '../planEngine';
 import {
-  couchesDeParts, partsCibles, regimeProteines, sorteAViser, sortesDe, sortesProposees, LIBRE,
+  cocheesValides, couchesDeParts, partsCibles, regimeChoisi, regimeProteines, sorteAViser, sortesDe, sortesProposees, LIBRE,
   type Cible, type Sorte,
 } from '../partsProteines';
 import type { DietaryRestriction, Meal, Recipe, UserProfile } from '../types';
@@ -150,3 +150,23 @@ describe('ce que le plan sert vraiment', () => {
 // mesurés le 2026-09-19 (avec / sans la couche) : poulet coché 0,509 / 0,446 ; poisson de
 // l'omnivore rien coché 0,241 / 0,411 ; tofu coché 0,321 / 0,089.
 const PLANCHERS = { omniPoulet: 0.48, omniRienPoissonMax: 0.32, vegeTofu: 0.2 };
+
+describe('l\'écran : régime d\'abord, protéines ensuite', () => {
+  it('les protéines n\'apparaissent qu\'une fois le régime choisi (sans gluten seul ne suffit pas)', () => {
+    expect(regimeChoisi([])).toBe(false);
+    expect(regimeChoisi(['gluten_free'])).toBe(false);
+    expect(regimeChoisi(['omnivore', 'gluten_free'])).toBe(true);
+    expect(regimeChoisi(['halal'])).toBe(true);
+  });
+  it('changer de régime retire ce qui n\'a plus de sens', () => {
+    expect(cocheesValides(['vegan'], ['poulet', 'tofu'])).toEqual(['tofu']);
+    expect(cocheesValides(['omnivore', 'halal'], ['porc', 'bœuf'])).toEqual(['bœuf']);
+  });
+  it('un ancien compte perd whey, et végétal / œufs s\'il mange de la viande', () => {
+    expect(cocheesValides(['omnivore'], ['poulet', 'whey', 'végétal', 'œufs'])).toEqual(['poulet']);
+    expect(cocheesValides(['pescatarian'], ['poisson', 'végétal', 'whey'])).toEqual(['poisson', 'végétal']);
+  });
+  it('un brouillon d\'inscription en majuscules est relu', () => {
+    expect(cocheesValides(['omnivore'], ['Poulet', 'Bœuf'])).toEqual(['poulet', 'bœuf']);
+  });
+});
