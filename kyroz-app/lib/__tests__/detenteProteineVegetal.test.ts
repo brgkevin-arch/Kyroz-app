@@ -80,6 +80,33 @@ describe('détente protéique végétale', () => {
     }
   });
 
+  it('la cible SERVIE ne passe jamais sous la borne basse, sur tout le domaine plausible', () => {
+    // 🔴 La page Méthodologie AFFIRME « même abaissée, elle ne descend pas sous 1,6 g/kg
+    // de masse maigre » (2026-09-19). Rien ne le garantit par construction : le facteur
+    // s'applique APRÈS la borne de `proteinTarget`, donc il la franchirait dès qu'un
+    // coefficient d'objectif descendrait sous 1,6 / 0,9 ≈ 1,78 (Maintien vaut 1,8).
+    // Le test des six gabarits ci-dessus ne voit ni l'arrondi ni les corps extrêmes :
+    // ce balayage mesure la valeur SERVIE (`calculateMacros`, arrondie), %MG absent
+    // compris. Mesuré à l'écriture sur 287 640 profils : minimum 1,627.
+    let pire = Infinity;
+    let qui = '';
+    for (const sex of ['male', 'female'] as const) {
+      for (let weight_kg = 40; weight_kg <= 180; weight_kg += 5) {
+        for (const height_cm of [150, 170, 195]) {
+          for (const body_fat_pct of [undefined, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50]) {
+            for (const goal of ['cut', 'recomp', 'maintain', 'lean_bulk'] as Goal[]) {
+              const b = corps({ sex, weight_kg, height_cm, body_fat_pct });
+              const r = calculateMacros(2000, goal, b, { restrictions: ['vegan'] }).protein_g / fatFreeMassKg(b);
+              if (r < pire) { pire = r; qui = `${sex} ${weight_kg} kg ${height_cm} cm ${body_fat_pct ?? '—'} % ${goal}`; }
+            }
+          }
+        }
+      }
+    }
+    expect(pire, `pire cas ${pire.toFixed(3)} g/kg MM (${qui}) — la page Méthodologie devient fausse`)
+      .toBeGreaterThanOrEqual(PROTEIN_MIN_PER_KG_FFM);
+  });
+
   it('la détente ne se creuse pas : 0,9 est un optimum mesuré, pas une direction', () => {
     // Au-delà, le gain se retourne (les plats passent de « trop gros » à « trop petits »).
     // Le cliquet empêche qu'on la pousse « un peu plus » sans remesurer.

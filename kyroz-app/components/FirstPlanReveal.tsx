@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef } from 'react';
 import { Modal, View, Text, StyleSheet, Animated, ScrollView, Easing } from 'react-native';
 import { RESSORT, DUREE, ressortRN, ressortReduit, dureeReduite } from '../lib/motion';
 import { reduceMotionActif } from '../lib/reduceMotion';
+import { useModaleRecensee } from '../lib/modalesPresentees';
 import { useTheme, Radius, Spacing, Type, ThemePalette, Trait , Icone } from '../constants/theme';
 import { PrimaryButton, SectionLabel } from './ui';
 import { goalLabel } from '../lib/tdee';
@@ -35,6 +36,8 @@ interface Props {
  */
 export function FirstPlanReveal({ visible, profile, firstName, previewMeals, onClose }: Props) {
   const t = useTheme();
+  // Recensée tant qu'elle est à l'écran : une visite guidée attend qu'elle soit partie (lib/modalesPresentees.ts).
+  useModaleRecensee(visible);
   const s = makeStyles(t);
   // Lus du PROFIL passé en propriété, et non du contexte : ce composant s'affiche
   // juste après l'onboarding, sur le profil qu'on vient d'enregistrer.

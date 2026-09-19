@@ -1051,6 +1051,12 @@ Toute correction qui déplace les cibles doit incrémenter `ENGINE_REV` : un
 avertissement one-shot (`engine_notice`) explique alors le changement à
 l'utilisateur au-delà de 100 kcal/jour d'écart.
 
+➡️ **Et toute correction qui change une RÈGLE de calcul relit `lib/methodologie.ts`**
+(2026-09-19). La page lit ses chiffres dans le moteur, donc elle suit les constantes
+toute seule ; elle ne suit pas les règles. La détente végane (−10 %) y a manqué huit
+jours, suite entièrement verte — et « à qui s'applique » une protection est une règle
+aussi : l'escalade et la pause y étaient annoncées pour tout le monde depuis août.
+
 ### Variété — la rotation se fait par FAMILLE, pas seulement par recette
 
 `usage` fait tourner les **ids** : il empêche la même recette de revenir, pas deux
@@ -3245,6 +3251,42 @@ téléphone.
   d'identité à chaque rendu, donc remonte tout l'écran à chaque frappe : le même
   défaut, en pire. Compté par `feuilles.test.ts` (3 mutations).
   ⚠️ Balayage fait : `courses.tsx` était le SEUL des 15 fichiers à feuille dans ce cas.
+- 🔴 **UNE SURFACE QUI S'IMPOSE D'ELLE-MÊME ATTEND QU'AUCUNE MODALE NE SOIT PRÉSENTÉE**
+  (2026-09-19, signalé par le fondateur le jour de la 47ᵉ OTA : « l'écran s'est figé sur
+  le profil »). La visite guidée du Profil part seule, 650 ms après la première arrivée
+  sur l'écran — sans savoir que la carte « Revois tes protéines préférées » vient d'y
+  ouvrir l'éditeur. iOS la refuse, React la croit ouverte, et une fois l'éditeur refermé
+  elle avale tous les taps, défilement compris. « Revoir les tutos » faisait pareil
+  depuis la feuille Réglages restée ouverte — en place depuis des semaines, jamais vu.
+  ⚠️ **Reproduit au simulateur SEULEMENT avec la visite jamais vue** : le premier essai,
+  visite déjà vue, passait. Chercher quel état À USAGE UNIQUE le parcours croise.
+  🔴 **ET J'AI MAL EXPLIQUÉ POURQUOI ELLE ÉTAIT « JAMAIS VUE »** : j'ai dit au fondateur
+  « premier passage sur le Profil ». Faux — il l'avait faite, son compte avait une semaine.
+  C'est lui qui a trouvé : **la déconnexion effaçait tous les « déjà vu »** (liste blanche
+  de `sessionLocale.ts` réduite au thème et au rappel), et le plan n'est pas dans le
+  cloud — chaque reconnexion rejouait tout l'accueil d'un nouveau, ET faisait perdre la
+  semaine, le suivi du jour et les photos. *Un mécanisme juste n'autorise pas à deviner
+  l'état qui l'a déclenché : demander comment on y est arrivé.*
+  ➡️ Décision du fondateur le même jour : **la déconnexion ne purge plus rien** (« sauf
+  quand l'user désinstalle l'app, on devrait garder les données locales »). La garde
+  contre l'héritage entre comptes (01-01) passe entière par l'hydratation, qui lit le
+  PROPRIÉTAIRE noté sur l'appareil (`CLE_PROPRIETAIRE`) — l'`id` du profil ne suffit pas,
+  un profil d'inscription (`user-<horodatage>`) passerait pour « sans compte ». Le profil
+  n'est servi qu'à son propriétaire (`profilServable`).
+  🔴 **ET LE SIMULATEUR A TROUVÉ CE QUE LES TESTS NE VOYAIENT PAS** : au démarrage de B,
+  l'app a affiché le plan de A. Deux trous, tous deux de MÉMOIRE, pas de stockage :
+  (1) le profil et le propriétaire lus EN PARALLÈLE — profil de A sorti avant la purge,
+  propriétaire B après : A passait pour B (➡️ propriétaire d'abord, profil ensuite) ;
+  (2) une dizaine de magasins lus AU DÉMARRAGE (`app/_layout.tsx` : prénom, pesées,
+  recettes personnalisées…) gardent A en tête après la purge (➡️ après une purge de
+  changement de compte, l'hydratation s'arrête et l'app REDÉMARRE, `lib/redemarrerApp.ts`).
+  *Purger le stockage ne purge pas la mémoire* — la purge à la déconnexion masquait ce
+  trou parce qu'elle passait AVANT que quoi que ce soit ne relise. 9 mutations, 9 rouges.
+  ⚠️ Et au passage : le patch de simulation qui RE-SÈME un profil quand le stockage est
+  vide a d'abord fait croire à une fuite. L'instrument se vérifie avant le verdict.
+  ➡️ `lib/modalesPresentees.ts` : chaque enveloppe de `Modal` se recense
+  (`useModaleRecensee`), et `startTour` attend `quandAucuneModale`. Compté par
+  `modalesPresentees.test.ts` : une `Modal` nouvelle qui ne se recense pas le fait rougir.
 - 🔴 **UNE DONNÉE D'UTILISATEUR NE SE RANGE PAS DANS UN CACHE QUE QUELQU'UN D'AUTRE
   EFFACE.** Trouvé le 2026-08-08 en rendant les articles de la liste de courses
   supprimables. Le réflexe était de marquer l'article dans `@kyroz:shopping` — sauf

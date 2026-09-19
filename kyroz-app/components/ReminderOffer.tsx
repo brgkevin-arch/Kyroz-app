@@ -8,6 +8,7 @@ import { useDialog } from './Dialog';
 import { ReminderTimeField } from './ReminderTimeField';
 import { useReminder } from '../hooks/useReminder';
 import { remindersSupported } from '../lib/notifications';
+import { useModaleRecensee } from '../lib/modalesPresentees';
 import { DEFAULT_REMINDER_TIME, ReminderTime, formatReminderTime } from '../lib/reminder';
 
 /**
@@ -49,6 +50,8 @@ export function ReminderOffer({ visible, onClose }: Props) {
   // c'est la différence entre proposer et régler.
   const [time, setTime] = useState<ReminderTime>(DEFAULT_REMINDER_TIME);
   const [enCours, setEnCours] = useState(false);
+  // Recensée tant qu'elle est à l'écran : une visite guidée attend qu'elle soit partie (lib/modalesPresentees.ts).
+  useModaleRecensee(visible);
 
   if (!visible) return null;
 

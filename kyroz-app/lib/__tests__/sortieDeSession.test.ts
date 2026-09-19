@@ -107,7 +107,20 @@ describe('sortie de session — aucun chemin ne laisse une notification armée',
   it('les chemins de sortie de `profil.tsx` sont bien ceux qu’on croit', () => {
     // Si ce compte bouge, c'est qu'un chemin est né ou a disparu : le test
     // suivant doit être relu, pas ce chiffre ajusté.
-    expect(sorties.map((f) => f.nom).sort()).toEqual(['doDelete', 'doLogout']);
+    // 🔴 (2026-09-19) `doLogout` n'en est PLUS un : se déconnecter garde l'appareil
+    // intact (décision du fondateur, `lib/sessionLocale.ts`). Seul l'effacement efface.
+    expect(sorties.map((f) => f.nom).sort()).toEqual(['doDelete']);
+  });
+
+  it('🔴 la déconnexion n’efface RIEN — ni profil, ni photos, ni rappels', () => {
+    // « si un plan a été généré et que l'user se déco, il a plus son plan ? nul un peu. »
+    // Les rappels restent armés AVEC le profil qui porte leur cadence : les éteindre ici
+    // les laisserait morts à la reconnexion, sans que rien ne les ré-arme.
+    const doLogout = fonctionsFlechees(profil).find((f) => f.nom === 'doLogout');
+    expect(doLogout, 'doLogout introuvable').toBeTruthy();
+    const corps = corpsEffectif(doLogout!.corps);
+    expect(corps).not.toMatch(/clearProfile\(|purgeAllProgressPhotos|cancel(AllReminders|WeighInReminder)|AsyncStorage\.(clear|multiRemove|removeItem)|purgerSessionLocale/);
+    expect(corps).toMatch(/await\s+signOut\(\)/);
   });
 
   it('🔴 CHAQUE chemin de sortie éteint des notifications', () => {
@@ -122,16 +135,12 @@ describe('sortie de session — aucun chemin ne laisse une notification armée',
     }
   });
 
-  it('l’effacement de compte éteint TOUT, la déconnexion seulement la pesée', () => {
+  it('l’effacement de compte éteint TOUT', () => {
     const doDelete = sorties.find((f) => f.nom === 'doDelete')?.corps ?? '';
-    const doLogout = sorties.find((f) => f.nom === 'doLogout')?.corps ?? '';
     // Effacer : il ne reste aucun rappel légitime à préserver.
     expect(doDelete).toMatch(/await\s+cancelAllReminders\(\)/);
-    // Se déconnecter : le rappel QUOTIDIEN survit exprès (`@kyroz:reminder` est
-    // dans `KEEP`, c'est une préférence d'appareil que le démarrage relit).
-    // Tout éteindre ici l'effacerait sans que personne ne le ré-arme.
-    expect(doLogout).toMatch(/await\s+cancelWeighInReminder\(\)/);
-    expect(doLogout).not.toMatch(/cancelAllReminders/);
+    // ⚠️ La pesée d'un compte REMPLACÉ sur cet appareil s'éteint toujours : c'est un
+    // effet de la purge de changement de compte (`EFFETS_PURGE`, `heritageDeCompte`).
     // ⚠️ La liste blanche a déménagé avec la purge : elle vit dans
     // `sessionLocale.ts::CLES_CONSERVEES`, et c'est `heritageDeCompte.test.ts` qui en
     // fige le contenu. Ici on vérifie seulement que la clé y est — sinon la promesse

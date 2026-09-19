@@ -7,7 +7,7 @@ import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useTheme, ThemePalette, Spacing, Radius, Type, Fond, Icone, OPACITE_PRESSION, CIBLE_TACTILE_MIN } from '../constants/theme';
 import { useLayout } from '../constants/layout';
-import { methodologie, MethodoSection, MethodoSource } from '../lib/methodologie';
+import { methodologie, avecPoint, MethodoSection, MethodoSource } from '../lib/methodologie';
 import { DISCLAIMER } from '../constants/legal';
 
 // Écran « Méthodologie & sources » — route racine /methodologie, atteignable depuis
@@ -81,7 +81,7 @@ function Section({ s, sec }: { s: ReturnType<typeof makeStyles>; sec: MethodoSec
 function Source({ s, src }: { s: ReturnType<typeof makeStyles>; src: MethodoSource }) {
   const citation = (
     <Text style={s.source}>
-      {src.auteurs}. <Text style={s.sourceTitre}>{src.titre}</Text>. {src.publication}.
+      {avecPoint(src.auteurs)} <Text style={s.sourceTitre}>{src.titre}</Text>. {src.publication}.
     </Text>
   );
   if (!src.lien) return citation;

@@ -5,7 +5,7 @@ import { PantryItem } from './pantry';
 import { WeightEntry } from './weight';
 import { relireSyncEnAttente } from './syncEnAttente';
 import { ligneCloudExploitable, normalizeMacroMode } from './profilComplet';
-import { doitPurgerAvantHydratation } from './sessionLocale';
+import { doitPurgerAvantHydratation, CLE_PROPRIETAIRE } from './sessionLocale';
 import { decideProfileHydration, normalizeCalorieBank, normalizeGoal, normalizeMeals, normalizeMealSlots, normalizeProfileActivity, normalizeVariety, reconcileCloudSports, reconcileCloudLowEaWeeks, reconcileCloudNeat, mergeWeightEntries, mergeRecipeOverrides, PROFILE_PENDING_KEY } from './syncGuard';
 import { normalizeRestrictions } from './regime';
 
@@ -368,13 +368,13 @@ export async function pushRecipeOverrides(overrides: Record<string, Recipe>): Pr
  * (`lib/effetsPurge.ts`) tire le runtime Expo, qui rendrait ce fichier intestable —
  * or c'est ICI que vit la garde.
  */
-export async function hydrateFromCloud(uid: string, purgerLocal: () => Promise<void>): Promise<void> {
+export async function hydrateFromCloud(uid: string, purgerLocal: () => Promise<void>): Promise<'purge' | undefined> {
   // ── L'IDENTITÉ, AVANT TOUT LE RESTE (constat 01-01, P0) ────────────────────
   //
   // 🔴 Ce point de passage est le seul par lequel TOUTE connexion arrive. C'est donc le
-  // seul endroit où l'on peut garantir qu'un compte n'hérite de rien — y compris quand
-  // la purge de déconnexion n'a pas eu lieu (app tuée en plein milieu, version
-  // antérieure, onglet web resté ouvert).
+  // seul endroit où l'on peut garantir qu'un compte n'hérite de rien — et depuis le
+  // 2026-09-19 le SEUL tout court : la déconnexion ne purge plus (décision du fondateur,
+  // cf. `lib/sessionLocale.ts`). Les données d'un compte déconnecté attendent donc ici.
   //
   // 🔴 **ET LE PROFIL N'EST QUE LE PREMIER DE CINQ.** Le contre-audit l'a mesuré
   // (`:440-500` ci-dessous) : quand la ligne cloud du compte entrant est VIDE, favoris,
@@ -387,15 +387,31 @@ export async function hydrateFromCloud(uid: string, purgerLocal: () => Promise<v
   // distingue les deux : un `id` de la forme `user-<horodatage>` n'a jamais été lié à un
   // compte, et le jeter serait détruire l'inscription de quelqu'un dont le push a échoué
   // hors ligne (`CA-1-04`). La reco publiée, appliquée à la lettre, faisait exactement ça.
+  // 🔴 (2026-09-19) La déconnexion ne purge plus : c'est le PROPRIÉTAIRE noté sur
+  // l'appareil qui dit à qui sont les données (cf. `lib/sessionLocale.ts`, en tête).
   let doitPurger = false;
   try {
-    const brut = await AsyncStorage.getItem(PROFILE_KEY);
-    const idLocal = brut ? (JSON.parse(brut) as Partial<UserProfile>)?.id : null;
-    doitPurger = doitPurgerAvantHydratation(idLocal, uid);
-  } catch {
-    // Un profil local ILLISIBLE ne dit rien de son propriétaire : on ne purge pas sur
-    // une lecture ratée — ce serait détruire pour cause de panne. `bootProfile` traite
-    // déjà le stockage corrompu, et l'hydratation continue.
+    const proprietaire = await AsyncStorage.getItem(CLE_PROPRIETAIRE);
+    // Un profil ILLISIBLE ne cache plus son propriétaire : le propriétaire noté décide
+    // seul. Sans ce `try` à part, un JSON cassé chez A faisait sauter toute la garde, et
+    // B héritait du reste (pesées, réserve, favoris).
+    let idLocal: unknown = null;
+    try {
+      const brut = await AsyncStorage.getItem(PROFILE_KEY);
+      idLocal = brut ? (JSON.parse(brut) as Partial<UserProfile>)?.id : null;
+    } catch {}
+    doitPurger = doitPurgerAvantHydratation(idLocal, proprietaire, uid);
+  } catch (e) {
+    // 🔴 (2026-09-19) Le STOCKAGE lui-même est illisible : on ne sait plus à qui sont les
+    // données. Avant, on continuait — la déconnexion avait tout purgé, donc il ne pouvait
+    // rester que la session en cours. Ce n'est plus vrai : les données d'un compte
+    // déconnecté restent sur l'appareil. On s'ARRÊTE donc, sans noter de propriétaire :
+    // une synchro manquée se rattrape à la prochaine ouverture, une fuite non.
+    try {
+      console.warn(`${LOG_PREFIX} propriétaire des données locales ILLISIBLE : hydratation `
+        + `abandonnée pour ne rien mélanger entre comptes : ${String(e)}`);
+    } catch {}
+    return;
   }
   if (doitPurger) {
     try {
@@ -419,6 +435,18 @@ export async function hydrateFromCloud(uid: string, purgerLocal: () => Promise<v
       return;
     }
   }
+  // Les données locales sont désormais celles de ce compte (vérifiées, ou purgées) : on
+  // le note, pour que le compte SUIVANT les reconnaisse comme n'étant pas les siennes.
+  // ⚠️ Après la garde, jamais avant : noter d'abord ferait passer les données de A pour
+  // celles de B.
+  try { await AsyncStorage.setItem(CLE_PROPRIETAIRE, uid); } catch {}
+  // 🔴 APRÈS UNE PURGE, ON S'ARRÊTE ICI (2026-09-19) : l'appelant REDÉMARRE l'app. Le
+  // stockage est propre, mais pas la MÉMOIRE — au démarrage, une dizaine de magasins ont
+  // déjà lu les données du compte précédent (prénom, pesées, recettes personnalisées,
+  // `app/_layout.tsx`) et les réécriraient chez celui-ci. Mesuré au simulateur : B a vu
+  // le plan de A. Tirer le cloud de B dans une app qui a encore A en tête n'aurait pas de
+  // sens ; l'hydratation suivante, après redémarrage, le fera proprement.
+  if (doitPurger) return 'purge';
 
   // PROFIL — garde-fou : un local non confirmé poussé (dirty) n'est JAMAIS écrasé
   // par le cloud (sinon un push rejeté en silence = onboarding/édition perdus).

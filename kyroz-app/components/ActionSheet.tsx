@@ -10,6 +10,7 @@ import {
 } from '../lib/motion';
 import { useReduceMotion, reduceMotionActif } from '../lib/reduceMotion';
 import { retour } from '../lib/retourHaptique';
+import { useModaleRecensee } from '../lib/modalesPresentees';
 
 interface Props {
   visible: boolean;
@@ -41,6 +42,8 @@ export function ActionSheet({ visible, onClose, children }: Props) {
   const t = useTheme();
   const layout = useLayout();
   const [render, setRender] = useState(visible);
+  // Recensée tant qu'elle est à l'écran : une visite guidée attend qu'elle soit partie (lib/modalesPresentees.ts).
+  useModaleRecensee(render);
   const ty = useRef(new Animated.Value(700)).current;
   const backdrop = useRef(new Animated.Value(0)).current;
 

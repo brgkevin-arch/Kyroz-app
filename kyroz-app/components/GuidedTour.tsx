@@ -8,6 +8,7 @@ import { TourStep, TOURS, FormeCible } from '../lib/tours';
 import { Cadre, dejaVisible, memeCadre, ESSAIS_MESURE, PAS_MESURE_MS } from '../lib/visee';
 import { RESSORT, DUREE, ressortRN, ressortReduit, dureeReduite } from '../lib/motion';
 import { useReduceMotion } from '../lib/reduceMotion';
+import { quandAucuneModale } from '../lib/modalesPresentees';
 
 // ── Visite guidée (coachmark / spotlight) ────────────────────────────────────
 // Overlay sombre qui « découpe » un trou autour d'un élément cible et affiche
@@ -33,8 +34,13 @@ type Measurable = { measureInWindow: (cb: (x: number, y: number, w: number, h: n
 interface TourContextValue {
   /** Enregistre/retire la ref d'un élément cible (null = retrait). */
   register: (id: string, ref: React.RefObject<Measurable | null> | null) => void;
-  /** Démarre un tour. Ne garde que les étapes dont la cible est montée. */
+  /**
+   * Démarre un tour — dès qu'aucune autre modale n'est présentée (cf. le moteur plus bas).
+   * Ne garde que les étapes dont la cible est montée AU DÉMARRAGE.
+   */
   startTour: (tourId: string, steps: TourStep[], opts?: TourOptions) => void;
+  /** Retire un tour qui attendait encore son tour (écran démonté entre-temps). */
+  annulerAttente: (tourId: string) => void;
 }
 
 const TourContext = createContext<TourContextValue | null>(null);
@@ -115,7 +121,7 @@ export function useScreenTour(
   steps: TourStep[],
   opts?: { pret?: boolean; delai?: number; scrollRef?: React.RefObject<any> },
 ) {
-  const { startTour } = useTour();
+  const { startTour, annulerAttente } = useTour();
   const tried = useRef(false);
   const stepsRef = useRef(steps);
   const optsRef = useRef(opts);
@@ -140,8 +146,10 @@ export function useScreenTour(
       // écran noir le temps des essais.
       timer = setTimeout(() => { if (!annule) lancer(); }, optsRef.current?.delai ?? 650);
     });
-    return () => { annule = true; if (timer) clearTimeout(timer); };
-  }, [pret, tourId, lancer]);
+    // ⚠️ `annulerAttente` : le délai a pu partir, et le tour ATTENDRE une modale
+    // (`startTour`). Un écran démonté ne doit pas voir sa visite surgir ailleurs.
+    return () => { annule = true; if (timer) clearTimeout(timer); annulerAttente(tourId); };
+  }, [pret, tourId, lancer, annulerAttente]);
 
   return { rejouer: lancer };
 }
@@ -208,7 +216,7 @@ export function TourProvider({ children }: { children: React.ReactNode }) {
   // ➡️ La seule preuve qu'une cible est là, c'est `.current`.
   const montee = useCallback((id: string) => !!refs.current.get(id)?.current, []);
 
-  const startTour = useCallback((tourId: string, steps: TourStep[], opts?: TourOptions) => {
+  const demarrer = useCallback((tourId: string, steps: TourStep[], opts?: TourOptions) => {
     // ⚠️ Une étape SANS cible est toujours disponible : elle parle de l'écran, pas
     // d'un objet (cf. `TourStep.targetId`). C'est aussi ce qui la met à l'abri du
     // filtre ci-dessous — le Plan ne se jouait plus du tout les soirs où tous les
@@ -249,6 +257,29 @@ export function TourProvider({ children }: { children: React.ReactNode }) {
     // aucun recours.
     markSeen(tourId);
   }, [montee]);
+
+  // 🔴 LA VISITE ATTEND QU'AUCUNE MODALE NE SOIT PLUS PRÉSENTÉE (2026-09-19) — elle
+  // figeait l'app. Elle se lance d'elle-même, 650 ms après l'arrivée sur l'écran, sans
+  // savoir ce qui s'y est ouvert entre-temps : l'éditeur ouvert par la carte « Revois tes
+  // protéines préférées », ou la feuille Réglages de « Revoir les tutos ». iOS refuse une
+  // `Modal` par-dessus une autre ; celle-ci restait alors invisible et avalait tous les
+  // taps une fois la feuille refermée (mécanisme complet : `lib/modalesPresentees.ts`).
+  // ⚠️ On ATTEND, on ne renonce pas : la visite n'est marquée vue qu'au démarrage réel
+  // (`demarrer`), et elle s'ouvre sur l'écran dès que la feuille est partie.
+  const attente = useRef<{ tourId: string; annuler: () => void } | null>(null);
+  const startTour = useCallback((tourId: string, steps: TourStep[], opts?: TourOptions) => {
+    attente.current?.annuler(); // une seule visite en attente : la dernière demandée
+    attente.current = null;
+    let partie = false; // aucune modale → `quandAucuneModale` l'a lancée sur-le-champ
+    const annuler = quandAucuneModale(() => { partie = true; attente.current = null; demarrer(tourId, steps, opts); });
+    if (!partie) attente.current = { tourId, annuler };
+  }, [demarrer]);
+
+  const annulerAttente = useCallback((tourId: string) => {
+    if (attente.current?.tourId !== tourId) return;
+    attente.current.annuler();
+    attente.current = null;
+  }, []);
 
   // ℹ️ Ni `end` ni `next` ne marquent le tour : c'est `startTour` qui le fait, à
   // l'ouverture. Une seule source, et surtout la seule qui couvre les sorties que
@@ -379,7 +410,7 @@ export function TourProvider({ children }: { children: React.ReactNode }) {
   const isLast = active ? active.index === active.steps.length - 1 : false;
 
   return (
-    <TourContext.Provider value={{ register, startTour }}>
+    <TourContext.Provider value={{ register, startTour, annulerAttente }}>
       {children}
       {/* 🔴 CE `?:` A ÉTÉ UN PIÈGE À UTILISATEUR, et c'est un correctif de
           BLOCAGE, pas de finition. Le panneau sombre s'affichait dès qu'un tour

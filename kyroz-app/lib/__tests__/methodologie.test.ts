@@ -1,12 +1,16 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { methodologie, nb, millier, LIBELLE_SOURCES } from '../methodologie';
+import { methodologie, nb, millier, avecPoint, LIBELLE_SOURCES } from '../methodologie';
 import {
   MIN_AGE, MIN_KCAL, EA_HARD_FLOOR, EA_OPTIMAL, LOW_EA_BUDGET_WEEKS,
   HIGH_ADIPOSITY_PCT, DIET_BREAK_AFTER_WEEKS, BF_CHART_MAX,
+  effectiveEaPerKgFfm, dietBreakApplies, type BodyInput,
 } from '../safety';
-import { NEAT_PAL, FAT_MIN_PER_KG_BW, PROTEIN_MIN_PER_KG_FFM, PROTEIN_MAX_PER_KG_FFM } from '../tdee';
+import {
+  NEAT_PAL, FAT_MIN_PER_KG_BW, PROTEIN_MIN_PER_KG_FFM, PROTEIN_MAX_PER_KG_FFM,
+  DETENTE_PROTEINE_VEGETAL, facteurProteineVegetal,
+} from '../tdee';
 import { MAX_DEFICIT_TDEE_RATIO } from '../datedGoal';
 
 const RACINE = join(__dirname, '..', '..');
@@ -15,6 +19,7 @@ const sansCommentaires = (src: string) =>
   src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '').replace(/\{\/\*[\s\S]*?\*\/\}/g, '');
 
 const TEXTE = methodologie().flatMap((s) => s.paragraphes).join('\n');
+const DETENTE_PCT = Math.round((1 - DETENTE_PROTEINE_VEGETAL) * 100);
 
 // Cet écran est une AFFIRMATION SUR LE CODE lue par le relecteur Apple (1.4.1). Le
 // risque n'est pas qu'il soit mal écrit, c'est qu'il devienne FAUX sans que personne
@@ -83,6 +88,7 @@ describe('Méthodologie & sources — les chiffres viennent du moteur', () => {
       String(EA_OPTIMAL), String(EA_HARD_FLOOR),
       String(Math.round(MAX_DEFICIT_TDEE_RATIO * 100)),
       String(MIN_AGE), String(LOW_EA_BUDGET_WEEKS), String(DIET_BREAK_AFTER_WEEKS),
+      String(DETENTE_PCT),
     ];
 
     // Deux nombres n'ont PAS de constante exportée, et c'est assumé — ils sont
@@ -119,13 +125,46 @@ describe('Méthodologie & sources — les chiffres viennent du moteur', () => {
       'FAT_MIN_PER_KG_BW', 'PROTEIN_MIN_PER_KG_FFM', 'PROTEIN_MAX_PER_KG_FFM',
       'BF_CHART_MAX.male', 'BF_CHART_MAX.female', 'NEAT_PAL.desk', 'NEAT_PAL.physical',
       'HIGH_ADIPOSITY_PCT.male', 'HIGH_ADIPOSITY_PCT.female', 'MIN_AGE',
-      'CIQUAL_ATTRIBUTION',
+      'CIQUAL_ATTRIBUTION', 'DETENTE_PROTEINE_VEGETAL',
     ];
     const absents = noms.filter((n) => !src.includes(n));
     expect(
       absents,
       `ces constantes ne sont plus lues par la page : ${absents.join(' · ')} — un chiffre a probablement été retapé à leur place`,
     ).toEqual([]);
+  });
+
+  // 🔴 LES DEUX MANQUES DU 2026-09-19, ET AUCUN N'ÉTAIT UN CHIFFRE FAUX. La détente
+  // végane était servie depuis huit jours sans une ligne ici, et l'escalade comme la
+  // pause s'adressaient à « tout le monde » alors que le moteur les rend EXCLUSIVES. Les
+  // tests de valeur ci-dessus étaient verts : ils comparent les nombres cités à leur
+  // constante, jamais le PÉRIMÈTRE d'une règle ni son existence. ➡️ Ce bloc lie chaque
+  // phrase « à qui ça s'applique » au prédicat qui en décide : si le moteur change de
+  // public, c'est ici que ça rougit, pas chez le relecteur.
+  it('dit la détente végane, puisque le moteur la sert', () => {
+    expect(facteurProteineVegetal(['vegan'])).toBeLessThan(1);
+    expect(DETENTE_PCT).toBeGreaterThan(0);
+    expect(TEXTE).toContain(`Chez une personne végane, cette cible est ensuite abaissée de ${DETENTE_PCT} %`);
+    expect(TEXTE).toContain(`la cible protéique abaissée de ${DETENTE_PCT} % chez une personne végane`);
+  });
+
+  it('dit à QUI s\'applique chaque protection des sèches longues, et le moteur est d\'accord', () => {
+    const b = (sex: 'male' | 'female', body_fat_pct: number) =>
+      ({ sex, weight_kg: 70, height_cm: 170, age: 30, body_fat_pct }) as BodyInput;
+    const femme = b('female', 28);
+    const homme = b('male', 18);
+    const femmeAuDela = b('female', HIGH_ADIPOSITY_PCT.female + 5);
+    // L'escalade ne remonte que le plancher féminin…
+    const apres = LOW_EA_BUDGET_WEEKS + 20;
+    expect(effectiveEaPerKgFfm(femme, apres)).toBeGreaterThan(EA_HARD_FLOOR);
+    expect(effectiveEaPerKgFfm(homme, apres)).toBe(EA_HARD_FLOOR);
+    expect(TEXTE).toContain(`Chez la femme, au-delà de ${LOW_EA_BUDGET_WEEKS} semaines cumulées`);
+    // …et la pause va là où l'escalade ne peut rien, jamais par-dessus elle.
+    expect(dietBreakApplies(homme)).toBe(true);
+    expect(dietBreakApplies(femmeAuDela)).toBe(true);
+    expect(dietBreakApplies(femme)).toBe(false);
+    expect(TEXTE).toContain(`Chez l'homme, et chez la femme au-delà de ${HIGH_ADIPOSITY_PCT.female} % de masse grasse, c'est une pause`);
+    expect(TEXTE).toContain('jamais des deux');
   });
 
   it('l\'écran ne contient aucun chiffre non plus — il ne fait que rendre', () => {
@@ -141,6 +180,20 @@ describe('Méthodologie & sources — les chiffres viennent du moteur', () => {
       expect(src.auteurs.length, `auteurs manquants : ${src.titre}`).toBeGreaterThan(3);
       expect(src.titre.length).toBeGreaterThan(10);
       expect(src.publication.length, `publication manquante : ${src.titre}`).toBeGreaterThan(5);
+    }
+  });
+
+  it('aucune citation n\'affiche deux points — « et al. » garde le sien', () => {
+    // Vu à l'écran le 2026-09-19 : trois références rendaient « et al.. ». L'écran pose un
+    // point LITTÉRAL après le titre et la publication, et passe les auteurs par `avecPoint`.
+    expect(avecPoint('Mountjoy M, Burke LM, et al.')).toBe('Mountjoy M, Burke LM, et al.');
+    expect(avecPoint('Loucks AB, Thuma JR')).toBe('Loucks AB, Thuma JR.');
+    expect(sansCommentaires(lire('app/methodologie.tsx'))).toContain('{avecPoint(src.auteurs)}');
+    const sources = methodologie().flatMap((s) => s.sources ?? []);
+    expect(sources.some((s) => s.auteurs.endsWith('.')), 'témoin : aucun « et al. » — le cas n\'est plus éprouvé').toBe(true);
+    for (const s of sources) {
+      expect(/[.!?]$/.test(s.titre), `titre finissant par une ponctuation : ${s.titre}`).toBe(false);
+      expect(/[.!?]$/.test(s.publication), `publication finissant par une ponctuation : ${s.publication}`).toBe(false);
     }
   });
 
