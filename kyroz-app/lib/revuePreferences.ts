@@ -10,7 +10,8 @@ import { useSyncExternalStore } from 'react';
 // enregistrées (Profil) — et un nouvel inscrit ne la voit jamais, il vient d'y répondre.
 //
 // ⚠️ Réglage d'APPAREIL (pas de colonne Supabase, donc pas de migration) : sur un nouveau
-// téléphone la carte revient UNE fois. Accepté — une question de trop vaut mieux qu'une
+// téléphone la carte revient UNE fois. Il SURVIT à la déconnexion depuis le 2026-09-19
+// (`CLES_CONSERVEES`, lib/sessionLocale.ts) — sans ça, elle revenait à chaque reconnexion. Accepté — une question de trop vaut mieux qu'une
 // colonne de plus (CLAUDE.md §3, « commencer local »).
 // ⚠️ Il se DIFFUSE (CLAUDE.md §11) : le Profil l'écrit, le Plan le lit. Un `useState` local
 // laisserait la carte en place jusqu'au redémarrage.

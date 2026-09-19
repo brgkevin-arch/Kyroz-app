@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import {
-  CLES_CONSERVEES, clesAPurger, proprietaireLocal, doitPurgerAvantHydratation,
+  CLES_CONSERVEES, PREFIXES_CONSERVES, clesAPurger, proprietaireLocal, doitPurgerAvantHydratation,
 } from '../sessionLocale';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -65,8 +65,30 @@ describe('1 — à qui appartiennent les données posées sur cet appareil ?', (
 });
 
 describe('2 — ce que la purge épargne, et ce qu’elle emporte', () => {
-  it('la liste blanche ne garde que des préférences d’APPAREIL', () => {
-    expect([...CLES_CONSERVEES].sort()).toEqual(['@kyroz:reminder', '@kyroz:theme']);
+  it('la liste blanche ne garde que des préférences d’APPAREIL et des « déjà vu »', () => {
+    expect([...CLES_CONSERVEES].sort()).toEqual([
+      '@kyroz:firstPlanSeen', '@kyroz:preferencesProteinesRevues', '@kyroz:reminder',
+      '@kyroz:reminderOffered', '@kyroz:theme',
+    ]);
+    expect([...PREFIXES_CONSERVES]).toEqual(['@kyroz:tour:']);
+  });
+
+  it('une reconnexion ne rejoue pas l’accueil d’un nouveau (2026-09-19)', () => {
+    // 🔴 « Le tuto revient dès qu'on se reconnecte » : les visites vues, le reveal du
+    // premier plan, l'offre du rappel et la carte des protéines partaient à la purge.
+    const dejaVu = ['@kyroz:tour:plan', '@kyroz:tour:profil', '@kyroz:firstPlanSeen',
+      '@kyroz:reminderOffered', '@kyroz:preferencesProteinesRevues'];
+    expect(clesAPurger([...dejaVu, '@kyroz:profile'])).toEqual(['@kyroz:profile']);
+    // Le préfixe ne déborde pas : une clé qui lui RESSEMBLE part quand même.
+    expect(clesAPurger(['@kyroz:tourisme', '@kyroz:tour'])).toEqual(['@kyroz:tourisme', '@kyroz:tour']);
+  });
+
+  it('les clés conservées sont bien celles qu’écrivent les écrans (un renommage rendrait la liste décorative)', () => {
+    const lire = (f: string) => readFileSync(join(__dirname, '..', '..', f), 'utf8');
+    const ecrits = [lire('app/(tabs)/plan.tsx'), lire('lib/revuePreferences.ts'), lire('components/GuidedTour.tsx')].join('\n');
+    for (const cle of [...CLES_CONSERVEES.filter((k) => !['@kyroz:theme', '@kyroz:reminder'].includes(k)), ...PREFIXES_CONSERVES]) {
+      expect(ecrits.includes(`'${cle}'`), cle).toBe(true);
+    }
   });
 
   it('tout le reste part — une clé NOUVELLE est purgée par défaut', () => {

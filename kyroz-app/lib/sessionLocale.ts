@@ -40,7 +40,31 @@ import { relireSyncEnAttente } from './syncEnAttente';
  * ferait survivre en silence toute clé ajoutée après coup, c'est-à-dire exactement le
  * défaut que 01-01 décrit, un cran plus bas.
  */
-export const CLES_CONSERVEES: readonly string[] = ['@kyroz:theme', '@kyroz:reminder'];
+export const CLES_CONSERVEES: readonly string[] = [
+  '@kyroz:theme', '@kyroz:reminder',
+  // « Déjà vu » (2026-09-19, cf. `PREFIXES_CONSERVES`) :
+  '@kyroz:firstPlanSeen', '@kyroz:reminderOffered', '@kyroz:preferencesProteinesRevues',
+];
+
+/**
+ * 🔴 LES « DÉJÀ VU » SURVIVENT À LA DÉCONNEXION (2026-09-19, signalé par le fondateur :
+ * « le tuto revient dès qu'on se reconnecte »). Ils partaient avec le reste, et le plan
+ * n'est PAS dans le cloud : à la reconnexion, le Plan se regénérait donc comme un
+ * premier plan, et quelqu'un qui utilise Kyroz depuis des semaines revivait tout
+ * l'accueil d'un nouveau — « ton premier plan est prêt » (faux), l'offre du rappel, les
+ * visites du Plan et du Profil, la carte « Revois tes protéines préférées ».
+ * ⚠️ Et la visite du Profil, rejouée à la reconnexion, est ce qui a FIGÉ l'app ce jour-là
+ * (partie par-dessus l'éditeur ouvert par la carte, cf. `lib/modalesPresentees.ts`).
+ *
+ * Ils ne disent rien de personne — seulement ce que CET appareil a déjà montré — donc la
+ * liste blanche peut les garder sans rouvrir 01-01.
+ * ⚠️ Coût assumé : sur un téléphone PARTAGÉ, le compte suivant ne verra ni ces visites ni
+ * le reveal du premier plan. Rare, et rattrapable (« Revoir les tutos », Réglages) —
+ * quand l'inverse frappait CHAQUE reconnexion.
+ * ⚠️ L'accueil d'avant connexion (`@kyroz:introVue`) reste purgé, décision antérieure
+ * (`lib/introVu.ts`) : il se montre AVANT le formulaire, pas dans l'app.
+ */
+export const PREFIXES_CONSERVES: readonly string[] = ['@kyroz:tour:'];
 
 /**
  * Les clés à retirer, à partir de tout ce que le stockage contient.
@@ -50,7 +74,7 @@ export const CLES_CONSERVEES: readonly string[] = ['@kyroz:theme', '@kyroz:remin
  * porte la garantie.
  */
 export function clesAPurger(toutes: readonly string[]): string[] {
-  return toutes.filter((k) => !CLES_CONSERVEES.includes(k));
+  return toutes.filter((k) => !CLES_CONSERVEES.includes(k) && !PREFIXES_CONSERVES.some((p) => k.startsWith(p)));
 }
 
 // ── 2. À qui appartient le profil posé sur cet appareil ? ────────────────────

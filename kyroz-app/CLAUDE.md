@@ -3251,8 +3251,14 @@ téléphone.
   elle avale tous les taps, défilement compris. « Revoir les tutos » faisait pareil
   depuis la feuille Réglages restée ouverte — en place depuis des semaines, jamais vu.
   ⚠️ **Reproduit au simulateur SEULEMENT avec la visite jamais vue** : le premier essai,
-  visite déjà vue, passait. Une panne qui dépend d'un « déjà vu » frappe une fois par
-  appareil — donc jamais chez soi. Chercher quel état À USAGE UNIQUE le parcours croise.
+  visite déjà vue, passait. Chercher quel état À USAGE UNIQUE le parcours croise.
+  🔴 **ET J'AI MAL EXPLIQUÉ POURQUOI ELLE ÉTAIT « JAMAIS VUE »** : j'ai dit au fondateur
+  « premier passage sur le Profil ». Faux — il l'avait faite, son compte avait une semaine.
+  C'est lui qui a trouvé : **la déconnexion effaçait tous les « déjà vu »** (liste blanche
+  de `sessionLocale.ts` réduite au thème et au rappel), et le plan n'est pas dans le
+  cloud — chaque reconnexion rejouait tout l'accueil d'un nouveau. Corrigé le même jour
+  (`PREFIXES_CONSERVES`, `CLES_CONSERVEES`). *Un mécanisme juste n'autorise pas à deviner
+  l'état qui l'a déclenché : demander comment on y est arrivé.*
   ➡️ `lib/modalesPresentees.ts` : chaque enveloppe de `Modal` se recense
   (`useModaleRecensee`), et `startTour` attend `quandAucuneModale`. Compté par
   `modalesPresentees.test.ts` : une `Modal` nouvelle qui ne se recense pas le fait rougir.
