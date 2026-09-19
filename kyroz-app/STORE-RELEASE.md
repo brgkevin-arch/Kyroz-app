@@ -219,7 +219,19 @@ installation neuve part du binaire, donc du (6).
   encore `0639ecc` après la compilation, 0 PR ouverte — le piège du 11 août ne s'est pas
   rejoué). *(Le précédent :)* le **(6)** — `ceec1b17`, commit
   `1047b9f`, terminé le 2026-08-11 à 20 h 37. Il a **62 commits de retard** sur `main` — chiffre RE-MESURÉ le 2026-08-26 (il en annonçait 40, mesurés le 2026-08-23), qui **grandit à chaque merge** : le relire avec `git rev-list --count 1047b9f..origin/main` plutôt que de le recopier (même défaut que le décompte d'OTA tenu à la main).
-- **OTA** : la dernière est la **47ᵉ** (groupe `7e852979`, **iOS seulement**, 2026-09-19),
+- **OTA** : la dernière est la **48ᵉ** (groupe `fada0bb6`, **iOS seulement**, 2026-09-19),
+  publiée sur le commit `8ac55fe` — `main`, arbre propre, détaché sur `origin/main`.
+  ✅ **Runtime iOS `823c89db…` = le build (22)**, empreinte comparée AVANT publication.
+  Contenu : la **série (streak) retirée** de l'app — pastille des en-têtes Plan et Profil,
+  célébration des paliers, gel d'un jour manqué, synchro et deux événements (#329) — plus le
+  correctif du gel après la carte des protéines et la déconnexion qui ne vide plus
+  l'appareil (#327). Pas d'`ENGINE_VERSION` : le moteur ne change pas. Aucun changement
+  natif : rien à soumettre.
+  ⚠️ **Reste à jouer, dans cet ordre** : la migration `2026-09-19_drop_streaks.sql`
+  (SQL Editor, irréversible) maintenant que l'OTA est partie, puis la page légale publique
+  `kyroz.app/legal.html` (dépôt `kyroz-site`, `KYROZ_SITE=<clone> npm run gen:legal`) — la
+  politique et les CGU servies dans l'app ne parlent plus de série depuis cette OTA.
+  *(La précédente :)* la **47ᵉ** (groupe `7e852979`, **iOS seulement**, 2026-09-19),
   publiée sur le commit `ce7dfd8` — `main`, arbre propre.
   ✅ **Runtime iOS `823c89db…` = le build (22)**, empreinte comparée AVANT publication.
   Contenu : préférences de protéines par régime (parts garanties des déjeuners et dîners,
