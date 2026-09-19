@@ -41,8 +41,8 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   // Dernier profil servi, sérialisé : sert à ne PAS remplacer l'objet en mémoire
   // par un équivalent. Une nouvelle identité d'objet relance les effets qui en
-  // dépendent — dont celui de l'écran Plan qui compte une ouverture (analytics
-  // + série). Relire ne doit rien déclencher si rien n'a changé.
+  // dépendent — dont celui de l'écran Plan qui compte une ouverture (analytics).
+  // Relire ne doit rien déclencher si rien n'a changé.
   const servedRef = React.useRef<string | null>(null);
 
   // On lit le profil local dès que l'auth est connue — SANS attendre le réseau

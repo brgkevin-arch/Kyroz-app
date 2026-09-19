@@ -430,7 +430,7 @@ export interface UserProfile {
   // comme NON ménopausée → le défaut protège (cf. lib/safety.ts).
   // ⚠️ INERTE et LOCAL-ONLY (décision 2026-07-28 : « on laisse de côté la ménopause »).
   // Aucune UI ne le renseigne, il est HORS PROFILE_COLS → aucune colonne Supabase,
-  // aucune migration (même parti pris que Streak.freeze_available). Le moteur le lit
+  // aucune migration. Le moteur le lit
   // déjà : quand la question sera rédigée, il suffira d'ajouter la colonne + la ligne
   // dans PROFILE_COLS, sans toucher au calcul.
   is_post_menopausal?: boolean;
@@ -739,12 +739,3 @@ export interface ShoppingList {
   items: ShoppingItem[];
 }
 
-export interface Streak {
-  current_streak_days: number;
-  longest_streak_days: number;
-  last_active_date: string;
-  // « Bouclier de série » : pardonne UN jour manqué (gel), se recharge tous les
-  // 7 jours. LOCAL-ONLY (pas synchronisé, pas de colonne Supabase). undefined =
-  // dispo (rétro-compat : les profils existants démarrent protégés).
-  freeze_available?: boolean;
-}

@@ -47,7 +47,6 @@ import { MealSlotsPicker } from '../../components/MealSlotsPicker';
 import { NeatPicker } from '../../components/NeatPicker';
 import { BUILTIN_SLOTS, knownSlots, slotLabel } from '../../lib/mealSlots';
 import { useProfile } from '../../hooks/useProfile';
-import { useStreak } from '../../hooks/useStreak';
 import { useWeightLog } from '../../hooks/useWeightLog';
 import { useOffPlanJournal } from '../../hooks/useOffPlanJournal';
 import { journalSummary } from '../../lib/offPlanJournal';
@@ -237,7 +236,6 @@ export default function ProfilScreen() {
   // l'éditeur « Informations » de cet écran même, donc le surtitre doit suivre
   // sans changer d'onglet ni redémarrer.
   const prenom = useFirstName();
-  const { streak } = useStreak();
   // Le suivi du poids est désormais une CARTE (courbe + écart) et non une ligne de
   // menu : il lui faut les pesées, pas seulement le poids courant du profil.
   const { entries: weightEntries, delta: weightDelta, due: weighInDue } = useWeightLog();
@@ -518,16 +516,13 @@ export default function ProfilScreen() {
             <Text style={s.h1}>Profil</Text>
             {!!prenom && <Text style={s.sub}>{prenom}</Text>}
           </View>
-          {/* 🔴 LE « ? » EST PARTI le 2026-08-14 (décision fondateur), et LA SÉRIE
-              prend sa place — très discrète, exactement comme l'en-tête du Plan.
+          {/* 🔴 LE « ? » EST PARTI le 2026-08-14 (décision fondateur). La série qui
+              avait pris sa place est partie à son tour le 2026-09-19 (décision
+              fondateur : la série est retirée de l'app).
               ⚠️ La porte de sortie du tuto ne disparaît PAS avec lui : « Revoir
               les tutos » vit dans la roue dentée juste à droite, sur ce même
               écran. CLAUDE.md §8 exige qu'un écran à tour garde un recours ; il
               en garde un, il change simplement d'endroit. */}
-          <View style={s.serie}>
-            <Text style={s.serieN}>{streak.current_streak_days} j</Text>
-            <Text style={s.serieLbl}>de série</Text>
-          </View>
           {/* 🔴 LA ROUE DENTÉE — décision fondateur du 2026-08-09. Tout ce qui
               n'est ni toi ni ton plan vit derrière : notifications, apparence,
               accent, confidentialité, compte. L'écran empilait 6 interrupteurs
@@ -549,11 +544,8 @@ export default function ProfilScreen() {
           </Presse>
         </View>
 
-        {/* ⚠️ ORDRE INVERSÉ le 2026-08-02 (décision fondateur), et ce n'est pas
-            cosmétique : le POIDS alimente le moteur — chaque pesée recalcule TDEE,
-            macros et plan — alors que la série ne raconte que l'assiduité. Le premier
-            tenait dans une ligne de menu, la seconde occupait tout le haut de l'écran.
-            Ils ont échangé leur place. */}
+        {/* ⚠️ Le POIDS ouvre l'écran (décision fondateur du 2026-08-02) : il alimente
+            le moteur — chaque pesée recalcule TDEE, macros et plan. */}
         <WeightSummaryCard
           t={t}
           profileWeightKg={profile.weight_kg}
@@ -839,7 +831,7 @@ export default function ProfilScreen() {
             Google si un abonnement a été souscrit — vit au §7 de la politique. Sa place
             n'est pas dans un dialogue de confirmation : ici on dit ce qui PART. */}
         <Text style={{ ...Type.body, color: t.textSecondary, lineHeight: 21 }}>
-          Ton compte et ses données seront définitivement supprimés du serveur. Sur cet appareil, tout ce que Kyroz a enregistré sera effacé : profil, plans, pesées, photos, série, favoris, réserve.
+          Ton compte et ses données seront définitivement supprimés du serveur. Sur cet appareil, tout ce que Kyroz a enregistré sera effacé : profil, plans, pesées, photos, favoris, réserve.
         </Text>
         {/* 🔴 SUPPRIMER SON COMPTE N'ANNULE PAS L'ABONNEMENT, et rien ne le disait
             (constat `01-05`, ajouté le 2026-08-27). Le prélèvement continue : quelqu'un
@@ -1980,11 +1972,6 @@ function makeStyles(t: ThemePalette) {
     roue: { alignItems: 'center', justifyContent: 'center', minWidth: CIBLE_TACTILE_MIN, minHeight: CIBLE_TACTILE_MIN },
     sub: { ...Type.bodySmall, color: t.textSecondary, lineHeight: 19 },
     h1: { color: t.text, ...Type.display, marginTop: Spacing.xs },
-    // Même gabarit que l'en-tête du Plan, au pixel près : deux écrans qui montrent
-    // la même chose ne peuvent pas la montrer de deux façons.
-    serie: { alignItems: 'center', backgroundColor: t.card, borderWidth: Trait.fin, borderColor: t.line, paddingHorizontal: Spacing.lg, paddingVertical: Spacing.sm, borderRadius: Radius.card },
-    serieN: { color: t.text },
-    serieLbl: { color: t.textTertiary, marginTop: Spacing.xs },
     grid: { flexDirection: 'row', gap: Spacing.sm },
     menu: { backgroundColor: t.card, borderRadius: Radius.card, paddingHorizontal: Spacing.lg },
     tdee: { backgroundColor: t.card, borderRadius: Radius.card, padding: Spacing.lg, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: Spacing.md },

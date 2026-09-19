@@ -17,8 +17,8 @@ import Svg, { Rect, Path, Circle } from 'react-native-svg';
 //
 // ✅ LA PASSE EST FINIE le 2026-08-09 (E22) — et ce commentaire l'avait déjà
 // annoncée une fois, à tort. Le comptage d'origine portait sur `app/` +
-// `components/` ; il restait 13 émojis AFFICHÉS depuis `lib/streak.ts`,
-// `lib/notifications.ts` et `constants/legal.ts`. Un inventaire d'interface se
+// `components/` ; il restait 13 émojis AFFICHÉS depuis `lib/streak.ts` (retiré
+// avec la série le 2026-09-19), `lib/notifications.ts` et `constants/legal.ts`. Un inventaire d'interface se
 // compte sur ce qui est AFFICHÉ, pas sur les fichiers qui ressemblent à de
 // l'interface.
 //
@@ -104,7 +104,7 @@ export function RepasLibreIcon({ color, size = D, focused }: Props) {
   );
 }
 
-/** Protection — la série est protégée après un jour manqué. */
+/** Protection — un bouclier : Kyroz protège ton énergie (carte de remontée après un long déficit, Profil). */
 export function ProtectionIcon({ color, size = D, focused }: Props) {
   const w = stroke(focused);
   return (

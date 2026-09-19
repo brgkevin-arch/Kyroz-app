@@ -352,7 +352,7 @@ export function reconcileCloudLowEaWeeks<T extends Partial<UserProfile>>(
 //     suppression IMPOSSIBLE — c'est un défaut permanent, là où une perte se répare
 //     en refaisant le geste.
 //
-// D'où : poids, série et recettes perso fusionnent ; favoris et garde-manger non
+// D'où : poids et recettes perso fusionnent ; favoris et garde-manger non
 // (cf. le commentaire de chaque bloc dans sync.ts).
 //
 // Toutes ces fonctions sont PURES — même contrat que les réconciliateurs ci-dessus.
@@ -383,39 +383,6 @@ export function mergeWeightEntries(
 }
 
 export interface WeightEntryLike { date: string; weight_kg: number; note?: string }
-
-/**
- * Série : le record est le MAXIMUM des deux, la série en cours vient de l'appareil dont
- * la dernière activité est la PLUS RÉCENTE.
- *
- * L'écrasement pur pouvait ramener une série de 30 jours à 3 parce qu'un vieux
- * téléphone détenait la ligne cloud. Prendre la dernière activité la plus récente ne
- * peut pas inventer de série : c'est la seule des deux qui décrit le présent. Et le
- * record ne redescend plus, ce qui est sa définition.
- *
- * `freeze_available` (le « bouclier », LOCAL-ONLY) est PRÉSERVÉ : il était effacé à
- * chaque hydratation parce que l'objet était reconstruit avec trois champs.
- */
-export function mergeStreak<T extends StreakLike>(cloud: T | null | undefined, local: T | null | undefined): T | null {
-  if (!cloud) return local ?? null;
-  if (!local) return cloud;
-  const recent = (local.last_active_date ?? '') >= (cloud.last_active_date ?? '') ? local : cloud;
-  return {
-    ...recent,
-    current_streak_days: recent.current_streak_days,
-    longest_streak_days: Math.max(local.longest_streak_days ?? 0, cloud.longest_streak_days ?? 0),
-    last_active_date: recent.last_active_date,
-    // Local-only : jamais au cloud, donc jamais écrasable par lui.
-    ...(local.freeze_available !== undefined ? { freeze_available: local.freeze_available } : {}),
-  };
-}
-
-export interface StreakLike {
-  current_streak_days: number;
-  longest_streak_days: number;
-  last_active_date: string;
-  freeze_available?: boolean;
-}
 
 /**
  * Recettes personnalisées : UNION par identifiant, le LOCAL gagne.

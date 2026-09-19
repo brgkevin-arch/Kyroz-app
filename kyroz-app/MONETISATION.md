@@ -37,7 +37,8 @@
 ## Principe directeur (non négociable)
 
 Le **core loop reste 100 % gratuit, sans clé API** : profil → plan 7 jours
-macro-précis → courses → recettes → réserve → favoris → **streak**.
+macro-précis → courses → recettes → réserve → favoris. *(Le **streak** en faisait partie
+jusqu'au 2026-09-19 : il a été retiré de l'app, décision fondateur — AGENTS.md E69.)*
 
 Conséquence directe sur le **North Star** (% d'appareils à **7 jours actifs — un repas
 cuisiné — dans les 14 premiers jours** ; définition et calcul dans `METRICS.md`, précisée
@@ -72,7 +73,7 @@ core tuerait le North Star — donc interdit.
 |---|---|---|---|
 | Génération plan 7 j macro-précis | ✅ | ✅ | livré |
 | Recettes + macros + courses + réserve | ✅ | ✅ | livré |
-| Favoris + streak + rappel quotidien | ✅ | ✅ | livré |
+| Favoris + rappel quotidien | ✅ | ✅ | livré *(le streak, retiré le 2026-09-19)* |
 | Régénérer / remplacer un repas | ✅ (illimité) | ✅ | livré |
 | **Historique des plans** (semaines passées) | semaine en cours | ✅ illimité | **non construit** → monétisable |
 | **Export liste de courses** (PDF / impression / Notes) | — | ✅ | **non construit** → monétisable |
@@ -84,7 +85,8 @@ core tuerait le North Star — donc interdit.
 ### Ce qu'on NE met PAS derrière le paywall (et pourquoi)
 - **Sync cloud multi-appareils** : déjà construite et perçue comme un dû ; la
   bloquer punirait la réinstallation et casserait la confiance. Gratuit.
-- **Le streak et le rappel** : ce sont les moteurs du North Star. Gratuits.
+- **Le rappel** : moteur du North Star. Gratuit. *(Le streak l'était aussi, jusqu'à son
+  retrait le 2026-09-19. S'il revient repensé, même règle : gratuit.)*
 - **Le 1er plan et la fenêtre 14 j** : intouchables.
 
 ## Tarif recommandé (marché FR, cible hommes et femmes 18–50)
@@ -190,8 +192,9 @@ core tuerait le North Star — donc interdit.
       demande la clé SECRÈTE, donc du code serveur, et ne sert à rien sans abonné.
 - [x] ✅ **Ce qu'on verrouille = features Kyroz+ uniquement** : `PREMIUM_FEATURES` =
       `dated_goal` · `transformation` — ⚠️ **`calorie_bank` en est SORTI le 2026-08-18**. Le reste
-      — core loop, courses, recettes, réserve, favoris, série, pesée, synchro — **reste
-      libre**, et l'écran l'énumère noir sur blanc.
+      — core loop, courses, recettes, réserve, favoris, pesée, synchro — **reste
+      libre**, et l'écran l'énumère noir sur blanc. *(« série » retirée de cette liste, de
+      l'écran Kyroz+ et des CGU §3 le 2026-09-19, avec la série elle-même.)*
 - [x] ✅ **North Star sacré** : le paywall ne s'ouvre que sur **INTENTION** — un seul point
       d'étranglement, `openEditor()` dans `app/(tabs)/profil.tsx` (ligne 187), plus l'entrée
       explicite du menu Profil. **Aucun appel au lancement**, vérifié : `/kyroz-plus` n'est

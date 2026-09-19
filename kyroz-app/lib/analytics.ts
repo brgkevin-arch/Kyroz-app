@@ -223,9 +223,9 @@ export const Events = {
   mealSwapped: 'meal_swapped',
   recipeDisliked: 'recipe_disliked',
   offPlanLogged: 'off_plan_logged',
-  // D2 — rétention
-  streakMilestone: 'streak_milestone',
-  streakFrozen: 'streak_frozen',
+  // D2 — rétention : `streak_milestone` et `streak_frozen` sont partis avec la série
+  // (retirée le 2026-09-19, décision fondateur). Ils n'avaient jamais été émis en
+  // production depuis l'extinction de PostHog (2026-08-26).
   // D6 — santé technique. Sans elle, D4 est ininterprétable : un plan qui n'est pas
   // suivi parce qu'il n'a jamais réussi à se générer se lit comme un désintérêt.
   planGenerationFailed: 'plan_generation_failed',

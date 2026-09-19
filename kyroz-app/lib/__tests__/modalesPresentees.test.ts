@@ -71,7 +71,10 @@ const AVEC_MODALE = [...fichiers(join(RACINE, 'components')), ...fichiers(join(R
 
 describe('chaque `Modal` se recense, et la visite guidée attend', () => {
   it('le recensement a de quoi compter (garde contre un filtre qui ne trouve plus rien)', () => {
-    expect(AVEC_MODALE.length).toBeGreaterThanOrEqual(7);
+    // 6 et non plus 7 depuis le 2026-09-19 : `StreakCelebration` est partie avec la
+    // série (AGENTS.md E69). Baisser ce seuil doit rester un geste EXPLIQUÉ — c'est ce
+    // qui distingue une modale retirée d'un filtre qui ne trouve plus rien.
+    expect(AVEC_MODALE.length).toBeGreaterThanOrEqual(6);
   });
 
   it('toute enveloppe de `Modal` appelle `useModaleRecensee` — sauf la visite guidée, qui est celle qui attend', () => {

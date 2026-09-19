@@ -1,27 +1,16 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from './supabase';
-import { Recipe, Streak, UserProfile } from './types';
+import { Recipe, UserProfile } from './types';
 import { PantryItem } from './pantry';
 import { WeightEntry } from './weight';
 import { relireSyncEnAttente } from './syncEnAttente';
 import { ligneCloudExploitable, normalizeMacroMode } from './profilComplet';
 import { doitPurgerAvantHydratation, CLE_PROPRIETAIRE } from './sessionLocale';
-import { decideProfileHydration, normalizeCalorieBank, normalizeGoal, normalizeMeals, normalizeMealSlots, normalizeProfileActivity, normalizeVariety, reconcileCloudSports, reconcileCloudLowEaWeeks, reconcileCloudNeat, mergeWeightEntries, mergeStreak, mergeRecipeOverrides, PROFILE_PENDING_KEY } from './syncGuard';
+import { decideProfileHydration, normalizeCalorieBank, normalizeGoal, normalizeMeals, normalizeMealSlots, normalizeProfileActivity, normalizeVariety, reconcileCloudSports, reconcileCloudLowEaWeeks, reconcileCloudNeat, mergeWeightEntries, mergeRecipeOverrides, PROFILE_PENDING_KEY } from './syncGuard';
 import { normalizeRestrictions } from './regime';
 
 /** La fusion a-t-elle produit autre chose que ce que le cloud détenait ? */
 const differs = (a: unknown, b: unknown): boolean => JSON.stringify(a) !== JSON.stringify(b);
-
-/**
- * Idem pour la série, mais sur les SEULS champs synchronisés : `freeze_available` est
- * local-only, donc sa présence dans l'objet fusionné ne justifie pas un push.
- */
-function syncedStreakChanged(cloud: Streak, merged: Streak): boolean {
-  return differs(
-    [cloud.current_streak_days, cloud.longest_streak_days, cloud.last_active_date],
-    [merged.current_streak_days, merged.longest_streak_days, merged.last_active_date],
-  );
-}
 
 // ── Synchro AsyncStorage ⇄ Supabase ──────────────────────────────────────────
 // Principe : le local reste la copie de travail (offline-first), le cloud est un
@@ -33,7 +22,6 @@ function syncedStreakChanged(cloud: Streak, merged: Streak): boolean {
 // donc il se régénère à l'identique sur un nouvel appareil une fois le profil tiré.
 
 const PROFILE_KEY = '@kyroz:profile';
-const STREAK_KEY = '@kyroz:streak';
 const FAV_KEY = '@kyroz:favorites';
 const PANTRY_KEY = '@kyroz:pantry';
 const WEIGHT_KEY = '@kyroz:weights';
@@ -57,7 +45,7 @@ export const PROFILE_COLS = [
   'birth_date',
   // Plancher d'énergie disponible (P0.1) — migration 2026-07-28_profiles_energy_availability.sql.
   // `is_post_menopausal` est VOLONTAIREMENT absent : LOCAL-ONLY et inerte tant que
-  // l'onboarding ne pose pas la question (même parti pris que Streak.freeze_available).
+  // l'onboarding ne pose pas la question.
   'low_ea_weeks',
   // Pause à la maintenance — migration 2026-08-10_profiles_deficit_weeks.sql.
   // SYNCHRONISÉ, contrairement au conseil « commencer local » de CLAUDE.md §3 : c'est
@@ -299,22 +287,9 @@ export async function pushProfile(p: UserProfile): Promise<boolean> {
   }
 }
 
-// Les cinq pushs ci-dessous restent `void` et best-effort : on LIT désormais le
+// Les quatre pushs ci-dessous restent `void` et best-effort : on LIT désormais le
 // `{ error }` qu'ils ignoraient, uniquement pour le journaliser. Aucun early return
 // ajouté, aucune valeur de retour changée.
-
-export async function pushStreak(s: Streak): Promise<void> {
-  const uid = await currentUserId(); if (!uid) return;
-  try {
-    const { error } = await supabase.from('streaks').upsert({
-      user_id: uid,
-      current_streak_days: s.current_streak_days,
-      longest_streak_days: s.longest_streak_days,
-      last_active_date: s.last_active_date || null,
-    });
-    if (error) warnSyncFailure('série', error);
-  } catch (e) { warnSyncFailure('série (exception)', e); }
-}
 
 /**
  * Favoris : ÉCRIRE D'ABORD, RETIRER ENSUITE (2026-07-30).
@@ -404,7 +379,7 @@ export async function hydrateFromCloud(uid: string, purgerLocal: () => Promise<v
   // 🔴 **ET LE PROFIL N'EST QUE LE PREMIER DE CINQ.** Le contre-audit l'a mesuré
   // (`:440-500` ci-dessous) : quand la ligne cloud du compte entrant est VIDE, favoris,
   // réserve, pesées et recettes personnalisées du compte précédent sont **poussés dans
-  // son cloud** — et pesées, série et recettes sont FUSIONNÉES, donc le mélange devient
+  // son cloud** — et pesées et recettes sont FUSIONNÉES, donc le mélange devient
   // permanent des deux côtés. Purger ici, en tête, referme les cinq d'un seul geste :
   // toutes les sections lisent ensuite un local vide.
   //
@@ -513,29 +488,6 @@ export async function hydrateFromCloud(uid: string, purgerLocal: () => Promise<v
       }));
     } else if (local && (action === 'keep_local' || action === 'push_local')) {
       await pushProfile(local); // (re)pousse le local ; lève le flag si succès
-    }
-  } catch {}
-
-  // STREAK — FUSION (record = max, série en cours = appareil le plus récent).
-  try {
-    const { data: row } = await supabase.from('streaks').select('*').eq('user_id', uid).maybeSingle();
-    const raw = await AsyncStorage.getItem(STREAK_KEY);
-    const local: Streak | null = raw ? JSON.parse(raw) : null;
-    if (row && row.last_active_date) {
-      const cloud: Streak = {
-        current_streak_days: row.current_streak_days,
-        longest_streak_days: row.longest_streak_days,
-        last_active_date: row.last_active_date,
-      };
-      const merged = mergeStreak(cloud, local);
-      if (merged) {
-        await AsyncStorage.setItem(STREAK_KEY, JSON.stringify(merged));
-        // Convergence : sans ce push, l'appareil d'en face garderait sa version et
-        // écraserait à son tour. On ne pousse que si la fusion apporte quelque chose.
-        if (syncedStreakChanged(cloud, merged)) await pushStreak(merged);
-      }
-    } else if (local) {
-      await pushStreak(local);
     }
   } catch {}
 
@@ -663,7 +615,6 @@ const CLOUD_TABLES: ReadonlyArray<readonly [table: string, col: string]> = [
   ['pantry', 'user_id'],
   ['weight_logs', 'user_id'],
   ['recipe_overrides', 'user_id'],
-  ['streaks', 'user_id'],
   ['profiles', 'id'],
 ] as const;
 
@@ -673,7 +624,7 @@ const CLOUD_TABLES: ReadonlyArray<readonly [table: string, col: string]> = [
  * Chaque table a désormais SON try/catch : un échec sur l'une n'empêche plus les
  * suivantes d'être tentées (2026-07-30). Avant, une exception au 3ᵉ effacement laissait
  * les 3 derniers NON tentés, et la fonction renvoyait normalement — l'appelant croyait
- * l'effacement fait. Effacer 5 tables sur 6 vaut mieux que 2, et le récapitulatif final
+ * l'effacement fait. Effacer 4 tables sur 5 vaut mieux que 2, et le récapitulatif final
  * nomme précisément ce qui a résisté.
  */
 export async function deleteCloudData(): Promise<void> {

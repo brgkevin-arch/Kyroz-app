@@ -19,7 +19,8 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
-const TABLES = ['profiles', 'streaks', 'favorites', 'pantry', 'weight_logs', 'recipe_overrides'];
+// `streaks` est partie avec la série (2026-09-19, `2026-09-19_drop_streaks.sql`).
+const TABLES = ['profiles', 'favorites', 'pantry', 'weight_logs', 'recipe_overrides'];
 
 // ── Environnement ────────────────────────────────────────────────────────────
 function env() {
@@ -106,7 +107,7 @@ if (ko) {
   process.exit(2);
 }
 
-// ── 2. Les 6 tables ──────────────────────────────────────────────────────────
+// ── 2. Les 5 tables ──────────────────────────────────────────────────────────
 console.log('\nTables');
 for (const t of TABLES) line(t, await head(`${t}?select=*&limit=1`), 200);
 

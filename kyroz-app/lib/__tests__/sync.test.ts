@@ -103,7 +103,6 @@ import type { UserProfile } from '../types';
 // Clés d'AsyncStorage — recopiées de sync.ts, où elles sont privées. Si elles y
 // changent sans changer ici, ces tests tombent : c'est voulu.
 const PROFILE_KEY = '@kyroz:profile';
-const STREAK_KEY = '@kyroz:streak';
 const FAV_KEY = '@kyroz:favorites';
 const PANTRY_KEY = '@kyroz:pantry';
 const WEIGHT_KEY = '@kyroz:weights';
@@ -237,7 +236,7 @@ describe('01-01 (P0) — un compte n’hérite JAMAIS des données du précéden
   // 🔴 Le constat était SOUS-ESTIMÉ, et le contre-audit l'a mesuré : ce n'est pas le
   // profil, ce sont CINQ domaines. Quand la ligne cloud du compte entrant est vide,
   // favoris, réserve, pesées et recettes personnalisées du compte précédent sont
-  // POUSSÉS dans son cloud — et pesées, série et recettes sont FUSIONNÉES, donc le
+  // POUSSÉS dans son cloud — et pesées et recettes sont FUSIONNÉES, donc le
   // mélange devient permanent des deux côtés. Le transfert ne demande même pas que le
   // profil soit marqué « à pousser ».
 
@@ -247,7 +246,6 @@ describe('01-01 (P0) — un compte n’hérite JAMAIS des données du précéden
     await write(PANTRY_KEY, [{ name: 'riz', qty: 1, unit: 'kg' }]);
     await write(WEIGHT_KEY, [{ date: '2026-08-01', kg: 80 }]);
     await write(OVERRIDES_KEY, { rep1: { id: 'rep1' } });
-    await write(STREAK_KEY, { current: 12, best: 12 });
   };
 
   it('le profil d’un AUTRE compte ne s’affiche pas et ne part pas au cloud', async () => {
@@ -267,11 +265,10 @@ describe('01-01 (P0) — un compte n’hérite JAMAIS des données du précéden
     state.rows.profiles = null;
     state.rows.favorites = null; state.rows.pantry = null;
     state.rows.weight_logs = null; state.rows.recipe_overrides = null;
-    state.rows.streaks = null;
 
     await hydrate('uid-de-B');
 
-    for (const table of ['favorites', 'pantry', 'weight_logs', 'recipe_overrides', 'streaks']) {
+    for (const table of ['favorites', 'pantry', 'weight_logs', 'recipe_overrides']) {
       expect(opsOn(table), `${table} : des données de A sont montées chez B`)
         .not.toContain('upsert');
       expect(opsOn(table), `${table} : des données de A sont montées chez B`)
@@ -334,7 +331,7 @@ describe('01-01 (P0) — un compte n’hérite JAMAIS des données du précéden
     await hydrateFromCloud('uid-de-B', casse);
 
     // Rien n'est monté nulle part : mieux vaut une synchro manquée qu'une fuite.
-    for (const table of ['profiles', 'favorites', 'pantry', 'weight_logs', 'recipe_overrides', 'streaks']) {
+    for (const table of ['profiles', 'favorites', 'pantry', 'weight_logs', 'recipe_overrides']) {
       expect(opsOn(table), table).not.toContain('upsert');
       expect(opsOn(table), table).not.toContain('insert');
     }
@@ -356,7 +353,7 @@ describe('01-01 (P0) — un compte n’hérite JAMAIS des données du précéden
 
     expect(purges).toBe(1);
     expect(await read(PROFILE_KEY)).toBeNull();
-    for (const table of ['profiles', 'favorites', 'pantry', 'weight_logs', 'recipe_overrides', 'streaks']) {
+    for (const table of ['profiles', 'favorites', 'pantry', 'weight_logs', 'recipe_overrides']) {
       expect(opsOn(table), table).not.toContain('upsert');
       expect(opsOn(table), table).not.toContain('insert');
     }
@@ -423,7 +420,7 @@ describe('01-01 (P0) — un compte n’hérite JAMAIS des données du précéden
     await hydrate('uid-de-B');
     espion.mockRestore();
 
-    for (const table of ['profiles', 'favorites', 'pantry', 'weight_logs', 'recipe_overrides', 'streaks']) {
+    for (const table of ['profiles', 'favorites', 'pantry', 'weight_logs', 'recipe_overrides']) {
       expect(opsOn(table), table).not.toContain('upsert');
     }
     expect(await AsyncStorage.getItem(PROPRIETAIRE_KEY)).toBeNull();
@@ -484,26 +481,10 @@ describe('01-01 (P0) — un compte n’hérite JAMAIS des données du précéden
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-describe('hydratation des 5 autres domaines — 3 états du cloud chacun', () => {
+describe('hydratation des 4 autres domaines — 3 états du cloud chacun', () => {
   // `pushOp` : l'opération d'écriture propre au domaine. Les favoris sont les SEULS
   // à ne pas faire d'`upsert` — ils passent par delete-puis-insert (cf. plus bas).
   const domains = [
-    {
-      nom: 'série', table: 'streaks', key: STREAK_KEY, pushOp: 'upsert',
-      local: { current_streak_days: 9, longest_streak_days: 9, last_active_date: '2026-07-29' },
-      cloudPlein: { current_streak_days: 3, longest_streak_days: 5, last_active_date: '2026-07-28' },
-      cloudVide: { current_streak_days: 0, longest_streak_days: 0, last_active_date: null },
-      fusionne: true,
-      // Fusion : la dernière activité locale (29) est plus récente que celle du cloud
-      // (28), donc la série EN COURS est celle du local ; le record est le max des deux.
-      attenduSiCloudPlein: (v: any) => {
-        expect(v.current_streak_days).toBe(9);
-        expect(v.longest_streak_days).toBe(9);
-        expect(v.last_active_date).toBe('2026-07-29');
-      },
-      attenduSiLocalGarde: (v: any) => expect(v.current_streak_days).toBe(9),
-      attenduSiLocalVide: (v: any) => expect(v.current_streak_days).toBe(3),
-    },
     {
       nom: 'favoris', table: 'favorites', key: FAV_KEY, pushOp: 'upsert',
       local: ['rep1', 'rep2'],
@@ -594,46 +575,6 @@ describe('hydratation des 5 autres domaines — 3 états du cloud chacun', () =>
     });
   }
 
-  // RÉSOLU le 2026-07-30 (était : SUSPECT). L'hydratation reconstruisait l'objet avec
-  // TROIS champs, donc `freeze_available` — le « bouclier de série », LOCAL-ONLY —
-  // était effacé à chaque pull : le gel disparaissait en se reconnectant.
-  // `mergeStreak` le préserve désormais. Test conservé en non-régression.
-  it('freeze_available (local-only) SURVIT à l’hydratation de la série', async () => {
-    await write(STREAK_KEY, {
-      current_streak_days: 9, longest_streak_days: 9,
-      last_active_date: '2026-07-29', freeze_available: false,
-    });
-    state.rows.streaks = { current_streak_days: 3, longest_streak_days: 5, last_active_date: '2026-07-28' };
-
-    await hydrate('user-1');
-
-    expect((await read(STREAK_KEY)).freeze_available).toBe(false);
-  });
-
-  it('la série ne redescend plus à cause d’un appareil en retard', async () => {
-    // Le vrai scénario : un vieux téléphone détient la ligne cloud et ramenait une
-    // série de 9 jours à 3.
-    await write(STREAK_KEY, { current_streak_days: 9, longest_streak_days: 9, last_active_date: '2026-07-29' });
-    state.rows.streaks = { current_streak_days: 3, longest_streak_days: 5, last_active_date: '2026-07-28' };
-
-    await hydrate('user-1');
-
-    const got = await read(STREAK_KEY);
-    expect(got.current_streak_days).toBe(9);
-    expect(got.longest_streak_days).toBe(9); // record = max des deux
-  });
-
-  it('mais un cloud PLUS RÉCENT que le local fait foi (pas de « le local gagne » aveugle)', async () => {
-    await write(STREAK_KEY, { current_streak_days: 2, longest_streak_days: 4, last_active_date: '2026-07-20' });
-    state.rows.streaks = { current_streak_days: 11, longest_streak_days: 11, last_active_date: '2026-07-29' };
-
-    await hydrate('user-1');
-
-    const got = await read(STREAK_KEY);
-    expect(got.current_streak_days).toBe(11);
-    expect(got.last_active_date).toBe('2026-07-29');
-  });
-
   // RÉSOLU le 2026-07-30 (était : SUSPECT). Le journal était remplacé EN BLOC, sans
   // déduplication par date, alors que c'est un historique cumulatif — exactement comme
   // `low_ea_weeks`, qui lui était déjà fusionné par UNION. C'était l'asymétrie entre
@@ -682,7 +623,7 @@ describe('hydratation des 5 autres domaines — 3 états du cloud chacun', () =>
   it('une panne sur un domaine n’empêche pas les suivants (chaque bloc a son try/catch)', async () => {
     await write(FAV_KEY, ['rep1']);
     await write(PANTRY_KEY, [{ name: 'riz', quantity: 500, unit: 'g', category: 'epicerie' }]);
-    state.throws.add('streaks.select'); // la série explose
+    state.throws.add('favorites.select'); // les favoris explosent
     state.rows.pantry = { items: [{ name: 'avoine', quantity: 1000, unit: 'g', category: 'epicerie' }] };
 
     await hydrate('user-1');
@@ -863,12 +804,12 @@ describe('pushFavorites — delete puis insert', () => {
 
 // ─────────────────────────────────────────────────────────────────────────────
 describe('suppression de compte (RGPD)', () => {
-  it('deleteCloudData efface les 6 tables, profiles en dernier', async () => {
+  it('deleteCloudData efface les 5 tables, profiles en dernier', async () => {
     await deleteCloudData();
 
     const tables = state.calls.filter((c) => c.op === 'delete').map((c) => c.table);
     expect(tables).toEqual([
-      'favorites', 'pantry', 'weight_logs', 'recipe_overrides', 'streaks', 'profiles',
+      'favorites', 'pantry', 'weight_logs', 'recipe_overrides', 'profiles',
     ]);
   });
 
@@ -876,7 +817,7 @@ describe('suppression de compte (RGPD)', () => {
     await deleteCloudData();
 
     const eqs = state.calls.filter((c) => c.op === 'eq');
-    expect(eqs).toHaveLength(6);
+    expect(eqs).toHaveLength(5);
     expect(state.calls.find((c) => c.table === 'profiles' && c.op === 'eq')?.payload).toBe('id');
   });
 
@@ -890,7 +831,7 @@ describe('suppression de compte (RGPD)', () => {
 
     const tables = state.calls.filter((c) => c.op === 'delete').map((c) => c.table);
     expect(tables).toEqual([
-      'favorites', 'pantry', 'weight_logs', 'recipe_overrides', 'streaks', 'profiles',
+      'favorites', 'pantry', 'weight_logs', 'recipe_overrides', 'profiles',
     ]);
   });
 
@@ -900,7 +841,7 @@ describe('suppression de compte (RGPD)', () => {
     await deleteCloudData();
 
     const tables = state.calls.filter((c) => c.op === 'delete').map((c) => c.table);
-    expect(tables).toHaveLength(6);
+    expect(tables).toHaveLength(5);
   });
 
   it('deleteAccount passe par l’Edge Function et remonte son erreur', async () => {

@@ -53,7 +53,7 @@ L'Edge Function `delete-account` est codée + `on delete cascade` est en place a
   **auto-injectés** par Supabase dans les Edge Functions → rien à configurer.
 
 **b) Test réel** (utilise un compte JETABLE, la suppression est DÉFINITIVE) :
-1. Crée un compte test dans l'app (email jetable) + génère un plan (crée profil, streak…).
+1. Crée un compte test dans l'app (email jetable) + génère un plan (crée le profil…).
 2. Note son `user_id` (Supabase → Authentication → Users).
 3. Dans l'app : **Profil → Supprimer mon compte** → confirme.
    - [ ] L'app te déconnecte sans erreur.
@@ -62,7 +62,6 @@ L'Edge Function `delete-account` est codée + `on delete cascade` est en place a
 5. Supabase → **SQL Editor**, colle (remplace `<UID>`) :
    ```sql
    select 'profiles' t, count(*) n from profiles where id = '<UID>'
-   union all select 'streaks',   count(*) from streaks          where user_id = '<UID>'
    union all select 'favorites', count(*) from favorites        where user_id = '<UID>'
    union all select 'pantry',    count(*) from pantry           where user_id = '<UID>'
    union all select 'weight_logs', count(*) from weight_logs    where user_id = '<UID>'
