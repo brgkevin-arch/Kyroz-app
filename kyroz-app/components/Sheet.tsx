@@ -11,6 +11,7 @@ import {
 } from '../lib/motion';
 import { useReduceMotion, reduceMotionActif } from '../lib/reduceMotion';
 import { retour } from '../lib/retourHaptique';
+import { useModaleRecensee } from '../lib/modalesPresentees';
 
 interface Props {
   visible: boolean;
@@ -55,6 +56,8 @@ export function Sheet({ visible, onClose, children, onClosed }: Props) {
   // View), et la feuille se rangeait alors hors écran ou trop court.
   const { height: screenH } = useWindowDimensions();
   const [render, setRender] = useState(visible);
+  // Recensée tant qu'elle est à l'écran : une visite guidée attend qu'elle soit partie (lib/modalesPresentees.ts).
+  useModaleRecensee(render);
   const ty = useRef(new Animated.Value(screenH)).current;
   const backdrop = useRef(new Animated.Value(0)).current;
 

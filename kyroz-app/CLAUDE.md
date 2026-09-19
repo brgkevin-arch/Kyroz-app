@@ -3243,6 +3243,19 @@ téléphone.
   d'identité à chaque rendu, donc remonte tout l'écran à chaque frappe : le même
   défaut, en pire. Compté par `feuilles.test.ts` (3 mutations).
   ⚠️ Balayage fait : `courses.tsx` était le SEUL des 15 fichiers à feuille dans ce cas.
+- 🔴 **UNE SURFACE QUI S'IMPOSE D'ELLE-MÊME ATTEND QU'AUCUNE MODALE NE SOIT PRÉSENTÉE**
+  (2026-09-19, signalé par le fondateur le jour de la 47ᵉ OTA : « l'écran s'est figé sur
+  le profil »). La visite guidée du Profil part seule, 650 ms après la première arrivée
+  sur l'écran — sans savoir que la carte « Revois tes protéines préférées » vient d'y
+  ouvrir l'éditeur. iOS la refuse, React la croit ouverte, et une fois l'éditeur refermé
+  elle avale tous les taps, défilement compris. « Revoir les tutos » faisait pareil
+  depuis la feuille Réglages restée ouverte — en place depuis des semaines, jamais vu.
+  ⚠️ **Reproduit au simulateur SEULEMENT avec la visite jamais vue** : le premier essai,
+  visite déjà vue, passait. Une panne qui dépend d'un « déjà vu » frappe une fois par
+  appareil — donc jamais chez soi. Chercher quel état À USAGE UNIQUE le parcours croise.
+  ➡️ `lib/modalesPresentees.ts` : chaque enveloppe de `Modal` se recense
+  (`useModaleRecensee`), et `startTour` attend `quandAucuneModale`. Compté par
+  `modalesPresentees.test.ts` : une `Modal` nouvelle qui ne se recense pas le fait rougir.
 - 🔴 **UNE DONNÉE D'UTILISATEUR NE SE RANGE PAS DANS UN CACHE QUE QUELQU'UN D'AUTRE
   EFFACE.** Trouvé le 2026-08-08 en rendant les articles de la liste de courses
   supprimables. Le réflexe était de marquer l'article dans `@kyroz:shopping` — sauf

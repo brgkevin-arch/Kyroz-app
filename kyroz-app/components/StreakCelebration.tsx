@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { Modal, View, Text, StyleSheet, Animated, Pressable, Easing } from 'react-native';
 import { RESSORT, DUREE, ressortRN, ressortReduit, dureeReduite } from '../lib/motion';
 import { reduceMotionActif } from '../lib/reduceMotion';
+import { useModaleRecensee } from '../lib/modalesPresentees';
 import { useTheme, Radius, Spacing, Type, Trait, Fond } from '../constants/theme';
 import { PrimaryButton } from './ui';
 import { celebrationCopy } from '../lib/streak';
@@ -28,6 +29,8 @@ interface Props {
 export function StreakCelebration({ milestone, onClose }: Props) {
   const t = useTheme();
   const visible = milestone != null;
+  // Recensée tant qu'elle est à l'écran : une visite guidée attend qu'elle soit partie (lib/modalesPresentees.ts).
+  useModaleRecensee(visible);
   const scale = useRef(new Animated.Value(0.8)).current;
   const opacity = useRef(new Animated.Value(0)).current;
 

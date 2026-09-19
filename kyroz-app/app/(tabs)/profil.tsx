@@ -413,8 +413,13 @@ export default function ProfilScreen() {
   // il se poserait PAR-DESSUS la bulle qu'on vient de lancer (ou l'inverse). Le
   // tour qui démarre EST le retour visuel — c'est plus clair qu'un message qui
   // annonce ce que l'écran est en train de faire.
+  // 🔴 « Revoir les tutos » FIGEAIT L'APP (constaté au simulateur le 2026-09-19) : la
+  // visite partait depuis la feuille Réglages, restée ouverte — iOS la refusait, et elle
+  // restait invisible par-dessus l'écran une fois la feuille refermée. On ferme d'abord ;
+  // la visite attend que la feuille soit partie (`startTour`, lib/modalesPresentees.ts).
   const revoirTutos = async () => {
     await resetAllTours();
+    setReglages(false);
     rejouerTour();
   };
 
