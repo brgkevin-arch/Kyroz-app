@@ -5,6 +5,7 @@ import { useAuth } from './useAuth';
 import { pushProfile, markProfileDirty, clearProfileDirty } from '../lib/sync';
 import { bootProfile } from '../lib/profileBoot';
 import { recalcProfile } from '../lib/tdee';
+import { profilServable, CLE_PROPRIETAIRE } from '../lib/sessionLocale';
 
 const PROFILE_KEY = '@kyroz:profile';
 const LOG_PREFIX = '[kyroz:profil]';
@@ -52,8 +53,27 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!ready) { setLoading(true); return; }
     let alive = true;
-    AsyncStorage.getItem(PROFILE_KEY).then(async (raw) => {
+    // 🔴 LE PROPRIÉTAIRE D'ABORD, LE PROFIL ENSUITE — JAMAIS EN PARALLÈLE. Mesuré au
+    // simulateur le 2026-09-19 : lus ensemble, le profil de A sortait AVANT la purge et le
+    // propriétaire B APRÈS (l'hydratation note B une fois la purge faite) — le profil de
+    // A passait pour celui de B, était servi, puis réécrit. Dans cet ordre, lire B garantit
+    // que la purge est faite ; lire A garantit que rien n'est servi.
+    AsyncStorage.getItem(CLE_PROPRIETAIRE)
+      .then(async (proprietaire) => [await AsyncStorage.getItem(PROFILE_KEY), proprietaire] as const)
+      .then(async ([raw, proprietaire]) => {
       if (!alive) return;
+      // 🔴 (2026-09-19) La déconnexion ne vide plus l'appareil : le profil stocké peut être
+      // celui d'un compte DÉCONNECTÉ. Il n'est servi qu'à son propriétaire, et jamais sans
+      // session — pas même le temps que l'hydratation du compte entrant le purge
+      // (`profilServable`, lib/sessionLocale.ts). Sans ça, B verrait une fraction de
+      // seconde le poids et les cibles de A.
+      let idLocal: unknown = null;
+      try { idLocal = raw ? (JSON.parse(raw) as Partial<UserProfile>)?.id : null; } catch {}
+      if (!profilServable(idLocal, proprietaire, uid)) {
+        if (servedRef.current !== 'null') { servedRef.current = 'null'; setProfile(null); }
+        setLoading(false);
+        return;
+      }
       // fix P3.3 : `sports` fait foi → recale le compteur de séances au chargement,
       // pour que le TDEE ne puisse pas basculer sur un état incohérent hérité.
       // `normalizeGoal` : `cut_aggressive` n'est plus proposé (il servait le même

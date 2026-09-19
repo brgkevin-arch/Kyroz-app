@@ -340,6 +340,95 @@ describe('01-01 (P0) — un compte n’hérite JAMAIS des données du précéden
     }
   });
 
+  // ── 2026-09-19 : la déconnexion ne purge plus, le PROPRIÉTAIRE noté fait foi ────────
+  const PROPRIETAIRE_KEY = '@kyroz:proprietaire';
+
+  it('🔴 A s’inscrit, se déconnecte, B se connecte : rien de A ne monte chez B', async () => {
+    // Le cas que l'`id` du profil ne voit pas : un profil d'inscription garde
+    // `user-<horodatage>`, donc « sans compte » — sans le propriétaire noté, il partait
+    // dans le cloud de B maintenant que la déconnexion ne vide plus l'appareil.
+    await poserToutLeLocal(`user-${1756300000000}`);
+    await markProfileDirty();
+    await AsyncStorage.setItem(PROPRIETAIRE_KEY, 'uid-de-A');
+    state.rows.profiles = null;
+
+    await hydrate('uid-de-B');
+
+    expect(purges).toBe(1);
+    expect(await read(PROFILE_KEY)).toBeNull();
+    for (const table of ['profiles', 'favorites', 'pantry', 'weight_logs', 'recipe_overrides', 'streaks']) {
+      expect(opsOn(table), table).not.toContain('upsert');
+      expect(opsOn(table), table).not.toContain('insert');
+    }
+    expect(await AsyncStorage.getItem(PROPRIETAIRE_KEY)).toBe('uid-de-B');
+  });
+
+  it('🔴 après une purge, l’hydratation S’ARRÊTE et le dit : rien de B n’est tiré dans une app qui a encore A en tête', async () => {
+    await poserToutLeLocal('uid-de-A');
+    await AsyncStorage.setItem(PROPRIETAIRE_KEY, 'uid-de-A');
+    state.uid = 'uid-de-B';
+    state.rows.profiles = cloudRow({ weight_kg: 95 });
+
+    const issue = await hydrate('uid-de-B');
+
+    expect(issue).toBe('purge');
+    expect(purges).toBe(1);
+    expect(await read(PROFILE_KEY)).toBeNull();          // B viendra au redémarrage
+    expect(await AsyncStorage.getItem(PROPRIETAIRE_KEY)).toBe('uid-de-B');
+    // Et l'hydratation d'APRÈS (celle du redémarrage) ne purge plus et tire B.
+    const suite = await hydrate('uid-de-B');
+    expect(suite).toBeUndefined();
+    expect(purges).toBe(1);
+    expect((await read(PROFILE_KEY)).weight_kg).toBe(95);
+  });
+
+  it('A se déconnecte puis se RECONNECTE : tout est là, rien n’est purgé', async () => {
+    await poserToutLeLocal(`user-${1756300000000}`);
+    await AsyncStorage.setItem(PROPRIETAIRE_KEY, 'uid-de-A');
+    state.rows.profiles = null;
+
+    await hydrate('uid-de-A');
+
+    expect(purges).toBe(0);
+    expect((await read(PROFILE_KEY)).weight_kg).toBe(80);
+    expect(await read(FAV_KEY)).toEqual(['rep1', 'rep2']);
+    expect(await AsyncStorage.getItem(PROPRIETAIRE_KEY)).toBe('uid-de-A');
+  });
+
+  it('la première hydratation note le propriétaire (appareil d’avant le 2026-09-19)', async () => {
+    await poserToutLeLocal('uid-de-A');
+    state.rows.profiles = null;
+    expect(await AsyncStorage.getItem(PROPRIETAIRE_KEY)).toBeNull();
+
+    await hydrate('uid-de-A');
+
+    expect(purges).toBe(0);
+    expect(await AsyncStorage.getItem(PROPRIETAIRE_KEY)).toBe('uid-de-A');
+  });
+
+  it('🔴 un stockage ILLISIBLE arrête l’hydratation, sans noter de propriétaire', async () => {
+    // Avant, on continuait : la déconnexion avait tout purgé. Plus maintenant — les
+    // données d'un compte déconnecté peuvent être là. ⚠️ Profil d'INSCRIPTION exprès :
+    // avec un `id` de compte, l'ancienne règle purgerait de toute façon, et ce test
+    // passerait sans rien prouver.
+    await poserToutLeLocal(`user-${1756300000000}`);
+    await markProfileDirty();
+    state.rows.profiles = null;
+    const lire = AsyncStorage.getItem.bind(AsyncStorage);
+    const espion = vi.spyOn(AsyncStorage, 'getItem').mockImplementation(async (k: string) => {
+      if (k === PROPRIETAIRE_KEY) throw new Error('stockage illisible');
+      return lire(k);
+    });
+
+    await hydrate('uid-de-B');
+    espion.mockRestore();
+
+    for (const table of ['profiles', 'favorites', 'pantry', 'weight_logs', 'recipe_overrides', 'streaks']) {
+      expect(opsOn(table), table).not.toContain('upsert');
+    }
+    expect(await AsyncStorage.getItem(PROPRIETAIRE_KEY)).toBeNull();
+  });
+
   it('un profil local ILLISIBLE ne déclenche pas de purge — on ne détruit pas sur une panne', async () => {
     await AsyncStorage.setItem(PROFILE_KEY, '{ ceci n\'est pas du JSON');
     state.rows.profiles = null;

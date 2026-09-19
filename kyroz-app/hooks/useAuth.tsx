@@ -3,7 +3,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { Session } from '@supabase/supabase-js';
 import { supabase, readPersistedSession } from '../lib/supabase';
 import { hydrateFromCloud } from '../lib/sync';
-import { purgerSessionLocale } from '../lib/sessionLocale';
+import { purgerSessionLocale, CLE_PROPRIETAIRE } from '../lib/sessionLocale';
+import { redemarrerApp } from '../lib/redemarrerApp';
 import { EFFETS_PURGE } from '../lib/effetsPurge';
 import { withBudget, AUTH_BUDGET_MS, HYDRATION_BUDGET_MS } from '../lib/boot';
 import { URL_RETOUR_CONFIRMATION, normaliseCode } from '../lib/emailConfirmation';
@@ -129,7 +130,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // une session nulle à chaque démarrage sans compte : purger là-dessus effacerait
       // l'inscription en cours de quelqu'un qui n'a pas encore de compte, à chaque
       // lancement. C'est le même piège que `CA-1-04`, un étage plus haut.
-      if (event === 'SIGNED_OUT') { void purgerSessionLocale(EFFETS_PURGE); }
+      // 🔴 (2026-09-19) PLUS DE PURGE ICI. Une session perdue sans qu'on l'ait demandé
+      // (jeton expiré, rafraîchissement raté hors ligne) effaçait le plan et les photos de
+      // quelqu'un qui n'avait RIEN fait. Les données attendent leur propriétaire ; un
+      // autre compte les fait purger à sa connexion (`hydrateFromCloud`).
       setSession(s);
       setAuthChecked(true);
     });
@@ -143,7 +147,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!uid) { setHydrating(false); return; }
     let alive = true;
     setHydrating(true);
-    const pull = hydrateFromCloud(uid, () => purgerSessionLocale(EFFETS_PURGE)).catch(() => {});
+    // 🔴 (2026-09-19) Un AUTRE compte que celui des données locales vient d'arriver : elles
+    // sont purgées, puis l'app REDÉMARRE — la mémoire, elle, garde encore le prénom, les
+    // pesées et les recettes du précédent (cf. `hydrateFromCloud`). Si le redémarrage ne
+    // part pas, on reprend l'hydratation : le stockage est propre, le propriétaire noté.
+    const purger = () => purgerSessionLocale(EFFETS_PURGE);
+    const pull = hydrateFromCloud(uid, purger)
+      .then(async (issue) => {
+        if (issue !== 'purge') return;
+        if (await redemarrerApp()) return;
+        await hydrateFromCloud(uid, purger);
+      })
+      .catch(() => {});
     // Deux échéances distinctes, à dessein :
     //  - le BUDGET libère l'écran (il ne l'attend de toute façon que s'il n'a
     //    rien à afficher) ;
@@ -376,20 +391,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   /**
-   * Coupe la session **et fait place nette** (constat 01-01 / 01-02, P0).
+   * Coupe la session — et **garde les données de l'appareil** (2026-09-19, décision du
+   * fondateur : « si un plan a été généré et que l'user se déco, il a plus son plan ?
+   * nul un peu »). Elle purgeait tout depuis le constat 01-01 ; se reconnecter faisait
+   * donc perdre la semaine, le suivi du jour et les photos, et rejouait l'accueil.
    *
-   * 🔴 C'ÉTAIT `await supabase.auth.signOut();`, et rien d'autre. La purge vivait chez
-   * UN appelant (`profil.tsx::doLogout`), recopiée et non partagée — donc le troisième
-   * point de déconnexion l'aurait rouverte sans que rien ne rougisse.
-   *
-   * ℹ️ La purge part aussi depuis `onAuthStateChange('SIGNED_OUT')` ci-dessus, et les
-   * deux sont voulues : celle-ci couvre le geste VOLONTAIRE, l'autre couvre les pertes
-   * de session que personne ne demande. Elles se recouvrent, et c'est sans conséquence —
-   * la purge est idempotente.
+   * ⚠️ Ce qui protège un AUTRE compte de ces données, c'est le propriétaire noté sur
+   * l'appareil : on le CONFIRME ici, au nom du compte qui part, avant de couper — au cas
+   * où la déconnexion arriverait avant que l'hydratation l'ait écrit. La purge se fait au
+   * changement de compte (`hydrateFromCloud`), cf. `lib/sessionLocale.ts`.
+   * ⚠️ « Supprimer mon compte » ne passe PAS par ici pour effacer : il vide tout lui-même
+   * (`profil.tsx::doDelete`).
    */
   const signOut = async () => {
+    if (session?.user?.id) {
+      try { await AsyncStorage.setItem(CLE_PROPRIETAIRE, session.user.id); } catch {}
+    }
     await supabase.auth.signOut();
-    await purgerSessionLocale(EFFETS_PURGE);
   };
 
   const value: AuthValue = {

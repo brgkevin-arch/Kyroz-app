@@ -347,17 +347,13 @@ export default function ProfilScreen() {
   // Déconnexion : couper la session NE redirige pas tout seul l'écran déjà monté
   // (expo-router ne re-route que l'index). On navigue donc explicitement vers le login.
   const doLogout = async () => {
-    // ⚠️ **LA PURGE N'EST PLUS ICI, ET C'EST TOUT L'OBJET DU CORRECTIF 01-01 / 01-02.**
-    // Elle vivait dans cet appelant — recopiée à l'identique dans `doDelete` juste en
-    // dessous, jamais partagée — donc `signOut()` ne purgeait rien, et AUCUN autre
-    // chemin de perte de session n'effaçait quoi que ce soit. Elle est devenue une
-    // propriété de `signOut()` (`hooks/useAuth.tsx`), qui la partage désormais avec
-    // l'événement `SIGNED_OUT` : jeton révoqué, mot de passe changé ailleurs, compte
-    // supprimé à distance. Le détail, l'ordre et le pourquoi : `lib/sessionLocale.ts`.
+    // 🔴 (2026-09-19, décision du fondateur) SE DÉCONNECTER NE VIDE PLUS L'APPAREIL.
+    // Plan, suivi du jour, pesées, photos et « déjà vu » attendent la reconnexion ; un
+    // AUTRE compte les fait purger à la sienne (`lib/sessionLocale.ts`, en tête).
+    // ⚠️ Donc plus de `clearProfile()` ici : il SUPPRIMAIT le profil stocké. L'état en
+    // mémoire suit tout seul — le provider relit au changement de session, et ne sert
+    // aucun profil sans session (`profilServable`).
     await signOut();
-    // Reste ici : l'état REACT. Le stockage est vide, mais le profil en mémoire ne
-    // s'efface pas tout seul — et le provider ne relit qu'au changement de compte.
-    await clearProfile();
     router.replace('/(auth)/login');
   };
 
