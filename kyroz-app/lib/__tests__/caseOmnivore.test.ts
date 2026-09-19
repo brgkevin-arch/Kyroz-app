@@ -41,13 +41,13 @@ describe('D36 — la case « Omnivore » change le plan', () => {
     for (const meals of semaines({ dietary_restrictions: ['omnivore'], ...over })) expect(vegPrincipaux(meals)).toBe(0);
   });
 
-  it('avec « Végétal » : au plus 10 % des déjeuners et dîners, soit 1 sur 14 dans la semaine', () => {
+  // 🔴 AMENDÉ le 2026-09-19 (décision fondateur, `docs/2026-09-19-decision-preferences-proteines.md`) :
+  // plus de case « Végétal » pour qui mange de la viande. Ce test garantissait 10 % ; il garantit
+  // désormais qu'un ancien compte qui l'avait cochée ne reçoit AUCUN plat principal végétal.
+  it('« Végétal » coché par un omnivore (ancien compte) : aucun déjeuner ni dîner végétal', () => {
     const regle = regleVegetal(profil({ dietary_restrictions: ['omnivore'], preferred_proteins: ['poulet', 'végétal'] }));
-    expect(regle?.maxSemaine).toBe(1);
-    const toutes = semaines({ dietary_restrictions: ['omnivore'], preferred_proteins: ['poulet', 'végétal'] });
-    for (const meals of toutes) expect(vegPrincipaux(meals)).toBeLessThanOrEqual(1);
-    // La sonde sait dire OUI : le végétal coché est bien servi, pas supprimé.
-    expect(toutes.some((meals) => vegPrincipaux(meals) === 1)).toBe(true);
+    expect(regle?.maxSemaine).toBe(0);
+    for (const meals of semaines({ dietary_restrictions: ['omnivore'], preferred_proteins: ['poulet', 'végétal'] })) expect(vegPrincipaux(meals)).toBe(0);
   });
 
   // 🔴 AMENDÉ le 2026-09-19 (décision fondateur : « un omnivore qui ne coche rien ne doit pas
@@ -59,7 +59,7 @@ describe('D36 — la case « Omnivore » change le plan', () => {
     expect(regleVegetal(profil({ dietary_restrictions: [], preferred_proteins: [] }))?.maxSemaine).toBe(0);
   });
 
-  it('…et « Végétal » sans la case vaut « Végétal » avec la case : 10 %', () => {
+  it('…et « Végétal » sans la case vaut « Végétal » avec la case : zéro', () => {
     const avec = regleVegetal(profil({ dietary_restrictions: ['omnivore'], preferred_proteins: ['végétal'] }));
     const sans = regleVegetal(profil({ dietary_restrictions: [], preferred_proteins: ['végétal'] }));
     expect(sans?.maxSemaine).toBe(avec?.maxSemaine);

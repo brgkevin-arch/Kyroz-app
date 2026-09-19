@@ -8,6 +8,7 @@ import { MIN_KCAL, bankFloorKcal, calculateBMR, neatPal, FAT_MIN_PER_KG_BW, FAT_
 import { exerciseKcalPerWeek, exerciseKcalPerDay } from './sport';
 import { goutAImposer, goutGarantiPour, goutLu, goutRecette, quotaGout, type GoutPreference } from './gout';
 import { feculentsDe, ingredientsDeBase, plafondIngredient, platDuMidi, surLePouce } from './repasHumain';
+import { couchesDeParts, partsCibles, regimeProteines, sorteAViser, sortesDe, type Cible } from './partsProteines';
 import { localStamp } from './weight';
 import { bankedDailyTargets, offsetsForPlan, BankResult } from './calorieBank';
 import { RYTHME_HEBDOMADAIRE_ACTIF } from './featureFlags';
@@ -805,8 +806,6 @@ function vegetalEnRetraitIds(profile: UserProfile): Set<string> {
   return ids;
 }
 
-/** Case « Omnivore » + « Végétal » : part des déjeuners et dîners de la semaine à protéine végétale (D36). */
-export const VEGETAL_OMNIVORE_PART = 0.1;
 /** Pescétarien : au plus un déjeuner ou dîner SANS poisson par jour (œufs et laitages admis). */
 export const PESCE_SANS_POISSON_MAX_JOUR = 1;
 
@@ -860,11 +859,11 @@ export function regleVegetal(profile: UserProfile): RegleVegetal | null {
       const pr = proteinRefsOf(r);
       if (pr.length > 0 && pr.every((x) => vegetalOmni.has(x))) idsOmni.add(r.id);
     }
-    if (!prefs.includes('végétal')) return { ids: idsOmni, maxSemaine: 0, maxJour: 0 };
-    const slots = knownSlots(profile);
-    const principaux = (profile.meals ?? []).filter((id) => slotOrFallback(slots, id).pool === 'meal').length
-      * Math.min(profile.plan_days ?? 7, 7);
-    return { ids: idsOmni, maxSemaine: Math.max(1, Math.round(VEGETAL_OMNIVORE_PART * principaux)), maxJour: 1 };
+    // 🔴 PLUS DE CASE « VÉGÉTAL » POUR QUI MANGE DE LA VIANDE (décision fondateur du 2026-09-19,
+    // `docs/2026-09-19-decision-preferences-proteines.md`) : l'écran ne la propose plus, et un
+    // ancien compte qui l'avait cochée ne reçoit pas davantage de végétal. Les 10 % de D36 sont
+    // retirés ; les plats MIXTES (chili bœuf-haricots) restent permis.
+    return { ids: idsOmni, maxSemaine: 0, maxJour: 0 };
   }
   if (prefs.includes('végétal') || regimes.includes('vegan') || regimes.includes('vegetarian')) return null;
   if (!regimes.includes('pescatarian')) return null;
@@ -1015,6 +1014,17 @@ export function rotationRegistreActive(profile: UserProfile): boolean {
   return !regimes.includes('vegan') && !regimes.includes('vegetarian');
 }
 
+/**
+ * Écart d'ajustement toléré pour tenir une part de protéines (2026-09-19). Un plat de la sorte
+ * visée n'est imposé que s'il s'ajuste presque aussi bien que le meilleur plat propre : sinon
+ * le repas suivant hérite du manque (report de budget) et se retrouve mal calibré — mesuré, la
+ * part sans tolérance faisait passer les repas à drapeau de 38 à 98 sur 18 cas.
+ * Balayé (`scripts/mesure-parts-servies.ts`, 18 cas × 12 profils × 4 semaines) : 0,02 → 28
+ * drapeaux · 0,03 → 23 · **0,04 → 20** · 0,05 → 26 · 0,06 → 38 · 0,1 → 80 — une FALAISE après
+ * 0,05. 0,04 est au creux, pas au bord ; parts tenues à 90 % en moyenne (pire : 52 %).
+ */
+const PART_FIT_TOL = 0.04;
+
 function selectMealAdapted(
   pool: Recipe[],
   target: AdaptTarget,
@@ -1034,7 +1044,8 @@ function selectMealAdapted(
   sportBuckets: RecipeSport[],
   seed: number,
   fiberStrong: boolean,
-  goalDir: number
+  goalDir: number,
+  couchesPart: ((r: Recipe) => boolean)[] = [],
 ): AdaptedChoice {
   const tous: AdaptedChoice[] = pool
     .map((r) => {
@@ -1075,6 +1086,23 @@ function selectMealAdapted(
   for (const exclue of exclusions) {
     const admis = candidates.filter((c) => !exclue(c.recipe));
     if (admis.some(propre) || (admis.length > 0 && !candidates.some(propre))) candidates = admis;
+  }
+  // PART DE PROTÉINES (2026-09-19) : plus STRICTE que les couches ci-dessus, parce que le choix
+  // final se fait ensuite sur la variété et les fibres, qui pouvaient retenir un plat de la
+  // bonne sorte mais MAL calibré — mesuré : 38 → 124 repas à drapeau sur 18 cas. La part ne
+  // garde donc que des plats PROPRES et pas encore servis cette semaine (« autant que possible,
+  // sans répéter ni mal calibrer ») ; s'il n'y en a aucun, elle saute.
+  const meilleurFit = Math.min(...candidates.filter(propre).map((c) => c.score));
+  // Et d'abord une FAMILLE pas encore servie : sans ça, tenir « 40 % de poulet » ramenait
+  // poulet-riz sous deux noms la même semaine — mesuré, quasi-doublons 6,7 → 12,9 %.
+  const familleNeuve = (c: AdaptedChoice) => (familyUsage[families.get(c.recipe.id) ?? ''] ?? 0) === 0;
+  couches: for (const exclue of couchesPart) {
+    const admis = candidates.filter((c) => !exclue(c.recipe) && propre(c)
+      && c.score <= meilleurFit + PART_FIT_TOL
+      && (variety === 'repetitive' || (usage[c.recipe.id] ?? 0) === 0));
+    for (const choix of variety === 'repetitive' ? [admis] : [admis.filter(familleNeuve), admis]) {
+      if (choix.length > 0) { candidates = choix; break couches; }
+    }
   }
   if (variety === 'repetitive') {
     const sousPlafond = candidates.filter((c) => (usage[c.recipe.id] ?? 0) < maxUsageRepetitif);
@@ -1750,6 +1778,14 @@ export function buildLocalPlan(profile: UserProfile, seed: number = 0): MealPlan
   // Reliquat calorique reporté de jour en jour → la semaine converge vers days×cible.
   let weekDeficitKcal = 0;
 
+  // PARTS DE PROTÉINES (décisions du fondateur du 2026-09-19, `lib/partsProteines.ts`) : ce qui
+  // est coché devient une part GARANTIE des déjeuners et dîners, « autant que possible ».
+  const regimePart = regimeProteines(profile.dietary_restrictions ?? []);
+  const repasPrincipauxSemaine = days * daySlots.filter((sl) => sl.pool === 'meal' && !fixedMeals[sl.id]).length;
+  const partsVisees = partsCibles(profile, repasPrincipauxSemaine);
+  const servisParSorte: Partial<Record<Cible, number>> = {};
+  let principauxFaits = 0;
+
   for (let d = 1; d <= days; d++) {
     // Budgets kcal/protéines du jour : reportés de repas en repas → auto-
     // correction du total (compense l'arrondi de la grille de portions ; le
@@ -1865,13 +1901,26 @@ export function buildLocalPlan(profile: UserProfile, seed: number = 0): MealPlan
           veille.same_dish_tomorrow = true;
         }
       }
+      // La part visée : DERNIÈRE couche, après toutes les règles de l'assiette — elle ne
+      // s'applique que s'il reste un plat propre (« autant que possible »). Hors du test du
+      // « même plat » : le dîner d'hier revient tel quel et compte pour ses propres sortes.
+      const cibleProteine = principal && partsVisees ? sorteAViser(partsVisees, servisParSorte, principauxFaits) : null;
+      const couchesPart = cibleProteine ? couchesDeParts(regimePart, cibleProteine) : [];
       const choice = memePlat ?? selectMealAdapted(
         pools[mealType], target, usage, familyUsage, families,
         registreUsage, slot.pool === 'breakfast' && rotationRegistre ? registres : SANS_REGISTRE,
         variety, preferredIds, enRetraitIds, maxUsageRepetitif, goutMatch, goutImpose, exclusions,
         objectives, sportBuckets,
-        seed, fiberStrong, goalDir,
+        seed, fiberStrong, goalDir, couchesPart,
       );
+      if (principal && partsVisees) {
+        const sortes = sortesDe(choice.recipe);
+        let compte = false;
+        for (const s of partsVisees.keys()) if (s !== 'libre' && sortes.has(s)) { servisParSorte[s] = (servisParSorte[s] ?? 0) + 1; compte = true; }
+        // Un plat d'aucune sorte visée (des œufs chez l'omnivore) remplit la part libre.
+        if (!compte) servisParSorte.libre = (servisParSorte.libre ?? 0) + 1;
+        principauxFaits++;
+      }
 
       servisDuJour.add(choice.recipe.id);
       for (const f of feculentsDe(choice.recipe)) feculentsDuJour.add(f);
