@@ -12,7 +12,7 @@ import { planFlags, trackingTarget } from '../lib/tdee';
 import { useWeightLog } from '../hooks/useWeightLog';
 import { useProfile } from '../hooks/useProfile';
 import { pickProgressPhoto, cameraAvailable, PhotoSource, PHOTOS_NOTICE_LOCALE } from '../lib/photos';
-import { todayStamp, localStamp, historiquePesees, HISTORIQUE_MAX, messageApresPesee } from '../lib/weight';
+import { todayStamp, localStamp, historiquePesees, HISTORIQUE_MAX, messageApresPesee, joursDeSaisie, indexAujourdhui } from '../lib/weight';
 import { LocalIcon } from './Icons';
 import { useRouter } from 'expo-router';
 import { usePremium } from '../hooks/usePremium';
@@ -28,11 +28,15 @@ interface Props {
 const frDate = (iso: string) =>
   new Date(iso + 'T00:00:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
 
-// Timeline du sélecteur de date.
-// 🔴 PLUS AUCUN JOUR FUTUR (2026-08-14, grief du fondateur : « la rangée de
-// dates »). Trois cases grisées et intouchables occupaient la moitié du sélecteur :
-// on ne savait pas où taper, et la moitié du contrôle ne servait à rien. On pèse
-// aujourd'hui ou on rattrape un jour passé — jamais demain.
+// Carrousel du sélecteur de date.
+// 🔴 LES JOURS À VENIR AVAIENT ÉTÉ RETIRÉS le 2026-08-14 (grief du fondateur : « la
+// rangée de dates ») — trois cases grisées et INTOUCHABLES occupaient la moitié du
+// sélecteur : on ne savait pas où taper, et la moitié du contrôle ne servait à rien.
+// 🔴 ILS REVIENNENT LE 2026-09-20 (décision fondateur), et la différence est
+// exactement ce que ce grief visait : **une case à venir ramène à aujourd'hui**. Elle
+// n'est plus un mur, elle est un raccourci — et elle donne au carrousel la marge sans
+// laquelle « aujourd'hui au milieu » n'existe pas.
+// ⚠️ On ne PÈSE toujours pas demain : une date future n'est jamais saisissable.
 // ⚠️ Et la rangée est REPLIÉE par défaut : la pesée du jour est le cas de très loin
 // le plus courant, elle n'a pas à coûter un choix de date.
 const CHIP_W = 46;
@@ -138,42 +142,71 @@ export function WeightCheckin({ t, onClose, dragHandlers, sheetScrollProps }: Pr
   const planStatusMsg = (d: string) =>
     messageApresPesee(entries, d, profile?.macro_mode === 'manual', frDate);
 
-  // Timeline du sélecteur de date, de GAUCHE à DROITE (sens chronologique) :
-  //   [passé : tout l'historique … J-1] · [aujourd'hui, au centre] · [futur J+1…J+7 grisé]
-  // → glisser à gauche = remonter le passé ; à droite = aperçu (grisé) du futur.
+  // CARROUSEL DE DATES, dans le SENS DU TEMPS (décision fondateur, 2026-09-20) :
+  //   [le plus ancien … J-1] · [AUJOURD'HUI, au milieu] · [J+1 … J+7, grisés]
+  // → glisser vers la droite = remonter le passé ; vers la gauche = la semaine à venir.
+  //
+  // 🔴 L'ordre d'avant partait d'aujourd'hui et remontait le temps vers la droite
+  // (« Auj. 20 · Sam. 19 · Ven. 18 … »). Il se justifiait par le GESTE — « la case
+  // qu'on veut est déjà sous le pouce » — et il se lisait à l'envers de la courbe
+  // posée juste au-dessus.
+  // ⚠️ **Ce que cet ordre payait ne disparaît pas pour autant** : aujourd'hui n'est
+  // plus la première case, donc sans le centrage ci-dessous le cas le plus courant
+  // (se peser aujourd'hui) deviendrait le plus difficile à atteindre. On aurait
+  // déplacé le défaut au lieu de le corriger.
+  // ⚠️ L'ORDRE ET LA PROFONDEUR vivent dans `joursDeSaisie` (testée) ; ce `useMemo` ne
+  // fait plus que l'habillage — un sens de lecture ne se défend pas dans une boucle de
+  // rendu, il s'y perd à la première refonte.
   const days = useMemo(() => {
-    const mk = (offset: number) => {
-      const d = new Date();
-      d.setHours(0, 0, 0, 0);
-      d.setDate(d.getDate() + offset);
+    const aujourdhui = todayStamp();
+    return joursDeSaisie(entries).map(({ iso, futur }) => {
+      const d = new Date(Date.parse(iso + 'T00:00:00'));
       return {
-        iso: localStamp(d),                                  // heure locale (cohérent avec todayStamp)
+        iso,
+        futur,
         wd: d.toLocaleDateString('fr-FR', { weekday: 'short' }),
         num: d.getDate(),
-        today: offset === 0,
-        future: offset > 0,
+        today: iso === aujourdhui,
       };
-    };
-    // Profondeur du passé : tout l'historique (min 7 j pour laisser de la marge de backfill).
-    let back = 7;
-    if (entries.length) {
-      const first = Date.parse(entries[0].date + 'T00:00:00');
-      const today0 = new Date(); today0.setHours(0, 0, 0, 0);
-      const span = Math.round((today0.getTime() - first) / 86400000);
-      back = Math.min(Math.max(back, span), 400);
-    }
-    const out = [];
-    // AUJOURD'HUI EN PREMIER, puis on remonte le temps. C'est l'ordre dans lequel
-    // on cherche (« aujourd'hui, hier, avant-hier… ») et il rend le centrage
-    // inutile : la case qu'on veut est déjà sous le pouce, à gauche.
-    out.push(mk(0));
-    for (let i = 1; i <= back; i++) out.push(mk(-i));
-    return out;
+    });
   }, [entries]);
 
-  // ⚠️ `stripRef` / `centerOnToday` ont disparu avec le centrage : aujourd'hui est
-  // désormais la PREMIÈRE case, donc il n'y a plus rien à centrer. Du code de
-  // positionnement en moins, c'est un défaut de positionnement en moins.
+  /**
+   * Le carrousel s'ouvre avec AUJOURD'HUI au milieu.
+   *
+   * ⚠️ Il faut DEUX mesures, et c'est pour ça que le calcul vit ici et pas dans un
+   * effet : la largeur du CONTENU (`onContentSizeChange`) dit que les cases sont
+   * posées, la largeur VISIBLE (`onLayout`) dit où est le milieu. Tant que l'une des
+   * deux manque, la destination n'existe pas — un `scrollTo` à ce moment-là n'irait
+   * nulle part, en silence.
+   * ⚠️ `animated: false` : on POSE la vue au bon endroit, on ne joue pas un défilement
+   * que personne n'a demandé.
+   * ⚠️ Et une seule fois PAR OUVERTURE : le contenu se re-mesure à chaque pesée
+   * enregistrée (la profondeur du passé suit l'historique), et re-centrer alors
+   * arracherait l'écran des doigts de quelqu'un qui cherchait une date à gauche.
+   * 🔴 D'où `basculerChoixDate`, et ce n'est pas de la coquetterie : le garde vit dans
+   * un `useRef` du PARENT, qui survit au démontage de la rangée. Laissé tel quel, il
+   * aurait été `true` pour toujours après la première ouverture — donc la DEUXIÈME
+   * ouverture serait repartie tout à gauche, sur une date d'il y a trois mois. Un garde
+   * « une seule fois » doit toujours dire *une seule fois par quoi*.
+   */
+  const stripRef = useRef<ScrollView>(null);
+  const posePremiere = useRef(false);
+  const largeurVisible = useRef(0);
+  const centrerAujourdhui = () => {
+    if (posePremiere.current || !largeurVisible.current) return;
+    const i = indexAujourdhui(days.map(({ iso, futur }) => ({ iso, futur })));
+    // Le centre de la case d'aujourd'hui, ramené au centre de la fenêtre. Le
+    // `ScrollView` borne lui-même les valeurs hors plage, d'où le seul `max(0)`.
+    const x = i * (CHIP_W + CHIP_GAP) + CHIP_W / 2 - largeurVisible.current / 2;
+    posePremiere.current = true;
+    stripRef.current?.scrollTo({ x: Math.max(x, 0), animated: false });
+  };
+  /** Ouvre (ou ferme) la rangée — et réarme le positionnement à chaque ouverture. */
+  const basculerChoixDate = () => setChoixDate((ouverte) => {
+    if (!ouverte) posePremiere.current = false;
+    return !ouverte;
+  });
 
   // Sélectionne une date et préremplit avec la pesée existante de ce jour, le cas échéant.
   const pickDate = (iso: string) => {
@@ -255,23 +288,41 @@ export function WeightCheckin({ t, onClose, dragHandlers, sheetScrollProps }: Pr
             le plus courant, il ne doit rien coûter. Le rattrapage reste à un tap. */}
         <View style={s.dateLigne}>
           <Text style={s.dateTexte}>{date === todayStamp() ? "Aujourd'hui" : frDate(date)}</Text>
-          <Presse onPress={() => setChoixDate((v) => !v)} activeOpacity={OPACITE_PRESSION} style={s.dateBtn} accessibilityRole="button">
+          <Presse onPress={basculerChoixDate} activeOpacity={OPACITE_PRESSION} style={s.dateBtn} accessibilityRole="button">
             <Text style={s.dateBtnTxt}>{choixDate ? 'Fermer' : 'Une autre date'}</Text>
             <Ionicons name={choixDate ? 'chevron-up' : 'chevron-down'} size={Icone.petite} color={t.textSecondary} />
           </Presse>
         </View>
 
         {choixDate && (
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.dateRow}>
+          <ScrollView
+            ref={stripRef}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={s.dateRow}
+            onLayout={(e) => { largeurVisible.current = e.nativeEvent.layout.width; centrerAujourdhui(); }}
+            onContentSizeChange={centrerAujourdhui}
+          >
             {days.map((d) => {
               const on = d.iso === date;
               const has = entries.some((e) => e.date === d.iso);
               return (
                 <Presse
                   key={d.iso}
-                  onPress={() => { pickDate(d.iso); setChoixDate(false); }}
+                  /* 🔴 UNE CASE À VENIR N'EST PAS MORTE — elle RAMÈNE À AUJOURD'HUI
+                     (décision fondateur, 2026-09-20). C'est la différence avec les
+                     cases grisées et intouchables retirées le 2026-08-14 sur son
+                     propre grief (« on ne savait pas où taper ») : ici, taper dans le
+                     futur fait exactement ce qu'on voulait faire — se peser au jour
+                     le plus récent qui existe. On ne pèse toujours pas demain. */
+                  onPress={() => { pickDate(d.futur ? todayStamp() : d.iso); setChoixDate(false); }}
                   activeOpacity={OPACITE_PRESSION}
-                  style={[s.dateChip, { backgroundColor: on ? t.accent : t.card, borderColor: on ? t.accent : t.line }]}
+                  accessibilityLabel={d.futur ? `${d.wd} ${d.num}, à venir : ramène à aujourd'hui` : undefined}
+                  style={[
+                    s.dateChip,
+                    { backgroundColor: on ? t.accent : t.card, borderColor: on ? t.accent : t.line },
+                    d.futur && s.dateChipFuture,
+                  ]}
                 >
                   <Text style={[s.dateWd, { color: on ? t.onAccent : t.textTertiary }]}>{d.today ? 'Auj.' : d.wd}</Text>
                   <Text style={[s.dateNum, { color: on ? t.onAccent : t.textSecondary }]}>{d.num}</Text>

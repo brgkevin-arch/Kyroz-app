@@ -491,6 +491,65 @@ export function messageApresPesee(
   return 'Calories, macros et plan ajustés automatiquement.';
 }
 
+/** Jours à venir montrés (grisés) à droite d'aujourd'hui : une semaine. */
+export const JOURS_A_VENIR = 7;
+
+/** Un jour de la rangée de saisie. `futur` = affiché, mais impossible à peser. */
+export type JourDeSaisie = { iso: string; futur: boolean };
+
+/**
+ * Les jours que la rangée de saisie propose, **dans le sens du temps** : le plus
+ * ancien à gauche, aujourd'hui au milieu, la semaine à venir à droite.
+ *
+ * 🔴 CE SENS EST UNE DÉCISION FONDATEUR (2026-09-20), pas un détail d'affichage : la
+ * rangée partait d'aujourd'hui et remontait le temps vers la droite, ce qui se lisait à
+ * l'envers de la courbe posée juste au-dessus. Elle vit ici, sous test, parce qu'un sens
+ * de lecture se ré-inverse tout seul à la première refonte s'il n'est écrit nulle part.
+ *
+ * 🔴 **ET LES JOURS À VENIR REVIENNENT — après avoir été RETIRÉS le 2026-08-14 sur un
+ * grief du fondateur** (*« trois cases grisées et intouchables occupaient la moitié du
+ * sélecteur : on ne savait pas où taper »*). Ce n'est pas un retour en arrière, et la
+ * différence est exactement ce que ce grief visait : **une case à venir n'est plus
+ * morte**, elle ramène à aujourd'hui (`WeightCheckin`). Elles servent de marge au
+ * carrousel — sans elles, « aujourd'hui au milieu » est impossible : il n'y a rien à
+ * sa droite pour le pousser au centre.
+ * ⚠️ On ne PÈSE toujours pas dans le futur : `futur` n'est jamais une date saisissable.
+ *
+ * ⚠️ La profondeur du passé suit l'historique (minimum 7 jours de marge pour un
+ * rattrapage, plafond 400) : elle n'est pas un réglage, elle est ce que l'utilisateur a
+ * déjà vécu.
+ */
+export function joursDeSaisie(list: WeightEntry[], now: Date = new Date()): JourDeSaisie[] {
+  const minuit = new Date(now);
+  minuit.setHours(0, 0, 0, 0);
+
+  let back = 7;
+  if (list.length) {
+    const premier = Date.parse(list[0].date + 'T00:00:00');
+    const span = Math.round((minuit.getTime() - premier) / 86400000);
+    back = Math.min(Math.max(back, span), 400);
+  }
+
+  const jours: JourDeSaisie[] = [];
+  for (let i = -back; i <= JOURS_A_VENIR; i++) {
+    const d = new Date(minuit);
+    d.setDate(d.getDate() + i);
+    jours.push({ iso: localStamp(d), futur: i > 0 });
+  }
+  return jours;
+}
+
+/**
+ * L'index d'aujourd'hui dans la rangée — la case que le carrousel pose au milieu.
+ *
+ * ⚠️ Cherché par sa DATE, jamais déduit d'un calcul de longueur : « l'avant-dernier
+ * bloc de sept » serait vrai jusqu'au jour où la profondeur change, et faux en silence
+ * ce jour-là — le défilement s'ouvrirait alors sur une date quelconque.
+ */
+export function indexAujourdhui(jours: JourDeSaisie[], today: string = todayStamp()): number {
+  return Math.max(jours.findIndex((j) => j.iso === today), 0);
+}
+
 // Variation entre les deux derniers points (kg). null si < 2 points.
 export function lastDelta(list: WeightEntry[]): number | null {
   if (list.length < 2) return null;

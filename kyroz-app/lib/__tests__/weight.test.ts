@@ -3,7 +3,7 @@ import {
   localStamp, todayStamp, upsertEntry, removeEntry, latest, checkinDue, lastDelta,
   loadWeights, saveWeights, frequencyDays, nextWeighInAt, WEIGH_IN_INTERVALS, WeightEntry,
   weighInSchedule, WEIGH_IN_AHEAD, WEIGH_IN_HOUR, historiquePesees, HISTORIQUE_MAX,
-  echeancePesee, weighInDayOf, weighInResume, JOURS_PESEE, WEIGH_IN_LABELS, recalageDuProfil, messageApresPesee,
+  echeancePesee, weighInDayOf, weighInResume, JOURS_PESEE, WEIGH_IN_LABELS, recalageDuProfil, messageApresPesee, joursDeSaisie, indexAujourdhui, JOURS_A_VENIR,
 } from '../weight';
 import { WeighInDay } from '../types';
 
@@ -151,6 +151,63 @@ describe('messageApresPesee', () => {
         expect(messageApresPesee(historique, d, manuel)).not.toMatch(/ne suit que/);
       }
     }
+  });
+});
+
+// ── Le carrousel de dates ───────────────────────────────────────────────────
+//
+// 🔴 CE QUE CES CAS TIENNENT, C'EST UN SENS DE LECTURE — et un sens de lecture est
+// exactement ce qui se ré-inverse tout seul à la première refonte. Décision fondateur
+// du 2026-09-20 : le temps va de la gauche vers la droite, aujourd'hui au milieu, la
+// semaine à venir grisée à sa droite.
+describe('joursDeSaisie', () => {
+  const now = new Date(2026, 8, 20, 10, 0, 0);            // dimanche 20 septembre
+  const pesee = (date: string, weight_kg = 80): WeightEntry => ({ date, weight_kg });
+
+  it('va du plus ancien vers le futur, jamais l’inverse', () => {
+    const jours = joursDeSaisie([], now).map((j) => j.iso);
+    expect(jours).toEqual([...jours].sort());              // strictement croissant
+    expect(jours[0] < jours[jours.length - 1]).toBe(true);
+  });
+
+  it('aujourd’hui est au milieu : autant de marge à venir que la constante le dit', () => {
+    const jours = joursDeSaisie([pesee('2026-08-02')], now);
+    const i = indexAujourdhui(jours, '2026-09-20');
+    expect(jours[i].iso).toBe('2026-09-20');
+    expect(jours.length - 1 - i).toBe(JOURS_A_VENIR);
+  });
+
+  it('les jours à venir sont marqués — et eux seuls', () => {
+    const jours = joursDeSaisie([], now);
+    expect(jours.filter((j) => j.futur).map((j) => j.iso))
+      .toEqual(['2026-09-21', '2026-09-22', '2026-09-23', '2026-09-24', '2026-09-25', '2026-09-26', '2026-09-27']);
+    expect(jours.find((j) => j.iso === '2026-09-20')!.futur).toBe(false);
+  });
+
+  it('la profondeur du passé suit l’historique (et jamais moins de 7 jours)', () => {
+    const court = joursDeSaisie([], now);
+    expect(court.filter((j) => !j.futur)).toHaveLength(8);           // J-7 … aujourd'hui
+    const long = joursDeSaisie([pesee('2026-08-02')], now);
+    expect(long[0].iso).toBe('2026-08-02');                          // remonte à la 1ʳᵉ pesée
+  });
+
+  it('plafonnée à 400 jours — une rangée n’a pas à remonter à l’infini', () => {
+    const jours = joursDeSaisie([pesee('2020-01-01')], now);
+    expect(jours.filter((j) => !j.futur)).toHaveLength(401);
+  });
+
+  // 🔴 L'index NE SE DÉDUIT PAS D'UN CALCUL DE LONGUEUR. « L'avant-dernier bloc de
+  // sept » serait vrai jusqu'au jour où la profondeur change, et faux en silence ce
+  // jour-là : le carrousel s'ouvrirait alors sur une date quelconque.
+  it('indexAujourdhui trouve la case par sa DATE, quelle que soit la profondeur', () => {
+    for (const debut of ['2026-09-19', '2026-08-02', '2020-01-01']) {
+      const jours = joursDeSaisie([pesee(debut)], now);
+      expect(jours[indexAujourdhui(jours, '2026-09-20')].iso).toBe('2026-09-20');
+    }
+  });
+
+  it('une date absente ne renvoie pas −1 (le défilement partirait dans le décor)', () => {
+    expect(indexAujourdhui(joursDeSaisie([], now), '1999-01-01')).toBe(0);
   });
 });
 
