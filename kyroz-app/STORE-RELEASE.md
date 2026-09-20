@@ -219,7 +219,19 @@ installation neuve part du binaire, donc du (6).
   encore `0639ecc` après la compilation, 0 PR ouverte — le piège du 11 août ne s'est pas
   rejoué). *(Le précédent :)* le **(6)** — `ceec1b17`, commit
   `1047b9f`, terminé le 2026-08-11 à 20 h 37. Il a **62 commits de retard** sur `main` — chiffre RE-MESURÉ le 2026-08-26 (il en annonçait 40, mesurés le 2026-08-23), qui **grandit à chaque merge** : le relire avec `git rev-list --count 1047b9f..origin/main` plutôt que de le recopier (même défaut que le décompte d'OTA tenu à la main).
-- **OTA** : la dernière est la **48ᵉ** (groupe `fada0bb6`, **iOS seulement**, 2026-09-19),
+- **OTA** : la dernière est la **49ᵉ** (groupe `044b483c`, **iOS seulement**, 2026-09-21),
+  publiée sur le commit `229318d` — `main`, arbre propre, détaché sur `origin/main`.
+  ✅ **Runtime iOS `823c89db…` = le build (22)**, empreinte comparée AVANT publication.
+  Contenu : le **jour de pesée se choisit** et la cadence « Jour » est retirée (#334) ; le
+  moteur suit la **pesée la plus récente** et non « celle du jour » — des macros calculées
+  sur un poids de trois semaines (#335) ; la **refonte du suivi du poids** (zone retirée de
+  la courbe, objectif daté fusionné dans la carte, cinq chapitres au même niveau, #336).
+  Pas d'`ENGINE_VERSION` : le moteur de plan ne change pas, seules les cibles suivent le
+  poids réel. **Témoins du bundle publié** : Supabase prod 1 · hôte factice du worktree 0 ·
+  `recalageDuProfil` 1 · « Infos » 1 · « SUIVI DU POIDS » 0 · témoin inventé 0.
+  ⚠️ **La migration `weigh_in_day` était jouée AVANT la publication** (fondateur, 2026-09-20) :
+  sans elle, `PROFILE_COLS` aurait fait rejeter l'upsert du profil ENTIER.
+  *(La précédente :)* la **48ᵉ** (groupe `fada0bb6`, **iOS seulement**, 2026-09-19),
   publiée sur le commit `8ac55fe` — `main`, arbre propre, détaché sur `origin/main`.
   ✅ **Runtime iOS `823c89db…` = le build (22)**, empreinte comparée AVANT publication.
   Contenu : la **série (streak) retirée** de l'app — pastille des en-têtes Plan et Profil,
