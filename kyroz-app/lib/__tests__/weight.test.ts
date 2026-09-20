@@ -3,7 +3,7 @@ import {
   localStamp, todayStamp, upsertEntry, removeEntry, latest, checkinDue, lastDelta,
   loadWeights, saveWeights, frequencyDays, nextWeighInAt, WEIGH_IN_INTERVALS, WeightEntry,
   weighInSchedule, WEIGH_IN_AHEAD, WEIGH_IN_HOUR, historiquePesees, HISTORIQUE_MAX,
-  echeancePesee, weighInDayOf, weighInResume, JOURS_PESEE, WEIGH_IN_LABELS,
+  echeancePesee, weighInDayOf, weighInResume, JOURS_PESEE, WEIGH_IN_LABELS, recalageDuProfil, messageApresPesee,
 } from '../weight';
 import { WeighInDay } from '../types';
 
@@ -54,6 +54,103 @@ describe('latest / lastDelta', () => {
     expect(lastDelta([])).toBeNull();
     const list = upsertEntry(upsertEntry([], 80, day(-7)), 79.65, day(0));
     expect(lastDelta(list)).toBe(-0.3);
+  });
+});
+
+// ── Le poids servi doit être celui de la dernière pesée ─────────────────────
+//
+// 🔴 LE DÉFAUT SIGNALÉ PAR LE FONDATEUR LE 2026-09-20 : profil à 85 kg, deux pesées
+// RATTRAPÉES (84 le 12 septembre, 83 le 19) — la carte affichait « 85 kg » au-dessus
+// d'une courbe qui finit à 83, et **les macros tournaient sur 85**. La règle fautive
+// était `date === todayStamp()` : elle confondait « la plus récente » et « celle
+// d'aujourd'hui ».
+describe('recalageDuProfil', () => {
+  const pesee = (date: string, weight_kg: number): WeightEntry => ({ date, weight_kg });
+
+  // Le cas EXACT de la capture : les deux pesées sont dans le passé, aucune n'est
+  // « du jour », et pourtant le poids à servir est 83 — pas 85.
+  it('le cas du fondateur : deux pesées rattrapées, le profil doit valoir 83', () => {
+    const historique = [pesee('2026-09-12', 84), pesee('2026-09-19', 83)];
+    expect(recalageDuProfil(historique, 85)).toBe(83);
+  });
+
+  it('rien à changer quand le profil est déjà d’accord avec la dernière pesée', () => {
+    expect(recalageDuProfil([pesee('2026-09-19', 83)], 83)).toBeNull();
+  });
+
+  // 🔴 CE QUE L'ANCIENNE RÈGLE PROTÉGEAIT, ET QUI DOIT SURVIVRE. Rattraper une pesée
+  // du 3 août ne doit pas ramener le moteur à un poids de six semaines : elle n'est
+  // pas le dernier point, donc elle ne décide de rien.
+  it('une pesée ANCIENNE rattrapée ne change rien — l’intention d’origine tient', () => {
+    const historique = [pesee('2026-08-03', 90), pesee('2026-09-19', 83)];
+    expect(recalageDuProfil(historique, 83)).toBeNull();
+  });
+
+  it('une pesée d’HIER, elle, décide — c’est toute la différence', () => {
+    expect(recalageDuProfil([pesee('2026-09-19', 83)], 85)).toBe(83);
+  });
+
+  it('historique vide : on ne touche à rien (c’est le semis qui le remplit)', () => {
+    expect(recalageDuProfil([], 85)).toBeNull();
+  });
+
+  // Supprimer la dernière pesée RENVOIE au poids d'avant : sans ça, effacer une
+  // saisie erronée de 95 kg laissait le moteur servir 95 kg indéfiniment.
+  it('après suppression du dernier point, le poids d’avant reprend la main', () => {
+    const apres = removeEntry([pesee('2026-09-12', 84), pesee('2026-09-19', 95)], '2026-09-19');
+    expect(recalageDuProfil(apres, 95)).toBe(84);
+  });
+
+  it('ne se laisse pas tromper par l’ordre d’écriture (la liste est triée par date)', () => {
+    let list: WeightEntry[] = [];
+    list = upsertEntry(list, 83, '2026-09-19');
+    list = upsertEntry(list, 84, '2026-09-12');   // rattrapage écrit APRÈS
+    expect(recalageDuProfil(list, 85)).toBe(83);  // la plus RÉCENTE, pas la dernière écrite
+  });
+
+  it('une correction de la pesée du jour se répercute (le même jour s’écrase)', () => {
+    let list = upsertEntry([pesee('2026-09-19', 83)], 82, '2026-09-20');
+    expect(recalageDuProfil(list, 83)).toBe(82);
+    list = upsertEntry(list, 82.5, '2026-09-20');   // on se repèse, même jour
+    expect(recalageDuProfil(list, 82)).toBe(82.5);
+  });
+});
+
+// 🔴 LA PHRASE DOIT SUIVRE LA RÈGLE, SINON ELLE LA CONTREDIT. L'écran annonçait
+// « Le plan ne suit que ta pesée du jour » : c'était vrai avant le 2026-09-20, et
+// ça devenait le mensonge INVERSE de celui qu'on venait de corriger — un écran qui
+// jure que rien n'a bougé pendant que les macros, elles, ont changé.
+describe('messageApresPesee', () => {
+  const pesee = (date: string, weight_kg: number): WeightEntry => ({ date, weight_kg });
+  const historique = [pesee('2026-09-12', 84), pesee('2026-09-19', 83)];
+
+  it('pesée la plus récente → le plan a bougé, et on le dit', () => {
+    expect(messageApresPesee(historique, '2026-09-19', false))
+      .toBe('Calories, macros et plan ajustés automatiquement.');
+  });
+
+  it('pesée plus ancienne → on nomme celle que le plan suit, au lieu de parler « du jour »', () => {
+    const msg = messageApresPesee(historique, '2026-09-12', false, () => '19 sept.');
+    expect(msg).toBe('Ajouté à ton historique. Ton plan suit ta pesée la plus récente (19 sept.).');
+    expect(msg).not.toContain('du jour');
+  });
+
+  it('macros manuelles : le plan garde les cibles fixées, et ça reste vrai', () => {
+    expect(messageApresPesee(historique, '2026-09-19', true)).toContain('mode manuel');
+  });
+
+  it('première pesée (historique réduit à elle) : le plan suit', () => {
+    expect(messageApresPesee([pesee('2026-09-20', 82)], '2026-09-20', false))
+      .toBe('Calories, macros et plan ajustés automatiquement.');
+  });
+
+  // Le garde-fou qui empêche la phrase de revenir en arrière, quelle que soit sa forme.
+  it('aucun cas ne promet plus que « seule la pesée du jour » compte', () => {
+    for (const d of ['2026-09-12', '2026-09-19']) {
+      for (const manuel of [true, false]) {
+        expect(messageApresPesee(historique, d, manuel)).not.toMatch(/ne suit que/);
+      }
+    }
   });
 });
 

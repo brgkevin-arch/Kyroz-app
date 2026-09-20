@@ -422,6 +422,75 @@ export function historiquePesees(list: WeightEntry[], max: number = HISTORIQUE_M
   });
 }
 
+// ── LE PROFIL SUIT LA PESÉE LA PLUS RÉCENTE — PAS CELLE D'AUJOURD'HUI ────────
+//
+// 🔴 LE DÉFAUT, SIGNALÉ PAR LE FONDATEUR LE 2026-09-20, CAPTURE À L'APPUI.
+// Profil à 85 kg, puis deux pesées rattrapées — 84 le 12 septembre, 83 le 19. Ce
+// qu'il avait sous les yeux : **« 85 kg » en gros**, juste au-dessus de « −1 kg
+// depuis la pesée précédente » et d'une courbe qui finit à **83**. La même carte
+// annonçait deux poids différents.
+// Et le pire n'était pas à l'écran : **ses macros tournaient sur 85 kg**. Il en est
+// sorti en devinant tout seul qu'il fallait re-saisir une pesée datée d'aujourd'hui.
+//
+// **La cause était une règle écrite exprès**, dans `useWeightLog::logWeight` : *« SEULE
+// la pesée d'AUJOURD'HUI pilote le profil → macros → plan ; un jour passé (backfill)
+// n'alimente que l'historique »*. Son intention est juste — rattraper une pesée du
+// 3 août ne doit pas écraser le poids d'aujourd'hui — mais elle confond deux choses :
+// **« la plus récente » et « celle du jour »**. Une pesée d'hier est la plus récente
+// de l'historique ; elle n'est simplement pas d'aujourd'hui.
+//
+// ➡️ La règle devient : **le profil porte toujours le poids du dernier point de
+// l'historique.** L'intention d'origine est PRÉSERVÉE sans condition de date — une
+// pesée ancienne n'est pas le dernier point, donc elle ne change rien.
+//
+// ⚠️ **Cet invariant n'est tenable que parce que la pesée est la SEULE porte d'entrée
+// du poids** : l'éditeur « Informations » ne le saisit plus depuis le 2026-08-14
+// (`wN = profile.weight_kg`, il renvoie vers la feuille de pesée), et l'onboarding est
+// suivi du semis d'un premier point. Si un jour un écran réécrit `weight_kg` sans
+// écrire de pesée, il le perdra au prochain chargement — c'est ce commentaire-ci qu'il
+// faudra rouvrir, pas cette fonction.
+
+/**
+ * Le poids que le PROFIL doit porter au vu de l'historique — ou `null` quand il n'y
+ * a rien à changer.
+ *
+ * Volontairement AVEUGLE aux dates : `latest` tranche déjà, et une deuxième notion
+ * de « récent » ici rouvrirait exactement la confusion qu'on vient de fermer.
+ */
+export function recalageDuProfil(list: WeightEntry[], profileWeightKg: number): number | null {
+  const derniere = latest(list);
+  // Aucun point : on ne touche à rien. Un historique vide n'est pas une information
+  // sur le poids — et c'est le SEMIS (`useWeightLog`) qui le remplit dans ce cas.
+  if (!derniere) return null;
+  return derniere.weight_kg === profileWeightKg ? null : derniere.weight_kg;
+}
+
+/**
+ * Ce que l'écran annonce après l'enregistrement d'une pesée.
+ *
+ * 🔴 SORTI DU COMPOSANT LE 2026-09-20 pour qu'un test le COMPTE. Sa version d'avant
+ * disait *« Le plan ne suit que ta pesée du jour »* — vrai quand seule la pesée du
+ * jour pilotait le moteur, **faux depuis que le profil suit la plus récente**. Une
+ * phrase qui décrit une règle doit vivre à côté de la règle : à deux fichiers de
+ * distance, elle survit au changement qu'elle était censée expliquer.
+ *
+ * `dateLisible` est injectée parce que le formatage humain appartient à l'écran ;
+ * la DÉCISION, elle, appartient ici.
+ */
+export function messageApresPesee(
+  list: WeightEntry[],
+  date: string,
+  macroManuel: boolean,
+  dateLisible: (iso: string) => string = (iso) => iso,
+): string {
+  const derniere = latest(list);
+  if (derniere && derniere.date !== date) {
+    return `Ajouté à ton historique. Ton plan suit ta pesée la plus récente (${dateLisible(derniere.date)}).`;
+  }
+  if (macroManuel) return 'Macros en mode manuel : le plan garde tes cibles fixées (modifiable dans Profil).';
+  return 'Calories, macros et plan ajustés automatiquement.';
+}
+
 // Variation entre les deux derniers points (kg). null si < 2 points.
 export function lastDelta(list: WeightEntry[]): number | null {
   if (list.length < 2) return null;

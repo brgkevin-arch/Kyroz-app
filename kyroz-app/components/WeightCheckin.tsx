@@ -12,7 +12,7 @@ import { planFlags, trackingTarget } from '../lib/tdee';
 import { useWeightLog } from '../hooks/useWeightLog';
 import { useProfile } from '../hooks/useProfile';
 import { pickProgressPhoto, cameraAvailable, PhotoSource, PHOTOS_NOTICE_LOCALE } from '../lib/photos';
-import { todayStamp, localStamp, historiquePesees, HISTORIQUE_MAX } from '../lib/weight';
+import { todayStamp, localStamp, historiquePesees, HISTORIQUE_MAX, messageApresPesee } from '../lib/weight';
 import { LocalIcon } from './Icons';
 import { useRouter } from 'expo-router';
 import { usePremium } from '../hooks/usePremium';
@@ -126,11 +126,17 @@ export function WeightCheckin({ t, onClose, dragHandlers, sheetScrollProps }: Pr
   const suiviAffiche = transfoOk ? suiviTarget : undefined;
 
   // Message honnête : explique si (et pourquoi) le plan a été ajusté.
-  const planStatusMsg = (d: string) => {
-    if (d !== todayStamp()) return 'Ajouté à ton historique. Le plan ne suit que ta pesée du jour.';
-    if (profile?.macro_mode === 'manual') return 'Macros en mode manuel : le plan garde tes cibles fixées (modifiable dans Profil).';
-    return 'Calories, macros et plan ajustés automatiquement.';
-  };
+  //
+  // 🔴 IL DISAIT « Le plan ne suit que ta pesée du jour », ET C'EST DEVENU FAUX LE
+  // 2026-09-20. Le plan suit la pesée la plus RÉCENTE — donc une pesée rattrapée hier
+  // ajuste bel et bien les macros. Laisser la phrase d'avant aurait produit le défaut
+  // exactement inverse de celui qu'on vient de corriger : un écran qui annonce que
+  // rien n'a bougé pendant que le moteur, lui, a changé de cible.
+  // ⚠️ Le test porte sur « est-ce le point le plus récent ? », jamais sur la date du
+  // jour : c'est la même règle que `recalageDuProfil`, et deux formulations de la même
+  // règle finissent toujours par diverger.
+  const planStatusMsg = (d: string) =>
+    messageApresPesee(entries, d, profile?.macro_mode === 'manual', frDate);
 
   // Timeline du sélecteur de date, de GAUCHE à DROITE (sens chronologique) :
   //   [passé : tout l'historique … J-1] · [aujourd'hui, au centre] · [futur J+1…J+7 grisé]
