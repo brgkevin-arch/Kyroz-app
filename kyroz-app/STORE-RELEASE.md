@@ -230,9 +230,12 @@ installation neuve part du binaire, donc du (6).
   ✅ **Migration `2026-09-19_drop_streaks.sql` JOUÉE le 2026-09-20**, après l'OTA : la table
   `streaks` n'existe plus, l'inscription est intacte (preuves :
   `supabase/JOURNAL-MIGRATIONS.md`).
-  ⚠️ **Reste** : la page légale publique `kyroz.app/legal.html` (dépôt `kyroz-site`,
-  `KYROZ_SITE=<clone> npm run gen:legal`) — la politique et les CGU servies dans l'app ne
-  parlent plus de série depuis cette OTA.
+  ✅ **Page légale publique régénérée le 2026-09-20** (`kyroz-site` #18) : `kyroz.app/legal.html`
+  est datée du 19 septembre et ne parle plus de série — page SERVIE relue, pas seulement
+  déployée. Les trois surfaces (app, dépôt, site) disent donc la même chose.
+  ⚠️ **Reste, et seulement à la prochaine soumission** : la description App Store annonce
+  toujours « Suivi de série pour tenir le rythme », et les captures du Plan et du Profil
+  montrent la pastille.
   *(La précédente :)* la **47ᵉ** (groupe `7e852979`, **iOS seulement**, 2026-09-19),
   publiée sur le commit `ce7dfd8` — `main`, arbre propre.
   ✅ **Runtime iOS `823c89db…` = le build (22)**, empreinte comparée AVANT publication.
