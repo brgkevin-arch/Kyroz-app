@@ -422,6 +422,134 @@ export function historiquePesees(list: WeightEntry[], max: number = HISTORIQUE_M
   });
 }
 
+// ── LE PROFIL SUIT LA PESÉE LA PLUS RÉCENTE — PAS CELLE D'AUJOURD'HUI ────────
+//
+// 🔴 LE DÉFAUT, SIGNALÉ PAR LE FONDATEUR LE 2026-09-20, CAPTURE À L'APPUI.
+// Profil à 85 kg, puis deux pesées rattrapées — 84 le 12 septembre, 83 le 19. Ce
+// qu'il avait sous les yeux : **« 85 kg » en gros**, juste au-dessus de « −1 kg
+// depuis la pesée précédente » et d'une courbe qui finit à **83**. La même carte
+// annonçait deux poids différents.
+// Et le pire n'était pas à l'écran : **ses macros tournaient sur 85 kg**. Il en est
+// sorti en devinant tout seul qu'il fallait re-saisir une pesée datée d'aujourd'hui.
+//
+// **La cause était une règle écrite exprès**, dans `useWeightLog::logWeight` : *« SEULE
+// la pesée d'AUJOURD'HUI pilote le profil → macros → plan ; un jour passé (backfill)
+// n'alimente que l'historique »*. Son intention est juste — rattraper une pesée du
+// 3 août ne doit pas écraser le poids d'aujourd'hui — mais elle confond deux choses :
+// **« la plus récente » et « celle du jour »**. Une pesée d'hier est la plus récente
+// de l'historique ; elle n'est simplement pas d'aujourd'hui.
+//
+// ➡️ La règle devient : **le profil porte toujours le poids du dernier point de
+// l'historique.** L'intention d'origine est PRÉSERVÉE sans condition de date — une
+// pesée ancienne n'est pas le dernier point, donc elle ne change rien.
+//
+// ⚠️ **Cet invariant n'est tenable que parce que la pesée est la SEULE porte d'entrée
+// du poids** : l'éditeur « Informations » ne le saisit plus depuis le 2026-08-14
+// (`wN = profile.weight_kg`, il renvoie vers la feuille de pesée), et l'onboarding est
+// suivi du semis d'un premier point. Si un jour un écran réécrit `weight_kg` sans
+// écrire de pesée, il le perdra au prochain chargement — c'est ce commentaire-ci qu'il
+// faudra rouvrir, pas cette fonction.
+
+/**
+ * Le poids que le PROFIL doit porter au vu de l'historique — ou `null` quand il n'y
+ * a rien à changer.
+ *
+ * Volontairement AVEUGLE aux dates : `latest` tranche déjà, et une deuxième notion
+ * de « récent » ici rouvrirait exactement la confusion qu'on vient de fermer.
+ */
+export function recalageDuProfil(list: WeightEntry[], profileWeightKg: number): number | null {
+  const derniere = latest(list);
+  // Aucun point : on ne touche à rien. Un historique vide n'est pas une information
+  // sur le poids — et c'est le SEMIS (`useWeightLog`) qui le remplit dans ce cas.
+  if (!derniere) return null;
+  return derniere.weight_kg === profileWeightKg ? null : derniere.weight_kg;
+}
+
+/**
+ * Ce que l'écran annonce après l'enregistrement d'une pesée.
+ *
+ * 🔴 SORTI DU COMPOSANT LE 2026-09-20 pour qu'un test le COMPTE. Sa version d'avant
+ * disait *« Le plan ne suit que ta pesée du jour »* — vrai quand seule la pesée du
+ * jour pilotait le moteur, **faux depuis que le profil suit la plus récente**. Une
+ * phrase qui décrit une règle doit vivre à côté de la règle : à deux fichiers de
+ * distance, elle survit au changement qu'elle était censée expliquer.
+ *
+ * `dateLisible` est injectée parce que le formatage humain appartient à l'écran ;
+ * la DÉCISION, elle, appartient ici.
+ */
+export function messageApresPesee(
+  list: WeightEntry[],
+  date: string,
+  macroManuel: boolean,
+  dateLisible: (iso: string) => string = (iso) => iso,
+): string {
+  const derniere = latest(list);
+  if (derniere && derniere.date !== date) {
+    return `Ajouté à ton historique. Ton plan suit ta pesée la plus récente (${dateLisible(derniere.date)}).`;
+  }
+  if (macroManuel) return 'Macros en mode manuel : le plan garde tes cibles fixées (modifiable dans Profil).';
+  return 'Calories, macros et plan ajustés automatiquement.';
+}
+
+/** Jours à venir montrés (grisés) à droite d'aujourd'hui : une semaine. */
+export const JOURS_A_VENIR = 7;
+
+/** Un jour de la rangée de saisie. `futur` = affiché, mais impossible à peser. */
+export type JourDeSaisie = { iso: string; futur: boolean };
+
+/**
+ * Les jours que la rangée de saisie propose, **dans le sens du temps** : le plus
+ * ancien à gauche, aujourd'hui au milieu, la semaine à venir à droite.
+ *
+ * 🔴 CE SENS EST UNE DÉCISION FONDATEUR (2026-09-20), pas un détail d'affichage : la
+ * rangée partait d'aujourd'hui et remontait le temps vers la droite, ce qui se lisait à
+ * l'envers de la courbe posée juste au-dessus. Elle vit ici, sous test, parce qu'un sens
+ * de lecture se ré-inverse tout seul à la première refonte s'il n'est écrit nulle part.
+ *
+ * 🔴 **ET LES JOURS À VENIR REVIENNENT — après avoir été RETIRÉS le 2026-08-14 sur un
+ * grief du fondateur** (*« trois cases grisées et intouchables occupaient la moitié du
+ * sélecteur : on ne savait pas où taper »*). Ce n'est pas un retour en arrière, et la
+ * différence est exactement ce que ce grief visait : **une case à venir n'est plus
+ * morte**, elle ramène à aujourd'hui (`WeightCheckin`). Elles servent de marge au
+ * carrousel — sans elles, « aujourd'hui au milieu » est impossible : il n'y a rien à
+ * sa droite pour le pousser au centre.
+ * ⚠️ On ne PÈSE toujours pas dans le futur : `futur` n'est jamais une date saisissable.
+ *
+ * ⚠️ La profondeur du passé suit l'historique (minimum 7 jours de marge pour un
+ * rattrapage, plafond 400) : elle n'est pas un réglage, elle est ce que l'utilisateur a
+ * déjà vécu.
+ */
+export function joursDeSaisie(list: WeightEntry[], now: Date = new Date()): JourDeSaisie[] {
+  const minuit = new Date(now);
+  minuit.setHours(0, 0, 0, 0);
+
+  let back = 7;
+  if (list.length) {
+    const premier = Date.parse(list[0].date + 'T00:00:00');
+    const span = Math.round((minuit.getTime() - premier) / 86400000);
+    back = Math.min(Math.max(back, span), 400);
+  }
+
+  const jours: JourDeSaisie[] = [];
+  for (let i = -back; i <= JOURS_A_VENIR; i++) {
+    const d = new Date(minuit);
+    d.setDate(d.getDate() + i);
+    jours.push({ iso: localStamp(d), futur: i > 0 });
+  }
+  return jours;
+}
+
+/**
+ * L'index d'aujourd'hui dans la rangée — la case que le carrousel pose au milieu.
+ *
+ * ⚠️ Cherché par sa DATE, jamais déduit d'un calcul de longueur : « l'avant-dernier
+ * bloc de sept » serait vrai jusqu'au jour où la profondeur change, et faux en silence
+ * ce jour-là — le défilement s'ouvrirait alors sur une date quelconque.
+ */
+export function indexAujourdhui(jours: JourDeSaisie[], today: string = todayStamp()): number {
+  return Math.max(jours.findIndex((j) => j.iso === today), 0);
+}
+
 // Variation entre les deux derniers points (kg). null si < 2 points.
 export function lastDelta(list: WeightEntry[]): number | null {
   if (list.length < 2) return null;

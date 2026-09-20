@@ -3361,9 +3361,18 @@ téléphone.
   continuait d'annoncer « encore une pesée et ta courbe apparaît ici ».
   ⚠️ **Il ne se voyait que sur un BACKFILL** : une pesée du JOUR modifie
   `profile.weight_kg`, donc l'effet du hook se redéclenchait par la bande et tout
-  paraissait sain. Une pesée d'un jour passé ne touche pas le profil, à dessein —
+  paraissait sain. Une pesée d'un jour passé ne touchait pas le profil, à dessein —
   et là plus rien ne rafraîchissait rien. Encore un défaut dormant que le chemin
   courant masquait. ➡️ Compté depuis par `lib/__tests__/diffusion.test.ts`.
+  🔴 **ET CE « À DESSEIN » ÉTAIT LUI-MÊME LE DÉFAUT SUIVANT — corrigé le 2026-09-20**
+  (AGENTS.md **E71**). La règle « seule la pesée d'AUJOURD'HUI pilote le profil »
+  confondait *la plus récente* et *celle du jour* : deux pesées rattrapées la veille
+  laissaient le moteur servir un poids de trois semaines, et l'écran afficher « 85 kg »
+  au-dessus d'une courbe finissant à 83. Le profil suit désormais le DERNIER point de
+  l'historique (`lib/weight.ts::recalageDuProfil`).
+  ⚠️ Ce qu'il faut en retenir pour la suite : **ce passage-ci citait la règle fautive
+  comme un acquis**, deux fois, dans un commentaire qui parlait d'autre chose. Une règle
+  discutable se propage dans la doc des voisins et s'y durcit en évidence.
 
   🔴 **ET CE N'EST PAS QUE LA VALEUR — UN EFFET DE BORD ACCROCHÉ À UN ÉCRAN TOMBE
   PAREIL, EN PIRE** (2026-08-09, E24, signalé par le fondateur : « la notification de
