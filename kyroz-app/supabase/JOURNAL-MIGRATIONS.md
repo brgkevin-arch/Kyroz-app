@@ -51,6 +51,43 @@ schéma qui les porte déjà. À décider, pas à improviser.
 
 ## État vérifié
 
+### 2026-09-20 — ✅ `drop_streaks` jouée : la table `streaks` n'existe plus
+
+`2026-09-19_drop_streaks.sql`, jouée par le fondateur dans le SQL Editor le
+**2026-09-20**, APRÈS la publication de la 48ᵉ OTA — l'ordre imposé pour un RETRAIT
+(l'inverse d'un ajout de colonne) : le code cesse d'abord de lire la table, on la
+supprime ensuite. Retrait de la série, décision fondateur du 2026-09-19 (AGENTS.md E69).
+
+**Irréversible, et c'était voulu** : les compteurs de série de tous les comptes sont
+effacés. Une série future sera repensée, pas restaurée.
+
+| Contrôle | Résultat |
+|---|---|
+| §VÉRIF du script : `streaks_existe` | `false` |
+| §VÉRIF du script : `trigger_vise_streaks` | `false` |
+| `streaks` via PostgREST (clé anonyme) | **`404`** → la table a disparu de l'API |
+| Les **5 tables restantes** (`profiles`, `favorites`, `pantry`, `weight_logs`, `recipe_overrides`) | `200` chacune |
+| Les **42 colonnes** de `PROFILE_COLS`, en une requête | `200` → aucune manquante |
+| Témoin négatif : une colonne inventée | `400` → la mesure sait dire non |
+| `handle_new_user` insère toujours dans `profiles` | `true` |
+| `handle_new_user` mentionne encore `streaks` | `false` |
+| Trigger `on_auth_user_created` posé | `1` |
+
+🔴 **LES TROIS DERNIÈRES LIGNES SONT LE VRAI RISQUE DE CETTE MIGRATION, et la §VÉRIF du
+script ne les couvrait PAS.** Le script fait `create or replace` sur le trigger
+d'inscription pour en retirer la ligne `streaks` : il réécrit donc une fonction de
+PRODUCTION à partir du texte du dépôt. Prouver qu'elle ne vise plus la série ne prouve
+pas qu'elle crée encore le profil — et une inscription cassée ne se serait vue qu'au
+prochain inscrit. D'où la requête `pg_get_functiondef(...) ilike '%insert into
+public.profiles%'`, lancée après coup.
+➡️ **Toute migration qui REMPLACE du code serveur doit vérifier ce qu'elle GARDE, pas
+seulement ce qu'elle retire.**
+
+⚠️ **Ce journal saute des migrations** : `2026-09-13_profiles_gouts.sql` n'y figure pas,
+alors que `check:migrations:prod` la mesure appliquée (les 42 colonnes en `200`). Constat
+posé le 2026-09-20, pas corrigé ici — les entrées manquantes se rattrapent avec leur
+preuve, jamais de mémoire.
+
 ### 2026-08-07 — ✅ `meal_slots` jouée (17ᵉ migration)
 
 `2026-08-07_profiles_meal_slots.sql`, jouée par le fondateur dans le SQL Editor le

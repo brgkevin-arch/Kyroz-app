@@ -227,10 +227,12 @@ installation neuve part du binaire, donc du (6).
   correctif du gel après la carte des protéines et la déconnexion qui ne vide plus
   l'appareil (#327). Pas d'`ENGINE_VERSION` : le moteur ne change pas. Aucun changement
   natif : rien à soumettre.
-  ⚠️ **Reste à jouer, dans cet ordre** : la migration `2026-09-19_drop_streaks.sql`
-  (SQL Editor, irréversible) maintenant que l'OTA est partie, puis la page légale publique
-  `kyroz.app/legal.html` (dépôt `kyroz-site`, `KYROZ_SITE=<clone> npm run gen:legal`) — la
-  politique et les CGU servies dans l'app ne parlent plus de série depuis cette OTA.
+  ✅ **Migration `2026-09-19_drop_streaks.sql` JOUÉE le 2026-09-20**, après l'OTA : la table
+  `streaks` n'existe plus, l'inscription est intacte (preuves :
+  `supabase/JOURNAL-MIGRATIONS.md`).
+  ⚠️ **Reste** : la page légale publique `kyroz.app/legal.html` (dépôt `kyroz-site`,
+  `KYROZ_SITE=<clone> npm run gen:legal`) — la politique et les CGU servies dans l'app ne
+  parlent plus de série depuis cette OTA.
   *(La précédente :)* la **47ᵉ** (groupe `7e852979`, **iOS seulement**, 2026-09-19),
   publiée sur le commit `ce7dfd8` — `main`, arbre propre.
   ✅ **Runtime iOS `823c89db…` = le build (22)**, empreinte comparée AVANT publication.
