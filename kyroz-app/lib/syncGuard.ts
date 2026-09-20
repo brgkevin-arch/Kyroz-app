@@ -1,4 +1,4 @@
-import { BUILTIN_MEAL_TYPES, GOAL_FALLBACK, isGoal, MEAL_DEFAULT_PRIORITY, MealSlot, UserProfile, VarietyPreference } from './types';
+import { BUILTIN_MEAL_TYPES, GOAL_FALLBACK, isGoal, MEAL_DEFAULT_PRIORITY, MealSlot, UserProfile, VarietyPreference, WeighInFrequency } from './types';
 import { sanitizeSlot } from './mealSlots';
 import { totalSessionsPerWeek } from './sport';
 import { readLowEaRegistry } from './safety';
@@ -153,6 +153,52 @@ export function normalizeVariety<T extends Partial<UserProfile>>(p: T | null): T
   if (!p || p.variety === undefined) return p;
   if (VARIETES_VALIDES.has(p.variety)) return p;
   return { ...p, variety: VARIETES_ALIAS[String(p.variety)] ?? 'balanced' };
+}
+
+// ── Rendez-vous de pesée hors barème (2026-09-20) ───────────────────────────
+//
+// Deux valeurs à refermer, pour deux raisons différentes :
+//
+//  · `weigh_in_frequency: 'daily'` — la cadence quotidienne a été RETIRÉE (décision
+//    fondateur : *« une fois par semaine minimum, c'est ce qu'il faut »*). Elle
+//    existe pourtant dans la base des comptes qui l'avaient choisie. Sans cette
+//    ligne, le segment des réglages n'afficherait AUCUNE sélection et l'intervalle
+//    tomberait sur le repli hebdo sans le dire : un réglage invisible ET inopérant,
+//    exactement le défaut que `normalizeVariety` a déjà payé pour `variety: 'high'`.
+//    Le repli est `'weekly'`, qui est à la fois le défaut et le minimum décidé ;
+//
+//  · `weigh_in_day` hors 0…6 — la colonne est un `smallint` sans contrainte, et un
+//    jour aberrant ne rend pas un mauvais rendez-vous : `occurrenceLaPlusProche`
+//    décalerait la date d'un nombre de jours arbitraire, donc la notification ET la
+//    bannière partiraient n'importe où. On ne devine pas de remplacement — on EFFACE,
+//    et le jour est alors déduit de la dernière pesée (`weighInDayOf`), c'est-à-dire
+//    le comportement d'avant le choix du jour.
+//
+// ⚠️ Aucune calorie ne bouge, aucun plan ne se régénère : ces deux champs ne sont
+// pas dans `profileSignature` et n'entrent dans aucun calcul de cible. Donc pas
+// d'`ENGINE_REV`, pas d'avertissement one-shot — seulement un rendez-vous qui
+// redevient affichable.
+const CADENCES_VALIDES = new Set<WeighInFrequency>(['weekly', 'biweekly', 'monthly']);
+
+export function normalizeWeighIn<T extends Partial<UserProfile>>(p: T | null): T | null {
+  if (!p) return p;
+  let next = p;
+
+  if (p.weigh_in_frequency !== undefined && !CADENCES_VALIDES.has(p.weigh_in_frequency)) {
+    next = { ...next, weigh_in_frequency: 'weekly' };
+  }
+
+  const jour = p.weigh_in_day;
+  if (jour !== undefined && !(typeof jour === 'number' && Number.isInteger(jour) && jour >= 0 && jour <= 6)) {
+    // `delete` et non `= undefined` : `JSON.stringify` élide bien `undefined`, mais la
+    // comparaison anti-réécriture de `useProfile` ne verrait alors rien à persister —
+    // la valeur fautive resterait dans AsyncStorage pour toujours (§10).
+    const sansJour = { ...next };
+    delete sansJour.weigh_in_day;
+    next = sansJour;
+  }
+
+  return next;
 }
 
 // ── Écart orphelin dans « Jours plus copieux » (2026-08-18) ─────────────────

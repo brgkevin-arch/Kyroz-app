@@ -1,5 +1,10 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { WeighInFrequency } from './types';
+import { WeighInDay, WeighInFrequency } from './types';
+// Les noms de jours ne se réécrivent pas ici : `NOMS_JOURS` est indexée par
+// `getDay()` (0 = dimanche), exactement la convention de `weigh_in_day`. Le module
+// porte un nom de courses, mais la liste, elle, n'a rien de spécifique aux courses —
+// et une seconde copie finirait par diverger de la première.
+import { NOMS_JOURS } from './coursesDepuis';
 
 // ── Suivi du poids + check-in hebdo ──────────────────────────────────────────
 // Un point de poids par jour (le dernier de la journée écrase). Un nouveau point
@@ -14,23 +19,83 @@ export interface WeightEntry {
 }
 
 export const WEIGHT_KEY = '@kyroz:weights';
-const CHECKIN_DAYS = 7;
 
-// Cadence → intervalle en jours. Pilote le rappel de check-in (écran Plan).
+// ── Cadence → intervalle en jours ────────────────────────────────────────────
+//
+// Pilote le rappel de check-in (écran Plan) ET la notification.
+//
+// 🔴 **TOUS MULTIPLES DE 7 DEPUIS LE 2026-09-20, et c'est ce qui rend le jour de
+// pesée tenable.** Le rendez-vous est désormais ancré sur un JOUR DE SEMAINE choisi
+// (cf. `weigh_in_day`) : un pas qui n'est pas un multiple de 7 le fait glisser à
+// chaque échéance. Avec l'ancien `monthly: 30`, la 2ᵉ occurrence d'une série
+// programmée d'avance tombait deux jours plus loin dans la semaine que la 1ʳᵉ, la
+// 3ᵉ quatre jours plus loin — « le dimanche » devenait mardi, puis jeudi, sans que
+// rien ne l'ait demandé.
+// ➡️ `monthly` vaut donc **28 jours** (4 semaines), et son libellé le dit. C'est
+// 2 jours de moins qu'avant pour les comptes en cadence mensuelle — assumé : le
+// choix du jour ne peut pas tenir autrement, et l'alternative (arrondir chaque
+// occurrence au jour choisi) donnerait des écarts de 28 ou 35 jours selon le mois.
+// ⚠️ `'daily'` a disparu de la cadence (décision fondateur, 2026-09-20 : *« une fois
+// par semaine minimum, c'est ce qu'il faut »*). Un compte qui la portait est refermé
+// sur `'weekly'` à la lecture — `syncGuard::normalizeWeighIn`.
 export const WEIGH_IN_INTERVALS: Record<WeighInFrequency, number> = {
-  daily: 1,
   weekly: 7,
   biweekly: 14,
-  monthly: 30,
+  monthly: 28,
 };
 export const DEFAULT_WEIGH_IN_FREQUENCY: WeighInFrequency = 'weekly';
 
 export const WEIGH_IN_LABELS: Record<WeighInFrequency, string> = {
-  daily: 'Chaque jour',
   weekly: 'Chaque semaine',
   biweekly: 'Toutes les 2 semaines',
-  monthly: 'Chaque mois',
+  // « Chaque mois » aurait été le libellé confortable, et il aurait été FAUX de
+  // deux jours à chaque échéance (§10 : un chiffre affiché est celui qui sera servi).
+  monthly: 'Toutes les 4 semaines',
 };
+
+/** Les sept jours dans l'ORDRE D'AFFICHAGE (lundi d'abord), au format `getDay()`. */
+export const JOURS_PESEE: { value: WeighInDay; court: string }[] = [
+  { value: 1, court: 'Lun' }, { value: 2, court: 'Mar' }, { value: 3, court: 'Mer' },
+  { value: 4, court: 'Jeu' }, { value: 5, court: 'Ven' }, { value: 6, court: 'Sam' },
+  { value: 0, court: 'Dim' },
+];
+
+/** « lundi », « dimanche »… pour la phrase d'aide. Source unique : `NOMS_JOURS`. */
+export function nomDuJour(day: WeighInDay): string {
+  return NOMS_JOURS[day];
+}
+
+/** Vrai pour 0…6, et pour rien d'autre (une valeur venue de la base peut être n'importe quoi). */
+export function estUnJourDePesee(v: unknown): v is WeighInDay {
+  return typeof v === 'number' && Number.isInteger(v) && v >= 0 && v <= 6;
+}
+
+/**
+ * Le jour où le rendez-vous de pesée tombe RÉELLEMENT.
+ *
+ * ⚠️ **Le repli n'est pas un défaut arbitraire, c'est le comportement d'avant.**
+ * Sans jour choisi, Kyroz plaçait l'échéance à « dernière pesée + cadence », donc le
+ * MÊME jour de semaine que la dernière pesée. On le calcule ici explicitement : un
+ * compte qui installe la mise à jour sans rien régler ne voit donc aucun rendez-vous
+ * se déplacer, et l'écran peut MONTRER ce jour-là comme sélectionné — un réglage dont
+ * l'écran n'affiche aucune sélection est un réglage qu'on ne sait pas corriger
+ * (`normalizeVariety` l'a déjà payé).
+ */
+export function weighInDayOf(
+  day: WeighInDay | undefined,
+  lastStamp: string | null,
+  now: Date = new Date(),
+): WeighInDay {
+  if (estUnJourDePesee(day)) return day;
+  if (lastStamp) return stampDate(lastStamp).getDay() as WeighInDay;
+  return now.getDay() as WeighInDay;
+}
+
+/** Le résumé que les réglages affichent : « chaque semaine, le dimanche ». */
+export function weighInResume(freq: WeighInFrequency | undefined, jour: WeighInDay): string {
+  const cadence = WEIGH_IN_LABELS[freq ?? DEFAULT_WEIGH_IN_FREQUENCY].toLowerCase();
+  return `${cadence}, le ${nomDuJour(jour)}`;
+}
 
 /** Intervalle (jours) d'une cadence, avec repli défaut. */
 export function frequencyDays(freq?: WeighInFrequency): number {
@@ -40,21 +105,111 @@ export function frequencyDays(freq?: WeighInFrequency): number {
 /** Heure locale à laquelle tombe le rappel de pesée. */
 export const WEIGH_IN_HOUR = 9;
 
+// ── LE RENDEZ-VOUS EST UN JOUR, PLUS UN INTERVALLE (2026-09-20) ──────────────
+//
+// **Avant**, l'échéance valait « dernière pesée + cadence », point. Trois
+// conséquences que personne n'avait choisies :
+//  · le jour de la semaine venait d'un HASARD — celui où on s'était pesé la
+//    première fois ;
+//  · il DÉRIVAIT : une pesée en retard le samedi faisait passer tous les rendez-vous
+//    suivants au samedi, définitivement ;
+//  · et la notification pouvait tomber n'importe quel jour, ce qui est exactement
+//    ce qu'on ne veut pas d'un rituel hebdomadaire.
+//
+// **Depuis**, le jour choisi (`weigh_in_day`) est l'ANCRE : l'échéance est
+// l'occurrence de ce jour la plus proche de « dernière pesée + cadence ». Se peser
+// un autre jour ne déplace donc plus rien, et l'écart réel reste borné (±3 jours
+// une seule fois, le temps de se recaler sur le jour demandé).
+//
+// ⚠️ **L'ARRONDI VA VERS L'ARRIÈRE, ET CE N'EST PAS UN DÉTAIL DE CALCUL.** L'échéance
+// est la DERNIÈRE occurrence du jour choisi qui ne dépasse pas « dernière pesée +
+// cadence » : jamais plus tard que la cadence promise, au plus 6 jours plus tôt, le
+// temps de se recaler sur le jour demandé.
+//  · Les deux autres arrondis ont été écrits puis jetés, et ils se trompaient dans le
+//    même sens : « la prochaine occurrence APRÈS dernière pesée + cadence » rendait
+//    **11 jours** à quelqu'un qui s'était pesé un mercredi avec rendez-vous le
+//    dimanche ; « l'occurrence la plus PROCHE » rendait **10 jours** à une pesée du
+//    vendredi avec rendez-vous le lundi. Une cadence hebdomadaire qui fait attendre
+//    dix jours ne tient pas la promesse du réglage qu'on vient de poser.
+//  · Vers l'arrière, la cadence hebdomadaire redevient exactement ce que le réglage
+//    dit — **chaque lundi**, un point (démontré : « la dernière occurrence ≤ pesée + 7 »
+//    est toujours la première occurrence qui suit la pesée).
+//  · Et l'écart n'est raccourci QUE pour qui s'est pesé hors de son jour, une seule
+//    fois : se peser le jour du rendez-vous rend un espacement exact.
+// ➡️ Le sens choisi est aussi le moins coûteux quand il se trompe : une pesée
+// proposée un peu tôt s'ignore d'un regard, une pesée proposée trop tard fait mentir
+// la phrase affichée juste au-dessus du réglage (§10).
+
+/** Minuit LOCAL du jour `stamp` ('YYYY-MM-DD'). Jamais `new Date(stamp)`, qui lit de l'UTC. */
+function stampDate(stamp: string): Date {
+  return new Date(Date.parse(stamp + 'T00:00:00'));
+}
+
 /**
- * Prochaine échéance de pesée (Date, heure locale), à 9h00 : dernière pesée +
- * cadence. Si l'échéance est déjà passée (pesée en retard), vise le prochain
- * créneau de 9h (aujourd'hui si avant 9h, sinon demain). Sert à programmer la
- * notification de rappel de pesée (lib/notifications.ts).
+ * La dernière occurrence de `jour` qui ne dépasse PAS `cible` (donc `cible` elle-même,
+ * ou jusqu'à 6 jours avant), à 9h locale.
+ *
+ * Le pas des cadences étant multiple de 7, ce recalage ne se paie qu'UNE fois : les
+ * échéances suivantes tombent pile sur le jour choisi, à l'intervalle exact.
  */
-export function nextWeighInAt(lastStamp: string | null, freq?: WeighInFrequency, now: Date = new Date()): Date {
-  const due = new Date(lastStamp ? Date.parse(lastStamp + 'T00:00:00') : now.getTime());
-  due.setDate(due.getDate() + frequencyDays(freq));
-  due.setHours(WEIGH_IN_HOUR, 0, 0, 0);
+function derniereOccurrenceAvant(cible: Date, jour: WeighInDay): Date {
+  const d = new Date(cible);
+  d.setHours(WEIGH_IN_HOUR, 0, 0, 0);
+  d.setDate(d.getDate() - ((d.getDay() - jour + 7) % 7));    // 0…6 jours en arrière
+  return d;
+}
+
+/** La prochaine occurrence de `jour` à partir de `now` (aujourd'hui 9h s'il est encore tôt). */
+function prochaineOccurrence(jour: WeighInDay, now: Date): Date {
+  const d = new Date(now);
+  d.setHours(WEIGH_IN_HOUR, 0, 0, 0);
+  const enAvant = (jour - d.getDay() + 7) % 7;
+  d.setDate(d.getDate() + (enAvant === 0 && d.getTime() <= now.getTime() ? 7 : enAvant));
+  return d;
+}
+
+/**
+ * L'échéance THÉORIQUE de la prochaine pesée : la dernière occurrence du jour choisi
+ * qui ne dépasse pas « dernière pesée + cadence », à 9h locale. En cadence
+ * hebdomadaire, c'est donc simplement **le prochain jour de rendez-vous**. Peut être dans le passé —
+ * c'est même ce qui permet à la bannière de savoir qu'une pesée est attendue
+ * (`checkinDue`). Pour programmer une notification, c'est `nextWeighInAt`.
+ */
+export function echeancePeseeAt(
+  lastStamp: string | null,
+  freq?: WeighInFrequency,
+  day?: WeighInDay,
+  now: Date = new Date(),
+): Date {
+  const cible = lastStamp ? stampDate(lastStamp) : new Date(now);
+  cible.setDate(cible.getDate() + frequencyDays(freq));
+  return derniereOccurrenceAvant(cible, weighInDayOf(day, lastStamp, now));
+}
+
+/** La même échéance, au format 'YYYY-MM-DD' (c'est la DATE qui décide, pas l'heure). */
+export function echeancePesee(lastStamp: string, freq?: WeighInFrequency, day?: WeighInDay): string {
+  return localStamp(echeancePeseeAt(lastStamp, freq, day));
+}
+
+/**
+ * Prochaine échéance de pesée (Date, heure locale, 9h00) telle qu'on la PROGRAMME.
+ *
+ * ⚠️ **En retard, on vise le prochain jour de rendez-vous — plus « demain 9h ».**
+ * C'est le seul changement de comportement pour qui n'a rien réglé : un rappel
+ * envoyé un mardi parce que la pesée du dimanche a été manquée n'est pas un
+ * rendez-vous, c'est du harcèlement de rattrapage. Et rien n'est perdu : la
+ * bannière de l'écran Plan, elle, est déjà là (`checkinDue` regarde l'échéance
+ * théorique, qui est dans le passé).
+ */
+export function nextWeighInAt(
+  lastStamp: string | null,
+  freq?: WeighInFrequency,
+  day?: WeighInDay,
+  now: Date = new Date(),
+): Date {
+  const due = echeancePeseeAt(lastStamp, freq, day, now);
   if (due.getTime() > now.getTime()) return due;
-  const next = new Date(now);
-  next.setHours(WEIGH_IN_HOUR, 0, 0, 0);
-  if (next.getTime() <= now.getTime()) next.setDate(next.getDate() + 1);
-  return next;
+  return prochaineOccurrence(weighInDayOf(day, lastStamp, now), now);
 }
 
 // ── Le rappel de pesée doit SURVIVRE à quelqu'un qui n'ouvre plus l'app ───────
@@ -74,10 +229,14 @@ export function nextWeighInAt(lastStamp: string | null, freq?: WeighInFrequency,
 // `lib/notifications.ts` traduit en déclencheurs expo. C'est ce qui la rend
 // testable, comme `collapsingTitle.ts` ou `motion.ts`.
 
-/** Comment programmer le rappel de pesée, en termes neutres. */
+/**
+ * Comment programmer le rappel de pesée, en termes neutres.
+ *
+ * ⚠️ Le cas `daily` (déclencheur quotidien natif) est parti avec la cadence
+ * « Chaque jour », le 2026-09-20. Il n'y a plus de rappel qui puisse tomber un jour
+ * que l'utilisateur n'a pas choisi.
+ */
 export type WeighInSchedule =
-  /** Répétitif natif — ne s'éteint jamais, mais son texte est figé (cf. ci-dessous). */
-  | { kind: 'daily'; hour: number; minute: number }
   /** `weekday` suit la convention d'expo/iOS : **1 = dimanche**, pas `getDay()`. */
   | { kind: 'weekly'; weekday: number; hour: number; minute: number }
   /** Série d'occurrences datées, chacune avec le texte de SON jour. */
@@ -85,8 +244,10 @@ export type WeighInSchedule =
 
 /**
  * Nombre d'occurrences programmées d'avance pour les cadences que le système ne
- * sait pas répéter (quinzaine, mois) — soit **84 jours** et **180 jours** de
- * couverture. *(La première rédaction annonçait « ~3 mois » pour la quinzaine :
+ * sait pas répéter (quinzaine, 4 semaines) — soit **84 jours** et **168 jours** de
+ * couverture *(180 avant que la cadence mensuelle passe à 28 jours pour tenir le jour
+ * choisi : douze jours de couverture en moins, sur une cadence où celui qui n'a pas
+ * ouvert l'app depuis cinq mois ne revient de toute façon pas sur une notification)*. *(La première rédaction annonçait « ~3 mois » pour la quinzaine :
  * c'est 12 semaines, et c'est le TEST qui l'a dit — 6 occurrences espacées de
  * 14 jours couvrent 5 × 14 = 70 jours à partir de la première échéance.)*
  *
@@ -115,18 +276,25 @@ export const WEIGH_IN_AHEAD = 6;
 export function weighInSchedule(
   lastStamp: string | null,
   freq?: WeighInFrequency,
+  day?: WeighInDay,
   now: Date = new Date(),
 ): WeighInSchedule {
-  const premiere = nextWeighInAt(lastStamp, freq, now);
   const cadence = freq ?? DEFAULT_WEIGH_IN_FREQUENCY;
+  const jour = weighInDayOf(day, lastStamp, now);
 
-  if (cadence === 'daily') return { kind: 'daily', hour: WEIGH_IN_HOUR, minute: 0 };
-  // `getDay()` rend 0 pour dimanche, expo attend 1 — l'oublier décale le rappel
+  // Hebdo : le déclencheur natif répétitif tombe sur le JOUR CHOISI, et plus sur
+  // celui de la prochaine échéance — c'était là que la dérive entrait. Une pesée en
+  // retard changeait l'échéance, donc le `weekday`, donc le rendez-vous de toutes les
+  // semaines suivantes.
+  // ⚠️ `getDay()` rend 0 pour dimanche, expo attend 1 — l'oublier décale le rappel
   // d'un jour, en silence, une fois par semaine.
   if (cadence === 'weekly') {
-    return { kind: 'weekly', weekday: premiere.getDay() + 1, hour: WEIGH_IN_HOUR, minute: 0 };
+    return { kind: 'weekly', weekday: jour + 1, hour: WEIGH_IN_HOUR, minute: 0 };
   }
 
+  // Quinzaine / 4 semaines : série datée. Le pas est multiple de 7, donc TOUTES les
+  // occurrences retombent sur le jour choisi — c'est la raison d'être du 28.
+  const premiere = nextWeighInAt(lastStamp, cadence, jour, now);
   const pas = frequencyDays(cadence);
   const dates: Date[] = [];
   for (let i = 0; i < WEIGH_IN_AHEAD; i++) {
@@ -149,12 +317,6 @@ export function localStamp(d: Date = new Date()): string {
 
 export function todayStamp(): string {
   return localStamp(new Date());
-}
-
-function daysBetween(a: string, b: string): number {
-  const da = Date.parse(a + 'T00:00:00');
-  const db = Date.parse(b + 'T00:00:00');
-  return Math.round((db - da) / 86400000);
 }
 
 export async function loadWeights(): Promise<WeightEntry[]> {
@@ -192,16 +354,28 @@ export function latest(list: WeightEntry[]): WeightEntry | null {
   return list.length ? list[list.length - 1] : null;
 }
 
-// Check-in dû si le dernier point date d'au moins `intervalDays` (jamais de nag le
-// J1 : on attend qu'il y ait un historique). L'intervalle suit la cadence choisie.
+/**
+ * Une pesée est-elle attendue aujourd'hui ? (bannière de l'écran Plan + carte du Profil)
+ *
+ * 🔴 **CE N'EST PLUS UN COMPTE DE JOURS, C'EST LE JOUR DU RENDEZ-VOUS** (2026-09-20).
+ * La version d'avant demandait « le dernier point date-t-il d'au moins 7 jours ? » :
+ * la bannière tombait donc n'importe quel jour de la semaine, et elle contredisait la
+ * notification dès que l'utilisateur se pesait hors de son jour. Les deux lisent
+ * désormais la MÊME échéance — une seule source pour un seul rendez-vous.
+ *
+ * ⚠️ Jamais de nag le J1 : sans historique, aucune pesée n'est réclamée.
+ * ⚠️ La comparaison se fait sur des chaînes 'YYYY-MM-DD', qui s'ordonnent
+ * lexicographiquement — pas sur des `Date`, dont l'heure ferait mentir le « aujourd'hui ».
+ */
 export function checkinDue(
   list: WeightEntry[],
   today = todayStamp(),
-  intervalDays = CHECKIN_DAYS
+  freq?: WeighInFrequency,
+  day?: WeighInDay,
 ): boolean {
   const last = latest(list);
   if (!last) return false;
-  return daysBetween(last.date, today) >= intervalDays;
+  return echeancePesee(last.date, freq, day) <= today;
 }
 
 /**

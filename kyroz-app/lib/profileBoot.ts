@@ -2,7 +2,7 @@ import { UserProfile } from './types';
 import { champsMesuresManquants, normalizeMacroMode } from './profilComplet';
 import {
   normalizeCalorieBank, normalizeGoal, normalizeMeals, normalizeMealSlots,
-  normalizeProfileActivity, normalizeVariety,
+  normalizeProfileActivity, normalizeVariety, normalizeWeighIn,
 } from './syncGuard';
 import { normalizeRestrictions } from './regime';
 
@@ -78,8 +78,8 @@ export function bootProfile(
   let stored: UserProfile | null = null;
   try {
     stored = raw
-      ? normalizeRestrictions(normalizeCalorieBank(normalizeMeals(normalizeMealSlots(normalizeVariety(
-          normalizeMacroMode(normalizeGoal(normalizeProfileActivity(JSON.parse(raw)))))))))
+      ? normalizeWeighIn(normalizeRestrictions(normalizeCalorieBank(normalizeMeals(normalizeMealSlots(normalizeVariety(
+          normalizeMacroMode(normalizeGoal(normalizeProfileActivity(JSON.parse(raw))))))))))
       : null;
   } catch (e) {
     return {

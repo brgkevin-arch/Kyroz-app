@@ -388,7 +388,10 @@ profiles                        ← s'appelle « profiles », PAS « user_profil
       objectif (goal, goal_target, engine_rev, engine_notice) ·
       macros (macro_mode, carb_ratio, protein_per_kg, tdee_kcal, target_*) ·
       plan (plan_days, plan_weekdays, rest_weekdays, meals, meal_emphasis,
-      variety, fixed_meals, max_prep_time_min, weigh_in_frequency) ·
+      variety, fixed_meals, max_prep_time_min, weigh_in_frequency ·
+      weigh_in_day — le JOUR du rendez-vous de pesée, format getDay() 0=Dim…6=Sam comme
+      plan_weekdays et PAS la convention expo (1=Dim) ; `null` = jamais choisi, le jour
+      est alors déduit de la dernière pesée ; migration 2026-09-20, cf. AGENTS.md E70) ·
       goûts (dietary_restrictions, disliked_foods, preferred_proteins,
       hidden_recipes — « j'aime pas » 👎, masquées, SOUPLE/réversible ·
       gout_petit_dej, gout_collation — sucré/salé, `null` = « peu importe » répondu,
@@ -2715,7 +2718,8 @@ préférences, repas, banque, variété). Si non, il vit derrière la **roue den
 retours · Confidentialité · Compte.
 
 ⚠️ **CETTE RÈGLE A RESSERVI LE 2026-08-14, sur un réglage qu'on n'avait pas vu.**
-« Rappel de pesée » (Jour / Sem. / 2 sem. / Mois) vivait DANS la feuille du suivi du
+« Rappel de pesée » (alors Jour / Sem. / 2 sem. / Mois ; **Sem. / 2 sem. / 4 sem. + le
+JOUR depuis le 2026-09-20**, cf. AGENTS.md E70) vivait DANS la feuille du suivi du
 poids, entre une courbe et un historique. Il change quand Kyroz **PARLE**, pas ce
 qu'il **SERT** : sa place est avec le rappel quotidien, sous Notifications.
 🔴 **Le fondateur ne savait pas qu'il existait.** Un réglage rangé au mauvais endroit

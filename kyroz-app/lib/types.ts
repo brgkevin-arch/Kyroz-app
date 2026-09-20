@@ -242,7 +242,24 @@ export type MacroMode = 'auto' | 'percent' | 'manual';
 export type VarietyPreference = 'repetitive' | 'balanced' | 'max';
 
 // Cadence de pesée choisie par l'utilisateur (pilote le rappel de check-in).
-export type WeighInFrequency = 'daily' | 'weekly' | 'biweekly' | 'monthly';
+//
+// 🔴 `'daily'` A ÉTÉ RETIRÉE LE 2026-09-20 (décision fondateur : *« une fois par
+// semaine minimum, c'est ce qu'il faut »*). Elle n'est plus proposée par l'UI, et
+// elle est refermée sur `'weekly'` à la lecture (`syncGuard::normalizeWeighIn`) —
+// même remède que `cut_aggressive` et `variety: 'high'`. Un compte qui la portait
+// se retrouve donc en hebdomadaire, réglage visible et resélectionnable.
+// ⚠️ La retirer du type SANS la refermer à la lecture aurait laissé en base une
+// valeur qu'aucun écran ne sait afficher : le segment n'aurait montré AUCUNE
+// sélection, et l'intervalle serait tombé sur le repli par défaut sans le dire.
+export type WeighInFrequency = 'weekly' | 'biweekly' | 'monthly';
+
+/**
+ * Jour de la semaine où l'utilisateur veut se peser, au format `getDay()` :
+ * **0 = dimanche … 6 = samedi** — la même convention que `plan_weekdays`,
+ * `rest_weekdays` et `calorie_bank`, et surtout PAS celle d'expo/iOS (1 = dimanche),
+ * qui n'apparaît qu'au moment de programmer le déclencheur (`lib/weight.ts`).
+ */
+export type WeighInDay = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 
 // Objectif DATÉ (feature premium « Kyroz+ ») : atteindre un poids à une date.
 // Pilote la cible calorique dans le temps (cf. lib/datedGoal.ts) au rythme le plus
@@ -565,6 +582,13 @@ export interface UserProfile {
 
   // Suivi du poids
   weigh_in_frequency?: WeighInFrequency; // cadence de pesée (défaut: weekly)
+  // Jour de la semaine du rendez-vous de pesée (getDay() : 0=Dim … 6=Sam).
+  //   - undefined → pas encore choisi : le jour est DÉDUIT de la dernière pesée
+  //     (c'est exactement ce que faisait l'app avant le 2026-09-20), donc aucun
+  //     compte ne change de jour en installant la mise à jour ;
+  //   - 0…6       → rendez-vous FIXE : la notification et la bannière du Plan
+  //     tombent ce jour-là, et se peser un autre jour ne le déplace plus.
+  weigh_in_day?: WeighInDay;
 
   // ── Révision du moteur ────────────────────────────────────────────────────
   // Révision qui a produit les cibles stockées. `undefined` = profil calculé avant

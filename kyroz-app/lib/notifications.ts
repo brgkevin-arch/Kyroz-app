@@ -1,8 +1,8 @@
 import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Notifications from 'expo-notifications';
-import { WeighInFrequency } from './types';
-import { WEIGH_IN_AHEAD, weighInSchedule } from './weight';
+import { WeighInDay, WeighInFrequency } from './types';
+import { WEIGH_IN_AHEAD, nextWeighInAt, weighInSchedule } from './weight';
 import {
   NotificationIntent, RAPPELS_A_L_AVANCE, ReminderTime, dayIndex, intentFromData,
   pickWeighInCopy, serieQuotidienne,
@@ -217,14 +217,18 @@ export async function cancelAllReminders(): Promise<void> {
   try { await Notifications.dismissAllNotificationsAsync(); } catch {}
 }
 
-export async function applyWeighInReminder(freq: WeighInFrequency, lastStamp: string | null): Promise<boolean> {
+export async function applyWeighInReminder(
+  freq: WeighInFrequency,
+  lastStamp: string | null,
+  day?: WeighInDay,
+): Promise<boolean> {
   if (!remindersSupported) return false;
   await cancelWeighInReminder();
 
   const perm = await Notifications.getPermissionsAsync();
   if (!perm.granted) return false;
 
-  const plan = weighInSchedule(lastStamp, freq);
+  const plan = weighInSchedule(lastStamp, freq, day);
   // L'index de rotation est pris sur le jour où la notification TOMBERA, comme
   // pour le rappel quotidien — pas sur le jour où on l'arme.
   const contenu = (date: Date) => {
@@ -243,24 +247,25 @@ export async function applyWeighInReminder(freq: WeighInFrequency, lastStamp: st
     return true;
   }
 
-  // Répétitif : le texte est figé jusqu'au prochain ré-armement (le système ne
-  // rappelle pas l'app pour lui demander quoi écrire). On l'indexe donc sur la
-  // PREMIÈRE occurrence, celle qui est certaine d'être juste.
-  const premiere = new Date();
-  premiere.setHours(plan.hour, plan.minute, 0, 0);
-  if (premiere.getTime() <= Date.now()) premiere.setDate(premiere.getDate() + 1);
+  // Répétitif hebdomadaire : le texte est figé jusqu'au prochain ré-armement (le
+  // système ne rappelle pas l'app pour lui demander quoi écrire). On l'indexe donc
+  // sur la PREMIÈRE occurrence.
+  // ⚠️ Elle se DEMANDE, elle ne se devine plus : la version d'avant prenait
+  // « aujourd'hui ou demain à 9h », ce qui était le bon jour par accident tant que
+  // le rappel tombait le lendemain. Depuis que le rendez-vous est un jour choisi, la
+  // prochaine occurrence peut être dans six jours — et c'est le texte de CE jour-là
+  // que la notification doit porter.
+  const premiere = nextWeighInAt(lastStamp, freq, day);
 
   await Notifications.scheduleNotificationAsync({
     identifier: `${WEIGH_ID}-0`,
     content: contenu(premiere),
-    trigger: plan.kind === 'daily'
-      ? { type: Notifications.SchedulableTriggerInputTypes.DAILY, hour: plan.hour, minute: plan.minute }
-      : {
-        type: Notifications.SchedulableTriggerInputTypes.WEEKLY,
-        weekday: plan.weekday,
-        hour: plan.hour,
-        minute: plan.minute,
-      },
+    trigger: {
+      type: Notifications.SchedulableTriggerInputTypes.WEEKLY,
+      weekday: plan.weekday,
+      hour: plan.hour,
+      minute: plan.minute,
+    },
   });
   return true;
 }

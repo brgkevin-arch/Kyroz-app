@@ -105,7 +105,8 @@ La journée, repas par repas, avec ses macros. Une rangée de jours en haut. Sur
   pour écarter un plat définitivement, c'est 👎.
 - **La fiche** — ingrédients pesés, préparation, temps, et pourquoi ce plat est là.
 
-Plus : la pesée (à la fréquence choisie) et un suivi d'hydratation **optionnel** (activable
+Plus : la pesée (à la fréquence **et au jour** choisis — « chaque semaine, le dimanche ») et un
+suivi d'hydratation **optionnel** (activable
 dans les réglages). *(La série de jours, une petite pastille dans l'en-tête, a été retirée le
 2026-09-19 — décision fondateur : elle sera repensée pour être utile, ou ne reviendra pas.)*
 
