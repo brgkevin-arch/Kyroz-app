@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { decideProfileHydration, normalizeCalorieBank, normalizeMeals, normalizeProfileActivity, normalizeVariety, reconcileCloudSports } from '../syncGuard';
+import { decideProfileHydration, normalizeCalorieBank, normalizeMeals, normalizeProfileActivity, normalizeVariety, normalizeWeighIn, reconcileCloudSports } from '../syncGuard';
 import { offsetsForPlan, servedWeekdays } from '../calorieBank';
 import { SportSession, UserProfile } from '../types';
 
@@ -126,6 +126,64 @@ describe('normalizeVariety — un réglage fantôme ne doit pas survivre au char
   it('laisse le reste du profil intact', () => {
     const out = normalizeVariety({ variety: 'high' as never, weight_kg: 84, goal: 'cut' as const });
     expect(out).toEqual({ variety: 'max', weight_kg: 84, goal: 'cut' });
+  });
+});
+
+// ── Rendez-vous de pesée hors barème (2026-09-20) ───────────────────────────
+//
+// Deux champs, deux remèdes différents, et le choix de chacun se lit dans les cas
+// ci-dessous : une cadence retirée se REFERME sur le minimum décidé (on sait quoi
+// servir), un jour aberrant s'EFFACE (on ne sait pas quel jour la personne voulait,
+// et le déduire de la dernière pesée est exactement ce que fait l'app sans réglage).
+describe('normalizeWeighIn — la cadence retirée ne doit pas survivre au chargement', () => {
+  it('« daily » devient « weekly » — le minimum décidé par le fondateur', () => {
+    expect(normalizeWeighIn({ weigh_in_frequency: 'daily' as never })!.weigh_in_frequency).toBe('weekly');
+  });
+
+  it('toute autre cadence inconnue retombe aussi sur « weekly »', () => {
+    expect(normalizeWeighIn({ weigh_in_frequency: 'wtf' as never })!.weigh_in_frequency).toBe('weekly');
+    expect(normalizeWeighIn({ weigh_in_frequency: '' as never })!.weigh_in_frequency).toBe('weekly');
+    expect(normalizeWeighIn({ weigh_in_frequency: null as never })!.weigh_in_frequency).toBe('weekly');
+  });
+
+  it('une cadence VALIDE est rendue telle quelle, sans recopier l’objet', () => {
+    for (const f of ['weekly', 'biweekly', 'monthly'] as const) {
+      const p = { weigh_in_frequency: f };
+      expect(normalizeWeighIn(p)).toBe(p);   // même référence : aucun rendu inutile
+    }
+  });
+
+  it('ne fabrique pas de cadence quand le champ est absent (≠ « pas d’info »)', () => {
+    const p = { weight_kg: 80 };
+    expect(normalizeWeighIn(p)).toBe(p);
+    expect(normalizeWeighIn(null)).toBeNull();
+  });
+
+  // 🔴 LE JOUR S'EFFACE, IL NE SE REMPLACE PAS. `weigh_in_day` est un `smallint` sans
+  // contrainte : un 9 ou un 1,5 ne donne pas un mauvais jour, il DÉCALE la date de
+  // l'échéance d'un nombre de jours arbitraire — notification et bannière partiraient
+  // n'importe où. Effacé, le jour est déduit de la dernière pesée, ce qui est le
+  // comportement de tous les comptes qui n'ont rien réglé.
+  it('un jour hors 0…6 est EFFACÉ, pas remplacé par un jour deviné', () => {
+    for (const jour of [9, -1, 7, 1.5, '3', null, {}] as never[]) {
+      const out = normalizeWeighIn({ weigh_in_day: jour, weight_kg: 80 })!;
+      expect('weigh_in_day' in out, `jour = ${JSON.stringify(jour)}`).toBe(false);
+      expect(out.weight_kg).toBe(80);
+    }
+  });
+
+  it('les sept jours valides passent intacts, zéro compris', () => {
+    for (const jour of [0, 1, 2, 3, 4, 5, 6] as const) {
+      const p = { weigh_in_day: jour };
+      expect(normalizeWeighIn(p)).toBe(p);
+    }
+  });
+
+  it('referme les deux champs en un seul passage, et laisse le reste intact', () => {
+    const out = normalizeWeighIn({
+      weigh_in_frequency: 'daily' as never, weigh_in_day: 12 as never, weight_kg: 84, goal: 'cut' as const,
+    });
+    expect(out).toEqual({ weigh_in_frequency: 'weekly', weight_kg: 84, goal: 'cut' });
   });
 });
 

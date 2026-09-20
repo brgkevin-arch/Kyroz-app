@@ -3,7 +3,9 @@ import {
   localStamp, todayStamp, upsertEntry, removeEntry, latest, checkinDue, lastDelta,
   loadWeights, saveWeights, frequencyDays, nextWeighInAt, WEIGH_IN_INTERVALS, WeightEntry,
   weighInSchedule, WEIGH_IN_AHEAD, WEIGH_IN_HOUR, historiquePesees, HISTORIQUE_MAX,
+  echeancePesee, weighInDayOf, weighInResume, JOURS_PESEE, WEIGH_IN_LABELS,
 } from '../weight';
+import { WeighInDay } from '../types';
 
 const day = (offset: number) => {
   const d = new Date();
@@ -76,50 +78,203 @@ describe('loadWeights (auto-nettoyage)', () => {
   });
 });
 
-describe('checkinDue (cadence configurable)', () => {
+describe('checkinDue (cadence + jour de rendez-vous)', () => {
   const at = (d: string): WeightEntry[] => [{ date: d, weight_kg: 80 }];
   it('pas de nag sans historique', () => {
     expect(checkinDue([], day(0))).toBe(false);
   });
-  it('défaut 7 jours : dû à J+7, pas avant', () => {
+  it('sans jour choisi : dû à J+7, pas avant — le comportement d’avant, au jour près', () => {
     expect(checkinDue(at('2026-05-15'), '2026-05-21')).toBe(false); // J+6
     expect(checkinDue(at('2026-05-15'), '2026-05-22')).toBe(true);  // J+7
   });
-  it('respecte un intervalle custom (quotidien / mensuel)', () => {
-    expect(checkinDue(at('2026-05-15'), '2026-05-16', 1)).toBe(true);  // quotidien : J+1
-    expect(checkinDue(at('2026-05-15'), '2026-06-13', 30)).toBe(false); // mensuel : J+29
-    expect(checkinDue(at('2026-05-15'), '2026-06-14', 30)).toBe(true);  // mensuel : J+30
+  it('respecte la cadence (quinzaine / 4 semaines)', () => {
+    expect(checkinDue(at('2026-05-15'), '2026-05-28', 'biweekly')).toBe(false); // J+13
+    expect(checkinDue(at('2026-05-15'), '2026-05-29', 'biweekly')).toBe(true);  // J+14
+    expect(checkinDue(at('2026-05-15'), '2026-06-11', 'monthly')).toBe(false);  // J+27
+    expect(checkinDue(at('2026-05-15'), '2026-06-12', 'monthly')).toBe(true);   // J+28
+  });
+
+  // 🔴 LE CAS QUI A MOTIVÉ LE CHANTIER. Le 2026-05-15 est un VENDREDI. Quelqu'un dont
+  // le rendez-vous est le LUNDI ne doit pas attendre le vendredi suivant : la bannière
+  // tombe le lundi 18, trois jours plus tard, et plus jamais un vendredi.
+  it('avec un jour choisi, la bannière tombe CE jour-là — pas 7 jours après la pesée', () => {
+    const lundi: WeighInDay = 1;
+    expect(checkinDue(at('2026-05-15'), '2026-05-17', 'weekly', lundi)).toBe(false); // dimanche 17
+    expect(checkinDue(at('2026-05-15'), '2026-05-18', 'weekly', lundi)).toBe(true);  // LUNDI 18
+  });
+
+  // Et l'inverse, qui est la promesse du réglage : se peser hors de son jour ne
+  // déplace pas le rendez-vous suivant. Pesée le mardi 19, rendez-vous le lundi →
+  // la bannière revient le lundi 25, six jours plus tard, pas le mardi 26.
+  it('se peser un autre jour ne déplace pas le rendez-vous', () => {
+    const lundi: WeighInDay = 1;
+    expect(checkinDue(at('2026-05-19'), '2026-05-24', 'weekly', lundi)).toBe(false);
+    expect(checkinDue(at('2026-05-19'), '2026-05-25', 'weekly', lundi)).toBe(true);
+  });
+
+  it('une pesée en retard laisse la bannière affichée (échéance déjà passée)', () => {
+    expect(checkinDue(at('2026-01-01'), '2026-05-15', 'weekly', 1)).toBe(true);
+  });
+});
+
+describe('echeancePesee — la dernière occurrence du jour choisi avant la cadence', () => {
+  /** Écart en jours entre une pesée du vendredi 15 mai 2026 et son échéance. */
+  const ecart = (freq: 'weekly' | 'biweekly' | 'monthly', jour: WeighInDay) => Math.round(
+    (Date.parse(echeancePesee('2026-05-15', freq, jour) + 'T00:00:00')
+      - Date.parse('2026-05-15T00:00:00')) / 86_400_000,
+  );
+
+  // 2026-05-15 = VENDREDI. Cadence hebdo → cible = vendredi 22, puis on recule
+  // jusqu'au jour demandé.
+  it('recale sur le jour demandé, sans jamais dépasser la cadence', () => {
+    expect(echeancePesee('2026-05-15', 'weekly', 5)).toBe('2026-05-22'); // vendredi : pile
+    expect(echeancePesee('2026-05-15', 'weekly', 1)).toBe('2026-05-18'); // lundi : le PROCHAIN lundi
+    expect(echeancePesee('2026-05-15', 'weekly', 2)).toBe('2026-05-19'); // mardi
+    expect(echeancePesee('2026-05-15', 'weekly', 6)).toBe('2026-05-16'); // samedi : dès demain
+  });
+
+  // 🔴 CE QUE LE SENS DE L'ARRONDI TIENT. Vers l'avant, un rendez-vous hebdomadaire
+  // pouvait tomber à 10 ou 11 jours — « chaque lundi » qui attend une semaine et demie.
+  it('jamais plus tard que la cadence, jamais plus de 6 jours plus tôt', () => {
+    for (const jour of JOURS_PESEE.map((j) => j.value)) {
+      for (const [freq, pas] of [['weekly', 7], ['biweekly', 14], ['monthly', 28]] as const) {
+        const e = ecart(freq, jour);
+        expect(e, `${freq} / jour ${jour}`).toBeLessThanOrEqual(pas);
+        expect(e, `${freq} / jour ${jour}`).toBeGreaterThanOrEqual(pas - 6);
+      }
+    }
+  });
+
+  // En hebdomadaire, la règle DOIT se lire « chaque <jour> » : l'échéance est la
+  // première occurrence du jour qui suit la pesée, quel que soit le jour de celle-ci.
+  it('en hebdomadaire, c’est exactement « le prochain <jour> »', () => {
+    for (const jourPesee of ['2026-05-15', '2026-05-16', '2026-05-17', '2026-05-18', '2026-05-19', '2026-05-20', '2026-05-21'] as const) {
+      for (const jour of JOURS_PESEE.map((j) => j.value)) {
+        const e = echeancePesee(jourPesee, 'weekly', jour);
+        const d = new Date(Date.parse(e + 'T00:00:00'));
+        expect(d.getDay(), `pesée ${jourPesee} → ${e}`).toBe(jour);
+        const jours = Math.round((d.getTime() - Date.parse(jourPesee + 'T00:00:00')) / 86_400_000);
+        expect(jours, `pesée ${jourPesee} → ${e}`).toBeGreaterThanOrEqual(1);
+        expect(jours, `pesée ${jourPesee} → ${e}`).toBeLessThanOrEqual(7);
+      }
+    }
+  });
+
+  it('et l’échéance tombe TOUJOURS sur le jour demandé, quelle que soit la cadence', () => {
+    for (const jour of JOURS_PESEE.map((j) => j.value)) {
+      for (const freq of ['weekly', 'biweekly', 'monthly'] as const) {
+        const d = new Date(Date.parse(echeancePesee('2026-05-15', freq, jour) + 'T00:00:00'));
+        expect(d.getDay(), `${freq} / jour ${jour}`).toBe(jour);
+      }
+    }
+  });
+
+  // Se peser SON jour rend un espacement exact : le raccourci ne concerne que la
+  // pesée hors rendez-vous, et une seule fois.
+  it('se peser le jour du rendez-vous donne l’intervalle exact', () => {
+    expect(ecart('weekly', 5)).toBe(7);
+    expect(ecart('biweekly', 5)).toBe(14);
+    expect(ecart('monthly', 5)).toBe(28);
+  });
+});
+
+describe('weighInDayOf — le repli est le comportement d’avant, pas un défaut arbitraire', () => {
+  it('sans jour choisi : celui de la dernière pesée', () => {
+    expect(weighInDayOf(undefined, '2026-05-15')).toBe(5); // vendredi
+  });
+  it('un jour choisi gagne toujours', () => {
+    expect(weighInDayOf(0, '2026-05-15')).toBe(0);
+  });
+  it('ni jour ni pesée : aujourd’hui (aucun rendez-vous ne peut être vide)', () => {
+    const now = new Date(2026, 4, 17, 8, 0, 0); // dimanche
+    expect(weighInDayOf(undefined, null, now)).toBe(0);
+  });
+  it('une valeur hors 0…6 ne passe pas pour un jour', () => {
+    expect(weighInDayOf(9 as WeighInDay, '2026-05-15')).toBe(5);
+    expect(weighInDayOf(1.5 as WeighInDay, '2026-05-15')).toBe(5);
+  });
+});
+
+describe('weighInResume — ce que l’écran promet', () => {
+  it('dit la cadence ET le jour', () => {
+    expect(weighInResume('weekly', 0)).toBe('chaque semaine, le dimanche');
+    expect(weighInResume('biweekly', 1)).toBe('toutes les 2 semaines, le lundi');
+    expect(weighInResume(undefined, 6)).toBe('chaque semaine, le samedi');
+  });
+  // 🔴 « Chaque mois » aurait été FAUX de deux jours à chaque échéance : la cadence
+  // vaut 28 jours pour que le jour choisi tienne. Le libellé doit le dire.
+  it('la cadence de 28 jours s’annonce en semaines, jamais en mois', () => {
+    expect(WEIGH_IN_LABELS.monthly).toBe('Toutes les 4 semaines');
+    expect(weighInResume('monthly', 3)).toBe('toutes les 4 semaines, le mercredi');
   });
 });
 
 describe('nextWeighInAt (programmation de la notif de pesée)', () => {
   const at9 = (d: Date) => d.getHours() === 9 && d.getMinutes() === 0;
 
-  it('échéance normale : dernière pesée + cadence, à 9h locale', () => {
-    const now = new Date(2026, 4, 15, 10, 0, 0);            // 15 mai, 10h
-    const r = nextWeighInAt('2026-05-15', 'weekly', now);
-    expect(localStamp(r)).toBe('2026-05-22');               // +7 jours
+  it('échéance normale, sans jour choisi : dernière pesée + cadence, à 9h locale', () => {
+    const now = new Date(2026, 4, 15, 10, 0, 0);            // vendredi 15 mai, 10h
+    const r = nextWeighInAt('2026-05-15', 'weekly', undefined, now);
+    expect(localStamp(r)).toBe('2026-05-22');               // +7 jours, même jour de semaine
     expect(at9(r)).toBe(true);
   });
 
-  it('en retard, avant 9h → aujourd\'hui 9h', () => {
-    const now = new Date(2026, 5, 13, 7, 0, 0);             // 13 juin, 7h
-    const r = nextWeighInAt('2026-01-01', 'weekly', now);   // échéance jan. = passée
+  it('avec un jour choisi : l’échéance tombe ce jour-là', () => {
+    const now = new Date(2026, 4, 15, 10, 0, 0);            // vendredi 15 mai
+    const r = nextWeighInAt('2026-05-15', 'weekly', 1, now); // rendez-vous : lundi
+    expect(localStamp(r)).toBe('2026-05-18');
+    expect(at9(r)).toBe(true);
+  });
+
+  // 🔴 CE CAS A CHANGÉ LE 2026-09-20, ET C'EST VOULU. Avant : « en retard → demain 9h »,
+  // donc un rappel un mardi pour un rendez-vous du dimanche. Un rendez-vous fixe qui
+  // sonne n'importe quel jour n'est plus un rendez-vous ; la bannière de l'écran Plan,
+  // elle, est déjà là (`checkinDue` lit l'échéance théorique, dans le passé).
+  it('en retard : on vise le prochain jour de rendez-vous, pas le lendemain', () => {
+    const now = new Date(2026, 5, 13, 14, 0, 0);             // samedi 13 juin, 14h
+    const r = nextWeighInAt('2026-01-01', 'weekly', 1, now); // rendez-vous : lundi
+    expect(localStamp(r)).toBe('2026-06-15');                // le lundi suivant
+    expect(at9(r)).toBe(true);
+  });
+
+  it('en retard, le jour même avant 9h → aujourd’hui 9h (on ne saute pas une semaine)', () => {
+    const now = new Date(2026, 5, 13, 7, 0, 0);              // samedi 13 juin, 7h
+    const r = nextWeighInAt('2026-01-01', 'weekly', 6, now); // rendez-vous : samedi
     expect(localStamp(r)).toBe('2026-06-13');
     expect(at9(r)).toBe(true);
   });
 
-  it('en retard, après 9h → demain 9h', () => {
-    const now = new Date(2026, 5, 13, 14, 0, 0);            // 13 juin, 14h
-    const r = nextWeighInAt('2026-01-01', 'monthly', now);
-    expect(localStamp(r)).toBe('2026-06-14');
-    expect(at9(r)).toBe(true);
+  it('en retard, le jour même après 9h → la semaine suivante, jamais demain', () => {
+    const now = new Date(2026, 5, 13, 14, 0, 0);             // samedi 13 juin, 14h
+    const r = nextWeighInAt('2026-01-01', 'weekly', 6, now);
+    expect(localStamp(r)).toBe('2026-06-20');
   });
 
-  it('sans historique : repart de maintenant + cadence', () => {
-    const now = new Date(2026, 5, 13, 7, 0, 0);
-    const r = nextWeighInAt(null, 'daily', now);
-    expect(localStamp(r)).toBe('2026-06-14');               // now + 1 jour
+  // 🔴 L'INVARIANT QUI REND LA DÉRIVE IMPOSSIBLE, et il a fallu une mutation pour
+  // comprendre lequel écrire. Remplacer `weekday: jour + 1` par le jour de l'échéance
+  // dans `weighInSchedule` ne faisait rougir AUCUN test — non par trou de couverture,
+  // mais parce que les deux sont désormais le même nombre : toute date rendue par
+  // `nextWeighInAt` tombe sur le jour choisi, y compris en retard et sans historique.
+  // C'est CE fait qu'il faut compter, pas la ligne qui l'exprime.
+  it('tombe TOUJOURS sur le jour choisi — toutes cadences, tous jours, en retard compris', () => {
+    for (const jour of JOURS_PESEE.map((j) => j.value)) {
+      for (const freq of ['weekly', 'biweekly', 'monthly'] as const) {
+        for (const pesee of ['2026-05-15', '2026-05-18', '2026-01-01', null] as const) {
+          for (const heure of [7, 14]) {
+            const now = new Date(2026, 5, 13, heure, 0, 0);
+            const r = nextWeighInAt(pesee, freq, jour, now);
+            expect(r.getDay(), `${freq} / jour ${jour} / pesée ${pesee} / ${heure}h`).toBe(jour);
+            expect(r.getTime(), 'une échéance programmée est toujours à venir').toBeGreaterThan(now.getTime());
+          }
+        }
+      }
+    }
+  });
+
+  it('sans historique : repart de maintenant + cadence, recalée sur le jour', () => {
+    const now = new Date(2026, 5, 13, 7, 0, 0);              // samedi 13 juin
+    const r = nextWeighInAt(null, 'weekly', 6, now);          // rendez-vous : samedi
+    expect(localStamp(r)).toBe('2026-06-20');                 // le samedi suivant
     expect(at9(r)).toBe(true);
   });
 });
@@ -131,45 +286,54 @@ describe('nextWeighInAt (programmation de la notif de pesée)', () => {
 describe('weighInSchedule — un rappel qui survit à quelqu’un qui n’ouvre plus l’app', () => {
   it('aucune cadence ne rend une seule occurrence datée', () => {
     const now = new Date(2026, 4, 15, 10, 0, 0);
-    for (const freq of ['daily', 'weekly', 'biweekly', 'monthly'] as const) {
-      const p = weighInSchedule('2026-05-15', freq, now);
+    for (const freq of ['weekly', 'biweekly', 'monthly'] as const) {
+      const p = weighInSchedule('2026-05-15', freq, 0, now);
       const unique = p.kind === 'dates' && p.dates.length < 2;
       expect(`${freq}:${unique}`).toBe(`${freq}:false`);
     }
   });
 
-  it('quotidien → déclencheur répétitif natif, à 9h', () => {
-    const p = weighInSchedule('2026-05-15', 'daily', new Date(2026, 4, 15, 10, 0, 0));
-    expect(p).toEqual({ kind: 'daily', hour: WEIGH_IN_HOUR, minute: 0 });
+  // 🔴 LA CADENCE « CHAQUE JOUR » A ÉTÉ RETIRÉE LE 2026-09-20 (décision fondateur).
+  // Avec elle est parti le seul déclencheur qui pouvait sonner un jour que personne
+  // n'avait choisi — `weighInSchedule` ne rend plus jamais `kind: 'daily'`.
+  it('aucune cadence ne rend un déclencheur quotidien', () => {
+    const now = new Date(2026, 4, 15, 10, 0, 0);
+    for (const freq of ['weekly', 'biweekly', 'monthly'] as const) {
+      expect(weighInSchedule('2026-05-15', freq, 0, now).kind).not.toBe('daily');
+    }
   });
 
-  it('hebdo → le MÊME jour de semaine que la prochaine échéance', () => {
-    const now = new Date(2026, 4, 15, 10, 0, 0);            // vendredi 15 mai
-    const echeance = nextWeighInAt('2026-05-15', 'weekly', now);
-    const p = weighInSchedule('2026-05-15', 'weekly', now);
-    expect(p.kind).toBe('weekly');
-    if (p.kind !== 'weekly') return;
+  // 🔴 CE TEST DISAIT « le MÊME jour de semaine que la prochaine échéance », ET C'EST
+  // EXACTEMENT LÀ QUE LA DÉRIVE ENTRAIT : l'échéance bougeait avec les pesées en
+  // retard, donc le `weekday` du déclencheur répétitif changeait avec elle — une fois
+  // décalé, tous les rendez-vous suivants l'étaient. Il suit désormais le JOUR CHOISI.
+  it('hebdo → le jour CHOISI, pas celui de la dernière pesée', () => {
+    const now = new Date(2026, 4, 15, 10, 0, 0);               // vendredi 15 mai
+    const p = weighInSchedule('2026-05-15', 'weekly', 1, now); // rendez-vous : lundi
     // 🔴 Convention d'expo/iOS : 1 = DIMANCHE, là où `getDay()` rend 0. L'oublier
     // décale le rappel d'un jour, une fois par semaine, sans rien casser d'autre.
-    expect(p.weekday).toBe(echeance.getDay() + 1);
-    expect(p.weekday).toBeGreaterThanOrEqual(1);
-    expect(p.weekday).toBeLessThanOrEqual(7);
+    expect(p).toEqual({ kind: 'weekly', weekday: 2, hour: WEIGH_IN_HOUR, minute: 0 });
+  });
+
+  it('sans jour choisi, hebdo garde le jour de la dernière pesée (comportement d’avant)', () => {
+    const now = new Date(2026, 4, 15, 10, 0, 0);               // vendredi 15 mai
+    const p = weighInSchedule('2026-05-15', 'weekly', undefined, now);
+    expect(p).toMatchObject({ kind: 'weekly', weekday: 6 });   // vendredi = 5 → expo 6
   });
 
   it('dimanche tombe sur 1, pas sur 0', () => {
-    // 17 mai 2026 est un dimanche → pesée le 10, échéance hebdo le 17.
-    const p = weighInSchedule('2026-05-10', 'weekly', new Date(2026, 4, 10, 10, 0, 0));
+    const p = weighInSchedule('2026-05-10', 'weekly', 0, new Date(2026, 4, 10, 10, 0, 0));
     expect(p).toMatchObject({ kind: 'weekly', weekday: 1 });
   });
 
   it('quinzaine / mois → une série datée, espacée de la cadence, à partir de l’échéance', () => {
     const now = new Date(2026, 4, 15, 10, 0, 0);
     for (const freq of ['biweekly', 'monthly'] as const) {
-      const p = weighInSchedule('2026-05-15', freq, now);
+      const p = weighInSchedule('2026-05-15', freq, 0, now);
       expect(p.kind).toBe('dates');
       if (p.kind !== 'dates') continue;
       expect(p.dates).toHaveLength(WEIGH_IN_AHEAD);
-      expect(localStamp(p.dates[0])).toBe(localStamp(nextWeighInAt('2026-05-15', freq, now)));
+      expect(localStamp(p.dates[0])).toBe(localStamp(nextWeighInAt('2026-05-15', freq, 0, now)));
       const pas = frequencyDays(freq);
       for (let i = 1; i < p.dates.length; i++) {
         const ecart = Math.round((p.dates[i].getTime() - p.dates[i - 1].getTime()) / 86_400_000);
@@ -180,36 +344,82 @@ describe('weighInSchedule — un rappel qui survit à quelqu’un qui n’ouvre 
     }
   });
 
-  // Ce que la série doit garantir, c'est une COUVERTURE — pas un joli chiffre.
-  // Le seuil est posé à 80 jours parce que c'est ce que la quinzaine sert
-  // réellement (84) : viser 90 aurait été une promesse que le code ne tient pas,
-  // et c'est ce test qui l'a dit avant que le commentaire ne parte en OTA.
-  it('la série couvre au moins 80 jours — sinon elle s’éteint comme avant', () => {
+  // 🔴 LA RAISON D'ÊTRE DU PAS DE 28 JOURS (et non 30). Une série programmée d'avance
+  // n'est jamais relue par l'app : si ses occurrences glissent dans la semaine, le
+  // rendez-vous du dimanche devient mardi, puis jeudi, chez quelqu'un qui n'ouvre plus
+  // Kyroz. Le pas doit donc être un multiple de 7, et ce test le COMPTE.
+  it('chaque occurrence de la série tombe sur le jour choisi — y compris la 6ᵉ', () => {
     const now = new Date(2026, 4, 15, 10, 0, 0);
-    for (const [freq, mini] of [['biweekly', 80], ['monthly', 170]] as const) {
-      const p = weighInSchedule('2026-05-15', freq, now);
-      if (p.kind !== 'dates') throw new Error(`${freq} : série datée attendue`);
-      const jours = (p.dates[p.dates.length - 1].getTime() - now.getTime()) / 86_400_000;
-      expect(jours, freq).toBeGreaterThanOrEqual(mini);
+    for (const freq of ['biweekly', 'monthly'] as const) {
+      for (const jour of JOURS_PESEE.map((j) => j.value)) {
+        const p = weighInSchedule('2026-05-15', freq, jour, now);
+        if (p.kind !== 'dates') throw new Error(`${freq} : série datée attendue`);
+        for (const d of p.dates) expect(d.getDay(), `${freq} / jour ${jour} / ${localStamp(d)}`).toBe(jour);
+      }
+    }
+  });
+
+  // Ce que la série doit garantir, c'est une COUVERTURE — pas un joli chiffre.
+  // Le seuil suit la mesure, il ne la précède pas : viser 90 aurait été une promesse
+  // que le code ne tient pas, et c'est ce test qui l'avait dit avant que le
+  // commentaire ne parte en OTA.
+  //
+  // 🔴 LES DEUX SEUILS ONT BAISSÉ LE 2026-09-20, ET C'EST CE TEST QUI L'A MESURÉ.
+  // Deux causes, toutes deux voulues, et aucune des deux n'était dans mes prévisions :
+  //  · la cadence la plus longue vaut 28 jours et non 30, pour que chaque occurrence
+  //    retombe sur le jour choisi → 6 × 28 = 168 jours au lieu de 180 ;
+  //  · et le RECALAGE sur le jour choisi ramène la première échéance jusqu'à 6 jours
+  //    en arrière (84 → 78 pour la quinzaine, 168 → 162 pour les 4 semaines).
+  // Le test boucle donc sur les SEPT jours possibles : le seuil doit tenir pour le
+  // pire, pas pour le jour que j'avais pris en exemple.
+  it('la série couvre au moins 78 jours, quel que soit le jour choisi', () => {
+    const now = new Date(2026, 4, 15, 10, 0, 0);
+    for (const [freq, mini] of [['biweekly', 78], ['monthly', 162]] as const) {
+      for (const jour of JOURS_PESEE.map((j) => j.value)) {
+        const p = weighInSchedule('2026-05-15', freq, jour, now);
+        if (p.kind !== 'dates') throw new Error(`${freq} : série datée attendue`);
+        // ⚠️ On compte depuis MINUIT, pas depuis `now` : mesurée à 10h contre une
+        // échéance de 9h, la couverture perdait une heure et rendait 77,96 pour
+        // 78 jours pleins — un seuil raté sur un arrondi, pas sur le code.
+        const minuit = new Date(now); minuit.setHours(0, 0, 0, 0);
+        const jours = Math.floor((p.dates[p.dates.length - 1].getTime() - minuit.getTime()) / 86_400_000);
+        expect(jours, `${freq} / jour ${jour}`).toBeGreaterThanOrEqual(mini);
+      }
     }
   });
 
   it('cadence absente = hebdo, comme partout ailleurs', () => {
     const now = new Date(2026, 4, 15, 10, 0, 0);
-    expect(weighInSchedule('2026-05-15', undefined, now))
-      .toEqual(weighInSchedule('2026-05-15', 'weekly', now));
+    expect(weighInSchedule('2026-05-15', undefined, 0, now))
+      .toEqual(weighInSchedule('2026-05-15', 'weekly', 0, now));
   });
 });
 
 describe('frequencyDays', () => {
   it('mappe chaque cadence vers son intervalle', () => {
-    expect(frequencyDays('daily')).toBe(1);
     expect(frequencyDays('weekly')).toBe(7);
     expect(frequencyDays('biweekly')).toBe(14);
-    expect(frequencyDays('monthly')).toBe(30);
+    expect(frequencyDays('monthly')).toBe(28);
   });
   it('repli défaut (hebdo) si non défini', () => {
     expect(frequencyDays(undefined)).toBe(WEIGH_IN_INTERVALS.weekly);
+  });
+
+  // 🔴 LE VERROU DU JOUR DE PESÉE. Une cadence qui n'est pas un multiple de 7 fait
+  // glisser le rendez-vous dans la semaine à chaque échéance — c'est ce qui a fait
+  // passer la cadence mensuelle de 30 à 28 jours. Ajouter demain une cadence « tous
+  // les 10 jours » casserait le réglage en silence : ce test la refuse d'abord.
+  it('toutes les cadences sont des multiples de 7 — sinon le jour choisi dérive', () => {
+    for (const [freq, jours] of Object.entries(WEIGH_IN_INTERVALS)) {
+      expect(jours % 7, `${freq} = ${jours} jours`).toBe(0);
+    }
+  });
+
+  // Et le minimum décidé par le fondateur : plus rien en dessous d'une fois par semaine.
+  it('aucune cadence plus fréquente qu’une fois par semaine', () => {
+    for (const [freq, jours] of Object.entries(WEIGH_IN_INTERVALS)) {
+      expect(jours, `${freq}`).toBeGreaterThanOrEqual(7);
+    }
   });
 });
 

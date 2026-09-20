@@ -5,7 +5,7 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import Constants from 'expo-constants';
 import { ThemePalette, Spacing, Type, Radius, Trait, Icone, OPACITE_PRESSION, CIBLE_TACTILE_MIN, useTheme } from '../constants/theme';
-import { Segmented, SectionTitle, MenuRow } from './ui';
+import { Chip, Segmented, SectionTitle, MenuRow } from './ui';
 import { useReminder } from '../hooks/useReminder';
 import { usePlanCheckin } from '../hooks/usePlanCheckin';
 import { useAnalyticsConsent } from '../hooks/useAnalyticsConsent';
@@ -15,8 +15,8 @@ import { useHydrationEnabled } from './HydrationBar';
 import { ReminderTimeField } from './ReminderTimeField';
 import { ReminderTime, formatReminderTime, DEFAULT_REMINDER_TIME } from '../lib/reminder';
 import { remindersSupported } from '../lib/notifications';
-import { WeighInFrequency } from '../lib/types';
-import { WEIGH_IN_LABELS } from '../lib/weight';
+import { WeighInDay, WeighInFrequency } from '../lib/types';
+import { JOURS_PESEE, weighInResume } from '../lib/weight';
 // 🔴 `useDialog` A ÉTÉ RETIRÉ D'ICI le 2026-08-14, et ce n'est pas un nettoyage.
 // Cette feuille est rendue par `profil.tsx` DANS un `<Sheet>`, donc dans une
 // `Modal`. Sur iOS, une modale ne se présente pas par-dessus une modale en place :
@@ -86,13 +86,22 @@ interface Props {
   /** Cadence de pesée — remontée ici le 2026-08-14 (cf. `WeightCheckin`). */
   weighInFrequency: WeighInFrequency;
   onWeighInFrequency: (f: WeighInFrequency) => void;
+  /**
+   * Jour du rendez-vous de pesée, **déjà résolu** par l'écran appelant : jamais
+   * `undefined` ici. Un sélecteur qui n'affiche aucune sélection est un réglage qu'on
+   * ne sait pas corriger, et le jour servi existe toujours — choisi, ou déduit de la
+   * dernière pesée (`weighInDayOf`).
+   */
+  weighInDay: WeighInDay;
+  onWeighInDay: (d: WeighInDay) => void;
   dragHandlers?: any;
   sheetScrollProps?: any;
 }
 
 export function ReglagesSheet({
   t, version, onClose, onExport, onRevoirTutos, onLogout, onDelete,
-  weighInFrequency, onWeighInFrequency, dragHandlers, sheetScrollProps,
+  weighInFrequency, onWeighInFrequency, weighInDay, onWeighInDay,
+  dragHandlers, sheetScrollProps,
 }: Props) {
   const router = useRouter();
   const { time: reminderTime, choose: chooseReminder } = useReminder();
@@ -197,19 +206,44 @@ export function ReglagesSheet({
             mot (§8) : *ce réglage change-t-il ce que Kyroz me SERT ?* Non — il
             change quand Kyroz me PARLE. Sa place est donc ici, avec le rappel
             quotidien, et pas dans le geste de se peser. */}
+        {/* 🔴 « JOUR » A ÉTÉ RETIRÉ LE 2026-09-20 (décision fondateur : *« une fois par
+            semaine minimum, c'est ce qu'il faut »*). La cadence quotidienne demandait
+            une pesée chaque matin — y compris le matin d'une pesée déjà faite, ce que
+            `weighInSchedule` assumait noir sur blanc — et le poids du jour n'a de sens
+            que lissé. Les comptes qui la portaient sont refermés sur « Sem. » à la
+            lecture (`syncGuard::normalizeWeighIn`), pas laissés sur un segment vide. */}
         <Text style={s.label}>Rappel de pesée</Text>
         <Segmented<WeighInFrequency>
           t={t}
           value={weighInFrequency}
           onChange={onWeighInFrequency}
           options={[
-            { label: 'Jour', value: 'daily' },
             { label: 'Sem.', value: 'weekly' },
             { label: '2 sem.', value: 'biweekly' },
-            { label: 'Mois', value: 'monthly' },
+            { label: '4 sem.', value: 'monthly' },
           ]}
         />
-        <Text style={s.aide}>On te proposera un check-in : {WEIGH_IN_LABELS[weighInFrequency].toLowerCase()}.</Text>
+
+        {/* LE JOUR DU RENDEZ-VOUS (2026-09-20, demande fondateur). Il vaut pour les
+            TROIS cadences : « toutes les 2 semaines » sans dire quel jour, c'est
+            l'ancien comportement — un jour hérité du hasard de la première pesée, qui
+            se déplaçait à chaque pesée en retard.
+            ⚠️ Un seul jour sélectionné : ces puces se lisent comme des boutons radio,
+            pas comme les cases à cocher des jours de repos. Re-toucher le jour actif ne
+            le désélectionne donc pas — il n'existe pas de rendez-vous « aucun jour ». */}
+        <Text style={s.label}>Jour de la pesée</Text>
+        <View style={s.jours}>
+          {JOURS_PESEE.map((j) => (
+            <Chip
+              key={j.value}
+              t={t}
+              label={j.court}
+              selected={weighInDay === j.value}
+              onPress={() => onWeighInDay(j.value)}
+            />
+          ))}
+        </View>
+        <Text style={s.aide}>On te proposera un check-in {weighInResume(weighInFrequency, weighInDay)}.</Text>
 
         <Text style={s.label}>Propositions d'ajustement</Text>
         <Segmented<'on' | 'off'>
@@ -405,6 +439,9 @@ function makeStyles(t: ThemePalette) {
     aide: { ...Type.caption, color: t.textTertiary, lineHeight: 18, marginTop: -Spacing.sm },
     menu: { backgroundColor: t.card, borderRadius: Radius.card, paddingHorizontal: Spacing.lg },
     pastilles: { flexDirection: 'row', gap: Spacing.sm, flexWrap: 'wrap' },
+    // Les sept jours passent à la ligne sur les petits écrans plutôt que de rétrécir :
+    // une cible tactile ne se négocie pas (CIBLE_TACTILE_MIN, §8).
+    jours: { flexDirection: 'row', gap: Spacing.sm, flexWrap: 'wrap' },
     pastille: {
       width: CIBLE_TACTILE_MIN, height: CIBLE_TACTILE_MIN, borderRadius: Radius.pill,
       alignItems: 'center', justifyContent: 'center', borderWidth: Trait.controle,

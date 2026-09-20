@@ -71,7 +71,7 @@ import {
 import { datedGoalStatus, datedGoalKcalDelta, addDaysStamp } from '../../lib/datedGoal';
 import { deadlineLadder, checkEcheance, messageEcheance } from '../../lib/goalLadder';
 import { DatedGoalCard, formatFR } from '../../components/DatedGoalCard';
-import { todayStamp, DEFAULT_WEIGH_IN_FREQUENCY } from '../../lib/weight';
+import { todayStamp, DEFAULT_WEIGH_IN_FREQUENCY, weighInDayOf } from '../../lib/weight';
 import { applyWeighInReminder, cancelAllReminders } from '../../lib/notifications';
 import { purgeAllProgressPhotos } from '../../lib/photos';
 import {
@@ -239,6 +239,9 @@ export default function ProfilScreen() {
   // Le suivi du poids est désormais une CARTE (courbe + écart) et non une ligne de
   // menu : il lui faut les pesées, pas seulement le poids courant du profil.
   const { entries: weightEntries, delta: weightDelta, due: weighInDue } = useWeightLog();
+  // Dernière pesée connue : elle sert à ré-armer la notification ET à déduire le jour
+  // de rendez-vous quand aucun n'a été choisi. Une seule lecture, deux usages.
+  const dernierePesee = weightEntries[weightEntries.length - 1]?.date ?? null;
   const { time: reminderTime, choose: chooseReminder } = useReminder();
   const { enabled: checkinEnabled, setEnabled: setCheckinEnabled } = usePlanCheckin();
   const { session, signOut, reauthenticate } = useAuth();
@@ -773,7 +776,16 @@ export default function ProfilScreen() {
             saveProfile({ ...profile, weigh_in_frequency: f });
             // Ré-arme la notification sur la nouvelle cadence — même geste que celui
             // que faisait `WeightCheckin` avant que le réglage ne déménage.
-            applyWeighInReminder(f, weightEntries[weightEntries.length - 1]?.date ?? null);
+            applyWeighInReminder(f, dernierePesee, profile.weigh_in_day);
+          }}
+          /* Le jour est RÉSOLU ici, jamais laissé vide : sans choix explicite, c'est
+             celui de la dernière pesée — exactement le rendez-vous que l'app servait
+             déjà. La feuille affiche donc toujours le vrai jour, et le premier tap
+             FIGE ce jour-là au lieu de le laisser dériver à la prochaine pesée. */
+          weighInDay={weighInDayOf(profile.weigh_in_day, dernierePesee)}
+          onWeighInDay={(d) => {
+            saveProfile({ ...profile, weigh_in_day: d });
+            applyWeighInReminder(profile.weigh_in_frequency ?? DEFAULT_WEIGH_IN_FREQUENCY, dernierePesee, d);
           }}
         />
       </Sheet>

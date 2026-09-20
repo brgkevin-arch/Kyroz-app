@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useSyncExternalStore } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
-  WeightEntry, loadWeights, saveWeights, upsertEntry, removeEntry, latest, checkinDue, lastDelta, todayStamp, frequencyDays, DEFAULT_WEIGH_IN_FREQUENCY,
+  WeightEntry, loadWeights, saveWeights, upsertEntry, removeEntry, latest, checkinDue, lastDelta, todayStamp, DEFAULT_WEIGH_IN_FREQUENCY,
 } from '../lib/weight';
 import { recalcProfile } from '../lib/tdee';
 import { useProfile } from './useProfile';
@@ -72,11 +72,19 @@ export function useWeightLog() {
   }, []);
 
   // (Ré)arme le rappel de pesée dès que les données sont prêtes et à chaque
-  // nouvelle pesée ou changement de cadence. No-op sur web / sans permission.
+  // nouvelle pesée, changement de cadence ou changement de JOUR. No-op sur web /
+  // sans permission.
+  // ⚠️ `weigh_in_day` dans les dépendances : sans lui, choisir « le dimanche »
+  // n'aurait reprogrammé la notification qu'au prochain redémarrage de l'app — le
+  // réglage aurait eu l'air de ne rien faire (cf. le piège « un réglage se diffuse »).
   useEffect(() => {
     if (!ready || !profile) return;
-    applyWeighInReminder(profile.weigh_in_frequency ?? DEFAULT_WEIGH_IN_FREQUENCY, latest(entries)?.date ?? null);
-  }, [ready, profile?.weigh_in_frequency, entries]);
+    applyWeighInReminder(
+      profile.weigh_in_frequency ?? DEFAULT_WEIGH_IN_FREQUENCY,
+      latest(entries)?.date ?? null,
+      profile.weigh_in_day,
+    );
+  }, [ready, profile?.weigh_in_frequency, profile?.weigh_in_day, entries]);
 
   // Attache/retire une photo à une date (local-only, jamais synchronisée).
   const setPhoto = useCallback(async (date: string, uri: string | null) => {
@@ -121,7 +129,9 @@ export function useWeightLog() {
     photos,
     ready,
     last: latest(entries),
-    due: checkinDue(entries, todayStamp(), frequencyDays(profile?.weigh_in_frequency)),
+    // La bannière et la notification lisent la MÊME échéance — c'est ce qui les
+    // empêche de se contredire (cf. `checkinDue`).
+    due: checkinDue(entries, todayStamp(), profile?.weigh_in_frequency, profile?.weigh_in_day),
     delta: lastDelta(entries),
     logWeight,
     removeWeight,

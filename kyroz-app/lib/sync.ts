@@ -6,7 +6,7 @@ import { WeightEntry } from './weight';
 import { relireSyncEnAttente } from './syncEnAttente';
 import { ligneCloudExploitable, normalizeMacroMode } from './profilComplet';
 import { doitPurgerAvantHydratation, CLE_PROPRIETAIRE } from './sessionLocale';
-import { decideProfileHydration, normalizeCalorieBank, normalizeGoal, normalizeMeals, normalizeMealSlots, normalizeProfileActivity, normalizeVariety, reconcileCloudSports, reconcileCloudLowEaWeeks, reconcileCloudNeat, mergeWeightEntries, mergeRecipeOverrides, PROFILE_PENDING_KEY } from './syncGuard';
+import { decideProfileHydration, normalizeCalorieBank, normalizeGoal, normalizeMeals, normalizeMealSlots, normalizeProfileActivity, normalizeVariety, normalizeWeighIn, reconcileCloudSports, reconcileCloudLowEaWeeks, reconcileCloudNeat, mergeWeightEntries, mergeRecipeOverrides, PROFILE_PENDING_KEY } from './syncGuard';
 import { normalizeRestrictions } from './regime';
 
 /** La fusion a-t-elle produit autre chose que ce que le cloud détenait ? */
@@ -59,6 +59,12 @@ export const PROFILE_COLS = [
   'dietary_restrictions', 'disliked_foods', 'preferred_proteins', 'max_prep_time_min',
   'hidden_recipes',
   'weigh_in_frequency', 'fixed_meals',
+  // Jour du rendez-vous de pesée — migration 2026-09-20_profiles_weigh_in_day.sql.
+  // SYNCHRONISÉ, comme `weigh_in_frequency` juste au-dessus : les deux moitiés d'UN
+  // réglage (« chaque semaine, le dimanche ») ne peuvent pas vivre de deux côtés
+  // différents — changer de téléphone garderait la cadence et perdrait le jour, donc
+  // le rendez-vous se déplacerait tout seul sur le nouvel appareil.
+  'weigh_in_day',
   // Créneaux de repas créés par l'utilisateur — migration 2026-08-07_profiles_meal_slots.sql.
   'meal_slots',
   // Jours plus copieux — migration 2026-07-30_profiles_calorie_bank.sql. La colonne garde
@@ -80,7 +86,7 @@ export const PROFILE_COLS = [
 // transforme juste « synchro morte » en « tout passe sauf ces champs-là ».
 // Exporté pour que les TESTS lisent cette liste au lieu de la recopier : une
 // nouvelle migration ne doit pas faire rougir un test qui décrit l'ancienne.
-export const PROFILE_COLS_LAST_MIGRATION: string[] = ['gout_petit_dej', 'gout_collation'];
+export const PROFILE_COLS_LAST_MIGRATION: string[] = ['weigh_in_day'];
 
 // ── Signal d'échec de synchro ────────────────────────────────────────────────
 //
@@ -484,7 +490,7 @@ export async function hydrateFromCloud(uid: string, purgerLocal: () => Promise<v
         // quels ids de créneau existent, et `normalizeMeals` valide `meals` contre eux.
         // Dans l'autre sens, un créneau abîmé nettoyé après coup laisserait `meals`
         // désigner un id qui vient de disparaître.
-        ...normalizeRestrictions(normalizeCalorieBank(normalizeMeals(normalizeMealSlots(normalizeVariety(normalizeMacroMode(normalizeGoal(normalizeProfileActivity(cloud)))))))),
+        ...normalizeWeighIn(normalizeRestrictions(normalizeCalorieBank(normalizeMeals(normalizeMealSlots(normalizeVariety(normalizeMacroMode(normalizeGoal(normalizeProfileActivity(cloud))))))))),
       }));
     } else if (local && (action === 'keep_local' || action === 'push_local')) {
       await pushProfile(local); // (re)pousse le local ; lève le flag si succès

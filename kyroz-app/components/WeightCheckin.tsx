@@ -5,16 +5,14 @@ import { ConfirmationEnLigne } from './ConfirmationEnLigne';
 import { Ionicons } from '@expo/vector-icons';
 import { ThemePalette, Radius, Spacing, Type, Fond, Trait, Icone, CIBLE_TACTILE_MIN, OPACITE_PRESSION } from '../constants/theme';
 import { SHEET_MAX_WIDTH } from '../constants/layout';
-import { Field, PrimaryButton, SectionLabel, Segmented, clavierScrollProps } from './ui';
+import { Field, PrimaryButton, SectionLabel, clavierScrollProps } from './ui';
 import { WeightChart } from './WeightChart';
 import { TrackVerdict, PhotoCompare } from './Transformation';
 import { planFlags, trackingTarget } from '../lib/tdee';
 import { useWeightLog } from '../hooks/useWeightLog';
 import { useProfile } from '../hooks/useProfile';
 import { pickProgressPhoto, cameraAvailable, PhotoSource, PHOTOS_NOTICE_LOCALE } from '../lib/photos';
-import { todayStamp, localStamp, DEFAULT_WEIGH_IN_FREQUENCY, WEIGH_IN_LABELS, historiquePesees, HISTORIQUE_MAX } from '../lib/weight';
-import { applyWeighInReminder } from '../lib/notifications';
-import { WeighInFrequency } from '../lib/types';
+import { todayStamp, localStamp, historiquePesees, HISTORIQUE_MAX } from '../lib/weight';
 import { LocalIcon } from './Icons';
 import { useRouter } from 'expo-router';
 import { usePremium } from '../hooks/usePremium';
@@ -100,12 +98,12 @@ export function WeightCheckin({ t, onClose, dragHandlers, sheetScrollProps }: Pr
     setSaved(null);
   };
   const { profile, saveProfile } = useProfile();
-  const freq: WeighInFrequency = profile?.weigh_in_frequency ?? DEFAULT_WEIGH_IN_FREQUENCY;
-  const setFreq = (f: WeighInFrequency) => {
-    if (!profile) return;
-    saveProfile({ ...profile, weigh_in_frequency: f });
-    applyWeighInReminder(f, last?.date ?? null); // ré-arme la notif sur la nouvelle cadence
-  };
+  // ⚠️ `freq` / `setFreq` ont été RETIRÉS d'ici le 2026-09-20. Ils étaient MORTS depuis
+  // le 2026-08-14, jour où le réglage de cadence a déménagé dans la roue dentée : plus
+  // aucun rendu ne les lisait, mais `setFreq` savait encore écrire `weigh_in_frequency`
+  // et ré-armer la notification. Un demi-écrivain sans écran, qui ignorait le JOUR de
+  // pesée arrivé depuis — le prochain appelant aurait posé une cadence en effaçant
+  // l'ancrage. Le réglage vit à UN endroit (`ReglagesSheet`), et un seul.
   const [date, setDate] = useState(todayStamp());
   const [val, setVal] = useState('');
   const [note, setNote] = useState('');
@@ -478,7 +476,6 @@ function makeStyles(t: ThemePalette) {
     confirm: { backgroundColor: t.fill, borderRadius: Radius.card, padding: Spacing.lg, gap: Spacing.xs },
     confirmTitle: { ...Type.bodyStrong, color: t.text },
     confirmSub: { ...Type.caption, color: t.textSecondary },
-    freqHint: { ...Type.caption, color: t.textTertiary, lineHeight: 16, marginTop: -Spacing.sm },
     histCard: { backgroundColor: t.card, borderRadius: Radius.card, borderWidth: Trait.fin, borderColor: t.line, paddingHorizontal: Spacing.lg },
     histItem: { paddingVertical: Spacing.md },
     histRow: { flexDirection: 'row', alignItems: 'center' },
