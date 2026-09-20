@@ -362,7 +362,11 @@ export function WeightCheckin({ t, onClose, dragHandlers, sheetScrollProps }: Pr
         {/* ⚠️ `trackingTarget`, PAS `profile.goal_target` : le couloir vise la date que
             le moteur tiendra, pas celle qui a été saisie. Sans ça, on affiche « en
             retard » à quelqu'un qui suit le plan à la lettre — mesuré, dès J+7. */}
-        <WeightChart t={t} entries={entries} width={width} goalTarget={suiviAffiche} />
+        {/* ⚠️ Plus de trajectoire SUR la courbe depuis le 2026-09-20 : la zone est
+            partie (décision fondateur), et avec elle l'étirement de l'axe du temps
+            jusqu'à la date cible. Ce qui reste de l'objectif daté est le VERDICT,
+            juste en dessous — et lui est toujours réservé à Kyroz+. */}
+        <WeightChart t={t} entries={entries} width={width} />
         {profile && suiviAffiche && (
           // `paused` vient du PRODUCTEUR UNIQUE : quand le moteur a cessé de piloter
           // la trajectoire (insuffisance pondérale, poids cible à contresens), la

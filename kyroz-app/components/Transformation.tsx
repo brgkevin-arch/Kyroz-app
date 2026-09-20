@@ -48,19 +48,23 @@ export function TrackVerdict({ t, goalTarget, currentWeightKg, paused = false }:
     : st.state === 'on_track' ? { txt: '✓ Dans ta zone', color: t.success }
     : { txt: losing ? 'Ça descend à ton rythme' : 'Ça monte à ton rythme', color: t.text };
 
+  // 🔴 RÉDUIT À SA SEULE PHRASE LE 2026-09-20 (décision fondateur : « on garde QUE la
+  // phrase »). Sont partis avec la zone : « Depuis le départ : −4,4 kg » et « La pente
+  // est un repère, pas une règle… ».
+  // ⚠️ **SAUF EN PAUSE, et ce n'est pas moi qui décide d'y déroger — c'est le sens de
+  // la phrase.** « Suivi en pause » tout seul annonce un arrêt sans dire ni pourquoi ni
+  // ce que devient l'objectif : quelqu'un qui le lit croit avoir perdu sa trajectoire,
+  // alors que Kyroz vient de le mettre au maintien pour sa sécurité. Les trois autres
+  // états se suffisent (« En avance sur ton objectif » dit tout), celui-ci non.
+  // ➡️ À rouvrir si le fondateur tranche autrement : c'est une phrase, pas une règle.
   return (
     <View style={{ backgroundColor: t.fill, borderRadius: Radius.card, padding: Spacing.md, gap: Spacing.xs }}>
       <Text style={{ ...Type.bodySmallStrong, color: headline.color }}>{headline.txt}</Text>
-      {progress > 0 && (
-        <Text style={{ ...Type.caption, color: t.textSecondary, lineHeight: 18 }}>
-          Depuis le départ : {losing ? '-' : '+'}{Math.abs(progress)} kg
+      {st.state === 'paused' && (
+        <Text style={{ ...Type.caption, color: t.textTertiary, lineHeight: 17 }}>
+          Kyroz ne pilote plus cette trajectoire pour le moment : ton plan est au maintien. Ton objectif reste enregistré.
         </Text>
       )}
-      <Text style={{ ...Type.caption, color: t.textTertiary, lineHeight: 17 }}>
-        {st.state === 'paused'
-          ? 'Kyroz ne pilote plus cette trajectoire pour le moment : ton plan est au maintien. Ton objectif reste enregistré.'
-          : `La pente est un repère, pas une règle : à chaque pesée, Kyroz réajuste tes calories pour viser ${frnum(goalTarget.target_weight_kg)} kg le ${frDate(goalTarget.target_date)}.`}
-      </Text>
     </View>
   );
 }

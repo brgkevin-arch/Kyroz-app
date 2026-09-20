@@ -70,7 +70,7 @@ import {
 } from '../../lib/safety';
 import { datedGoalStatus, datedGoalKcalDelta, addDaysStamp } from '../../lib/datedGoal';
 import { deadlineLadder, checkEcheance, messageEcheance } from '../../lib/goalLadder';
-import { DatedGoalCard, formatFR } from '../../components/DatedGoalCard';
+import { BlocObjectif, formatFR } from '../../components/DatedGoalCard';
 import { todayStamp, DEFAULT_WEIGH_IN_FREQUENCY, weighInDayOf } from '../../lib/weight';
 import { applyWeighInReminder, cancelAllReminders } from '../../lib/notifications';
 import { purgeAllProgressPhotos } from '../../lib/photos';
@@ -311,7 +311,12 @@ export default function ProfilScreen() {
   // aujourd'hui : la ZONE sur la courbe est vendue comme « suivi de transformation »,
   // la CARTE est l'objectif daté lui-même. Le jour où les deux se séparent, chaque
   // surface part du bon côté.
-  const trajectoireVisible = premium.can('transformation');
+  // ⚠️ `trajectoireVisible` (= `can('transformation')`) a été RETIRÉ D'ICI le
+  // 2026-09-20 : son seul lecteur était la zone posée sur la courbe de cette carte, et
+  // la zone est partie (décision fondateur). Le verrou de la transformation n'a pas
+  // disparu pour autant — il vit là où il a encore quelque chose à garder : les photos
+  // et le VERDICT, dans `WeightCheckin` (`transfoOk`). Un verrou sans surface à
+  // protéger est un verrou décoratif, et `verrouKyrozPlus.test.ts` le compte.
   const objectifDateVisible = premium.can('dated_goal');
 
   const openEditor = (key: EditorKey) => {
@@ -511,13 +516,16 @@ export default function ProfilScreen() {
             ailleurs. Pas de prénom (compte antérieur à la question) → pas de ligne :
             mieux vaut un en-tête plus court qu'un remplissage. */}
         <View style={s.header} onLayout={repli.onHeaderLayout}>
-          {/* 🔴 LE TITRE PASSE DEVANT LE PRÉNOM (2026-08-25, décision fondateur :
-              le gros titre en haut, sur les cinq onglets). Le prénom n'est pas
-              supprimé comme les compteurs des autres écrans — c'est la seule chose
-              de cet écran qui ne soit écrite nulle part ailleurs. Il passe dessous. */}
+          {/* 🔴 L'EN-TÊTE NE PORTE PLUS QUE LE TITRE (2026-09-20, décision fondateur :
+              « on met rien du tout »). Troisième état de cette ligne, et le plus court :
+              elle a d'abord dit « Homme · 30 ans · Sèche » — retiré parce qu'il répétait
+              mot pour mot « Informations » et « Objectif » 600 px plus bas —, puis le
+              prénom, la seule chose de cet écran écrite nulle part ailleurs.
+              ⚠️ Le prénom n'est pas perdu : il accueille sur l'écran Plan (« Bonjour
+              Kévin »), qui est l'écran qu'on ouvre en premier. Ici, il ne servait plus
+              qu'à remplir une ligne. */}
           <View style={{ flex: 1 }}>
             <Text style={s.h1}>Profil</Text>
-            {!!prenom && <Text style={s.sub}>{prenom}</Text>}
           </View>
           {/* 🔴 LE « ? » EST PARTI le 2026-08-14 (décision fondateur). La série qui
               avait pris sa place est partie à son tour le 2026-09-19 (décision
@@ -549,13 +557,26 @@ export default function ProfilScreen() {
 
         {/* ⚠️ Le POIDS ouvre l'écran (décision fondateur du 2026-08-02) : il alimente
             le moteur — chaque pesée recalcule TDEE, macros et plan. */}
+        {/* 🔴 LE TITRE DE LA CARTE EST REVENU DEHORS (2026-09-21, décision fondateur sur
+            maquette) : « Suivi du poids » se pose au-dessus, comme « Tes cibles ». Les
+            deux sections de l'écran ont donc la même grammaire — un titre, une carte —
+            là où celle du poids portait son nom à l'intérieur, en petites capitales. */}
+        <SectionTitle t={t}>Suivi du poids</SectionTitle>
+
+        {/* 🔴 L'OBJECTIF DATÉ EST DANS LA CARTE DEPUIS LE 2026-09-20 (décision
+            fondateur, sur maquette) : il n'a plus de carte à lui. Le verrou reste ICI
+            et pas dans la carte — c'est l'écran qui connaît les droits, pas un
+            composant d'affichage. Sans objectif ou sans Kyroz+, la carte du poids
+            s'affiche exactement comme avant, sans trou ni séparateur. */}
         <WeightSummaryCard
           t={t}
           profileWeightKg={profile.weight_kg}
           entries={weightEntries}
           delta={weightDelta}
           due={weighInDue}
-          goalTarget={trajectoireVisible ? trackingTarget(profile, todayStamp()) : undefined}
+          objectif={profile.goal_target && objectifDateVisible
+            ? <BlocObjectif t={t} profile={profile} onPress={() => setEditor('dated_goal')} />
+            : undefined}
           onPress={() => setWeighIn(true)}
         />
 
@@ -569,7 +590,6 @@ export default function ProfilScreen() {
         )}
 
         {/* Objectif daté (premium) — suivi de trajectoire quand il est posé */}
-        {profile.goal_target && objectifDateVisible && <DatedGoalCard t={t} profile={profile} onPress={() => setEditor('dated_goal')} />}
 
         {/* Sécurité : plan ramené au maintien parce que le poids est descendu trop bas.
             Ton informatif et non alarmant (anti charge mentale) : on explique et on
@@ -614,12 +634,21 @@ export default function ProfilScreen() {
         {/* Cibles du jour — les quatre macros perdent leurs quatre couleurs : même
             graisse, même encre, la valeur porte seule. Il n'y a rien à comparer
             entre quatre boîtes côte à côte (cf. la note en tête de theme.ts). */}
-        <SectionTitle t={t}>Tes cibles</SectionTitle>
-        <View style={s.grid}>
-          <Box t={t} v={profile.target_kcal} l="kcal en moyenne" />
-          <Box t={t} v={profile.target_protein_g} l="protéines" u=" g" />
-          <Box t={t} v={profile.target_carbs_g} l="glucides" u=" g" />
-          <Box t={t} v={profile.target_fat_g} l="lipides" u=" g" />
+        {/* 🔴 UNE SEULE CARTE, EN 2 × 2 (2026-09-20, décision fondateur sur maquette).
+            C'étaient quatre cartes côte à côte, centrées : à quatre colonnes sur un
+            iPhone, « kcal en moyenne » passait sur deux lignes et les chiffres se
+            serraient. Les quatre nombres se lisent ensemble — ils décrivent UNE
+            journée — donc ils tiennent dans un seul bloc, alignés à gauche. */}
+        <SectionTitle t={t}>Cibles</SectionTitle>
+        <View style={s.cibles}>
+          <View style={s.ciblesLigne}>
+            <Cible t={t} v={profile.target_kcal} l="kcal" />
+            <Cible t={t} v={profile.target_protein_g} l="protéines" u=" g" />
+          </View>
+          <View style={s.ciblesLigne}>
+            <Cible t={t} v={profile.target_carbs_g} l="glucides" u=" g" />
+            <Cible t={t} v={profile.target_fat_g} l="lipides" u=" g" />
+          </View>
         </View>
 
         {/* 🔴 DEUX PARAGRAPHES ONT ÉTÉ RETIRÉS ICI le 2026-08-14 (décision
@@ -678,7 +707,7 @@ export default function ProfilScreen() {
             gabarits le 2026-08-10) — et il n'est demandé NULLE PART ailleurs, pas
             même à l'inscription. Un sous-titre de cinq mots lui donne enfin une
             adresse. */}
-        <SectionLabel t={t} sub="ce qui calcule ta dépense">TOI</SectionLabel>
+        <SectionTitle t={t}>Infos</SectionTitle>
         <View style={s.menu}>
           <MenuRow t={t} label="Informations" value={`${SEX_LABELS[profile.sex]} · ${profile.age} ans · ${frnum(profile.weight_kg)} kg${profile.body_fat_pct != null ? ` · ${frnum(profile.body_fat_pct)}% MG` : ''}`} onPress={() => setEditor('info')} />
           <MenuRow t={t} label="Sport & activité" value={`${profile.sports?.length ? `${profile.sports.length} sport${profile.sports.length > 1 ? 's' : ''}` : 'Aucun sport'} · ${NEAT_SHORT[profile.neat_level ?? DEFAULT_NEAT_LEVEL]}`} onPress={() => setEditor('sports')} last />
@@ -687,14 +716,14 @@ export default function ProfilScreen() {
         {/* « Calories & macros » a quitté le bloc des repas pour celui-ci : il ne
             remplit aucune assiette, il fixe le nombre que les assiettes doivent
             atteindre. Il se lit avec l'objectif, pas avec les préférences. */}
-        <SectionLabel t={t} sub="ce qui fixe tes cibles">TON OBJECTIF</SectionLabel>
+        <SectionTitle t={t}>Objectif</SectionTitle>
         <View style={s.menu}>
           <MenuRow t={t} label="Objectif" value={goalLabel(profile.goal)} onPress={() => setEditor('goal')} />
           <MenuRow t={t} label="Objectif daté" value={profile.goal_target ? `${frnum(profile.goal_target.target_weight_kg)} kg · ${formatFR(profile.goal_target.target_date)}` : (premium.can('dated_goal') ? 'Aucun' : 'Inclus dans Kyroz+')} onPress={() => openEditor('dated_goal')} />
           <MenuRow t={t} label="Calories & macros" value={profile.macro_mode === 'percent' ? 'Perso %' : 'Calculées'} onPress={() => setEditor('macros')} last />
         </View>
 
-        <SectionLabel t={t} sub="ce qui remplit ton assiette">TES REPAS</SectionLabel>
+        <SectionTitle t={t}>Repas</SectionTitle>
         <View style={s.menu}>
           <MenuRow t={t} label="Préférences alimentaires" value={profile.dietary_restrictions.length || profile.disliked_foods.length || profile.hidden_recipes?.length ? 'Personnalisées' : 'Aucune'} onPress={() => setEditor('prefs')} />
           {/* ⚠️ `last` CALCULÉ, pas écrit en dur : les deux lignes qui suivaient sont
@@ -922,11 +951,16 @@ export default function ProfilScreen() {
 // ⚠️ Plus de prop `c` (couleur) : les quatre macros portaient quatre teintes,
 // alors qu'il n'y a rien à comparer entre quatre boîtes côte à côte. Même encre
 // pour les quatre — cf. la note en tête de constants/theme.ts.
-function Box({ t, v, l, u = '' }: { t: ThemePalette; v: number; l: string; u?: string }) {
+// Une cible dans la grille 2 × 2 : le nombre, puis son unité dessous. Plus de carte
+// par case — c'est la carte parente qui les tient toutes les quatre.
+// ⚠️ `toLocaleString('fr-FR')` sur les kcal : « 2513 » se lit mal, « 2 513 » se lit.
+// C'est le même format que la ligne TDEE juste en dessous, et deux formats différents
+// pour deux nombres de calories sur le même écran, ça se voit.
+function Cible({ t, v, l, u = '' }: { t: ThemePalette; v: number; l: string; u?: string }) {
   return (
-    <View style={{ flex: 1, backgroundColor: t.card, borderRadius: Radius.card, paddingVertical: Spacing.lg, paddingHorizontal: Spacing.sm, alignItems: 'center', gap: Spacing.xs }}>
-      <Text style={{ ...Type.h2, letterSpacing: -0.5, color: t.text }}>{v}{u}</Text>
-      <Text style={{ ...Type.caption, color: t.textSecondary, textAlign: 'center' }}>{l}</Text>
+    <View style={{ flex: 1, gap: Spacing.xs }}>
+      <Text style={{ ...Type.h2, letterSpacing: -0.5, color: t.text }}>{v.toLocaleString('fr-FR')}{u}</Text>
+      <Text style={{ ...Type.caption, color: t.textSecondary }}>{l}</Text>
     </View>
   );
 }
@@ -1984,7 +2018,11 @@ function makeStyles(t: ThemePalette) {
     roue: { alignItems: 'center', justifyContent: 'center', minWidth: CIBLE_TACTILE_MIN, minHeight: CIBLE_TACTILE_MIN },
     sub: { ...Type.bodySmall, color: t.textSecondary, lineHeight: 19 },
     h1: { color: t.text, ...Type.display, marginTop: Spacing.xs },
-    grid: { flexDirection: 'row', gap: Spacing.sm },
+    cibles: {
+      backgroundColor: t.card, borderRadius: Radius.card,
+      padding: Spacing.xl, gap: Spacing.xl,
+    },
+    ciblesLigne: { flexDirection: 'row', gap: Spacing.md },
     menu: { backgroundColor: t.card, borderRadius: Radius.card, paddingHorizontal: Spacing.lg },
     tdee: { backgroundColor: t.card, borderRadius: Radius.card, padding: Spacing.lg, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: Spacing.md },
     floorNote: { ...Type.caption, color: t.textSecondary, lineHeight: 18, marginTop: -Spacing.xs },

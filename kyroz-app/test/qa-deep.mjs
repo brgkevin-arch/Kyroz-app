@@ -66,7 +66,7 @@ await goToProfil(page); await snap('D-profil');
 // Suivi du poids : le seul sous-écran qui ÉCRIT côté cloud (weight_logs).
 // On va jusqu'à l'enregistrement — c'est tout l'intérêt : les écouteurs plus haut
 // attrapent un 4xx/5xx sur ce POST, qu'une simple capture ne verrait jamais.
-if (await tap(page, 'Suivi du poids', { timeout: 3000 })) {
+if (await tap(page, 'Suivi du poids', { exact: true, timeout: 3000 })) {
   await sleep(1500); await snap('D-poids');
   // Placeholder dynamique (dernier poids connu, sinon « 80 ») → repéré par sa forme.
   const kg = page.getByPlaceholder(/^\d+([.,]\d+)?$/).first();
@@ -78,7 +78,7 @@ if (await tap(page, 'Suivi du poids', { timeout: 3000 })) {
     await snap('D-poids-after-add');
   } else log('champ de poids introuvable');
   await closeSheet(page);
-} else log('« Suivi du poids » introuvable');
+} else log('« Suivi du poids » (titre de la carte) introuvable');
 
 // Libellés réels des lignes de app/(tabs)/profil.tsx.
 const subs = ['Informations', 'Sport & activité', 'Objectif', 'Objectif daté', 'Calories & macros', 'Préférences alimentaires', 'Paramètres des repas'];

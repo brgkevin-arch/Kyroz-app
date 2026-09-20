@@ -54,8 +54,22 @@ function titresDeSection(src: string): string[] {
     .map((m) => m[1]);
 }
 
-/** Les trois chapitres de réglage du Profil, dans l'ordre attendu à l'écran. */
-const CHAPITRES = ['TOI', 'TON OBJECTIF', 'TES REPAS'];
+/**
+ * Les chapitres du Profil, dans l'ordre attendu à l'écran.
+ *
+ * 🔴 RENOMMÉS ET REHAUSSÉS LE 2026-09-21 (décision fondateur) : « TOI · TON OBJECTIF ·
+ * TES REPAS » en petites capitales, chacun sous-titré, sont devenus **« Infos ·
+ * Objectif · Repas »** — mêmes taille et police que « Suivi du poids » et « Cibles »,
+ * et **sans la ligne d'explication**.
+ * ⚠️ Ce que ça renverse, pour qu'on le sache en le relisant : la passe du 2026-08-10
+ * avait mis ces blocs au niveau `SectionLabel` justement pour qu'aucun n'emprunte le
+ * titre d'un chapitre, et leurs sous-titres portaient une information qui n'existe
+ * nulle part ailleurs (« ce qui calcule ta dépense » était la seule chose qui envoyait
+ * vers le réglage NEAT, 80 kcal/j le cran). Les deux cas qui les comptaient sont donc
+ * réécrits, pas supprimés : ils tiennent désormais l'UNIFORMITÉ — cinq chapitres, un
+ * seul niveau, aucun sous-titre — qui est la règle qui les remplace.
+ */
+const CHAPITRES = ['Infos', 'Objectif', 'Repas'];
 
 describe('Profil — le mot « Réglages » ne désigne qu’un seul endroit', () => {
   it('aucun titre de section de l’écran ne porte le nom de la feuille qu’ouvre la roue', () => {
@@ -76,31 +90,34 @@ describe('Profil — le mot « Réglages » ne désigne qu’un seul endroit', (
     expect(norm(m![1])).toBe(norm(titreDeLaFeuille()));
   });
 
-  it('les blocs de réglages du moteur sont étiquetés au MÊME niveau', () => {
-    // « Réglages » était un `SectionTitle` (« découpe l'écran ») et « TON PLAN »
-    // un `SectionLabel` (« étiquette un bloc ») : le premier bloc n'avait donc
-    // aucune étiquette à lui, il empruntait celle du chapitre.
+  it('tous les chapitres de l’écran sont au MÊME niveau', () => {
+    // L'ancienne règle disait « SectionLabel pour tous », parce qu'un `SectionTitle`
+    // au milieu de `SectionLabel` faisait emprunter au premier bloc le titre du
+    // chapitre. Le mélange reste le défaut ; c'est le niveau retenu qui a changé.
     for (const attendu of CHAPITRES) {
       expect(
         SRC_PROFIL,
-        `le bloc « ${attendu} » n'est plus étiqueté par un SectionLabel`,
-      ).toMatch(new RegExp(`<SectionLabel t=\\{t\\}[^>]*>${attendu}</SectionLabel>`));
+        `le chapitre « ${attendu} » n'est plus un SectionTitle`,
+      ).toMatch(new RegExp(`<SectionTitle t=\\{t\\}>${attendu}</SectionTitle>`));
     }
+    // Et l'uniformité se compte dans les DEUX sens : aucun chapitre ne doit
+    // redescendre au niveau d'étiquette pendant qu'un autre reste un titre.
+    const restes = [...SRC_PROFIL.matchAll(/<SectionLabel t=\{t\}[^>]*>(TOI|TON OBJECTIF|TES REPAS)<\/SectionLabel>/g)];
+    expect(restes.map((m) => m[1]), 'un ancien chapitre en petites capitales est revenu').toEqual([]);
   });
 
-  it('chaque chapitre dit ce qu’il PILOTE, pas seulement de quoi il parle', () => {
-    // C'est le sous-titre qui fait le travail de cette passe, pas le découpage :
-    // sans lui, rien n'indique que « Sport & activité » décide de la dépense, donc
-    // rien n'y envoie qui doute de son chiffre. Le NEAT (80 kcal/j le cran en
-    // médiane, mesuré) n'est demandé nulle part ailleurs, pas même à l'inscription.
+  it('aucun chapitre ne porte de phrase sous son titre', () => {
+    // 🔴 DÉCISION FONDATEUR DU 2026-09-21 : « sans la phrase en dessous ». Elle
+    // renverse la passe du 2026-08-10, dont le sous-titre était l'apport principal —
+    // il disait ce que le bloc PILOTE (« ce qui calcule ta dépense ») et non de quoi
+    // il parle. ⚠️ CE QUE ÇA COÛTE, et il faut le savoir : plus rien n'indique sur
+    // cet écran que « Sport & activité » décide de la dépense, or le NEAT vaut
+    // 80 kcal/j le cran (médiane mesurée) et n'est demandé nulle part ailleurs.
+    // Le chiffre reste juste ; c'est son ADRESSE qui n'est plus donnée.
     for (const chap of CHAPITRES) {
-      const m = SRC_PROFIL.match(new RegExp(`<SectionLabel t=\\{t\\}([^>]*)>${chap}</SectionLabel>`));
+      const m = SRC_PROFIL.match(new RegExp(`<Section(?:Title|Label) t=\\{t\\}([^>]*)>${chap}</Section(?:Title|Label)>`));
       expect(m, `le chapitre « ${chap} » a disparu`).toBeTruthy();
-      const sub = m![1].match(/sub="([^"]+)"/);
-      expect(sub, `le chapitre « ${chap} » n'a plus de sous-titre`).toBeTruthy();
-      // ≤ 5 mots, pas de point final : c'est une adresse, pas une explication.
-      expect(sub![1].trim().split(/\s+/).length, `sous-titre trop long : « ${sub![1]} »`).toBeLessThanOrEqual(5);
-      expect(sub![1].trim().endsWith('.'), `sous-titre ponctué : « ${sub![1]} »`).toBe(false);
+      expect(m![1], `le chapitre « ${chap} » a retrouvé un sous-titre`).not.toMatch(/sub=/);
     }
   });
 });
@@ -208,8 +225,11 @@ describe('Profil — la visite guidée descend l’écran, elle ne fait pas d’
     // ➡️ On se repère désormais sur le LIBELLÉ affiché, qui est le sujet du test.
     const tdee = SRC_PROFIL.indexOf('Dépense estimée · maintenance (TDEE)');
     expect(tdee, 'le libellé de la dépense estimée est introuvable — le repère a bougé').toBeGreaterThan(0);
-    const premierBloc = SRC_PROFIL.search(/<SectionLabel t=\{t\}[^>]*>TOI<\/SectionLabel>/);
-    expect(premierBloc, 'le bloc « TOI » a disparu').toBeGreaterThan(0);
+    // ⚠️ Le repère suit le RENOMMAGE du 2026-09-21 (« TOI » → « Infos ») : un test
+    // qui se repère sur un libellé doit suivre le libellé, sinon il mesure le vide —
+    // c'est exactement ce que la note ci-dessus raconte de `profil-tdee`.
+    const premierBloc = SRC_PROFIL.search(/<SectionTitle t=\{t\}>Infos<\/SectionTitle>/);
+    expect(premierBloc, 'le chapitre « Infos » a disparu').toBeGreaterThan(0);
     expect(tdee, 'la dépense estimée est repassée sous les lignes de menu').toBeLessThan(premierBloc);
   });
 });
