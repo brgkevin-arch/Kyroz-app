@@ -721,3 +721,45 @@ export function datedGoalKcalDelta(
   const s = datedGoalStatus(target, p, today, tdee, null, null);
   return s && s.active ? s.dailyKcalDelta : null;
 }
+
+// ── CE QUE LA CARTE POIDS AFFICHE DE L'OBJECTIF (2026-09-20) ────────────────
+//
+// La carte d'objectif daté a FUSIONNÉ dans la carte du poids (décision fondateur, sur
+// maquette) : « Cible 78,0 kg · reste 3,1 kg », une barre, puis « −1,9 kg depuis le
+// 26 juil., sur 5,0 kg ». Ces quatre nombres sortent d'ici plutôt que du composant,
+// pour une raison précise : **ils doivent tous parler de la même référence**.
+//
+// ⚠️ Le piège, et il est réel : quand un PALIER est actif, la barre mesure le palier
+// et non la cible finale (`DatedGoalCard`, découpage des objectifs longs). Un « reste »
+// calculé sur la cible finale à côté d'une barre qui mesure le palier donnerait une
+// barre aux deux tiers sous un « reste 3,1 kg sur 5 » — deux chiffres vrais qui se
+// contredisent à l'écran. D'où `referenceKg` : l'appelant dit vers QUOI on compte, et
+// le reste suit la barre.
+export interface ResumeProgression {
+  /** Écart parcouru depuis le départ, SIGNÉ dans le sens du monde réel (négatif = poids perdu). */
+  faitKg: number;
+  /** Ce qu'il reste jusqu'à la référence. Toujours ≥ 0 — un objectif dépassé rend 0, jamais un négatif. */
+  resteKg: number;
+  /** Le chemin complet, départ → cible FINALE (jamais le palier : c'est l'échelle de la phrase). */
+  totalKg: number;
+  /** Avancement 0…1 vers la référence, borné aux deux bouts. */
+  ratio: number;
+}
+
+export function resumeProgression(
+  target: GoalTarget,
+  currentWeightKg: number,
+  referenceKg: number = target.target_weight_kg,
+): ResumeProgression {
+  const depart = target.start_weight_kg;
+  const fait = round1(currentWeightKg - depart);
+  const reste = round1(Math.abs(currentWeightKg - referenceKg));
+  const total = round1(Math.abs(depart - target.target_weight_kg));
+
+  // Un départ égal à la référence n'a pas de progression à mesurer : 100 %, et pas une
+  // division par zéro. C'est le cas d'un objectif déjà atteint le jour où on le pose.
+  const course = depart - referenceKg;
+  const ratio = course === 0 ? 1 : Math.min(Math.max((depart - currentWeightKg) / course, 0), 1);
+
+  return { faitKg: fait, resteKg: reste, totalKg: total, ratio };
+}

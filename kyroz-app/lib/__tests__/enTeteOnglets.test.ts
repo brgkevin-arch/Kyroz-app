@@ -81,7 +81,13 @@ describe('Le grand titre ouvre chaque onglet', () => {
     // et rien d'autre ne doit s'y ajouter sans décision.
     const sousLeTitre: Record<string, RegExp | null> = {
       plan: /s\.date/,        // la date du jour — pas un décompte
-      profil: /s\.sub/,       // le prénom — la seule chose de l'écran écrite nulle part ailleurs
+      // 🔴 Le Profil n'a plus RIEN sous son titre depuis le 2026-09-20 (décision
+      // fondateur : « on met rien du tout »). Sa ligne a porté trois choses en deux
+      // mois — « Homme · 30 ans · Sèche », puis le prénom, puis rien. Le test change
+      // donc de camp : il exige désormais l'absence, comme pour les trois autres
+      // onglets. ⚠️ Ce que la règle protège ne bouge pas : aucun DÉCOMPTE ne
+      // réapparaît sous un titre.
+      profil: null,
       courses: null,
       reserve: null,
       recettes: null,

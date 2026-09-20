@@ -166,11 +166,23 @@ describe('chaque feature de PREMIUM_FEATURES est réellement interrogée', () =>
       'le bouton « Enregistrer » de la pesée ne doit JAMAIS dépendre du verrou Kyroz+',
     ).not.toMatch(/transfoOk|premium/);
 
-    // La courbe s'affiche toujours ; seule la trajectoire posée dessus est premium.
+    // La courbe s'affiche toujours, et elle ne porte plus RIEN de verrouillable.
+    // 🔴 CE CAS EXIGEAIT `goalTarget={suiviAffiche}` SUR LA COURBE jusqu'au 2026-09-20 :
+    // la trajectoire (zone) y était dessinée, donc le premium passait par elle. La zone
+    // est partie (décision fondateur) — la courbe est désormais la même pour tout le
+    // monde, et ce qui reste payant est le VERDICT posé à côté d'elle.
+    // ⚠️ L'intention du test ne change pas d'un iota : *la pesée et sa courbe ne se
+    // verrouillent jamais*. C'est la surface qui porte le verrou qui a bougé, et un
+    // test qui nomme une surface doit suivre la surface — sinon il fige un câblage au
+    // lieu de tenir une règle.
     expect(src, 'la courbe de poids doit rester inconditionnelle').toMatch(/<WeightChart\b/);
     expect(
       src.match(/<WeightChart[\s\S]{0,160}?\/>/)?.[0] ?? '',
-      'la courbe reçoit `suiviAffiche` (trajectoire verrouillable), mais elle-même ne se cache jamais',
-    ).toMatch(/goalTarget=\{suiviAffiche\}/);
+      'la courbe ne doit dépendre d\'AUCUN verrou : elle est gratuite, entièrement',
+    ).not.toMatch(/transfoOk|suiviAffiche|premium/);
+    expect(
+      src,
+      'le verdict de trajectoire, lui, reste réservé à Kyroz+ (`suiviAffiche`)',
+    ).toMatch(/<TrackVerdict[\s\S]{0,160}?goalTarget=\{suiviAffiche\}/);
   });
 });

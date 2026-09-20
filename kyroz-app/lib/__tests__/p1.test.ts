@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-  datedGoalStatus, trackStatus, zoneHalfWidthKg, addDaysStamp,
+  datedGoalStatus, trackStatus, zoneHalfWidthKg, addDaysStamp, resumeProgression,
   TRACK_TOLERANCE_KG, MAX_PROJECTION_WEEKS, MAX_DEFICIT_TDEE_RATIO,
 } from '../datedGoal';
 import {
@@ -402,5 +402,55 @@ describe('Perso % — part réellement servie', () => {
   it('budget entièrement mangé par les protéines → 0, pas une division par zéro', () => {
     expect(servedCarbSharePct({ target_kcal: 400, protein_g: 100, carbs_g: 0 })).toBe(0);
     expect(servedCarbSharePct({ target_kcal: 300, protein_g: 120, carbs_g: 5 })).toBe(0);
+  });
+});
+
+// ── Ce que la carte poids affiche de l'objectif (2026-09-20) ────────────────
+//
+// 🔴 CES QUATRE NOMBRES S'AFFICHENT CÔTE À CÔTE : « Cible 78,0 kg · reste 3,1 kg », une
+// barre, et « −1,9 kg depuis le 26 juil., sur 5,0 kg ». S'ils ne parlent pas de la même
+// référence, l'écran se contredit tout seul — une barre aux deux tiers sous un « reste »
+// qui dit l'inverse. C'est ce que ces cas tiennent.
+describe('resumeProgression', () => {
+  const perte = { start_weight_kg: 83, start_date: '2026-07-26', target_weight_kg: 78, target_date: '2026-12-15' };
+  const prise = { start_weight_kg: 70, start_date: '2026-07-26', target_weight_kg: 76, target_date: '2026-12-15' };
+
+  it('perte : le fait est négatif, le reste positif, le total est le chemin complet', () => {
+    const r = resumeProgression(perte, 81.1);
+    expect(r.faitKg).toBe(-1.9);
+    expect(r.resteKg).toBe(3.1);
+    expect(r.totalKg).toBe(5);
+    expect(r.ratio).toBeCloseTo(0.38, 2);
+  });
+
+  it('prise de masse : le même calcul marche à l’envers', () => {
+    const r = resumeProgression(prise, 72.4);
+    expect(r.faitKg).toBe(2.4);
+    expect(r.resteKg).toBe(3.6);
+    expect(r.totalKg).toBe(6);
+    expect(r.ratio).toBeCloseTo(0.4, 2);
+  });
+
+  // Dépasser son objectif ne doit jamais rendre un « reste −0,6 kg » ni une barre à 112 %.
+  it('objectif dépassé : reste 0 et barre pleine, jamais de négatif', () => {
+    const r = resumeProgression(perte, 77.4);
+    expect(r.resteKg).toBe(0.6);       // la distance reste une distance…
+    expect(r.ratio).toBe(1);           // …mais la barre ne déborde pas
+    const avant = resumeProgression(perte, 84);
+    expect(avant.ratio).toBe(0);       // et elle ne part pas en arrière non plus
+  });
+
+  // 🔴 LE CAS DU PALIER : la barre mesure l'étape, donc le reste doit la suivre.
+  it('avec une référence de palier, le reste et la barre parlent du PALIER', () => {
+    const r = resumeProgression(perte, 81.1, 80);   // palier à 80 kg
+    expect(r.resteKg).toBe(1.1);                     // vers le palier, pas vers 78
+    expect(r.ratio).toBeCloseTo(0.63, 2);            // (83 − 81,1) / (83 − 80)
+    expect(r.totalKg).toBe(5);                       // la phrase, elle, garde l'échelle totale
+  });
+
+  it('départ déjà sur la cible : 100 %, et surtout pas une division par zéro', () => {
+    const r = resumeProgression({ ...perte, start_weight_kg: 78 }, 78);
+    expect(r.ratio).toBe(1);
+    expect(Number.isFinite(r.ratio)).toBe(true);
   });
 });

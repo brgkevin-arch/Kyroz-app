@@ -55,6 +55,24 @@ const sansCommentairesJS = (src: string) =>
   src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
 
 /**
+ * Le texte est-il RENDU, ou seulement présent dans le fichier ?
+ *
+ * 🔴 CE VERROU EST RESTÉ VERT SUR UN LIBELLÉ QUI N'EXISTAIT PLUS (mesuré le
+ * 2026-09-21). L'ancre cherchait « POIDS » dans `WeightSummaryCard.tsx` ; le label
+ * avait été retiré de l'écran la minute d'avant, et le test passait quand même —
+ * grâce à **`const poids = profileWeightKg`**. Un nom de variable en français suffisait
+ * à se porter garant d'un clic. Le script, lui, aurait cliqué dans le vide, et le
+ * rapport aurait dit « introuvable » en accusant le parcours.
+ * ➡️ On exige donc que le texte suive un `>` (nœud JSX) ou une quote (prop, chaîne) :
+ * ce qui reste, c'est ce qui a une chance d'être affiché. Ce n'est pas un analyseur
+ * syntaxique, c'est la borne qui manquait — et elle rougit sur le cas qui l'a motivée.
+ */
+const contientAffiche = (src: string, txt: string) => {
+  const echappe = txt.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return new RegExp(`(?:>|['"\`])[^<>]{0,80}?${echappe}`, 'i').test(src);
+};
+
+/**
  * Une ancre = un texte que les scripts cherchent À L'ÉCRAN.
  *
  * `dans` est l'écran qui doit le rendre, `script` celui qui le cherche (par défaut
@@ -152,7 +170,12 @@ const ANCRES: Ancre[] = [
   { quoi: 'sortie de la visite guidée', texte: 'Passer', dans: 'components/GuidedTour.tsx' },
 
   // ── Sous-écrans du Profil (qa-deep / qa-settings) ──
-  { quoi: 'carte de suivi du poids', texte: 'Suivi du poids', dans: 'components/WeightSummaryCard.tsx', script: 'test/qa-deep.mjs' },
+  // 🔴 LE TITRE A DÉMÉNAGÉ DEUX FOIS EN DEUX JOURS (décisions fondateur) : « SUIVI DU
+  // POIDS » dans la carte → « POIDS » dans la carte → « Suivi du poids » en titre de
+  // SECTION, donc dans l'écran et non plus dans le composant. `dans` suit la surface.
+  // ⚠️ `exact` côté script : en non-exact, « poids » matche aussi « Ton poids
+  // aujourd'hui » dans la feuille, donc le clic partirait sur le mauvais élément.
+  { quoi: 'carte de poids', texte: 'Suivi du poids', dans: 'app/(tabs)/profil.tsx', script: 'test/qa-deep.mjs' },
   { quoi: 'enregistrement d\'une pesée', texte: 'Enregistrer', dans: 'app/(tabs)/profil.tsx', script: 'test/qa-deep.mjs' },
   { quoi: 'sous-écran Informations', texte: 'Informations', dans: 'app/(tabs)/profil.tsx', script: 'test/qa-deep.mjs' },
   { quoi: 'sous-écran Sport & activité', texte: 'Sport & activité', dans: 'app/(tabs)/profil.tsx', script: 'test/qa-settings.mjs' },
@@ -253,7 +276,10 @@ describe('harnais Playwright — les libellés cherchés existent encore', () =>
   it.each(ANCRES)('« $texte » — $quoi', ({ texte, dans, motif, cherche, script }) => {
     const fichierScript = script ?? HARNAIS;
     expect(
-      contient(sansCommentairesJS(lire(dans)), motif ?? texte),
+      // ⚠️ Un `motif` porte DÉJÀ son contexte (« label: 'Homme' » ne peut être qu'une
+      // prop) : le passer dans `contientAffiche` exigerait une quote avant « label »,
+      // qui n'existe pas. C'est le texte NU qui a besoin qu'on prouve qu'il est rendu.
+      motif ? contient(sansCommentairesJS(lire(dans)), motif) : contientAffiche(sansCommentairesJS(lire(dans)), texte),
       `${dans} ne rend plus « ${texte} » → ${fichierScript} cliquera dans le vide et le rapport dira « introuvable »`,
     ).toBe(true);
     // 🔴 LES COMMENTAIRES DU SCRIPT SONT ÉCARTÉS — sinon une NOTE qui cite le libellé

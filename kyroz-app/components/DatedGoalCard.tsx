@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity } from 'react-native';
 import { Presse } from './Presse';
 import { ThemePalette, Type, Spacing, OPACITE_PRESSION , Icone } from '../constants/theme';
 import { Card } from './ui';
-import { datedGoalStatus, simulatedTrajectory, daysBetween } from '../lib/datedGoal';
+import { datedGoalStatus, simulatedTrajectory, daysBetween, resumeProgression } from '../lib/datedGoal';
 import { needsMilestones, milestonesFor, currentMilestone, milestoneProgress } from '../lib/goalMilestones';
 import { planFloorKcal, makeWeeklyProjector } from '../lib/tdee';
 import { todayStamp } from '../lib/weight';
@@ -11,10 +11,20 @@ import { UserProfile } from '../lib/types';
 import { ObjectifIcon } from './Icons';
 import { frnum } from '../lib/units';
 
-// ── Carte de suivi d'objectif daté (premium « Kyroz+ ») ──────────────────────
-// Partagée par l'écran Plan (le geste quotidien) et le Profil. Lecture seule :
-// tout le calcul vient de `datedGoalStatus` (source unique), rien n'est recalculé
-// ici. Ne s'affiche QUE si un objectif daté est posé → zéro bruit sinon.
+// ── Suivi d'objectif daté (premium « Kyroz+ ») ───────────────────────────────
+//
+// Lecture seule : tout le calcul vient de `datedGoalStatus` (source unique), rien n'est
+// recalculé ici. Ne s'affiche QUE si un objectif daté est posé → zéro bruit sinon.
+//
+// 🔴 CE N'EST PLUS UNE CARTE À PART DEPUIS LE 2026-09-20 (décision fondateur, sur
+// maquette) : le bloc vit DANS la carte du poids, sous un séparateur. La carte
+// autonome et son titre « 83 → 78 kg · 12,3 sem » ont disparu — deux cartes empilées
+// portaient deux barres de progression pour un seul objectif.
+// ⚠️ Ce qui NE disparaît pas, et c'est tout l'enjeu de la fusion : les paliers, la
+// date honnête (celle du rythme réellement servi, pas celle qui a été saisie) et les
+// trois cas de sécurité. Un bloc plus court n'est pas un bloc qui en dit moins.
+// ⚠️ Le commentaire d'origine annonçait la carte « partagée par l'écran Plan » : c'était
+// FAUX depuis un moment — mesuré le 2026-09-20, son seul point de montage est le Profil.
 
 const MONTHS_FR = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
 
@@ -24,7 +34,7 @@ export function formatFR(stamp: string): string {
   return `${d} ${MONTHS_FR[(m ?? 1) - 1]} ${y}`;
 }
 
-export function DatedGoalCard({ t, profile, onPress }: { t: ThemePalette; profile: UserProfile; onPress: () => void }) {
+export function BlocObjectif({ t, profile, onPress }: { t: ThemePalette; profile: UserProfile; onPress: () => void }) {
   const gt = profile.goal_target;
   if (!gt) return null;
   // `tdee_kcal` est la valeur STOCKÉE, produite par recalcProfile : on ne recalcule
@@ -71,64 +81,72 @@ export function DatedGoalCard({ t, profile, onPress }: { t: ThemePalette; profil
     ? milestoneProgress(palier, paliers, profile.weight_kg, gt)
     : denom !== 0 ? Math.min(Math.max((gt.start_weight_kg - profile.weight_kg) / denom, 0), 1) : 1;
 
+  // La barre et le « reste » parlent de la MÊME référence — le palier quand il y en a
+  // un, la cible finale sinon (cf. `resumeProgression`).
+  const referenceKg = palier ? palier.weightKg : gt.target_weight_kg;
+  const prog = resumeProgression(gt, profile.weight_kg, referenceKg);
+  const ratio = palier ? progress : prog.ratio;
+
   return (
-    <Presse activeOpacity={OPACITE_PRESSION} onPress={onPress}>
-      <Card t={t} style={{ gap: Spacing.md }}>
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-          {/* Fusion 2026-08-06 : l'ICÔNE vient de main (le 🎯 a été retiré partout),
-              le TOKEN typographique vient de la passe DA. Les deux passes ne se
-              contredisent pas — elles portent sur deux axes différents. */}
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.sm }}>
-            <ObjectifIcon color={t.text} size={Icone.petite} />
-            {/* Le titre porte le PALIER quand il y en a un — c'est la seule chose que
-                la personne peut atteindre dans un horizon qui lui parle. La cible
-                finale reste dite juste en dessous : la masquer serait décider à sa
-                place ce qu'elle a le droit de savoir sur son propre objectif. */}
-            <Text style={{ color: t.text, ...Type.h3 }}>
-              {frnum(profile.weight_kg)} → {frnum(palier ? palier.weightKg : gt.target_weight_kg)} kg
-            </Text>
-          </View>
-          <Text style={{ ...Type.captionStrong, color: t.textSecondary }}>
-            {!status.active ? 'Échéance passée'
-              : palier ? `Étape ${palier.index}/${palier.total}`
-                : `${status.weeksRemaining} sem`}
-          </Text>
-        </View>
-        <View style={{ height: 8, borderRadius: 4, backgroundColor: t.line, overflow: 'hidden' }}>
-          <View style={{ width: `${Math.round(progress * 100)}%`, height: '100%', backgroundColor: t.text }} />
-        </View>
-        {/* Le palier a sa propre ligne, et elle dit sa DATE — lue sur la trajectoire
-            simulée, donc c'est le jour où le moteur y sera vraiment, pauses comprises.
-            Pas d'interpolation linéaire ici : ce serait la ligne droite que §10
-            interdit, celle qui annonce « en retard » à qui suit le plan à la lettre.
-            Ton d'acquis, jamais d'échéance à tenir — « ta prochaine étape », pas
-            « tu dois atteindre ». Et la cible finale est rappelée, pour que le palier
-            ne donne jamais l'impression d'avoir remplacé l'objectif. */}
-        {palier && (
-          <Text style={{ ...Type.caption, color: t.text }}>
-            Prochaine étape : {frnum(palier.weightKg)} kg
-            {palier.stamp ? ` vers le ${formatFR(palier.stamp)}` : ''}
-            {palier.index < palier.total ? `\u00A0· objectif ${frnum(gt.target_weight_kg)} kg` : ''}
-          </Text>
-        )}
-        <Text style={{ ...Type.caption, color: t.textSecondary }}>
-          {/* `underweightBlocked` d'abord : le rythme y vaut 0 par sécurité, et
-              « 0 kg/sem » sans motif se lit comme un plan cassé. */}
-          {status.underweightBlocked
-            ? 'Plan ramené au maintien\u00A0· poids sous la plage de référence'
-            : status.direction === 'maintain'
-              ? 'Poids cible atteint\u00A0· maintien'
-              // Date RÉELLE au rythme servi (P1.6) : annoncer `gt.target_date` quand le
-              // plancher rogne le déficit affichait une échéance fausse de 32 jours en
-              // médiane. Et sans projection crédible, on ne donne pas de date du tout
-              // plutôt qu'un chiffre inventé.
-              : status.reachableByDate
-                ? `Cible le ${formatFR(gt.target_date)}\u00A0· ${frnum(Math.abs(status.safeWeeklyKg))} kg/sem`
-                : status.projectable
-                  ? `Plutôt le ${formatFR(status.projectedDate)}\u00A0· ${frnum(Math.abs(status.safeWeeklyKg))} kg/sem`
-                  : 'Rythme sûr atteint\u00A0· cette date n\'est pas tenable'}
+    <Presse activeOpacity={OPACITE_PRESSION} onPress={onPress} style={{ gap: Spacing.sm }}>
+      {/* ⚠️ Ce `Presse` vit DANS la carte du poids, qui est elle-même pressable — et
+          deux boutons imbriqués, c'est une erreur de rendu sur le web (« <button>
+          cannot contain a nested button ») et deux zones tactiles qui se disputent le
+          geste en natif. C'est la carte parente qui a cédé : elle n'est plus pressable
+          en entier, chaque zone porte son propre geste (cf. `WeightSummaryCard`). */}
+      {/* Ligne de tête : vers QUOI on va, et ce qu'il reste. Le palier prend la place
+          de la cible quand il y en a un — sinon la barre mesurerait une chose et le
+          chiffre à côté en désignerait une autre. */}
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Text style={{ ...Type.body, color: t.textSecondary }}>
+          {palier ? `Étape ${palier.index}/${palier.total}\u00A0· ${frnum(referenceKg)} kg` : `Cible ${frnum(referenceKg)} kg`}
         </Text>
-      </Card>
+        <Text style={{ ...Type.bodyStrong, color: t.text }}>
+          {!status.active ? 'Échéance passée' : `reste ${frnum(prog.resteKg)} kg`}
+        </Text>
+      </View>
+
+      <View style={{ height: 8, borderRadius: 4, backgroundColor: t.line, overflow: 'hidden' }}>
+        <View style={{ width: `${Math.round(ratio * 100)}%`, height: '100%', backgroundColor: t.accent }} />
+      </View>
+
+      {/* Le chemin parcouru, à l'échelle de l'objectif ENTIER (jamais du palier) :
+          c'est la phrase qui remet l'étape à sa place dans la course. */}
+      <Text style={{ ...Type.caption, color: t.textTertiary }}>
+        {/* ⚠️ `faitKg` est SIGNÉ (« −4,4 kg », c'est le sens du monde réel), mais le
+            chemin total est une DISTANCE : « sur −9,4 kg » ne veut rien dire. Vu à
+            l'écran sur la première capture, pas en relisant le code. */}
+        {frnum(prog.faitKg)} kg depuis le {formatFR(gt.start_date)}, sur {frnum(prog.totalKg)} kg
+      </Text>
+
+      {/* La DATE HONNÊTE — celle du rythme réellement servi, pas celle qui a été saisie.
+          C'est la ligne que la fusion devait absolument garder : sans elle, l'écran
+          promet une cible sans jamais dire quand on y arrive (décision fondateur du
+          2026-09-20, arbitrée explicitement). */}
+      <Text style={{ ...Type.caption, color: t.textSecondary }}>
+        {/* `underweightBlocked` d'abord : le rythme y vaut 0 par sécurité, et
+            « 0 kg/sem » sans motif se lit comme un plan cassé. */}
+        {status.underweightBlocked
+          ? 'Plan ramené au maintien\u00A0· poids sous la plage de référence'
+          : status.direction === 'maintain'
+            ? 'Poids cible atteint\u00A0· maintien'
+            : status.reachableByDate
+              ? `Cible le ${formatFR(gt.target_date)}\u00A0· ${frnum(Math.abs(status.safeWeeklyKg))} kg/sem`
+              : status.projectable
+                ? `Plutôt le ${formatFR(status.projectedDate)}\u00A0· ${frnum(Math.abs(status.safeWeeklyKg))} kg/sem`
+                : 'Rythme sûr atteint\u00A0· cette date n\'est pas tenable'}
+      </Text>
+
+      {/* Le palier dit sa DATE, lue sur la trajectoire simulée : le jour où le moteur y
+          sera vraiment, pauses comprises. Pas d'interpolation linéaire — ce serait la
+          ligne droite que §10 interdit, celle qui annonce « en retard » à qui suit le
+          plan à la lettre. Ton d'acquis, jamais d'échéance à tenir. */}
+      {palier && palier.stamp && (
+        <Text style={{ ...Type.caption, color: t.textTertiary }}>
+          Prochaine étape vers le {formatFR(palier.stamp)}
+          {palier.index < palier.total ? `\u00A0· objectif ${frnum(gt.target_weight_kg)} kg` : ''}
+        </Text>
+      )}
     </Presse>
   );
 }

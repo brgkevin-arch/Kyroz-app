@@ -8,7 +8,6 @@ import {
 } from '../constants/theme';
 import { CONTENT_MAX_WIDTH } from '../constants/layout';
 import { WeightChart } from './WeightChart';
-import { GoalTarget } from '../lib/types';
 import { WeightEntry } from '../lib/weight';
 import { frnum } from '../lib/units';
 
@@ -21,7 +20,14 @@ interface Props {
   delta: number | null;
   /** Une pesée est attendue aujourd'hui (cadence choisie par l'utilisateur). */
   due?: boolean;
-  goalTarget?: GoalTarget;
+  /* ⚠️ `goalTarget` a été retiré le 2026-09-20 avec la ZONE (décision fondateur) : la
+     carte ne dessine plus que les pesées.
+     🔴 Et l'objectif daté a fusionné ICI le même jour : il arrive tout fait, en
+     `objectif`, sous un séparateur. La carte ne sait pas ce qu'il contient — elle
+     n'a donc RIEN à savoir du premium, et le verrou reste chez l'appelant, qui est
+     le seul à pouvoir le poser (`profil.tsx`). Un composant d'affichage qui
+     interroge un droit d'accès est un verrou de plus à tenir. */
+  objectif?: React.ReactNode;
   onPress: () => void;
   // 🔴 `tourId` retiré le 2026-08-25 : la bulle du Profil se pose au CENTRE, sans
   // anneau (décision fondateur). Une prop de ciblage que plus aucune étape ne vise
@@ -58,7 +64,7 @@ interface Props {
 const MARGES_COURBE = Spacing.xl * 2 + Spacing.xl * 2;
 
 export function WeightSummaryCard({
-  t, profileWeightKg, entries, delta, due, goalTarget, onPress,
+  t, profileWeightKg, entries, delta, due, objectif, onPress,
 }: Props) {
   const s = makeStyles(t);
   const { width: winW } = useWindowDimensions();
@@ -73,41 +79,69 @@ export function WeightSummaryCard({
   const poids = profileWeightKg;
 
   return (
-    <Presse activeOpacity={OPACITE_PRESSION} onPress={onPress} style={[s.card, cardShadow(t)]}>
-      <Text style={s.label}>SUIVI DU POIDS</Text>
+    /* 🔴 LA CARTE N'EST PLUS PRESSABLE EN ENTIER (2026-09-20), et ce n'est pas un choix
+       d'esthétique : depuis que l'objectif daté vit dedans, elle contient un second
+       geste (ouvrir l'éditeur d'objectif). Deux boutons imbriqués rendent une erreur
+       sur le web — « <button> cannot contain a nested button », vue en console à la
+       première capture — et, en natif, deux zones tactiles qui se disputent le doigt.
+       ➡️ Chaque zone porte donc son geste : le haut ouvre le suivi du poids, le bloc
+       du bas ouvre l'objectif. C'est aussi plus honnête : deux destinations
+       différentes ne devraient jamais partager une seule cible tactile. */
+    <View style={[s.card, cardShadow(t)]}>
+      <Presse activeOpacity={OPACITE_PRESSION} onPress={onPress} style={s.haut}>
+      {/* 🔴 PLUS DE LABEL DANS LA CARTE (2026-09-21, décision fondateur sur maquette) :
+          « Suivi du poids » est redevenu un TITRE DE SECTION, posé au-dessus d'elle par
+          l'écran — comme « Tes cibles ». La carte commence donc par son sujet, le
+          chiffre. Troisième forme en deux jours : « SUIVI DU POIDS » en surtitre
+          interne, puis « POIDS » + pilule, puis rien.
+          ⚠️ Les deux scripts Playwright ouvrent cette carte en cherchant son titre : ils
+          visent désormais le titre de section, et `harnaisEcrans.test.ts` le compte. */}
 
       {/* Le chiffre seul sur sa ligne : c'est le sujet de la carte. L'écart passe
           DESSOUS plutôt qu'à côté — accolé, il se lisait comme une unité de plus. */}
-      <View style={s.valueRow}>
-        <Text style={s.value}>{frnum(poids)}</Text>
-        <Text style={s.unit}>kg</Text>
-      </View>
-      {delta != null && (
-        <Text style={s.delta}>
-          {delta > 0 ? '+' : ''}{frnum(delta)} kg depuis la pesée précédente
-        </Text>
+        <View style={s.valueRow}>
+          <Text style={s.value}>{frnum(poids)}</Text>
+          <Text style={s.unit}>kg</Text>
+        </View>
+        {delta != null && (
+          <Text style={s.delta}>
+            {delta > 0 ? '+' : ''}{frnum(delta)} kg depuis la pesée précédente
+          </Text>
+        )}
+
+        {entries.length >= 2 ? (
+          <WeightChart t={t} entries={entries} width={largeurCourbe} height={112} />
+        ) : (
+          <Text style={s.empty}>
+            {entries.length === 1
+              ? 'Encore une pesée et ta courbe apparaît ici.'
+              : 'Note ta première pesée : Kyroz recale calories, macros et plan à chaque fois.'}
+          </Text>
+        )}
+      </Presse>
+
+      {/* L'objectif daté, quand il y en a un ET que l'accès est accordé. Le séparateur
+          est ce qui empêche la carte de devenir un empilement : deux sujets, un trait,
+          une seule carte. */}
+      {objectif && (
+        <>
+          <View style={s.separateur} />
+          {objectif}
+        </>
       )}
 
-      {entries.length >= 2 ? (
-        <WeightChart t={t} entries={entries} width={largeurCourbe} height={112} goalTarget={goalTarget} />
-      ) : (
-        <Text style={s.empty}>
-          {entries.length === 1
-            ? 'Encore une pesée et ta courbe apparaît ici.'
-            : 'Note ta première pesée : Kyroz recale calories, macros et plan à chaque fois.'}
-        </Text>
-      )}
-
-      {/* 🔴 UN VRAI BOUTON, PLEINE LARGEUR. C'était une pastille grise posée à
-          droite du chiffre : à 24 pt de haut et sans contraste, elle se lisait
-          comme une étiquette. Le geste le plus structurant de l'écran mérite d'être
-          reconnaissable comme un geste — et il porte l'accent, donc il suit la
-          couleur choisie dans les réglages. */}
-      <View style={s.cta}>
-        <Ionicons name="add" size={Icone.petite} color={t.onAccent} />
+      {/* 🔴 LE GESTE REDESCEND EN PIED DE CARTE (2026-09-21, décision fondateur sur
+          maquette), et il est GRIS — plus à l'accent. Il a été trois choses en deux
+          jours : pastille grise illisible, bouton pleine largeur à l'accent, pilule en
+          tête. Ce qui ne change pas d'une version à l'autre, et qui est la seule chose
+          que le code doit garantir : une cible tactile pleine (`CIBLE_TACTILE_MIN`) et
+          un libellé qui dit le geste.
+          ⚠️ Il est le DERNIER élément, donc sous l'objectif : la carte se lit « voilà où
+          j'en suis », puis « voilà ce que je peux faire ». */}
+      <Presse activeOpacity={OPACITE_PRESSION} onPress={onPress} style={s.cta} accessibilityRole="button">
         <Text style={s.ctaTxt}>{due ? 'Me peser' : 'Ajouter une pesée'}</Text>
-      </View>
-    </Presse>
+      </Presse>
+    </View>
   );
 }
 
@@ -117,17 +151,22 @@ function makeStyles(t: ThemePalette) {
       backgroundColor: t.card, borderRadius: Radius.card, padding: Spacing.xl,
       gap: Spacing.md, borderWidth: Trait.fin, borderColor: t.line,
     },
-    label: { color: t.textTertiary, ...Type.overline },
+    // La zone « poids » garde l'écartement d'avant : c'est la carte qui a changé de
+    // nature (View), pas la mise en page de son contenu.
+    haut: { gap: Spacing.md },
+    separateur: { height: Trait.fin, backgroundColor: t.line, marginTop: Spacing.xs },
     valueRow: { flexDirection: 'row', alignItems: 'baseline', gap: Spacing.sm },
     value: { color: t.text, ...Type.hero },
     unit: { ...Type.h3, color: t.textSecondary },
     // Neutre À DESSEIN : une hausse n'est pas une faute (cf. l'en-tête du fichier).
     delta: { ...Type.bodySmall, color: t.textTertiary, marginTop: -Spacing.sm },
     empty: { ...Type.bodySmall, color: t.textSecondary, lineHeight: 20 },
+    // Pleine largeur, fond neutre : le geste est évident par sa POSITION et sa taille,
+    // il n'a plus besoin de l'accent. ⚠️ `CIBLE_TACTILE_MIN` reste non négociable (§8).
     cta: {
       flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.sm,
-      minHeight: CIBLE_TACTILE_MIN, borderRadius: Radius.button, backgroundColor: t.accent,
+      minHeight: CIBLE_TACTILE_MIN, borderRadius: Radius.button, backgroundColor: t.fill,
     },
-    ctaTxt: { ...Type.bodySmallStrong, color: t.onAccent },
+    ctaTxt: { ...Type.bodyStrong, color: t.text },
   });
 }
