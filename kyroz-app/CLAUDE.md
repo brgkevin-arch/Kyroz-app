@@ -2951,6 +2951,24 @@ téléphone.
 
 ---
 
+### Budget de tokens — court sans être amputé
+
+> Ajouté le 2026-09-21. Le contexte d'une session se remplit à 73 % de « Messages », et
+> c'est **majoritairement des sorties d'outils**, pas de la prose : levier n° 1 = les outils.
+
+- **Compter avant de lire** : `grep -c`, `wc -l`, `git diff --stat`. Pas de `cat` au-delà de
+  100 lignes — `sed -n 'X,Yp'` sur la zone utile. Tests et builds : `2>&1 | tail -40`.
+  Ne jamais relire un fichier qu'on vient d'éditer « pour vérifier ».
+- **Réponse : 6 lignes** pour une tâche ordinaire, 15 pour un chantier. Pas de préambule,
+  pas de récit des étapes, pas de code recollé (il est dans le diff), pas de titre `##`
+  sous 10 lignes.
+- **Ce qui ne se coupe JAMAIS** : le chiffre avant→après, l'avant/après en termes
+  d'utilisateur, ce qui a échoué ou été laissé de côté, la question quand l'arbitrage
+  revient au fondateur, le lien PR / la migration Supabase / l'empreinte OTA.
+  Dans le doute : couper l'explication, jamais le chiffre.
+- Version longue : skill **`/bref`** (`~/.claude/skills/bref/SKILL.md`, hors dépôt).
+
+---
 ## 11. Pièges connus (redécouverts au moins une fois chacun)
 
 - 🔴 **ON N'EXTRAIT RIEN D'UN FICHIER DE SECRET — PAS MÊME POUR LE MASQUER.** Payé le
