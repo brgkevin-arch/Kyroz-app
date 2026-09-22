@@ -276,8 +276,31 @@ export function visiblePantry(items: PantryItem[]): PantryItem[] {
   return items.filter((i) => !isStaple(i.name));
 }
 
+/**
+ * Une quantité d'un aliment, passée d'une unité à une autre.
+ * `undefined` = pas convertible : pièces d'un aliment dont on ne connaît pas le poids,
+ * ou grammes contre millilitres.
+ *
+ * ⚠️ SOURCE UNIQUE de la conversion pour la réserve : la couverture (`stockPour`) et
+ * la déduction (`deductIngredients`) la partagent. Pièces ↔ grammes passe par la
+ * MÊME table que l'affichage (`lib/units.ts::poidsUnitaire`).
+ */
+function convertir(quantite: number, de: string, vers: string, aliment: string): number | undefined {
+  if (de === vers) return quantite;
+  const pu = poidsUnitaire(aliment);
+  if (pu && de === 'pièce' && vers === 'g') return quantite * pu;
+  if (pu && de === 'g' && vers === 'pièce') return quantite / pu;
+  return undefined;
+}
+
 /** Déduit du garde-manger une liste d'ingrédients DÉJÀ mis à l'échelle (quantités
- *  effectives d'un repas — adaptées par ingrédient ou recette×portions). */
+ *  effectives d'un repas — adaptées par ingrédient ou recette×portions).
+ *
+ * 🔴 DÉFAUT CORRIGÉ LE 2026-09-22 : l'unité n'était lue NI côté besoin NI côté stock.
+ * Des grammes étaient soustraits à des pièces — 3 bananes − 120 g = −117 → la ligne
+ * disparaissait, et un repas d'une banane vidait la réserve des trois.
+ * Désormais le besoin est converti dans l'unité de la ligne ; s'il ne se convertit
+ * pas, on ne devine rien : la ligne reste telle quelle. */
 export function deductIngredients(
   items: PantryItem[],
   used: { name: string; quantity_g: number; unit?: string }[],
@@ -285,11 +308,30 @@ export function deductIngredients(
   let res = [...items];
   for (const u of used) {
     if (isStaple(u.name)) continue;
-    const idx = res.findIndex((i) => memeAliment(i.name, u.name));
+    const besoinUnit = u.unit ?? 'g';
+    // La 1ʳᵉ ligne de CET aliment qui se compare au besoin — pas la 1ʳᵉ venue :
+    // 2 courgettes en pièces ne doivent pas masquer les 300 g rangés juste après.
+    let idx = -1;
+    let aRetirer = 0;
+    for (let i = 0; i < res.length; i++) {
+      if (!memeAliment(res[i].name, u.name)) continue;
+      const q = convertir(u.quantity_g, besoinUnit, res[i].unit, u.name);
+      if (q === undefined) continue;
+      idx = i;
+      aRetirer = q;
+      break;
+    }
     if (idx < 0) continue;
-    const remaining = res[idx].quantity - u.quantity_g;
-    if (remaining > 1) {
-      res[idx] = { ...res[idx], quantity: Math.round(remaining) };
+
+    const stock = res[idx];
+    const reste = stock.quantity - aRetirer;
+    if (stock.unit === 'pièce') {
+      // Au demi près : une demi-banane, un demi-avocat existent, 0,18 œuf non.
+      const arrondi = Math.round(reste * 2) / 2;
+      if (arrondi > 0) res[idx] = { ...stock, quantity: arrondi };
+      else res = res.filter((_, i) => i !== idx);
+    } else if (reste > 1) {
+      res[idx] = { ...stock, quantity: Math.round(reste) };
     } else {
       res = res.filter((_, i) => i !== idx);
     }
@@ -347,13 +389,11 @@ function stockPour(items: PantryItem[], ing: Ingredient): number | undefined {
 
   for (const it of items) {
     if (!memeAliment(it.name, ing.name)) continue;
-    if (it.unit === besoinUnit) { total += it.quantity; continue; }
     // Pièces ↔ grammes : convertible pour les aliments qui se comptent (œufs,
-    // bananes…), via la MÊME table que l'affichage (`lib/units.ts`).
-    const pu = poidsUnitaire(ing.name);
-    if (pu && it.unit === 'pièce' && besoinUnit === 'g') { total += it.quantity * pu; continue; }
-    if (pu && it.unit === 'g' && besoinUnit === 'pièce') { total += it.quantity / pu; continue; }
-    incomparable = true;
+    // bananes…) — même conversion que la déduction (`convertir`).
+    const q = convertir(it.quantity, it.unit, besoinUnit, ing.name);
+    if (q === undefined) { incomparable = true; continue; }
+    total += q;
   }
 
   if (total > 0) return total;
