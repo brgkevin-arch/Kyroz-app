@@ -70,10 +70,9 @@ export function BirthDatePicker({ t, value, anneeCourante, onValider, dragHandle
   return (
     <View style={{ padding: Spacing.xxl, gap: Spacing.lg }}>
       <View {...(dragHandlers ?? {})} style={{ gap: Spacing.xs }}>
+        {/* Titre seul (demande fondateur, 2026-09-22) : la phrase « Elle sert à calculer
+            ton métabolisme, et ton âge se mettra à jour tout seul » est partie. */}
         <Text style={{ ...Type.h2, color: t.text }}>Ta date de naissance</Text>
-        <Text style={{ ...Type.caption, color: t.textSecondary, lineHeight: 18 }}>
-          Elle sert à calculer ton métabolisme, et ton âge se mettra à jour tout seul.
-        </Text>
       </View>
 
       <View>

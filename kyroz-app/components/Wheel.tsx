@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Text, ScrollView, NativeSyntheticEvent, NativeScrollEvent } from 'react-native';
+import { View, Text, ScrollView, Platform, NativeSyntheticEvent, NativeScrollEvent, ViewStyle } from 'react-native';
 import { ThemePalette, Type, Radius, Trait, CIBLE_TACTILE_MIN } from '../constants/theme';
 import { useReduceMotion } from '../lib/reduceMotion';
 
@@ -36,6 +36,18 @@ const HAUTEUR_LIGNE = CIBLE_TACTILE_MIN;
  * prendre dans `DUREE` (et `mouvementDA` ne l'y cherche pas).
  */
 const POSE_MS = 120;
+/**
+ * 🔴 `snapToInterval` N'EXISTE PAS SUR LE WEB — troisième no-op de react-native-web
+ * dans ce composant (0 occurrence dans son `ScrollView`, mesuré le 2026-09-22). Sur
+ * iPhone la colonne s'aimante toute seule ; dans un navigateur elle s'arrêtait où
+ * le doigt la lâchait, le chiffre à cheval sur la bande (signalé par le fondateur
+ * sur capture). Le navigateur sait aimanter lui-même : CSS `scroll-snap`, chaque
+ * ligne se CENTRE dans la colonne. Web seulement — le natif garde `snapToInterval`.
+ * ⚠️ Transtypé : ces deux propriétés CSS ne sont pas dans les types de React Native.
+ */
+const AIMANT_WEB = (Platform.OS === 'web' ? { scrollSnapType: 'y mandatory' } : undefined) as ViewStyle | undefined;
+const CRAN_WEB = (Platform.OS === 'web' ? { scrollSnapAlign: 'center' } : undefined) as ViewStyle | undefined;
+
 export const LIGNES_VISIBLES = 5;                              // impair : il faut un milieu
 export const HAUTEUR_ROULETTE = HAUTEUR_LIGNE * LIGNES_VISIBLES;
 const MARGE = (HAUTEUR_ROULETTE - HAUTEUR_LIGNE) / 2;          // pour centrer la 1ʳᵉ et la dernière
@@ -117,6 +129,11 @@ export function Wheel<T extends string | number>({
     settle.current = setTimeout(() => {
       const i = Math.round(y / HAUTEUR_LIGNE);
       const borne = Math.min(Math.max(i, 0), options.length - 1);
+      // Filet : si la colonne s'est posée ENTRE deux lignes, on la recale sur la plus
+      // proche — la valeur retenue doit être celle qu'on voit dans la bande.
+      if (Math.abs(y - borne * HAUTEUR_LIGNE) > 1) {
+        ref.current?.scrollTo({ y: borne * HAUTEUR_LIGNE, animated: !reduire });
+      }
       const choisi = options[borne];
       if (choisi === undefined || choisi === value) return;
       emis.current = choisi;
@@ -138,9 +155,10 @@ export function Wheel<T extends string | number>({
         accessibilityLabel={nom}
         testID={testID}
         contentContainerStyle={{ paddingVertical: MARGE }}
+        style={AIMANT_WEB}
       >
         {options.map((o, i) => (
-          <View key={String(o)} style={{ height: HAUTEUR_LIGNE, justifyContent: 'center', alignItems: 'center' }}>
+          <View key={String(o)} style={[{ height: HAUTEUR_LIGNE, justifyContent: 'center', alignItems: 'center' }, CRAN_WEB]}>
             <Text
               numberOfLines={1}
               style={{

@@ -1138,8 +1138,8 @@ function NameStep({ t, value, onChange, venuDApple }: { t: ThemePalette; value: 
           l'écran continuait de réclamer. Ce que voit le relecteur, c'est la phrase. */}
       <Animated.Text style={[{ ...Type.body, color: t.textSecondary, lineHeight: 23 }, enter]}>
         {venuDApple
-          ? "On va te bâtir un plan nutrition sur-mesure en moins d'une minute."
-          : "On va te bâtir un plan nutrition sur-mesure en moins d'une minute. D'abord, comment on t'appelle ?"}
+          ? "On va te bâtir un plan nutrition sur-mesure en moins de 2 minutes."
+          : "On va te bâtir un plan nutrition sur-mesure en moins de 2 minutes. D'abord, comment on t'appelle ?"}
       </Animated.Text>
       <Animated.View style={{ opacity: field, marginTop: Spacing.sm }}>
         {/* ⚠️ Le placeholder REPREND le libellé, il ne donne pas d'exemple. C'était
