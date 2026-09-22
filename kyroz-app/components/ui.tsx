@@ -297,9 +297,12 @@ export function Segmented<T extends string | number>({
         return (
           <Presse key={String(o.value)} onPress={() => onChange(o.value)} activeOpacity={OPACITE_PRESSION}
             style={{ flex: 1, paddingVertical: Spacing.md, borderRadius: Radius.button - RETRAIT_CURSEUR, alignItems: 'center' }}>
+            {/* `textAlign: 'center'` : un libellé qui passe sur deux lignes restait calé
+                à GAUCHE dans sa case (vu sur « Repas complet », 2026-09-22). */}
             <Animated.Text
               style={{
                 ...Type.bodySmallStrong,
+                textAlign: 'center',
                 color: glissant
                   ? position.interpolate({
                       // L'option i est à l'accent quand le curseur est SUR elle,
