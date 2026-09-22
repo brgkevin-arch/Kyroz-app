@@ -17,13 +17,20 @@ type Props = {
   sports: SportSession[];
   weight?: number;            // poids (kg) → estimation kcal affichée
   onChange: (sports: SportSession[]) => void;
+  /**
+   * La réponse « je n'en fais pas », quand l'écran en exige une (l'inscription).
+   * Rendue comme une case de la grille, pleine largeur, juste sous les sports : c'est
+   * une réponse à la même question, pas un réglage à part. Le libellé vient de
+   * l'appelant (le harnais le cherche dans l'onboarding).
+   */
+  aucunSport?: { label: string; selected: boolean; onToggle: () => void };
 };
 
 /**
  * Sélecteur de sports pratiqués (type + fréquence + durée) → alimente le calcul
  * MET du TDEE. Réutilisé à l'onboarding ET dans le profil.
  */
-export default function SportsEditor({ sports, weight, onChange }: Props) {
+export default function SportsEditor({ sports, weight, onChange, aucunSport }: Props) {
   const t = useTheme();
   const s = useMemo(() => makeStyles(t), [t]);
 
@@ -46,22 +53,37 @@ export default function SportsEditor({ sports, weight, onChange }: Props) {
 
   return (
     <View>
-      {/* Grille de chips : tap pour ajouter/retirer un sport */}
-      <View style={s.wrap}>
+      {/* 🔴 DEUX SPORTS PAR LIGNE, en rectangles encadrés qui prennent toute la largeur
+          (décision fondateur, 2026-09-22 — c'étaient des pastilles qui s'enroulaient).
+          Tap pour ajouter / retirer un sport. */}
+      <View style={s.grille}>
         {SPORT_ORDER.map((type) => {
           const on = !!byType(type);
           return (
             <Pressable
               key={type}
               onPress={() => toggle(type)}
-              style={[s.chip, on && s.chipOn]}
+              style={[s.case, on && s.caseOn]}
               accessibilityRole="button"
               accessibilityState={{ selected: on }}
             >
-              <Text style={[s.chipTxt, on && s.chipTxtOn]}>{SPORT_LABEL[type]}</Text>
+              <Text style={[s.caseTxt, on && s.caseTxtOn]} numberOfLines={1}>{SPORT_LABEL[type]}</Text>
             </Pressable>
           );
         })}
+        {/* Nombre impair de sports : une case vide garde la dernière à MOITIÉ de largeur,
+            alignée sur la colonne de gauche, au lieu de s'étirer sur toute la ligne. */}
+        {SPORT_ORDER.length % 2 === 1 && <View style={s.caseVide} />}
+        {aucunSport && (
+          <Pressable
+            onPress={aucunSport.onToggle}
+            style={[s.case, s.caseLarge, aucunSport.selected && s.caseOn]}
+            accessibilityRole="button"
+            accessibilityState={{ selected: aucunSport.selected }}
+          >
+            <Text style={[s.caseTxt, aucunSport.selected && s.caseTxtOn]}>{aucunSport.label}</Text>
+          </Pressable>
+        )}
       </View>
 
       {/* Réglages par sport sélectionné : fréquence + durée */}
@@ -109,7 +131,7 @@ function Stepper({
           style={[s.stepBtn, value <= min && s.stepBtnOff]}
           accessibilityRole="button" accessibilityLabel={`Diminuer ${label}`}
         >
-          <Ionicons name="remove" size={Icone.standard} color={value <= min ? t.textTertiary : t.text} />
+          <Ionicons name="remove" size={Icone.action} color={value <= min ? t.textTertiary : t.text} />
         </Pressable>
         <Text style={s.stepVal}>{value}{suffix}</Text>
         <Pressable
@@ -118,7 +140,7 @@ function Stepper({
           style={[s.stepBtn, value >= max && s.stepBtnOff]}
           accessibilityRole="button" accessibilityLabel={`Augmenter ${label}`}
         >
-          <Ionicons name="add" size={Icone.standard} color={value >= max ? t.textTertiary : t.text} />
+          <Ionicons name="add" size={Icone.action} color={value >= max ? t.textTertiary : t.text} />
         </Pressable>
       </View>
     </View>
@@ -127,18 +149,21 @@ function Stepper({
 
 const makeStyles = (t: ThemePalette) =>
   StyleSheet.create({
-    wrap: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },
-    // ⚠️ `minHeight` et non le seul padding : à 2 × 8 + une ligne, la puce
-    // mesurait ~36 pt. C'est la valeur de la puce commune (`ui.tsx::Chip`),
-    // que celle-ci répète sans l'employer.
-    chip: {
-      minHeight: CIBLE_TACTILE_MIN, justifyContent: 'center',
-      paddingVertical: Spacing.sm, paddingHorizontal: Spacing.lg, borderRadius: Radius.pill,
+    grille: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },
+    // `flexBasis` 40 % + `flexGrow` : deux cases par ligne qui se partagent la largeur à
+    // parts égales, l'écart compris — sans calcul de pixels.
+    // ⚠️ `minHeight` et non le seul padding : une cible tactile fait 44 pt au moins.
+    case: {
+      flexBasis: '40%', flexGrow: 1,
+      minHeight: CIBLE_TACTILE_MIN, justifyContent: 'center', alignItems: 'center',
+      paddingVertical: Spacing.md, paddingHorizontal: Spacing.sm, borderRadius: Radius.button,
       backgroundColor: t.fill, borderWidth: Trait.fin, borderColor: t.line,
     },
-    chipOn: { backgroundColor: t.accent, borderColor: t.accent },
-    chipTxt: { ...Type.bodySmallStrong, color: t.text },
-    chipTxtOn: { color: t.onAccent },
+    caseVide: { flexBasis: '40%', flexGrow: 1 },
+    caseLarge: { flexBasis: '100%' },
+    caseOn: { backgroundColor: t.accent, borderColor: t.accent },
+    caseTxt: { ...Type.bodySmallStrong, color: t.text },
+    caseTxtOn: { color: t.onAccent },
 
     row: {
       marginTop: Spacing.md, padding: Spacing.lg, borderRadius: Radius.card,
@@ -151,10 +176,11 @@ const makeStyles = (t: ThemePalette) =>
     stepCtrls: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
     // ⚠️ 44 et non 34 : ces deux boutons se pressent à répétition pour régler
     // un nombre de séances, et c'est le geste le plus fin de l'éditeur.
+    // 🔴 PLUS DE CERCLE (demande fondateur, 2026-09-22) : juste le + et le −, un cran
+    // plus grands. La zone qui répond au doigt, elle, garde ses 44 pt.
     stepBtn: {
-      width: CIBLE_TACTILE_MIN, height: CIBLE_TACTILE_MIN, borderRadius: Radius.pill,
+      width: CIBLE_TACTILE_MIN, height: CIBLE_TACTILE_MIN,
       alignItems: 'center', justifyContent: 'center',
-      backgroundColor: t.fill, borderWidth: Trait.fin, borderColor: t.line,
     },
     stepBtnOff: { opacity: 0.5 },
     stepVal: { ...Type.bodyStrong, color: t.text, minWidth: 64, textAlign: 'center' },

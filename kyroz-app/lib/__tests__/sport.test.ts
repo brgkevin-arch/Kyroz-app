@@ -86,9 +86,9 @@ describe('totalSessionsPerWeek', () => {
 });
 
 describe('table MET', () => {
-  it('couvre les 10 sports avec des valeurs plausibles (3–12)', () => {
+  it('couvre les 11 sports avec des valeurs plausibles (3–12)', () => {
     const vals = Object.values(SPORT_MET);
-    expect(vals).toHaveLength(10);
+    expect(vals).toHaveLength(11);
     for (const m of vals) expect(m).toBeGreaterThanOrEqual(3);
     for (const m of vals) expect(m).toBeLessThanOrEqual(12);
   });

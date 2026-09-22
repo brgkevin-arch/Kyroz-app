@@ -23,6 +23,11 @@ export const SPORT_MET: Record<SportType, number> = {
   tennis_padel: 7.0,
   basket: 6.5,
   marche_rapide: 4.3,
+  // Ajoutée le 2026-09-22 (demande fondateur). Compendium 2011, code 15537 « rock
+  // climbing, ascending or traversing rock, low-to-moderate difficulty » = 5,8 — et
+  // PAS 15535 (« high difficulty », 7,5) : une séance de salle alterne voies et longs
+  // repos, et un MET surestimé fait manger au-dessus de sa dépense en silence (§6).
+  escalade: 5.8,
 };
 
 // Libellés affichés (FR). Source unique pour l'onboarding ET le profil.
@@ -37,12 +42,13 @@ export const SPORT_LABEL: Record<SportType, string> = {
   tennis_padel: 'Tennis / Padel',
   basket: 'Basket',
   marche_rapide: 'Marche rapide',
+  escalade: 'Escalade',
 };
 
 // Ordre d'affichage (les plus fréquents chez la cible en premier).
 export const SPORT_ORDER: SportType[] = [
   'musculation', 'course', 'hiit_crossfit', 'velo', 'football',
-  'sports_combat', 'natation', 'tennis_padel', 'basket', 'marche_rapide',
+  'sports_combat', 'natation', 'tennis_padel', 'basket', 'escalade', 'marche_rapide',
 ];
 
 // Bornes de saisie (sécurité contre les valeurs aberrantes).
