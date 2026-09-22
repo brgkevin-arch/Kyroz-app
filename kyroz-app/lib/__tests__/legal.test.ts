@@ -386,7 +386,7 @@ describe('l’âge : le texte décrit le code, ou il se tait', () => {
     const basics = /const basicsValid\s*=([\s\S]*?);/.exec(onboarding)?.[1] ?? '';
     expect(basics, 'basicsValid introuvable').not.toBe('');
     expect(basics, 'basicsValid ne borne plus l’âge').toContain('AGE_BOUNDS[0]');
-    expect(onboarding).toMatch(/step === 2 && basicsValid/);
+    expect(onboarding).toMatch(/etape === 'infos' && basicsValid/);
     expect(AGE_BOUNDS[0]).toBe(MIN_AGE);
   });
 

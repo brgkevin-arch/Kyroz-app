@@ -50,11 +50,13 @@ describe('la question est posée à l\'inscription', () => {
     expect(onboarding).toMatch(/useState<NeatLevel \| null>\(null\)/);
   });
 
-  it('on ne peut pas passer l\'étape 4 sans avoir répondu', () => {
-    const validation = onboarding.match(/const trainingValid = .*/)?.[0] ?? '';
+  it('on ne peut pas passer la page « activité » sans avoir répondu', () => {
+    // Page à part depuis le 2026-09-22 (les séances ont la leur) : la garde s'appelait
+    // `trainingValid` et couvrait les deux questions.
+    const validation = onboarding.match(/const neatValid = .*/)?.[0] ?? '';
     expect(validation).toContain('neat !== null');
-    // …et la garde doit RESTER branchée sur le bouton : `canProceed` lit `trainingValid`.
-    expect(onboarding).toMatch(/step === 4 && trainingValid/);
+    // …et la garde doit RESTER branchée sur le bouton : `canProceed` lit `neatValid`.
+    expect(onboarding).toMatch(/etape === 'activite' && neatValid/);
   });
 
   it('l\'étape dit pourquoi elle bloque, sans accuser', () => {

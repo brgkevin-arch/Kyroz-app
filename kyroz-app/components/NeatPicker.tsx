@@ -1,6 +1,6 @@
 import React from 'react';
 import { ThemePalette } from '../constants/theme';
-import { OptionCard, SectionLabel } from './ui';
+import { Intitule, OptionCard, SectionLabel } from './ui';
 import { NeatLevel } from '../lib/types';
 import { NEAT_ORDER, NEAT_LABEL } from '../lib/tdee';
 
@@ -34,25 +34,31 @@ import { NEAT_ORDER, NEAT_LABEL } from '../lib/tdee';
 // est encore servi. Le rétablir = remettre `subtitle={NEAT_HINT[lvl]}` ci-dessous.
 //
 // ⚠️ CE COMPOSANT SE PLACE TOUJOURS AVANT L'ÉDITEUR DE SÉANCES, dans les deux
-// écrans. Le NEAT est la base sur laquelle le sport s'ajoute, et l'ordre inverse
-// invite à répondre « je suis actif » en pensant à ses séances — qui sont déjà
-// comptées juste en dessous. C'est désormais l'ORDRE SEUL qui porte cette
+// écrans (à l'inscription, sur la page d'AVANT depuis le 2026-09-22). Le NEAT est la
+// base sur laquelle le sport s'ajoute, et l'ordre inverse invite à répondre « je suis
+// actif » en pensant à ses séances — qui sont déjà comptées à part. C'est désormais l'ORDRE SEUL qui porte cette
 // distinction, la phrase qui la disait n'existant plus : l'inverser ne casserait
 // plus aucun texte, et c'est précisément ce qui rend l'invariant fragile.
 //
 // `value` accepte `null` : à l'inscription rien n'est présélectionné, parce qu'une
 // valeur pré-cochée est une valeur non répondue qui se fait passer pour une réponse
 // — et c'est exactement le défaut que poser la question corrige.
+//
+// `intitule` : en capitales dans le Profil (le défaut, cohérent avec ses autres
+// sections), en casse de phrase à l'inscription (décision fondateur, 2026-09-22).
 export function NeatPicker({
-  t, value, onChange,
+  t, value, onChange, intitule = 'capitales',
 }: {
   t: ThemePalette;
   value: NeatLevel | null;
   onChange: (n: NeatLevel) => void;
+  intitule?: 'capitales' | 'phrase';
 }) {
   return (
     <>
-      <SectionLabel t={t}>TES JOURNÉES, HORS SPORT</SectionLabel>
+      {intitule === 'phrase'
+        ? <Intitule t={t}>Tes journées, hors sport</Intitule>
+        : <SectionLabel t={t}>TES JOURNÉES, HORS SPORT</SectionLabel>}
       {NEAT_ORDER.map((lvl) => (
         <OptionCard key={lvl} t={t} title={NEAT_LABEL[lvl]} selected={value === lvl} onPress={() => onChange(lvl)} />
       ))}

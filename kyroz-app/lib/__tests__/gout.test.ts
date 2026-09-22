@@ -212,7 +212,7 @@ describe('la question est posée, et on ne peut pas la sauter', () => {
 
   it('l\'étape 6 exige les deux réponses, « Peu importe » compris', () => {
     expect(onboarding).toMatch(/const goutsValid = goutPdj !== null && goutCollation !== null/);
-    expect(onboarding).toMatch(/step === 6 && preferencesValid && goutsValid/);
+    expect(onboarding).toMatch(/etape === 'preferences' && preferencesValid && goutsValid/);
     expect(onboarding).toMatch(/gout_petit_dej: goutEnregistre\(goutPdj\)/);
     expect(onboarding).toMatch(/gout_collation: goutEnregistre\(goutCollation\)/);
   });

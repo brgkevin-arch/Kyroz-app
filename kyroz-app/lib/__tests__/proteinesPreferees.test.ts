@@ -46,10 +46,10 @@ describe('l\'étape 6 exige une réponse', () => {
     // Depuis le 2026-09-19 : un régime choisi D'ABORD (les protéines en dépendent), puis une
     // protéine du régime ou « Peu importe ».
     expect(onboarding).toMatch(/const preferencesValid = regimeChoisi\(restrictions\) && \(proteinesEgales \|\| cocheesValides\(restrictions, proteins\)\.length >= 1\)/);
-    expect(onboarding).toMatch(/step === 6 && preferencesValid/);
-    // …et l'étape doit ENTRER dans la liste des étapes gardées : l'oublier ici
-    // laisserait `canProceed` retomber sur son `!includes` fourre-tout, donc passer.
-    expect(onboarding).toMatch(/!\[1, 2, 3, 4, 5, 6, 7\]\.includes\(step\)/);
+    expect(onboarding).toMatch(/etape === 'preferences' && preferencesValid/);
+    // …et `canProceed` ne doit pas retrouver de fourre-tout (`!includes(step)`), qui
+    // laissait passer toute page non listée — parti le 2026-09-22 avec les pages nommées.
+    expect(onboarding.match(/const canProceed =[\s\S]*?;/)?.[0] ?? '').not.toMatch(/includes\(step\)/);
   });
 
   it('l\'étape dit ce qui manque, et nomme la porte de sortie', () => {

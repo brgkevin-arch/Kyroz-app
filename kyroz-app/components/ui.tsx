@@ -146,7 +146,7 @@ export function Field({
 
   return (
     <View style={{ gap: Spacing.sm }}>
-      {label ? <Text style={{ ...Type.captionStrong, color: t.textSecondary }}>{label}</Text> : null}
+      {label ? <Intitule t={t}>{label}</Intitule> : null}
       <View style={{
         flexDirection: 'row', alignItems: 'center',
         backgroundColor: t.scheme === 'dark' ? t.fill : t.card,
@@ -325,6 +325,17 @@ export function Segmented<T extends string | number>({
  * viendrait pas chercher — le NEAT en tête. Le sous-titre n'est PAS en capitales :
  * ce n'est pas une seconde étiquette, c'est une phrase.
  */
+/**
+ * Intitulé en CASSE DE PHRASE — le libellé des champs (« Poids », « Taille »), réemployé
+ * comme intertitre là où les capitales de `SectionLabel` font crier l'écran. Né de la
+ * refonte de l'onboarding (décision fondateur, 2026-09-22 : « mets-le en minuscule »).
+ * ⚠️ `Field` s'en sert pour son propre libellé : un seul style, sinon l'intertitre et
+ * le libellé du champ d'à côté divergent à la première retouche.
+ */
+export function Intitule({ t, children }: { t: ThemePalette; children: React.ReactNode }) {
+  return <Text style={{ ...Type.captionStrong, color: t.textSecondary }}>{children}</Text>;
+}
+
 export function SectionLabel({ t, sub, children }: { t: ThemePalette; sub?: string; children: React.ReactNode }) {
   return (
     <View style={{ gap: Spacing.xs }}>
