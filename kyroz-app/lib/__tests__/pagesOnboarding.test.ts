@@ -50,3 +50,21 @@ describe('les pages de l’inscription', () => {
     expect(onboarding).not.toMatch(/setStep\(step [+-] 1\)/);
   });
 });
+
+describe('la dernière page renvoie vers un réglage qui EXISTE', () => {
+  // « Tu pourras le régler dans Profil → Paramètres des repas » est une affirmation sur
+  // le code (CLAUDE.md §10) : la section « Repas que tu gères toi-même » doit vivre dans
+  // l'éditeur que la ligne « Paramètres des repas » du Profil ouvre.
+  const profil = sansCommentaires(readFileSync(join(RACINE, 'app/(tabs)/profil.tsx'), 'utf8'));
+
+  it('la phrase est à l’écran', () => {
+    expect(onboarding).toContain('régler dans Profil → Paramètres des repas.');
+  });
+
+  it('le Profil a bien la ligne ET la section qu’elle promet', () => {
+    expect(profil).toMatch(/<MenuRow[^>]*label="Paramètres des repas"/);
+    expect(profil).toMatch(/title="Paramètres des repas"[\s\S]*Repas que tu gères toi-même/);
+    expect(profil).toContain("'Je gère'");
+  });
+});
+

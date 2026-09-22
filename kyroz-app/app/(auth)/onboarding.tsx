@@ -1014,22 +1014,25 @@ export default function Onboarding() {
           </View>
         )}
 
-        {/* ⚠️ Page à RETRAVAILLER avec le fondateur (dernière page de la refonte) : elle
-            garde ici son contenu d'avant, seul son titre a pris la place de l'intertitre. */}
+        {/* Dernière page (décision fondateur, 2026-09-22) : le titre « Tes repas », la liste
+            cochée, et UNE ligne en bas vers les repas qu'on gère soi-même.
+            ⚠️ Cette ligne est une affirmation sur le code : la section « Repas que tu gères
+            toi-même » vit bien dans Profil → Paramètres des repas (`profil.tsx`, éditeur
+            des repas, bouton « Je gère »). Si elle déménage, la phrase ment.
+            ℹ️ Partis avec le titre seul : « Coche ce que tu manges dans une journée. » (les
+            cases cochées le disent) et « Sélectionne au moins 1 repas. », que le message
+            du bouton dit déjà (« Choisis au moins un repas. »). */}
         {etape === 'repas' && (
           <View style={s.block}>
-            <Text style={s.title}>Repas inclus</Text>
-            {/* La deuxième phrase — « Tu en fais plus de quatre ? Ajoute tes propres
-                repas » — est partie le 2026-08-12 : le bouton « + Ajouter un repas »
-                est juste en dessous et le dit mieux qu'elle. */}
-            <Text style={[s.sub, { ...Type.caption, marginTop: -Spacing.sm }]}>
-              Coche ce que tu manges dans une journée.
-            </Text>
+            <Text style={s.title}>Tes repas</Text>
             <MealSlotsPicker
               t={t} customSlots={customSlots} selected={meals}
               onToggle={toggleMeal} onSaveSlot={saveSlot} onDeleteSlot={deleteSlot}
             />
-            {meals.length === 0 && <Text style={[s.sub, { marginTop: -Spacing.xs }]}>Sélectionne au moins 1 repas.</Text>}
+            <Text style={s.note}>
+              Un repas que tu prépares toujours toi-même, comme ton petit-déj ? Tu pourras le
+              régler dans Profil → Paramètres des repas.
+            </Text>
           </View>
         )}
         {/* L'étape « récap » a été supprimée (2026-06-20) : le récap et le
@@ -1178,6 +1181,8 @@ function makeStyles(t: ThemePalette) {
     wrap: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },
     // Une liste verticale de cartes serrées (les jours) : un cran de moins que `block`.
     liste: { gap: Spacing.sm },
+    // Une ligne d'information discrète en bas de page (la page « repas »).
+    note: { ...Type.caption, color: t.textTertiary, lineHeight: 18 },
     footer: { padding: Spacing.xl, paddingTop: Spacing.sm, backgroundColor: t.bg },
     indiceBas: { alignItems: 'center', paddingBottom: Spacing.xs },
     hint: { ...Type.captionStrong, color: t.warning, lineHeight: 18, marginBottom: Spacing.md, textAlign: 'center' },
