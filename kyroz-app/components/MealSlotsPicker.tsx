@@ -24,9 +24,13 @@ import {
 // Or l'heure n'est pas décorative — c'est elle qui ordonne la journée et qui
 // décide quels repas sont « encore devant soi » après un écart.
 
+// ⚠️ « Repas » et non `POOL_LABELS.meal` (« Repas complet ») DANS CE SÉLECTEUR SEUL
+// (demande fondateur, 2026-09-22) : à trois cases sur un écran de 375 pt, « Repas
+// complet » passait sur deux lignes. Ailleurs (la ligne « 18 h 30 · Repas complet »),
+// le libellé long reste — il a la place.
 const POOL_OPTS: { label: string; value: MealPool }[] = [
   { label: POOL_LABELS.breakfast, value: 'breakfast' },
-  { label: POOL_LABELS.meal, value: 'meal' },
+  { label: 'Repas', value: 'meal' },
   { label: POOL_LABELS.snack, value: 'snack' },
 ];
 
@@ -221,7 +225,9 @@ function SlotForm({
         <Text style={{ ...Type.caption, color: t.textTertiary }}>Donne un nom à ce repas pour le retrouver dans ton plan.</Text>
       )}
       <PrimaryButton t={t} label="Enregistrer ce repas" onPress={enregistrer} muted={!valide} />
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+      {/* « Annuler » CENTRÉ quand il est seul (demande fondateur, 2026-09-22) ; avec
+          « Supprimer » (repas existant), les deux se partagent la ligne. */}
+      <View style={{ flexDirection: 'row', justifyContent: existant ? 'space-between' : 'center', alignItems: 'center' }}>
         <Presse activeOpacity={OPACITE_PRESSION} onPress={onCancel} hitSlop={Spacing.sm}
           style={{ minHeight: CIBLE_TACTILE_MIN, justifyContent: 'center' }}>
           <Text style={{ ...Type.captionStrong, color: t.textSecondary }}>Annuler</Text>
