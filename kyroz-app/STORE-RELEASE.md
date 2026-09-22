@@ -219,7 +219,17 @@ installation neuve part du binaire, donc du (6).
   encore `0639ecc` après la compilation, 0 PR ouverte — le piège du 11 août ne s'est pas
   rejoué). *(Le précédent :)* le **(6)** — `ceec1b17`, commit
   `1047b9f`, terminé le 2026-08-11 à 20 h 37. Il a **62 commits de retard** sur `main` — chiffre RE-MESURÉ le 2026-08-26 (il en annonçait 40, mesurés le 2026-08-23), qui **grandit à chaque merge** : le relire avec `git rev-list --count 1047b9f..origin/main` plutôt que de le recopier (même défaut que le décompte d'OTA tenu à la main).
-- **OTA** : la dernière est la **49ᵉ** (groupe `044b483c`, **iOS seulement**, 2026-09-21),
+- **OTA** : la dernière est la **50ᵉ** (groupe `53bcaaa3`, **iOS seulement**, 2026-09-22),
+  publiée sur le commit `54d3d42` — `main`, arbre propre, détaché sur `origin/main`.
+  ✅ **Runtime iOS `823c89db…` = le build (22)**, empreinte comparée AVANT publication.
+  Contenu : la **déduction après repas respecte l'unité du stock** (#340) — 3 bananes
+  rangées à la pièce ne disparaissent plus toutes pour un repas qui en consomme une ; un
+  stock en pièces s'arrondit au demi ; ce qui ne se convertit pas ne se déduit pas.
+  Pas d'`ENGINE_VERSION` : le moteur de plan ne change pas. Aucun changement natif.
+  **Témoins du bundle publié** : Supabase prod 1 · autre hôte Supabase (celui du
+  `.env.local` du worktree) 0 · clé publishable 1. Aucun témoin textuel du correctif :
+  il ne change que de l'arithmétique, sa preuve est le commit.
+  *(La précédente :)* la **49ᵉ** (groupe `044b483c`, **iOS seulement**, 2026-09-21),
   publiée sur le commit `229318d` — `main`, arbre propre, détaché sur `origin/main`.
   ✅ **Runtime iOS `823c89db…` = le build (22)**, empreinte comparée AVANT publication.
   Contenu : le **jour de pesée se choisit** et la cadence « Jour » est retirée (#334) ; le
