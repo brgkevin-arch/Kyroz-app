@@ -70,10 +70,10 @@ const MARGE_BAS = 24;
 // d'une question sans réponse — le seul sens de changement sûr sans monter
 // `onboardingDraft.ts::VERSION`. Retirer ou permuter des pages demanderait de la monter.
 const ETAPES = [
-  'prenom', 'infos', 'masseGrasse', 'activite', 'seances', 'objectif', 'preferences', 'repas',
+  'prenom', 'infos', 'masseGrasse', 'activite', 'seances', 'repos', 'objectif', 'preferences', 'repas',
 ] as const;
 type Etape = typeof ETAPES[number];
-const TOTAL_STEPS: typeof ETAPES['length'] = 8;
+const TOTAL_STEPS: typeof ETAPES['length'] = 9;
 /** Le numéro de page d'une étape — pour y RENVOYER (filets de `finish()`). */
 const numeroEtape = (e: Etape) => ETAPES.indexOf(e) + 1;
 
@@ -114,10 +114,13 @@ const VARIETY: { value: VarietyPreference; title: string; sub: string }[] = [
   { value: 'max', title: 'Variété max', sub: 'Le plus de diversité possible sur la semaine' },
 ];
 
-// Jours de la semaine (format getDay : 0=Dim … 6=Sam), affichés Lun→Dim
-const WEEKDAY_OPTS: { label: string; val: number }[] = [
-  { label: 'Lun', val: 1 }, { label: 'Mar', val: 2 }, { label: 'Mer', val: 3 },
-  { label: 'Jeu', val: 4 }, { label: 'Ven', val: 5 }, { label: 'Sam', val: 6 }, { label: 'Dim', val: 0 },
+// Jours de la semaine (format getDay : 0=Dim … 6=Sam), affichés Lun→Dim.
+// `long` : écrit en entier, pour les listes VERTICALES (décision fondateur, 2026-09-22).
+const WEEKDAY_OPTS: { label: string; long: string; val: number }[] = [
+  { label: 'Lun', long: 'Lundi', val: 1 }, { label: 'Mar', long: 'Mardi', val: 2 },
+  { label: 'Mer', long: 'Mercredi', val: 3 }, { label: 'Jeu', long: 'Jeudi', val: 4 },
+  { label: 'Ven', long: 'Vendredi', val: 5 }, { label: 'Sam', long: 'Samedi', val: 6 },
+  { label: 'Dim', long: 'Dimanche', val: 0 },
 ];
 
 /** Les sept jours, dans l'ordre d'affichage — les jours de repos les proposent TOUS. */
@@ -414,6 +417,8 @@ export default function Onboarding() {
     (etape === 'masseGrasse' && bodyFatValid) ||
     (etape === 'activite' && neatValid) ||
     (etape === 'seances' && seancesValid) ||
+    // Facultative : sans geste, rien n'est écrit (`restTouched`) et le moteur déduit.
+    etape === 'repos' ||
     (etape === 'objectif' && goal !== null && !objectifBloque) ||
     (etape === 'preferences' && preferencesValid && goutsValid) ||
     (etape === 'repas' && mealsValid);
@@ -554,14 +559,36 @@ export default function Onboarding() {
   // 2026-09-22 avec la séparation en deux pages : les séances ne sont plus sous le pli,
   // elles sont la page suivante.
 
+  // ── Les pages SERVIES à cette personne ────────────────────────────────────
+  // 🔴 Les jours de repos SAUTENT sans sport déclaré (décision fondateur, 2026-09-22).
+  // Sans séance, `dayExpenditures` rend une cible plate : des jours de repos cochés
+  // n'y déplaceraient rien — un réglage sans effet (A23). C'est le remède que la note
+  // de ce bloc prévoyait depuis le 2026-09-10 : une GARDE plutôt qu'une légende.
+  // ⚠️ Le compteur « ÉTAPE x / n » et la barre suivent les pages servies, pas le
+  // tableau : sauter une page ne laisse pas de trou dans la numérotation.
+  const etapeServie = (e: Etape) => e !== 'repos' || !noSport;
+  const servies = ETAPES.filter(etapeServie);
+  const rang = servies.indexOf(etape) + 1;
+  // Un brouillon peut rouvrir une page qui ne se sert plus (« pas de sport » coché
+  // entre-temps, ou numérotation d'une version précédente) : on avance à la suivante.
+  useEffect(() => {
+    if (etapeServie(etape)) return;
+    const apres = ETAPES.slice(step).find(etapeServie);
+    if (apres) setStep(numeroEtape(apres));
+  }, [etape, noSport]);
+
   const next = () => {
     if (saving) return;
     if (!canProceed) { setAvanceTentee(true); return; }
     setAvanceTentee(false);
-    if (step < TOTAL_STEPS) setStep(step + 1);
+    const suivante = servies[rang];
+    if (suivante) setStep(numeroEtape(suivante));
     else finish();
   };
-  const back = () => { if (step > 1) { setAvanceTentee(false); setStep(step - 1); } };
+  const back = () => {
+    const precedente = servies[rang - 2];
+    if (precedente) { setAvanceTentee(false); setStep(numeroEtape(precedente)); }
+  };
 
   const finish = async () => {
     // 🔴 LE SEXE NE SE DEVINE PAS. L'étape 2 interdit d'arriver ici sans lui, donc ce
@@ -702,7 +729,7 @@ export default function Onboarding() {
         <Presse onPress={back} disabled={step === 1} style={[s.backBtn, step === 1 && { opacity: 0 }]}>
           <Ionicons name="chevron-back" size={Icone.action} color={t.text} />
         </Presse>
-        <View style={s.track}><View style={[s.fill, { width: `${(step / TOTAL_STEPS) * 100}%` }]} /></View>
+        <View style={s.track}><View style={[s.fill, { width: `${(rang / servies.length) * 100}%` }]} /></View>
       </View>
 
       <ScrollView
@@ -717,7 +744,7 @@ export default function Onboarding() {
         }}
         scrollEventThrottle={16}
       >
-        {step > 1 && <SectionLabel t={t}>ÉTAPE {step - 1} / {TOTAL_STEPS - 1}</SectionLabel>}
+        {step > 1 && <SectionLabel t={t}>ÉTAPE {rang - 1} / {servies.length - 1}</SectionLabel>}
 
         {etape === 'prenom' && <NameStep t={t} value={firstName} onChange={setFirstName} venuDApple={parApple && firstName.trim().length > 0} />}
 
@@ -806,6 +833,33 @@ export default function Onboarding() {
               selected={noSport}
               onPress={() => { const v = !noSport; setNoSport(v); if (v) setSports([]); }}
             />
+          </View>
+        )}
+
+        {/* Jours de repos = jours SANS entraînement, sur la semaine entière — ils ne
+            dépendent pas des jours du plan (2026-08-26). SA PROPRE PAGE depuis le
+            2026-09-22, sautée sans sport déclaré (`etapeServie`), titre seul.
+            *(Historique : un paragraphe d'explication a vécu ici jusqu'au 2026-09-10 ;
+            il avait promis deux choses fausses — « mêmes calories », puis « recettes
+            récup ». Le remettre n'est pas le remède : la garde l'est.)* */}
+        {etape === 'repos' && (
+          <View style={s.block}>
+            <Text style={s.title}>Tes jours de repos</Text>
+            {/* Les SEPT jours, quels que soient les jours du plan : on peut ne pas
+                s'entraîner un jour que Kyroz ne planifie pas.
+                En LISTE VERTICALE, jours écrits en entier (décision fondateur,
+                2026-09-22) — des cartes compactes pour que la semaine et « Aucun »
+                tiennent sur un écran sans défiler. */}
+            <View style={s.liste}>
+              {WEEKDAY_OPTS.map((d) => (
+                <OptionCard key={d.val} t={t} title={d.long} compacte selected={restWeekdays.includes(d.val)} onPress={() => toggleRestDay(d.val)} />
+              ))}
+              {/* ⚠️ `restTouched &&` : sans lui, « Aucun » s'allumerait au premier rendu,
+                  puisque rien n'est coché. Ce serait une présélection de plus — celle
+                  qui affirme « je n'ai aucun jour de repos » à la place de quelqu'un qui
+                  n'a rien dit, et c'est le pire des trois états à poser par défaut. */}
+              <OptionCard t={t} title="Aucun jour de repos" compacte selected={restTouched && restWeekdays.length === 0} onPress={setNoRestDay} />
+            </View>
           </View>
         )}
 
@@ -915,44 +969,6 @@ export default function Onboarding() {
             </View>
             <Text style={[s.sub, { marginTop: -Spacing.xs }]}>{planWeekdays.length} jour{planWeekdays.length > 1 ? 's' : ''} par semaine</Text>
 
-            {/* Jours de repos = jours SANS entraînement, sur la semaine entière — ils ne
-                dépendent pas des jours du plan (2026-08-26). */}
-            <SectionLabel t={t}>Jours de repos</SectionLabel>
-            {/* 🔴 LE PARAGRAPHE D'EXPLICATION A ÉTÉ RETIRÉ LE 2026-09-10 (décision
-                fondateur, sur capture de l'étape 6). Il tenait trois lignes sous le
-                sur-titre, sur un écran qui porte déjà les jours de plan, les jours de
-                repos ET les repas.
-
-                ⚠️ CE QU'ON ACCEPTE EN LE RETIRANT — c'est la moitié qui servait
-                vraiment : quelqu'un ayant coché « Je ne fais pas de sport » deux étapes
-                plus tôt lisait ici que ce réglage ne changerait PAS ses calories (la
-                modulation par volume n'existe pas sans sport déclaré : `dayExpenditures`
-                retombe sur une cible plate). Sans la phrase, il coche des jours de repos
-                qui, pour lui, ne déplacent rien — un réglage sans effet et sans
-                explication, c'est-à-dire le défaut A23.
-                ➡️ Si ça se signale, le remède n'est PAS de remettre le paragraphe :
-                c'est de ne pas proposer le bloc du tout quand aucun sport n'est déclaré.
-                Le prédicat existait ici (`!noSport && sports.length > 0`) et il est plus
-                honnête en GARDE qu'en légende.
-
-                *(Historique : ce texte avait déjà promis deux choses fausses — « mêmes
-                calories », plus vrai depuis la répartition par volume, et « recettes
-                récup », plus vrai depuis le retrait du tag `rest_day_ok`. Puis il avait
-                été conditionné le 2026-08-08, même défaut que l'écran Plan, CLAUDE.md §8.)* */}
-            {/* Les SEPT jours, quels que soient les jours du plan : on peut ne pas
-                s'entraîner un jour que Kyroz ne planifie pas. La note « choisis d'abord
-                tes jours de plan » est partie avec la dépendance qu'elle expliquait. */}
-            <View style={s.wrap}>
-              {WEEKDAY_OPTS.map((d) => (
-                <Chip key={d.val} t={t} label={d.label} selected={restWeekdays.includes(d.val)} onPress={() => toggleRestDay(d.val)} />
-              ))}
-              {/* ⚠️ `restTouched &&` : sans lui, « Aucun » s'allumerait au premier rendu,
-                  puisque rien n'est coché. Ce serait une présélection de plus — celle
-                  qui affirme « je n'ai aucun jour de repos » à la place de quelqu'un qui
-                  n'a rien dit, et c'est le pire des trois états à poser par défaut. */}
-              <Chip t={t} label="Aucun" selected={restTouched && restWeekdays.length === 0} onPress={setNoRestDay} />
-            </View>
-
             <SectionLabel t={t}>Repas inclus</SectionLabel>
             {/* La deuxième phrase — « Tu en fais plus de quatre ? Ajoute tes propres
                 repas » — est partie le 2026-08-12 : le bouton « + Ajouter un repas »
@@ -1004,7 +1020,7 @@ export default function Onboarding() {
             promettre d'avancer quand l'étape est incomplète. */}
         <PrimaryButton
           t={t}
-          label={step === TOTAL_STEPS ? 'Générer mon plan' : 'Continuer'}
+          label={rang === servies.length ? 'Générer mon plan' : 'Continuer'}
           onPress={next}
           loading={saving}
           muted={!canProceed}
@@ -1111,6 +1127,8 @@ function makeStyles(t: ThemePalette) {
     title: { color: t.text, ...Type.h1 },
     sub: { ...Type.body, color: t.textSecondary, lineHeight: 21, marginTop: -Spacing.sm },
     wrap: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },
+    // Une liste verticale de cartes serrées (les jours) : un cran de moins que `block`.
+    liste: { gap: Spacing.sm },
     daysRow: { flexDirection: 'row', gap: Spacing.sm, justifyContent: 'space-between' },
     dayCircle: { flex: 1, height: 52, borderRadius: Radius.button, borderWidth: Trait.fin, alignItems: 'center', justifyContent: 'center' },
     footer: { padding: Spacing.xl, paddingTop: Spacing.sm, backgroundColor: t.bg },

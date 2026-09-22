@@ -78,9 +78,14 @@ export function Chip({
   );
 }
 
+/**
+ * `compacte` : une marge intérieure d'un cran plus serrée, pour les LISTES longues
+ * sans sous-titre — les sept jours de la semaine tiennent alors sur un écran de
+ * téléphone sans défiler (onboarding, 2026-09-22).
+ */
 export function OptionCard({
-  t, title, subtitle, selected, onPress,
-}: { t: ThemePalette; title: string; subtitle?: string; selected: boolean; onPress: () => void }) {
+  t, title, subtitle, selected, onPress, compacte,
+}: { t: ThemePalette; title: string; subtitle?: string; selected: boolean; onPress: () => void; compacte?: boolean }) {
   return (
     <Presse
       activeOpacity={OPACITE_PRESSION}
@@ -89,7 +94,7 @@ export function OptionCard({
         {
           backgroundColor: t.card,
           borderRadius: Radius.card,
-          padding: Spacing.xl,
+          padding: compacte ? Spacing.lg : Spacing.xl,
           borderWidth: Trait.controle,
           borderColor: selected ? t.accent : (t.scheme === 'dark' ? t.line : 'transparent'),
           flexDirection: 'row',
