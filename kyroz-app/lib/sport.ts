@@ -23,6 +23,16 @@ export const SPORT_MET: Record<SportType, number> = {
   tennis_padel: 7.0,
   basket: 6.5,
   marche_rapide: 4.3,
+  // Ajoutée le 2026-09-22 (demande fondateur). Compendium 2011, code 15537 « rock
+  // climbing, ascending or traversing rock, low-to-moderate difficulty » = 5,8 — et
+  // PAS 15535 (« high difficulty », 7,5) : une séance de salle alterne voies et longs
+  // repos, et un MET surestimé fait manger au-dessus de sa dépense en silence (§6).
+  escalade: 5.8,
+  // Ajouté le 2026-09-22 (demande fondateur, pour que la grille des sports tombe
+  // juste : 12 cases, 6 lignes pleines). Compendium 2011, code 02105 « pilates,
+  // general » = 3,0. « Pilates » SEUL, et pas « Yoga / Pilates » : le yoga Hatha vaut
+  // 2,5 (02150), l'étiquette commune aurait surestimé la dépense de qui en fait.
+  pilates: 3.0,
 };
 
 // Libellés affichés (FR). Source unique pour l'onboarding ET le profil.
@@ -37,12 +47,15 @@ export const SPORT_LABEL: Record<SportType, string> = {
   tennis_padel: 'Tennis / Padel',
   basket: 'Basket',
   marche_rapide: 'Marche rapide',
+  escalade: 'Escalade',
+  pilates: 'Pilates',
 };
 
 // Ordre d'affichage (les plus fréquents chez la cible en premier).
 export const SPORT_ORDER: SportType[] = [
   'musculation', 'course', 'hiit_crossfit', 'velo', 'football',
-  'sports_combat', 'natation', 'tennis_padel', 'basket', 'marche_rapide',
+  'sports_combat', 'natation', 'tennis_padel', 'basket', 'escalade', 'marche_rapide',
+  'pilates',
 ];
 
 // Bornes de saisie (sécurité contre les valeurs aberrantes).

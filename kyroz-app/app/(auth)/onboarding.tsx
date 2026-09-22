@@ -859,15 +859,17 @@ export default function Onboarding() {
         {etape === 'seances' && (
           <View style={s.block}>
             <Text style={s.title}>Tes séances</Text>
+            {/* « Je ne fais pas de sport » est une case de la grille, pleine largeur,
+                sous les sports (refonte visuelle du 2026-09-22). */}
             <SportsEditor
               sports={sports}
               weight={profileReady ? wN : undefined}
               onChange={(next) => { setSports(next); if (next.length) setNoSport(false); }}
-            />
-            <Chip
-              t={t} label="Je ne fais pas de sport"
-              selected={noSport}
-              onPress={() => { const v = !noSport; setNoSport(v); if (v) setSports([]); }}
+              aucunSport={{
+                label: 'Je ne fais pas de sport',
+                selected: noSport,
+                onToggle: () => { const v = !noSport; setNoSport(v); if (v) setSports([]); },
+              }}
             />
           </View>
         )}

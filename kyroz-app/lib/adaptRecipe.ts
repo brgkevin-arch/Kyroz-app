@@ -205,7 +205,7 @@ export function sportsToBuckets(sports: SportSession[] | undefined): RecipeSport
       case 'musculation': set.add('muscu'); break;
       case 'sports_combat': set.add('combats'); break;
       case 'hiit_crossfit': set.add('muscu'); set.add('endurance'); break;
-      default: set.add('endurance'); // course, velo, natation, marche, foot, basket, tennis
+      default: set.add('endurance'); // course, velo, natation, marche, foot, basket, tennis, escalade, pilates
     }
   }
   return [...set];
