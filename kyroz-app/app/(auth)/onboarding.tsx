@@ -733,8 +733,17 @@ export default function Onboarding() {
             {sex && (
               <>
                 <BirthDateField t={t} value={birthDate} onChange={setBirthDate} />
-                <Field t={t} label="Poids" suffix="kg" value={weight} onChangeText={setWeight} placeholder="80" keyboardType="decimal-pad" />
-                <Field t={t} label="Taille" suffix="cm" value={height} onChangeText={setHeight} placeholder="178" keyboardType="number-pad" />
+                {/* 🔴 « À renseigner », JAMAIS un chiffre d'exemple (retour testeurs,
+                    2026-09-22 : « Continuer reste grisé même quand on a tout rempli »).
+                    Les exemples « 80 » et « 178 » se lisaient comme des valeurs saisies :
+                    l'écran paraissait complet, le bouton restait grisé, et le message
+                    « Remplis ton poids et ta taille » contredisait ce qu'on voyait. Même
+                    règle que la date juste au-dessus (`BirthDateField`) : un champ vide
+                    dit qu'il est vide, il ne montre pas ce qu'on POURRAIT y mettre.
+                    ⚠️ Les deux champs portant le même placeholder, le harnais les vise
+                    par leur `testID` (verrouillé par `harnaisEcrans.test.ts`). */}
+                <Field t={t} label="Poids" suffix="kg" value={weight} onChangeText={setWeight} placeholder="À renseigner" keyboardType="decimal-pad" testID="champ-poids" />
+                <Field t={t} label="Taille" suffix="cm" value={height} onChangeText={setHeight} placeholder="À renseigner" keyboardType="number-pad" testID="champ-taille" />
               </>
             )}
           </View>
