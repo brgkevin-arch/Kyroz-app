@@ -42,7 +42,7 @@ d'**enregistrer ce que tu as mangé**. Kyroz te dit **quoi manger**.
 | 5 | Tes séances (sport, fréquence, durée) — **comptées à part** des journées, sur leur propre page depuis le 2026-09-22 |
 | 6 | Tes jours de repos — facultatif (sans réponse, Kyroz les déduit des séances), et **sautée sans sport déclaré** : sans séance, ils ne changeraient rien au plan |
 | 7 | Objectif : **Sèche · Recomposition · Maintien · Prise de masse propre** |
-| 8 | Régime (omnivore, végétarien, vegan, pescétarien, halal, sans gluten…) **d'abord** ; puis les protéines préférées **du régime choisi** (depuis le 2026-09-19 : ce qui est coché devient une part garantie des déjeuners et dîners, cf. `docs/2026-09-19-decision-preferences-proteines.md`) ; aliments évités, niveau de variété |
+| 8 | Régime (omnivore, végétarien, vegan, pescétarien, halal, sans gluten…) **d'abord** ; puis les protéines préférées **du régime choisi** (depuis le 2026-09-19 : ce qui est coché devient une part garantie des déjeuners et dîners, cf. `docs/2026-09-19-decision-preferences-proteines.md`) ; puis sucré ou salé, le matin et en collation ; puis aliments évités et niveau de variété. **Chaque question n'apparaît qu'une fois la précédente répondue** (2026-09-22), et l'écran descend sur elle |
 | 9 | Quels jours, combien de repas, et à quelles heures |
 
 ⚠️ **L'étape 4 exige une réponse sur les journées hors sport, et c'est récent (2026-08-19).**

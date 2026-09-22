@@ -1,9 +1,10 @@
-import React, { useMemo, useState, useEffect, useRef } from 'react';
+import React, { useMemo, useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { Presse } from '../../components/Presse';
 import { lireBrouillon, ecrireBrouillon, effacerBrouillon, type OnboardingDraft } from '../../lib/onboardingDraft';
 import { GOUT_CHOIX, goutEnregistre, type GoutChoix } from '../../lib/gout';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity, Animated, Easing, AppState,
+  type LayoutChangeEvent,
 } from 'react-native';
 import { DUREE, dureeReduite } from '../../lib/motion';
 import { resteAScroller } from '../../lib/apercuIntro';
@@ -15,7 +16,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useTheme, ThemePalette, Spacing, Radius, Type, CIBLE_TACTILE_MIN, Trait, Icone, OPACITE_PRESSION } from '../../constants/theme';
 import { useLayout } from '../../constants/layout';
 import {
-  PrimaryButton, Chip, OptionCard, Field, SectionLabel, Segmented, Card, clavierScrollProps,
+  PrimaryButton, Chip, OptionCard, Field, SectionLabel, Intitule, Segmented, Card, clavierScrollProps,
 } from '../../components/ui';
 import { BodyFatPicker } from '../../components/BodyFatPicker';
 import { useDialog } from '../../components/Dialog';
@@ -559,6 +560,38 @@ export default function Onboarding() {
   // 2026-09-22 avec la séparation en deux pages : les séances ne sont plus sous le pli,
   // elles sont la page suivante.
 
+  // ── Page « préférences » : chaque question APPARAÎT quand la précédente a sa réponse ──
+  //
+  // Décision fondateur (2026-09-22) : on ne voit d'abord QUE le régime, puis les
+  // protéines, puis sucré ou salé, puis les aliments à éviter et la variété — ces deux
+  // derniers ENSEMBLE : « aliments à éviter » est facultatif, aucune réponse ne dirait
+  // qu'on en a fini avec lui. L'écran DESCEND sur ce qui vient d'apparaître.
+  // ⚠️ Ce qui est montré ne se retire jamais (`niveauMontre` ne fait que monter) :
+  // décocher sa protéine ne doit pas faire disparaître les goûts déjà choisis.
+  // ⚠️ On ne descend que sur UN palier gagné d'un coup, c'est-à-dire un geste. Un
+  // brouillon relu ouvre tous les paliers ensemble : là, l'écran ne bouge pas.
+  // ⚠️ Le 2026-09-08, le fondateur avait ÉCARTÉ le défilement automatique (« ça va créer
+  // des frictions ») au profit de la flèche. Il le demande ici, pour cette page : il ne
+  // part donc qu'à l'APPARITION d'un bloc, jamais quand on retouche un choix visible.
+  const niveauRepondu = !regimeChoisi(restrictions) ? 0 : !preferencesValid ? 1 : !goutsValid ? 2 : 3;
+  const [niveauMontre, setNiveauMontre] = useState(0);
+  const aDescendre = useRef<number | null>(null);
+  const yPreferences = useRef(0);
+  // `useLayoutEffect` et pas `useEffect` : le palier à rejoindre doit être noté AVANT
+  // que le bloc apparu rende son `onLayout`, qui est le seul instant où sa position
+  // est connue (mesurée, jamais écrite en dur — elle dépend de la police et de la largeur).
+  useLayoutEffect(() => {
+    if (niveauRepondu <= niveauMontre) return;
+    if (niveauRepondu === niveauMontre + 1 && etape === 'preferences') aDescendre.current = niveauRepondu;
+    setNiveauMontre(niveauRepondu);
+  }, [niveauRepondu, niveauMontre, etape]);
+  /** Posé sur chaque palier : si c'est lui qui vient d'apparaître, l'écran descend dessus. */
+  const surPalier = (n: number) => (e: LayoutChangeEvent) => {
+    if (aDescendre.current !== n) return;
+    aDescendre.current = null;
+    defilement.current?.scrollTo({ y: yPreferences.current + e.nativeEvent.layout.y - Spacing.lg, animated: true });
+  };
+
   // ── Les pages SERVIES à cette personne ────────────────────────────────────
   // 🔴 Les jours de repos SAUTENT sans sport déclaré (décision fondateur, 2026-09-22).
   // Sans séance, `dayExpenditures` rend une cible plate : des jours de repos cochés
@@ -895,12 +928,14 @@ export default function Onboarding() {
           </View>
         )}
 
+        {/* Titre seul, intertitres en casse de phrase, et chaque question n'apparaît
+            qu'une fois la précédente répondue (décision fondateur, 2026-09-22 ; le
+            mécanisme est expliqué avec `niveauMontre`). */}
         {etape === 'preferences' && (
-          <View style={s.block}>
+          <View style={s.block} onLayout={(e) => { yPreferences.current = e.nativeEvent.layout.y; }}>
             <Text style={s.title}>Tes préférences</Text>
-            <Text style={s.sub}>Pour des recettes qui te ressemblent vraiment.</Text>
 
-            <SectionLabel t={t}>Régime</SectionLabel>
+            <Intitule t={t}>Régime</Intitule>
             <View style={s.wrap}>
               {RESTRICTIONS.map((r) => (
                 <Chip
@@ -913,39 +948,51 @@ export default function Onboarding() {
               ))}
             </View>
 
-            {/* Les protéines n'apparaissent qu'une fois le régime choisi, et ce sont CELLES du
-                régime (décision fondateur du 2026-09-19). Cocher une protéine annule « Peu
-                importe » : les deux réponses ne peuvent pas coexister. */}
-            <ProteinesParRegime
-              t={t} restrictions={restrictions} valeurs={proteins} masquerSansRegime
-              onChange={(v) => { setProteinesEgales(false); setProteins(v); }}
-              peuImporte={{ selected: proteinesEgales, onToggle: () => { setProteinesEgales((v) => !v); setProteins([]); } }}
-            />
+            {/* Les protéines sont CELLES du régime (décision fondateur du 2026-09-19).
+                Cocher une protéine annule « Peu importe » : les deux réponses ne peuvent
+                pas coexister. */}
+            {niveauMontre >= 1 && (
+              <View style={s.block} onLayout={surPalier(1)}>
+                <ProteinesParRegime
+                  t={t} restrictions={restrictions} valeurs={proteins} masquerSansRegime intitule="phrase"
+                  onChange={(v) => { setProteinesEgales(false); setProteins(v); }}
+                  peuImporte={{ selected: proteinesEgales, onToggle: () => { setProteinesEgales((v) => !v); setProteins([]); } }}
+                />
+              </View>
+            )}
 
             {/* Goût du matin et de la collation (D28). Une seule réponse par rangée :
                 ce sont des choix exclusifs, pas des cases à cumuler. */}
-            <SectionLabel t={t}>Petit-déjeuner</SectionLabel>
-            <View style={s.wrap}>
-              {GOUT_CHOIX.map((g) => (
-                <Chip key={g.value} t={t} label={g.label} selected={goutPdj === g.value} onPress={() => setGoutPdj(g.value)} />
-              ))}
-            </View>
-            <SectionLabel t={t}>Collations</SectionLabel>
-            <View style={s.wrap}>
-              {GOUT_CHOIX.map((g) => (
-                <Chip key={g.value} t={t} label={g.label} selected={goutCollation === g.value} onPress={() => setGoutCollation(g.value)} />
-              ))}
-            </View>
+            {niveauMontre >= 2 && (
+              <View style={s.block} onLayout={surPalier(2)}>
+                <Intitule t={t}>Petit-déjeuner</Intitule>
+                <View style={s.wrap}>
+                  {GOUT_CHOIX.map((g) => (
+                    <Chip key={g.value} t={t} label={g.label} selected={goutPdj === g.value} onPress={() => setGoutPdj(g.value)} />
+                  ))}
+                </View>
+                <Intitule t={t}>Collations</Intitule>
+                <View style={s.wrap}>
+                  {GOUT_CHOIX.map((g) => (
+                    <Chip key={g.value} t={t} label={g.label} selected={goutCollation === g.value} onPress={() => setGoutCollation(g.value)} />
+                  ))}
+                </View>
+              </View>
+            )}
 
-            <DislikedFoodsField t={t} value={dislikes} onChange={setDislikes} />
-
-            <SectionLabel t={t}>Variété des repas</SectionLabel>
-            <Text style={[s.sub, { marginTop: -Spacing.xs }]}>Tu préfères la routine ou la diversité ?</Text>
-            <View style={{ gap: Spacing.md }}>
-              {VARIETY.map((v) => (
-                <OptionCard key={v.value} t={t} title={v.title} subtitle={v.sub} selected={variety === v.value} onPress={() => setVariety(v.value)} />
-              ))}
-            </View>
+            {/* La question « Tu préfères la routine ou la diversité ? » est partie avec
+                le titre seul : les trois cartes portent chacune leur sous-titre. */}
+            {niveauMontre >= 3 && (
+              <View style={s.block} onLayout={surPalier(3)}>
+                <DislikedFoodsField t={t} value={dislikes} onChange={setDislikes} intitule="phrase" />
+                <Intitule t={t}>Variété des repas</Intitule>
+                <View style={{ gap: Spacing.md }}>
+                  {VARIETY.map((v) => (
+                    <OptionCard key={v.value} t={t} title={v.title} subtitle={v.sub} selected={variety === v.value} onPress={() => setVariety(v.value)} />
+                  ))}
+                </View>
+              </View>
+            )}
           </View>
         )}
 

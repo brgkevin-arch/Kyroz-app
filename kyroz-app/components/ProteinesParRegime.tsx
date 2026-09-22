@@ -1,7 +1,7 @@
 import React from 'react';
 import { View } from 'react-native';
 import { ThemePalette, Spacing } from '../constants/theme';
-import { Chip, SectionLabel } from './ui';
+import { Chip, Intitule, SectionLabel } from './ui';
 import { LIBELLE_SORTE, VALEUR_SORTE, regimeChoisi, sortesProposees } from '../lib/partsProteines';
 import type { DietaryRestriction } from '../lib/types';
 
@@ -15,7 +15,7 @@ import type { DietaryRestriction } from '../lib/types';
  * phrase sous le titre le dit, pour qu'un « poulet » coché ne se lise pas comme « rien d'autre ».
  */
 export function ProteinesParRegime({
-  t, restrictions, valeurs, onChange, peuImporte, masquerSansRegime = false,
+  t, restrictions, valeurs, onChange, peuImporte, masquerSansRegime = false, intitule = 'capitales',
 }: {
   t: ThemePalette;
   restrictions: DietaryRestriction[];
@@ -26,15 +26,22 @@ export function ProteinesParRegime({
   peuImporte?: { selected: boolean; onToggle: () => void };
   /** À l'inscription : rien tant que le régime n'est pas choisi. */
   masquerSansRegime?: boolean;
+  /** À l'inscription : casse de phrase, et plus de phrase d'explication dessous
+   *  (décision fondateur, 2026-09-22). Le Profil garde les capitales et l'explication. */
+  intitule?: 'capitales' | 'phrase';
 }) {
   if (masquerSansRegime && !regimeChoisi(restrictions)) return null;
   const sortes = sortesProposees(restrictions);
   const basculer = (v: string) => onChange(valeurs.includes(v) ? valeurs.filter((x) => x !== v) : [...valeurs, v]);
   return (
     <>
-      <SectionLabel t={t} sub="Elles reviendront le plus souvent dans tes déjeuners et dîners. Les autres restent possibles.">
-        Protéines préférées
-      </SectionLabel>
+      {intitule === 'phrase' ? (
+        <Intitule t={t}>Protéines préférées</Intitule>
+      ) : (
+        <SectionLabel t={t} sub="Elles reviendront le plus souvent dans tes déjeuners et dîners. Les autres restent possibles.">
+          Protéines préférées
+        </SectionLabel>
+      )}
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm }}>
         {sortes.map((s) => (
           <Chip
