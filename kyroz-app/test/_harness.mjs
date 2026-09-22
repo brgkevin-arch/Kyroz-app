@@ -470,14 +470,17 @@ export async function runOnboarding(page, p = DEFAULT_PERSONA) {
   const peuImporte = page.getByText('Peu importe', { exact: true });
   // D36 (2026-09-15) : le régime n'a plus de « Peu importe » (case « Omnivore ») —
   // il en reste TROIS : protéines, petit-déjeuner, collations.
-  const nPeuImporte = await peuImporte.count().catch(() => 0);
-  if (nPeuImporte < 3) {
-    await panne(page, 'onboarding-preferences', `l'étape 7 exige trois réponses et ${nPeuImporte} « Peu importe » seulement sont visibles`);
-    return { ok: false, etape: 7, repas: 0 };
-  }
-  for (let i = 0; i < nPeuImporte; i++) {
+  // 🔴 ET ILS APPARAISSENT L'UN APRÈS L'AUTRE depuis le 2026-09-22 : la page ne montre
+  // une question qu'une fois la précédente répondue. Compter les trois d'entrée en
+  // trouverait UN. On répond donc au i-ième une fois qu'il est là.
+  for (let i = 0; i < 3; i++) {
+    const vu = await peuImporte.nth(i).waitFor({ state: 'visible', timeout: 3000 }).then(() => true, () => false);
+    if (!vu) {
+      await panne(page, 'onboarding-preferences', `l'étape 7 exige trois réponses et le « Peu importe » n° ${i + 1} n'est jamais apparu`);
+      return { ok: false, etape: 7, repas: 0 };
+    }
     await peuImporte.nth(i).click({ timeout: 2000 }).catch(() => {});
-    await sleep(150);
+    await sleep(300);
   }
   await sleep(300);
   if (!(await suivant(7))) return { ok: false, etape: 7, repas: 0 };

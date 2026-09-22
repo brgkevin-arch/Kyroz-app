@@ -52,6 +52,47 @@ describe('l’étape « préférences » dit ce que le fondateur a demandé', ()
   });
 });
 
+describe('la page « préférences » se dévoile question par question (2026-09-22)', () => {
+  // Décision fondateur : d'abord le régime SEUL, puis les protéines, puis sucré ou salé,
+  // puis les aliments à éviter et la variété. L'ordre est une décision, pas une mise en
+  // page : il se lit dans les paliers `niveauMontre >= n` de l'écran.
+  const palier = (n: number) => onboarding.indexOf(`niveauMontre >= ${n}`);
+  const entre = (a: number, b: number) => onboarding.slice(a, b === -1 ? undefined : b);
+
+  it('le régime d’abord, puis protéines, goûts, et enfin aliments à éviter + variété', () => {
+    const [p1, p2, p3] = [palier(1), palier(2), palier(3)];
+    expect(p1, 'palier des protéines introuvable').toBeGreaterThan(-1);
+    expect(p1).toBeLessThan(p2);
+    expect(p2).toBeLessThan(p3);
+    const fin = onboarding.indexOf("etape === 'repas'", p3);
+    expect(onboarding.slice(0, p1)).toContain('RESTRICTIONS.map(');
+    expect(entre(p1, p2)).toContain('<ProteinesParRegime');
+    expect(entre(p2, p3)).toContain('goutPdj === g.value');
+    expect(entre(p2, p3)).toContain('goutCollation === g.value');
+    expect(entre(p3, fin)).toContain('<DislikedFoodsField');
+    expect(entre(p3, fin)).toContain('VARIETY.map(');
+  });
+
+  it('le palier suit les RÉPONSES : régime, puis protéines, puis les deux goûts', () => {
+    expect(onboarding).toContain('const niveauRepondu = !regimeChoisi(restrictions) ? 0 : !preferencesValid ? 1 : !goutsValid ? 2 : 3;');
+  });
+
+  it('ce qui est montré ne se retire jamais — décocher ne fait rien disparaître', () => {
+    expect(onboarding).toContain('if (niveauRepondu <= niveauMontre) return;');
+  });
+
+  it('l’écran ne descend que sur UN palier gagné d’un coup (un geste, pas un brouillon relu)', () => {
+    expect(onboarding).toContain("if (niveauRepondu === niveauMontre + 1 && etape === 'preferences') aDescendre.current = niveauRepondu;");
+  });
+
+  it('titre seul, et plus d’explication sous « Protéines préférées »', () => {
+    expect(onboarding).not.toContain('Pour des recettes qui te ressemblent vraiment.');
+    expect(onboarding).not.toContain('Tu préfères la routine ou la diversité ?');
+    expect(onboarding).toMatch(/<ProteinesParRegime[^>]*intitule="phrase"/);
+    expect(onboarding).toMatch(/<DislikedFoodsField[^>]*intitule="phrase"/);
+  });
+});
+
 describe('« Aliments à éviter » ne propose plus de liste', () => {
   it('aucun aliment n’est écrit en dur dans le composant', () => {
     for (const mot of ['Saumon', 'Thon', 'Brocolis', 'Avocat', 'Quinoa', 'Patate douce']) {

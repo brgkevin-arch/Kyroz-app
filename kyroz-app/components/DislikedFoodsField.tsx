@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { ThemePalette, Type, Spacing } from '../constants/theme';
-import { Chip, Field, SectionLabel } from './ui';
+import { Chip, Field, Intitule, SectionLabel } from './ui';
 import { getEffectiveRecipes } from '../lib/recipes';
 import { foodKeywordMatches, normalizeFood, suggestionsAliments } from '../lib/avoidance';
 
@@ -33,9 +33,14 @@ const normalizeKw = (s: string): string => s.trim().toLowerCase();
  * le catalogue ignore les traces, la contamination croisée et la composition exacte des
  * produits industriels. Cf. `lib/avoidance.ts`.
  */
+/**
+ * `intitule="phrase"` (l'inscription, 2026-09-22) : intertitre en casse de phrase et
+ * sans l'exemple dessous — le champ dit déjà « Tape un aliment ». Le Profil garde les
+ * capitales et l'exemple.
+ */
 export function DislikedFoodsField({
-  t, value, onChange,
-}: { t: ThemePalette; value: string[]; onChange: (next: string[]) => void }) {
+  t, value, onChange, intitule = 'capitales',
+}: { t: ThemePalette; value: string[]; onChange: (next: string[]) => void; intitule?: 'capitales' | 'phrase' }) {
   const [draft, setDraft] = useState('');
   const recipes = useMemo(() => getEffectiveRecipes(), []);
   const compte = useMemo(() => (kw: string) => foodKeywordMatches(recipes, kw), [recipes]);
@@ -71,7 +76,9 @@ export function DislikedFoodsField({
       {/* L'exemple vit dans l'intertitre depuis que le champ n'a plus d'étiquette : il
           porte l'information que « (arachide, crustacés…) » donnait, sans empiler deux
           libellés sur un seul champ — et sans finir tronqué dans un placeholder. */}
-      <SectionLabel t={t} sub="Arachide, crustacés, ou n’importe quel aliment.">Aliments à éviter</SectionLabel>
+      {intitule === 'phrase'
+        ? <Intitule t={t}>Aliments à éviter</Intitule>
+        : <SectionLabel t={t} sub="Arachide, crustacés, ou n’importe quel aliment.">Aliments à éviter</SectionLabel>}
       {custom.length ? (
         <View style={styles.wrap}>
           {custom.map((kw) => (
