@@ -114,10 +114,13 @@ const VARIETY: { value: VarietyPreference; title: string; sub: string }[] = [
   { value: 'max', title: 'Variété max', sub: 'Le plus de diversité possible sur la semaine' },
 ];
 
-// Jours de la semaine (format getDay : 0=Dim … 6=Sam), affichés Lun→Dim
-const WEEKDAY_OPTS: { label: string; val: number }[] = [
-  { label: 'Lun', val: 1 }, { label: 'Mar', val: 2 }, { label: 'Mer', val: 3 },
-  { label: 'Jeu', val: 4 }, { label: 'Ven', val: 5 }, { label: 'Sam', val: 6 }, { label: 'Dim', val: 0 },
+// Jours de la semaine (format getDay : 0=Dim … 6=Sam), affichés Lun→Dim.
+// `long` : écrit en entier, pour les listes VERTICALES (décision fondateur, 2026-09-22).
+const WEEKDAY_OPTS: { label: string; long: string; val: number }[] = [
+  { label: 'Lun', long: 'Lundi', val: 1 }, { label: 'Mar', long: 'Mardi', val: 2 },
+  { label: 'Mer', long: 'Mercredi', val: 3 }, { label: 'Jeu', long: 'Jeudi', val: 4 },
+  { label: 'Ven', long: 'Vendredi', val: 5 }, { label: 'Sam', long: 'Samedi', val: 6 },
+  { label: 'Dim', long: 'Dimanche', val: 0 },
 ];
 
 /** Les sept jours, dans l'ordre d'affichage — les jours de repos les proposent TOUS. */
@@ -843,16 +846,19 @@ export default function Onboarding() {
           <View style={s.block}>
             <Text style={s.title}>Tes jours de repos</Text>
             {/* Les SEPT jours, quels que soient les jours du plan : on peut ne pas
-                s'entraîner un jour que Kyroz ne planifie pas. */}
-            <View style={s.wrap}>
+                s'entraîner un jour que Kyroz ne planifie pas.
+                En LISTE VERTICALE, jours écrits en entier (décision fondateur,
+                2026-09-22) — des cartes compactes pour que la semaine et « Aucun »
+                tiennent sur un écran sans défiler. */}
+            <View style={s.liste}>
               {WEEKDAY_OPTS.map((d) => (
-                <Chip key={d.val} t={t} label={d.label} selected={restWeekdays.includes(d.val)} onPress={() => toggleRestDay(d.val)} />
+                <OptionCard key={d.val} t={t} title={d.long} compacte selected={restWeekdays.includes(d.val)} onPress={() => toggleRestDay(d.val)} />
               ))}
               {/* ⚠️ `restTouched &&` : sans lui, « Aucun » s'allumerait au premier rendu,
                   puisque rien n'est coché. Ce serait une présélection de plus — celle
                   qui affirme « je n'ai aucun jour de repos » à la place de quelqu'un qui
                   n'a rien dit, et c'est le pire des trois états à poser par défaut. */}
-              <Chip t={t} label="Aucun" selected={restTouched && restWeekdays.length === 0} onPress={setNoRestDay} />
+              <OptionCard t={t} title="Aucun jour de repos" compacte selected={restTouched && restWeekdays.length === 0} onPress={setNoRestDay} />
             </View>
           </View>
         )}
@@ -1121,6 +1127,8 @@ function makeStyles(t: ThemePalette) {
     title: { color: t.text, ...Type.h1 },
     sub: { ...Type.body, color: t.textSecondary, lineHeight: 21, marginTop: -Spacing.sm },
     wrap: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },
+    // Une liste verticale de cartes serrées (les jours) : un cran de moins que `block`.
+    liste: { gap: Spacing.sm },
     daysRow: { flexDirection: 'row', gap: Spacing.sm, justifyContent: 'space-between' },
     dayCircle: { flex: 1, height: 52, borderRadius: Radius.button, borderWidth: Trait.fin, alignItems: 'center', justifyContent: 'center' },
     footer: { padding: Spacing.xl, paddingTop: Spacing.sm, backgroundColor: t.bg },

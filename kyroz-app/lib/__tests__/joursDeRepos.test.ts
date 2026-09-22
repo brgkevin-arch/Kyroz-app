@@ -181,7 +181,7 @@ describe('Le réglage n’a qu’UNE maison, et elle propose les sept jours', ()
     // Sur un écran où rien n'est coché, `restWeekdays.length === 0` est vrai au
     // premier rendu : la puce affirmerait « je n'ai aucun jour de repos » à la place
     // de quelqu'un qui n'a rien dit — le pire des trois états à poser par défaut.
-    expect(onboardingSrc).toMatch(/label="Aucun"[^/]*selected=\{restTouched && restWeekdays\.length === 0\}/);
+    expect(onboardingSrc).toMatch(/title="Aucun jour de repos"[^/]*selected=\{restTouched && restWeekdays\.length === 0\}/);
   });
 
   it('🔴 l\'inscription ne pré-coche plus AUCUN jour', () => {
