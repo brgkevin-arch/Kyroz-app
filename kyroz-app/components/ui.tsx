@@ -79,6 +79,64 @@ export function Chip({
 }
 
 /**
+ * 🔴 LA GRILLE DE CHOIX — la DA « rectangulaire » retenue par le fondateur le
+ * 2026-09-22 (d'abord sur les séances, puis sur les préférences) : DEUX cases par
+ * ligne, rectangles encadrés qui prennent toute la largeur, au lieu de pastilles qui
+ * s'enroulent. Une seule source pour cette forme, sinon chaque écran la recopie et
+ * elles divergent à la première retouche (le défaut « style recopié partout » de §8).
+ *
+ * `pleineLargeur` : la réponse « à part » d'une question — « Peu importe », « Je ne
+ * fais pas de sport » —, une case sur toute la ligne SOUS les autres.
+ * ⚠️ Nombre impair d'options : une case vide garde la dernière à MOITIÉ de largeur,
+ * alignée sur la colonne de gauche, au lieu de s'étirer sur toute la ligne.
+ */
+export function GrilleChoix<T extends string | number>({
+  t, options, estChoisi, onChoisir, pleineLargeur,
+}: {
+  t: ThemePalette;
+  options: readonly { label: string; value: T }[];
+  estChoisi: (v: T) => boolean;
+  onChoisir: (v: T) => void;
+  pleineLargeur?: { label: string; selected: boolean; onPress: () => void };
+}) {
+  return (
+    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm }}>
+      {options.map((o) => (
+        <CaseChoix key={String(o.value)} t={t} label={o.label} selected={estChoisi(o.value)} onPress={() => onChoisir(o.value)} />
+      ))}
+      {options.length % 2 === 1 && <View style={{ flexBasis: '40%', flexGrow: 1 }} />}
+      {pleineLargeur && (
+        <CaseChoix t={t} label={pleineLargeur.label} selected={pleineLargeur.selected} onPress={pleineLargeur.onPress} large />
+      )}
+    </View>
+  );
+}
+
+function CaseChoix({
+  t, label, selected, onPress, large,
+}: { t: ThemePalette; label: string; selected: boolean; onPress: () => void; large?: boolean }) {
+  return (
+    <Presse
+      activeOpacity={OPACITE_PRESSION}
+      onPress={onPress}
+      accessibilityState={{ selected }}
+      style={{
+        // `flexBasis` 40 % + `flexGrow` : deux cases qui se partagent la ligne à parts
+        // égales, l'écart compris — sans calcul de pixels.
+        flexBasis: large ? '100%' : '40%', flexGrow: 1,
+        minHeight: CIBLE_TACTILE_MIN, justifyContent: 'center', alignItems: 'center',
+        paddingVertical: Spacing.md, paddingHorizontal: Spacing.sm,
+        borderRadius: Radius.button,
+        backgroundColor: selected ? t.accent : t.fill,
+        borderWidth: Trait.fin, borderColor: selected ? t.accent : t.line,
+      }}
+    >
+      <Text style={{ ...Type.bodySmallStrong, color: selected ? t.onAccent : t.text }} numberOfLines={1}>{label}</Text>
+    </Presse>
+  );
+}
+
+/**
  * `compacte` : une marge intérieure d'un cran plus serrée, pour les LISTES longues
  * sans sous-titre — les sept jours de la semaine tiennent alors sur un écran de
  * téléphone sans défiler (onboarding, 2026-09-22).

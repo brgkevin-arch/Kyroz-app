@@ -44,7 +44,7 @@ describe('l’étape « préférences » dit ce que le fondateur a demandé', ()
   });
 
   it('cocher « Omnivore » et un régime sans viande ne coexistent pas — la règle vit dans lib/regime.ts', () => {
-    expect(onboarding).toMatch(/basculerRegime\(restrictions, r\.value\)/);
+    expect(onboarding).toMatch(/basculerRegime\(restrictions, v\)/);
   });
 
   it('la phrase « passe avant tout le reste » a disparu', () => {
@@ -65,10 +65,10 @@ describe('la page « préférences » se dévoile question par question (2026-09
     expect(p1).toBeLessThan(p2);
     expect(p2).toBeLessThan(p3);
     const fin = onboarding.indexOf("etape === 'repas'", p3);
-    expect(onboarding.slice(0, p1)).toContain('RESTRICTIONS.map(');
+    expect(onboarding.slice(0, p1)).toContain('options={RESTRICTIONS}');
     expect(entre(p1, p2)).toContain('<ProteinesParRegime');
-    expect(entre(p2, p3)).toContain('goutPdj === g.value');
-    expect(entre(p2, p3)).toContain('goutCollation === g.value');
+    expect(entre(p2, p3)).toContain('estChoisi={(v) => goutPdj === v}');
+    expect(entre(p2, p3)).toContain('estChoisi={(v) => goutCollation === v}');
     expect(entre(p3, fin)).toContain('<DislikedFoodsField');
     expect(entre(p3, fin)).toContain('VARIETY.map(');
   });
@@ -112,3 +112,24 @@ describe('« Aliments à éviter » ne propose plus de liste', () => {
     expect(dislikes).toMatch(/onSubmitEditing=\{add\}/);
   });
 });
+
+describe('la grille rectangulaire des préférences (2026-09-22)', () => {
+  // La DA retenue sur les séances, reprise ici : régime, protéines et goûts en
+  // `GrilleChoix`, « Peu importe » en case pleine largeur. Une seule forme, un seul
+  // composant — deux copies divergeraient à la première retouche.
+  it('régime, protéines et goûts passent par la grille commune', () => {
+    expect(onboarding).toContain('<GrilleChoix\n              t={t} options={RESTRICTIONS}');
+    expect(onboarding).toMatch(/<ProteinesParRegime[^>]*\bgrille\b/);
+    expect((onboarding.match(/options=\{GOUT_TRANCHES\}/g) ?? []).length).toBe(2);
+  });
+
+  it('« Peu importe » des goûts est lu dans GOUT_CHOIX, jamais recopié', () => {
+    expect(onboarding).toContain("const GOUT_EGAL = GOUT_CHOIX.find((g) => g.value === 'egal')!;");
+    expect(onboarding).not.toMatch(/label: 'Peu importe'/);
+  });
+
+  it('les séances partagent la même grille', () => {
+    expect(readFileSync(join(RACINE, 'components/SportsEditor.tsx'), 'utf8')).toContain('<GrilleChoix');
+  });
+});
+

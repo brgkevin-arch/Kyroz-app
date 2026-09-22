@@ -16,7 +16,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useTheme, ThemePalette, Spacing, Radius, Type, CIBLE_TACTILE_MIN, Trait, Icone, OPACITE_PRESSION } from '../../constants/theme';
 import { useLayout } from '../../constants/layout';
 import {
-  PrimaryButton, Chip, OptionCard, Field, SectionLabel, Intitule, Segmented, Card, clavierScrollProps,
+  PrimaryButton, Chip, OptionCard, Field, SectionLabel, Intitule, GrilleChoix, Segmented, Card, clavierScrollProps,
 } from '../../components/ui';
 import { BodyFatPicker } from '../../components/BodyFatPicker';
 import { useDialog } from '../../components/Dialog';
@@ -97,6 +97,11 @@ const numeroEtape = (e: Etape) => ETAPES.indexOf(e) + 1;
 // lues par `goalSubtitle`. Profil → Objectif pose la même question et montre les
 // mêmes cartes ; deux listes auraient divergé sans que personne ne le voie.
 const GOALS: Goal[] = ['cut', 'recomp', 'maintain', 'lean_bulk'];
+
+// Sucré | Salé côte à côte, « Peu importe » en case pleine largeur dessous (la grille
+// rectangulaire des préférences, 2026-09-22). Lus dans `GOUT_CHOIX`, jamais recopiés.
+const GOUT_TRANCHES = GOUT_CHOIX.filter((g) => g.value !== 'egal');
+const GOUT_EGAL = GOUT_CHOIX.find((g) => g.value === 'egal')!;
 
 const RESTRICTIONS: { label: string; value: DietaryRestriction }[] = [
   { label: 'Omnivore', value: 'omnivore' },
@@ -940,18 +945,17 @@ export default function Onboarding() {
           <View style={s.block} onLayout={(e) => { yPreferences.current = e.nativeEvent.layout.y; }}>
             <Text style={s.title}>Tes préférences</Text>
 
+            {/* 🔴 La grille RECTANGULAIRE des séances (décision fondateur, 2026-09-22) :
+                deux choix par ligne, « Peu importe » en case pleine largeur dessous. */}
             <Intitule t={t}>Régime</Intitule>
-            <View style={s.wrap}>
-              {RESTRICTIONS.map((r) => (
-                <Chip
-                  key={r.value} t={t} label={r.label} selected={restrictions.includes(r.value)}
-                  // « Omnivore » s'exclut avec végétarien, vegan et pescétarien (D36, `lib/regime.ts`).
-                  // Changer de régime retire les protéines qui n'y ont plus de sens (le poulet
-                  // coché avant de passer vegan).
-                  onPress={() => { const suivant = basculerRegime(restrictions, r.value); setRestrictions(suivant); setProteins((p) => cocheesValides(suivant, p)); }}
-                />
-              ))}
-            </View>
+            <GrilleChoix
+              t={t} options={RESTRICTIONS}
+              estChoisi={(v) => restrictions.includes(v)}
+              // « Omnivore » s'exclut avec végétarien, vegan et pescétarien (D36, `lib/regime.ts`).
+              // Changer de régime retire les protéines qui n'y ont plus de sens (le poulet
+              // coché avant de passer vegan).
+              onChoisir={(v) => { const suivant = basculerRegime(restrictions, v); setRestrictions(suivant); setProteins((p) => cocheesValides(suivant, p)); }}
+            />
 
             {/* Les protéines sont CELLES du régime (décision fondateur du 2026-09-19).
                 Cocher une protéine annule « Peu importe » : les deux réponses ne peuvent
@@ -959,7 +963,7 @@ export default function Onboarding() {
             {niveauMontre >= 1 && (
               <View style={s.block} onLayout={surPalier(1)}>
                 <ProteinesParRegime
-                  t={t} restrictions={restrictions} valeurs={proteins} masquerSansRegime intitule="phrase"
+                  t={t} restrictions={restrictions} valeurs={proteins} masquerSansRegime intitule="phrase" grille
                   onChange={(v) => { setProteinesEgales(false); setProteins(v); }}
                   peuImporte={{ selected: proteinesEgales, onToggle: () => { setProteinesEgales((v) => !v); setProteins([]); } }}
                 />
@@ -971,17 +975,15 @@ export default function Onboarding() {
             {niveauMontre >= 2 && (
               <View style={s.block} onLayout={surPalier(2)}>
                 <Intitule t={t}>Petit-déjeuner</Intitule>
-                <View style={s.wrap}>
-                  {GOUT_CHOIX.map((g) => (
-                    <Chip key={g.value} t={t} label={g.label} selected={goutPdj === g.value} onPress={() => setGoutPdj(g.value)} />
-                  ))}
-                </View>
+                <GrilleChoix
+                  t={t} options={GOUT_TRANCHES} estChoisi={(v) => goutPdj === v} onChoisir={setGoutPdj}
+                  pleineLargeur={{ label: GOUT_EGAL.label, selected: goutPdj === GOUT_EGAL.value, onPress: () => setGoutPdj(GOUT_EGAL.value) }}
+                />
                 <Intitule t={t}>Collations</Intitule>
-                <View style={s.wrap}>
-                  {GOUT_CHOIX.map((g) => (
-                    <Chip key={g.value} t={t} label={g.label} selected={goutCollation === g.value} onPress={() => setGoutCollation(g.value)} />
-                  ))}
-                </View>
+                <GrilleChoix
+                  t={t} options={GOUT_TRANCHES} estChoisi={(v) => goutCollation === v} onChoisir={setGoutCollation}
+                  pleineLargeur={{ label: GOUT_EGAL.label, selected: goutCollation === GOUT_EGAL.value, onPress: () => setGoutCollation(GOUT_EGAL.value) }}
+                />
               </View>
             )}
 
