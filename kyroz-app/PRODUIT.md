@@ -36,7 +36,7 @@ d'**enregistrer ce que tu as mangé**. Kyroz te dit **quoi manger**.
 | Étape | Ce qu'on demande |
 |---|---|
 | 1 | Le prénom |
-| 2 | Sexe, date de naissance, poids, taille |
+| 2 | Sexe, puis date de naissance, poids et taille — les trois à la roulette, rien de pré-rempli |
 | 3 | Morphologie — on choisit sa silhouette dans une planche, pas un chiffre à deviner |
 | 4 | À quoi ressemblent tes journées **hors sport** |
 | 5 | Tes séances (sport, fréquence, durée) — **comptées à part** des journées, sur leur propre page depuis le 2026-09-22 |

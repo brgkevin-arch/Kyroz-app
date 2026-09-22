@@ -179,18 +179,6 @@ export async function fillPh(page, placeholder, value) {
   return true;
 }
 
-/**
- * Remplit un champ repéré par son `testID`. Pour les champs qui partagent leur
- * placeholder : poids et taille disent tous deux « À renseigner » depuis le
- * 2026-09-22, donc `fillPh` ne saurait plus lequel viser.
- */
-export async function fillId(page, testId, value) {
-  const f = page.getByTestId(testId).first();
-  if (!(await f.isVisible({ timeout: 1500 }).catch(() => false))) return false;
-  await f.fill(String(value)).catch(() => {});
-  return true;
-}
-
 /** Bouton principal du pied d'écran (« Continuer » / « Générer mon plan »). */
 export async function tapPrimary(page, label = 'Continuer') {
   await tap(page, label, { exact: true, which: 'last', timeout: 2500 });
@@ -274,7 +262,9 @@ export const etapeCourante = (page) => page.evaluate(() => {
  * date validée est celle d'avant. Panne silencieuse : le parcours continue.
  */
 export async function choisirDateNaissance(page, birth) {
-  const ligne = page.getByText('À renseigner', { exact: true }).first();
+  // ⚠️ Par son NOM ACCESSIBLE, plus par « À renseigner » : depuis le 2026-09-22 le poids
+  // et la taille disent aussi « À renseigner » tant qu'ils ne sont pas choisis.
+  const ligne = page.getByRole('button', { name: 'Choisir ma date de naissance' });
   if (!(await ligne.isVisible({ timeout: 3000 }).catch(() => false))) {
     await panne(page, 'date-naissance-ligne', 'la ligne « À renseigner » de la date de naissance est introuvable à l\'étape 2');
     return false;
@@ -288,6 +278,24 @@ export async function choisirDateNaissance(page, birth) {
     ['wheel-mois', Number(birth.m) - 1],
     ['wheel-jour', Number(birth.d) - 1],
   ];
+  if (!(await poserRoulette(page, cibles, 'date-naissance'))) return false;
+
+  await tapPrimary(page, 'Valider');
+  // Preuve : la ligne ne dit plus « À renseigner ». Sans ce contrôle, une roulette
+  // qui ne commet rien passerait pour un succès — exactement la panne que ce
+  // fichier existe pour rendre visible.
+  if (await page.getByRole('button', { name: 'Choisir ma date de naissance' }).isVisible({ timeout: 1000 }).catch(() => false)) {
+    await panne(page, 'date-naissance-validee', '« Valider » n\'a rien enregistré : la ligne dit toujours « À renseigner »');
+    return false;
+  }
+  return true;
+}
+
+/**
+ * Pose chaque colonne d'une roulette ouverte sur l'indice voulu — `cibles` =
+ * [[testID de la colonne, indice], …]. Commun à la date, au poids et à la taille.
+ */
+async function poserRoulette(page, cibles, quoi) {
   for (const [id, index] of cibles) {
     const ok = await page.evaluate(([tid, i]) => {
       const noeud = document.querySelector(`[data-testid="${tid}"]`);
@@ -302,18 +310,41 @@ export async function choisirDateNaissance(page, birth) {
       return true;
     }, [id, index]).catch(() => false);
     if (!ok) {
-      await panne(page, `date-naissance-${id}`, `colonne ${id} introuvable ou non défilante dans la roulette`);
+      await panne(page, `${quoi}-${id}`, `colonne ${id} introuvable ou non défilante dans la roulette`);
       return false;
     }
     await sleep(300); // > POSE_MS (120) : le composant doit avoir eu le temps de commettre
   }
 
+  return true;
+}
+
+/**
+ * Poids et taille à la ROULETTE depuis le 2026-09-22 (`components/MesureField.tsx`) :
+ * même geste que la date — ouvrir la ligne, poser les colonnes, « Valider ».
+ * ⚠️ Les bornes basses sont RECOPIÉES (un script ne lit pas le TypeScript) et
+ * vérifiées contre `lib/safety.ts` par `harnaisEcrans.test.ts` : une recopie qui
+ * dérive poserait un autre poids, sans erreur.
+ */
+export const POIDS_MIN = 30;
+export const TAILLE_MIN = 120;
+export async function choisirMesure(page, mesure, valeur) {
+  const ligne = page.getByTestId(`ligne-${mesure}`);
+  if (!(await ligne.isVisible({ timeout: 3000 }).catch(() => false))) {
+    await panne(page, `${mesure}-ligne`, `la ligne « ${mesure} » est introuvable à l'étape 2`);
+    return false;
+  }
+  await ligne.click().catch(() => {});
+  await sleep(500);
+  const v = Number(valeur);
+  const cibles = mesure === 'poids'
+    ? [['wheel-poids', Math.floor(v) - POIDS_MIN], ['wheel-poids-dixieme', Math.round(v * 10) % 10]]
+    : [['wheel-taille', Math.round(v) - TAILLE_MIN]];
+  if (!(await poserRoulette(page, cibles, mesure))) return false;
   await tapPrimary(page, 'Valider');
-  // Preuve : la ligne ne dit plus « À renseigner ». Sans ce contrôle, une roulette
-  // qui ne commet rien passerait pour un succès — exactement la panne que ce
-  // fichier existe pour rendre visible.
-  if (await page.getByText('À renseigner', { exact: true }).first().isVisible({ timeout: 1000 }).catch(() => false)) {
-    await panne(page, 'date-naissance-validee', '« Valider » n\'a rien enregistré : la ligne dit toujours « À renseigner »');
+  await sleep(300);
+  if (((await ligne.textContent().catch(() => '')) ?? '').includes('À renseigner')) {
+    await panne(page, `${mesure}-validee`, `« Valider » n'a rien enregistré : la ligne « ${mesure} » dit toujours « À renseigner »`);
     return false;
   }
   return true;
@@ -421,8 +452,8 @@ export async function runOnboarding(page, p = DEFAULT_PERSONA) {
   await tap(page, p.sex === 'female' ? 'Femme' : 'Homme', { exact: true });
   await sleep(250);
   if (!(await choisirDateNaissance(page, p.birth))) return { ok: false, etape: 2, repas: 0 };
-  await fillId(page, 'champ-poids', p.weight);
-  await fillId(page, 'champ-taille', p.height);
+  if (!(await choisirMesure(page, 'poids', p.weight))) return { ok: false, etape: 2, repas: 0 };
+  if (!(await choisirMesure(page, 'taille', p.height))) return { ok: false, etape: 2, repas: 0 };
   await sleep(400);
   if (!(await suivant(2))) return { ok: false, etape: 2, repas: 0 };
 
