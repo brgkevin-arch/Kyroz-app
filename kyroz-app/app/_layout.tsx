@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { Platform } from 'react-native';
 import { Stack, router, usePathname } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -59,6 +60,8 @@ function RoutageNotification() {
   return null;
 }
 
+const STYLE_SANS_CONTOUR = 'kyroz-champs-sans-contour';
+
 export default function RootLayout() {
   const t = useTheme();
   // Les SIX valeurs LOCALES à l'appareil (thème, accent, suivi d'hydratation,
@@ -88,6 +91,19 @@ export default function RootLayout() {
     // l'indicateur mentirait, dans le sens rassurant, exactement au lancement qui suit
     // une écriture faite hors ligne (constat 05-05).
     relireSyncEnAttente();
+  }, []);
+  // Web seulement : le navigateur entoure le champ actif d'un contour de couleur que
+  // l'iPhone ne dessine jamais (demande fondateur, 2026-09-22, sur la page 2 de
+  // l'onboarding). Le curseur dit déjà quel champ est actif, comme en natif. Une
+  // règle pour les 17 champs de l'app plutôt qu'un style recopié sur chacun.
+  // ⚠️ Dans un effet, jamais au chargement du module : le site est pré-rendu sous
+  // Node, sans `document`, et le déploiement entier tomberait (CLAUDE.md §11).
+  useEffect(() => {
+    if (Platform.OS !== 'web' || document.getElementById(STYLE_SANS_CONTOUR)) return;
+    const style = document.createElement('style');
+    style.id = STYLE_SANS_CONTOUR;
+    style.textContent = 'input:focus, textarea:focus { outline: none; }';
+    document.head.appendChild(style);
   }, []);
   return (
     <SafeAreaProvider>

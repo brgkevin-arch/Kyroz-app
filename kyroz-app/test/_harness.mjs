@@ -179,6 +179,18 @@ export async function fillPh(page, placeholder, value) {
   return true;
 }
 
+/**
+ * Remplit un champ repéré par son `testID`. Pour les champs qui partagent leur
+ * placeholder : poids et taille disent tous deux « À renseigner » depuis le
+ * 2026-09-22, donc `fillPh` ne saurait plus lequel viser.
+ */
+export async function fillId(page, testId, value) {
+  const f = page.getByTestId(testId).first();
+  if (!(await f.isVisible({ timeout: 1500 }).catch(() => false))) return false;
+  await f.fill(String(value)).catch(() => {});
+  return true;
+}
+
 /** Bouton principal du pied d'écran (« Continuer » / « Générer mon plan »). */
 export async function tapPrimary(page, label = 'Continuer') {
   await tap(page, label, { exact: true, which: 'last', timeout: 2500 });
@@ -409,8 +421,8 @@ export async function runOnboarding(page, p = DEFAULT_PERSONA) {
   await tap(page, p.sex === 'female' ? 'Femme' : 'Homme', { exact: true });
   await sleep(250);
   if (!(await choisirDateNaissance(page, p.birth))) return { ok: false, etape: 2, repas: 0 };
-  await fillPh(page, '80', p.weight);
-  await fillPh(page, '178', p.height);
+  await fillId(page, 'champ-poids', p.weight);
+  await fillId(page, 'champ-taille', p.height);
   await sleep(400);
   if (!(await suivant(2))) return { ok: false, etape: 2, repas: 0 };
 

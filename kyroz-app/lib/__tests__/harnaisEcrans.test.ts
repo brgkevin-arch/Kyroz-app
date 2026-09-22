@@ -221,8 +221,10 @@ const PLACEHOLDERS: { quoi: string; valeur: string; dans: string; via?: Via }[] 
   // se prouvent autrement (un `testID`, pas un attribut `placeholder`).
   // ℹ️ `champDate` reste employé : l'échéance de l'objectif daté, elle, se tape
   // toujours dans `DateInput`.
-  { quoi: 'poids (étape 2)', valeur: '80', dans: 'app/(auth)/onboarding.tsx' },
-  { quoi: 'taille (étape 2)', valeur: '178', dans: 'app/(auth)/onboarding.tsx' },
+  // ⚠️ POIDS ET TAILLE NE SONT PLUS ICI depuis le 2026-09-22 : leurs exemples « 80 »
+  // et « 178 » se lisaient comme des valeurs saisies (retour testeurs), ils disent
+  // désormais tous deux « À renseigner ». Deux champs, un seul placeholder : ils se
+  // visent par `testID`, vérifié plus bas avec les repères de roulette.
   { quoi: 'masse grasse (étape 3)', valeur: 'ex. 18', dans: 'components/BodyFatPicker.tsx' },
 ];
 
@@ -339,6 +341,25 @@ describe('harnais Playwright — les libellés cherchés existent encore', () =>
     ).toBe(true);
     expect(
       lire(HARNAIS).includes(repere),
+      `${HARNAIS} ne vise plus « ${repere} » : mettre à jour cette table`,
+    ).toBe(true);
+  });
+
+  // ── Poids et taille (fillId) ──────────────────────────────────────────────
+  // Même placeholder pour les deux (« À renseigner »), donc `fillPh` remplirait le
+  // premier deux fois et laisserait la taille vide : `basicsValid` resterait faux et
+  // le parcours mourrait à l'étape 2 — le défaut exact que ce fichier existe pour
+  // attraper. Le repère est le `testID`, posé sur le champ et visé par le harnais.
+  it.each([
+    { quoi: 'champ poids', repere: 'champ-poids' },
+    { quoi: 'champ taille', repere: 'champ-taille' },
+  ])('repère de saisie « $repere » — $quoi', ({ repere }) => {
+    expect(
+      lire('app/(auth)/onboarding.tsx').includes(`testID="${repere}"`),
+      `app/(auth)/onboarding.tsx ne pose plus testID="${repere}" → fillId() ne remplira RIEN, en silence`,
+    ).toBe(true);
+    expect(
+      lire(HARNAIS).includes(`fillId(page, '${repere}'`),
       `${HARNAIS} ne vise plus « ${repere} » : mettre à jour cette table`,
     ).toBe(true);
   });
