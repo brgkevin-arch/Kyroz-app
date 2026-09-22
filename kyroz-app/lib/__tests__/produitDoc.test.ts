@@ -36,14 +36,17 @@ describe('PRODUIT.md — les nombres qu’il cite', () => {
     expect(produit).toContain(`**${RECIPES.length} recettes**`);
   });
 
-  it('les sept étapes de l’inscription sont bien sept', () => {
+  it('le nombre d’étapes annoncé est celui de l’inscription', () => {
+    // ⚠️ Lu dans le code, jamais écrit ici : l'onboarding passe de 7 à 10 pages, une
+    // PR par page (2026-09-22). Un nombre recopié dans ce test serait faux à chaque PR.
     const onboarding = lire('app/(auth)/onboarding.tsx');
-    expect(onboarding).toMatch(/const TOTAL_STEPS = 7;/);
-    expect(produit).toContain('sept étapes');
-    // Le tableau du §1 les liste une par une : 7 lignes numérotées + la ligne du
-    // consentement, qui n'en est pas une.
-    const lignes = [...produit.matchAll(/^\| [1-7] \| /gm)];
-    expect(lignes.length, 'lignes numérotées du tableau des étapes').toBe(7);
+    const total = Number(/const TOTAL_STEPS(?::[^=]+)? = (\d+);/.exec(onboarding)?.[1]);
+    const enLettres: Record<number, string> = { 7: 'sept', 8: 'huit', 9: 'neuf', 10: 'dix' };
+    expect(enLettres[total], `TOTAL_STEPS = ${total} : ajouter son écriture en lettres`).toBeDefined();
+    expect(produit).toContain(`${enLettres[total]} étapes`);
+    // Le tableau du §1 les liste une par une : une ligne numérotée par étape.
+    const lignes = [...produit.matchAll(/^\| \d+ \| /gm)];
+    expect(lignes.length, 'lignes numérotées du tableau des étapes').toBe(total);
   });
 });
 

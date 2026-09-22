@@ -43,7 +43,7 @@ describe('la question du sexe est posée, pas présupposée', () => {
     const validation = onboarding.match(/const basicsValid =[\s\S]*?;/)?.[0] ?? '';
     expect(validation).toContain('sex !== null');
     // …et la garde doit RESTER branchée sur le bouton : `canProceed` lit `basicsValid`.
-    expect(onboarding).toMatch(/step === 2 && basicsValid/);
+    expect(onboarding).toMatch(/etape === 'infos' && basicsValid/);
   });
 
   it('l\'étape dit ce qui manque, sans deviner à la place', () => {
@@ -55,7 +55,7 @@ describe('la question du sexe est posée, pas présupposée', () => {
     // est légitime (le repli est le cran le plus prudent), un `sex ?? ...` ne l'est
     // jamais. Le filet renvoie à l'étape 2 au lieu de choisir.
     expect(onboarding).not.toMatch(/sex\s*(\?\?|\|\|)\s*'/);
-    expect(onboarding).toMatch(/if \(sex === null\) \{ setStep\(2\)/);
+    expect(onboarding).toMatch(/if \(sex === null\) \{ setStep\(numeroEtape\('infos'\)\)/);
   });
 
   it('le motif affiché se RECALCULE, il n\'est pas figé au moment du tap', () => {
@@ -81,7 +81,7 @@ describe('l\'objectif est choisi, jamais hérité de l\'ordre d\'affichage', () 
   });
 
   it('on ne peut pas passer l\'étape 5 sans avoir choisi', () => {
-    expect(onboarding).toMatch(/step === 5 && goal !== null/);
+    expect(onboarding).toMatch(/etape === 'objectif' && goal !== null/);
   });
 
   it('l\'étape dit ce qui manque — et le CHOIX manquant se dit avant le REFUS', () => {
@@ -89,14 +89,14 @@ describe('l\'objectif est choisi, jamais hérité de l\'ordre d\'affichage', () 
     // objectif choisi. Le motif « choisis ton objectif » doit donc être testé en
     // premier, sinon il ne sort jamais.
     const choix = onboarding.indexOf('Choisis ton objectif pour continuer.');
-    const refus = onboarding.indexOf('step === 5 && objectifBloque');
+    const refus = onboarding.indexOf("etape === 'objectif' && objectifBloque");
     expect(choix).toBeGreaterThan(-1);
     expect(refus).toBeGreaterThan(-1);
     expect(choix).toBeLessThan(refus);
   });
 
   it('la fin de parcours ne se rabat sur AUCUN objectif par défaut', () => {
-    expect(onboarding).toMatch(/if \(goal === null\) \{ setStep\(5\)/);
+    expect(onboarding).toMatch(/if \(goal === null\) \{ setStep\(numeroEtape\('objectif'\)\)/);
   });
 });
 

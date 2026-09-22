@@ -59,7 +59,23 @@ import { LienMethodologie } from '../../components/LienMethodologie';
 // deux seuils distincts feraient clignoter la flèche dans la bande entre eux.
 const MARGE_BAS = 24;
 
-const TOTAL_STEPS = 7;
+// 🔴 LES PAGES ONT UN NOM, ET C'EST LUI QUE LE CODE TESTE (2026-09-22, refonte de
+// l'onboarding en dix pages, une page par PR). Chaque condition se lit
+// `etape === 'objectif'`, jamais `step === 6` : insérer une page ne renumérote plus
+// rien à la main, c'est ce tableau qui décide de l'ordre.
+// ⚠️ `TOTAL_STEPS` reste un LITTÉRAL (le harnais Playwright le lit comme du texte),
+// et son type l'oblige à valoir la longueur du tableau : `tsc` refuse l'écart.
+// ⚠️ Le brouillon d'inscription garde le NUMÉRO de page. Une page insérée AVANT une
+// autre renvoie donc un brouillon en cours sur une page déjà répondue, jamais au-delà
+// d'une question sans réponse — le seul sens de changement sûr sans monter
+// `onboardingDraft.ts::VERSION`. Retirer ou permuter des pages demanderait de la monter.
+const ETAPES = [
+  'prenom', 'infos', 'masseGrasse', 'activite', 'seances', 'objectif', 'preferences', 'repas',
+] as const;
+type Etape = typeof ETAPES[number];
+const TOTAL_STEPS: typeof ETAPES['length'] = 8;
+/** Le numéro de page d'une étape — pour y RENVOYER (filets de `finish()`). */
+const numeroEtape = (e: Etape) => ETAPES.indexOf(e) + 1;
 
 // `cut_aggressive` retiré le 2026-07-29 : il servait le MÊME plan que `cut` (le
 // plancher de sécurité absorbait l'écart), donc le choix était fantôme. La vitesse
@@ -153,6 +169,7 @@ export default function Onboarding() {
   }, [consent]);
 
   const [step, setStep] = useState(1);
+  const etape: Etape = ETAPES[step - 1] ?? 'prenom';
   const [saving, setSaving] = useState(false);
   // 🔴 ON MÉMORISE LE GESTE, PAS LA PHRASE. C'était `useState<string | null>` : le
   // motif était gelé au moment du tap, donc il MENTAIT dès que la personne corrigeait.
@@ -354,7 +371,10 @@ export default function Onboarding() {
   // dépense sportive`) : les journées hors sport, et les séances. La première est
   // EXIGÉE depuis le 2026-08-19 ; jusque-là elle ne vivait que dans le Profil, donc
   // le défaut le plus prudent était la valeur réellement servie à presque tout le monde.
-  const trainingValid = neat !== null && (noSport || sports.length >= 1);
+  // Deux PAGES depuis le 2026-09-22 (décision fondateur) : l'activité hors sport seule,
+  // puis les séances. Une réponse exigée sur chacune.
+  const neatValid = neat !== null;                                                        // étape « activité »
+  const seancesValid = noSport || sports.length >= 1;                                     // étape « séances »
   // Du sport a-t-il été DÉCLARÉ ? C'est ce qui décide si les jours de repos changent
   // quoi que ce soit (cf. le texte de l'étape 7) : `saveProfile` envoie
   // `sports: noSport ? [] : sports`, et sans séance `dayExpenditures` rend une cible
@@ -389,14 +409,14 @@ export default function Onboarding() {
     : null;
 
   const canProceed =
-    (step === 1 && firstNameValid) ||
-    (step === 2 && basicsValid) ||
-    (step === 3 && bodyFatValid) ||
-    (step === 4 && trainingValid) ||
-    (step === 5 && goal !== null && !objectifBloque) ||
-    (step === 6 && preferencesValid && goutsValid) ||
-    (step === 7 && mealsValid) ||
-    ![1, 2, 3, 4, 5, 6, 7].includes(step);
+    (etape === 'prenom' && firstNameValid) ||
+    (etape === 'infos' && basicsValid) ||
+    (etape === 'masseGrasse' && bodyFatValid) ||
+    (etape === 'activite' && neatValid) ||
+    (etape === 'seances' && seancesValid) ||
+    (etape === 'objectif' && goal !== null && !objectifBloque) ||
+    (etape === 'preferences' && preferencesValid && goutsValid) ||
+    (etape === 'repas' && mealsValid);
 
   const toggleMeal = (v: MealType) =>
     setMeals((arr) => arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v]);
@@ -461,8 +481,8 @@ export default function Onboarding() {
 
   // Pourquoi on ne peut pas avancer (message affiché au tap sur « Continuer »).
   const blockReason = (): string | null => {
-    if (step === 1 && !firstNameValid) return 'Dis-nous comment t\'appeler pour commencer';  // inatteignable si `parApple`
-    if (step === 2 && !basicsValid) {
+    if (etape === 'prenom' && !firstNameValid) return 'Dis-nous comment t\'appeler pour commencer';  // inatteignable si `parApple`
+    if (etape === 'infos' && !basicsValid) {
       if (ageN >= 1 && ageN < AGE_BOUNDS[0]) return `Kyroz est réservé aux ${AGE_BOUNDS[0]} ans et plus.`;
       // Un choix manquant se dit à part d'un champ vide : l'écran montre déjà POURQUOI
       // on le demande (« pour calculer ton métabolisme »), le blocage dit seulement
@@ -470,28 +490,26 @@ export default function Onboarding() {
       if (sex === null) return 'Indique si tu es un homme ou une femme pour continuer.';
       return 'Remplis ta date de naissance, ton poids et ta taille pour continuer.';
     }
-    if (step === 3 && !bodyFatValid)
+    if (etape === 'masseGrasse' && !bodyFatValid)
       // ⚠️ La phrase s'arrête ICI depuis le 2026-08-26. Elle continuait par
       // « — choisis la silhouette la plus proche de toi, ou saisis ton % si tu le
       // connais », qui est MOT POUR MOT le sous-titre de l'étape, déjà affiché deux
       // centimètres plus haut. Un message de blocage dit ce qui manque ; l'écran
       // dit déjà comment le donner.
       return 'On a besoin de ta masse grasse pour te calculer le plan le plus juste possible.';
-    if (step === 4 && !trainingValid) {
-      if (neat === null) return 'Choisis à quoi ressemblent tes journées, hors sport.';
-      return 'Choisis au moins un sport, ou indique que tu n\'en fais pas.';
-    }
+    if (etape === 'activite' && !neatValid) return 'Choisis à quoi ressemblent tes journées, hors sport.';
+    if (etape === 'seances' && !seancesValid) return 'Choisis au moins un sport, ou indique que tu n\'en fais pas.';
     // ⚠️ UNE LIGNE COURTE, PAS LE MESSAGE COMPLET — vu à l'écran le 2026-08-20.
     // Renvoyer `objectifBloque` ici affichait le même paragraphe de quatre lignes
     // DEUX fois : dans la carte, et en accent juste au-dessus du bouton, où il
     // recouvrait la carte qu'il répétait. Le bandeau dit l'ACTION, la carte dit le
     // POURQUOI — et le pourquoi n'a toujours qu'une seule rédaction.
-    if (step === 5 && goal === null) return 'Choisis ton objectif pour continuer.';
-    if (step === 5 && objectifBloque) return 'Sèche n\'est pas disponible ici. Choisis Maintien, ou un autre objectif.';
-    if (step === 6 && !regimeChoisi(restrictions)) return 'Choisis ton régime.';
-    if (step === 6 && !preferencesValid) return 'Choisis tes protéines préférées, ou « Peu importe ».';
-    if (step === 6 && !goutsValid) return 'Dis-nous si tu préfères sucré ou salé, le matin et en collation.';
-    if (step === 7 && !mealsValid) return 'Choisis au moins un jour et un repas.';
+    if (etape === 'objectif' && goal === null) return 'Choisis ton objectif pour continuer.';
+    if (etape === 'objectif' && objectifBloque) return 'Sèche n\'est pas disponible ici. Choisis Maintien, ou un autre objectif.';
+    if (etape === 'preferences' && !regimeChoisi(restrictions)) return 'Choisis ton régime.';
+    if (etape === 'preferences' && !preferencesValid) return 'Choisis tes protéines préférées, ou « Peu importe ».';
+    if (etape === 'preferences' && !goutsValid) return 'Dis-nous si tu préfères sucré ou salé, le matin et en collation.';
+    if (etape === 'repas' && !mealsValid) return 'Choisis au moins un jour et un repas.';
     return null;
   };
 
@@ -532,19 +550,9 @@ export default function Onboarding() {
   useEffect(() => { setPosition(0); }, [step]);
   useEffect(() => { defilement.current?.scrollTo({ y: 0, animated: false }); }, [step]);
 
-  // ── E68 · choisir son niveau d'activité descend jusqu'aux séances ───────────
-  //
-  // L'étape 4 empile deux blocs et le second est sous le pli : on cochait son
-  // niveau et l'écran ne bougeait pas, donc rien ne disait qu'il restait quelque
-  // chose dessous. La position visée est MESURÉE (`onLayout`), jamais écrite en
-  // dur — elle dépend de la hauteur des quatre libellés, donc de la police et de
-  // la largeur de l'appareil.
-  // ⚠️ Deux offsets à additionner : `onLayout` rend une position relative au PARENT.
-  // Le bloc de l'étape est enfant du conteneur de contenu, les séances sont enfant
-  // du bloc — seule la somme est une position de défilement valable.
-  const yBlocEtape = useRef(0);
-  const ySeances = useRef(0);
-  const versLesSeances = () => defilement.current?.scrollTo({ y: yBlocEtape.current + ySeances.current, animated: true });
+  // ℹ️ E68 (« choisir son niveau d'activité descend jusqu'aux séances ») est parti le
+  // 2026-09-22 avec la séparation en deux pages : les séances ne sont plus sous le pli,
+  // elles sont la page suivante.
 
   const next = () => {
     if (saving) return;
@@ -561,10 +569,10 @@ export default function Onboarding() {
     // manque au lieu de choisir à la place de quelqu'un. C'est la différence assumée
     // avec le `neat ?? DEFAULT_NEAT_LEVEL` vingt lignes plus bas : un repli n'est
     // acceptable que quand la valeur de repli est défendable.
-    if (sex === null) { setStep(2); setAvanceTentee(true); return; }
+    if (sex === null) { setStep(numeroEtape('infos')); setAvanceTentee(true); return; }
     // Même règle pour l'objectif : l'étape 5 le verrouille, et il n'y a pas d'objectif
     // « prudent » sur lequel se rabattre — le maintien lui-même est un choix.
-    if (goal === null) { setStep(5); setAvanceTentee(true); return; }
+    if (goal === null) { setStep(numeroEtape('objectif')); setAvanceTentee(true); return; }
     // Profil « brut » (inputs uniquement). recalcProfile est l'UNIQUE producteur
     // de tdee_kcal + macros — pas de calcul en ligne parallèle ici (cohérence
     // garantie avec le check-in poids et les éditeurs du profil).
@@ -575,7 +583,7 @@ export default function Onboarding() {
       body_fat_source: bodyFatSource,
       activity_level: activityFromDays(trainingDaysEq),
       training_days_per_week: trainingDaysEq,
-      // Le repli `??` n'est jamais emprunté — `trainingValid` interdit d'atteindre
+      // Le repli `??` n'est jamais emprunté — `neatValid` interdit d'atteindre
       // `finish()` avec `neat === null`. Il est là pour que le type reste honnête,
       // pas pour couvrir un cas : si l'étape 4 perdait sa garde, un profil partirait
       // au cran le plus prudent plutôt qu'à un cran inventé.
@@ -711,9 +719,9 @@ export default function Onboarding() {
       >
         {step > 1 && <SectionLabel t={t}>ÉTAPE {step - 1} / {TOTAL_STEPS - 1}</SectionLabel>}
 
-        {step === 1 && <NameStep t={t} value={firstName} onChange={setFirstName} venuDApple={parApple && firstName.trim().length > 0} />}
+        {etape === 'prenom' && <NameStep t={t} value={firstName} onChange={setFirstName} venuDApple={parApple && firstName.trim().length > 0} />}
 
-        {step === 2 && (
+        {etape === 'infos' && (
           <View style={s.block}>
             <Text style={s.title}>Tes infos de base</Text>
             <Text style={s.sub}>Pour calculer ton métabolisme et tes macros au plus juste.</Text>
@@ -753,7 +761,7 @@ export default function Onboarding() {
             (`components/BodyFatPicker.tsx:88`) et bornes (`lib/safety.ts:43`). L'étape 2
             garantit déjà le sexe ; la garde rend cette dépendance visible ici, là où on
             la lirait, plutôt que dans le type d'un composant deux fichiers plus loin. */}
-        {step === 3 && sex && (
+        {etape === 'masseGrasse' && sex && (
           <View style={s.block}>
             <Text style={s.title}>Ta masse grasse</Text>
             <Text style={s.sub}>
@@ -770,43 +778,38 @@ export default function Onboarding() {
           </View>
         )}
 
-        {step === 4 && (
-          <View style={s.block} onLayout={(e) => { yBlocEtape.current = e.nativeEvent.layout.y; }}>
+        {/* 🔴 UNE PAGE PAR QUESTION depuis le 2026-09-22 (décision fondateur) : l'activité
+            hors sport seule, puis les séances sur la page suivante. L'ORDRE reste le
+            garde-fou contre le double-comptage sport/journées (voir l'en-tête de
+            `NeatPicker`) : on répond sur ses journées AVANT d'avoir vu ses séances.
+            ⚠️ L'intertitre est en casse de phrase ICI (`intitule="phrase"`), en
+            capitales dans le Profil qui partage le composant — la demande ne visait que
+            l'onboarding. */}
+        {etape === 'activite' && (
+          <View style={s.block}>
             <Text style={s.title}>Ton activité</Text>
-            {/* Pas de sous-titre ici (décision fondateur, 2026-09-06) : l'écran est
-                allégé, les deux intertitres « TES JOURNÉES, HORS SPORT » et « TES
-                SÉANCES » portent seuls la distinction que la phrase expliquait. */}
-            {/* Le NEAT AVANT les séances, et le composant est partagé avec le Profil :
-                voir l'en-tête de `NeatPicker` — l'ordre et la rédaction sont des
-                garde-fous contre le double-comptage sport/journées, pas une mise en page. */}
-            <NeatPicker t={t} value={neat} onChange={(n) => { setNeat(n); versLesSeances(); }} />
-
-            {/* 🔴 `gap` — ce bloc était le SEUL de l'écran à n'en avoir aucun (vu sur le
-                build (17), 2026-09-08). Tous les autres l'héritent de `s.block` ; celui-ci,
-                imbriqué pour porter son `onLayout`, repartait à zéro. Résultat : l'intertitre
-                collait aux bulles et la ligne « ≈ N kcal/jour » collait au bouton en dessous,
-                au point qu'on lisait les deux comme un seul objet. ⚠️ Un `View` ajouté pour
-                MESURER hérite de sa position, jamais de l'espacement de celui qu'il remplace. */}
-            <View
-              style={{ gap: Spacing.lg }}
-              onLayout={(e) => { ySeances.current = e.nativeEvent.layout.y; }}
-            >
-              <SectionLabel t={t}>TES SÉANCES</SectionLabel>
-              <SportsEditor
-                sports={sports}
-                weight={profileReady ? wN : undefined}
-                onChange={(next) => { setSports(next); if (next.length) setNoSport(false); }}
-              />
-              <Chip
-                t={t} label="Je ne fais pas de sport"
-                selected={noSport}
-                onPress={() => { const v = !noSport; setNoSport(v); if (v) setSports([]); }}
-              />
-            </View>
+            <NeatPicker t={t} value={neat} onChange={setNeat} intitule="phrase" />
           </View>
         )}
 
-        {step === 5 && (
+        {/* Le titre seul, sans sous-titre ni intertitre : il dit déjà la question. */}
+        {etape === 'seances' && (
+          <View style={s.block}>
+            <Text style={s.title}>Tes séances</Text>
+            <SportsEditor
+              sports={sports}
+              weight={profileReady ? wN : undefined}
+              onChange={(next) => { setSports(next); if (next.length) setNoSport(false); }}
+            />
+            <Chip
+              t={t} label="Je ne fais pas de sport"
+              selected={noSport}
+              onPress={() => { const v = !noSport; setNoSport(v); if (v) setSports([]); }}
+            />
+          </View>
+        )}
+
+        {etape === 'objectif' && (
           <View style={s.block}>
             <Text style={s.title}>Ton objectif</Text>
             <Text style={s.sub}>Le plan sera calibré précisément pour ça.</Text>
@@ -838,7 +841,7 @@ export default function Onboarding() {
           </View>
         )}
 
-        {step === 6 && (
+        {etape === 'preferences' && (
           <View style={s.block}>
             <Text style={s.title}>Tes préférences</Text>
             <Text style={s.sub}>Pour des recettes qui te ressemblent vraiment.</Text>
@@ -892,7 +895,7 @@ export default function Onboarding() {
           </View>
         )}
 
-        {step === 7 && (
+        {etape === 'repas' && (
           <View style={s.block}>
             {/* Le sous-titre « Choisis les jours où tu veux suivre ton plan » est parti
                 (2026-08-12) : il paraphrasait le titre au-dessus d'une rangée de jours

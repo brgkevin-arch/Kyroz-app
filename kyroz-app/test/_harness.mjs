@@ -431,23 +431,26 @@ export async function runOnboarding(page, p = DEFAULT_PERSONA) {
   await sleep(300);
   if (!(await suivant(3))) return { ok: false, etape: 3, repas: 0 };
 
-  // 4 — activité : DEUX réponses exigées depuis le 2026-08-19. Les journées hors
-  // sport (NEAT) d'abord — sans elle, « Continuer » ne fait plus rien et le script
-  // s'arrêterait ici en accusant l'étape 5. On tape le cran `desk`, qui était la
-  // valeur servie par défaut avant que la question soit posée : les calories
-  // attendues par les scripts en aval ne bougent donc pas d'un iota.
+  // 4 — activité hors sport (NEAT), réponse exigée depuis le 2026-08-19. On tape le
+  // cran `desk`, qui était la valeur servie par défaut avant que la question soit
+  // posée : les calories attendues par les scripts en aval ne bougent donc pas d'un iota.
+  // 🔴 LES SÉANCES ONT LEUR PROPRE PAGE depuis le 2026-09-22 (refonte de l'onboarding) :
+  // taper « Je ne fais pas de sport » ici viserait une puce qui n'est plus à l'écran.
   await tap(page, 'Assis la majeure partie de la journée');
-  await sleep(300);
-  await tap(page, 'Je ne fais pas de sport');
   await sleep(300);
   if (!(await suivant(4))) return { ok: false, etape: 4, repas: 0 };
 
-  // 5 — objectif
-  await tap(page, GOAL_SUB[p.goal]);
+  // 5 — séances
+  await tap(page, 'Je ne fais pas de sport');
   await sleep(300);
   if (!(await suivant(5))) return { ok: false, etape: 5, repas: 0 };
 
-  // 6 — préférences. La question des PROTÉINES exige une réponse depuis le
+  // 6 — objectif
+  await tap(page, GOAL_SUB[p.goal]);
+  await sleep(300);
+  if (!(await suivant(6))) return { ok: false, etape: 6, repas: 0 };
+
+  // 7 — préférences. La question des PROTÉINES exige une réponse depuis le
   // 2026-09-07 : l'étape ne se passe plus « aux défauts ». On répond « Peu importe »,
   // qui enregistre une préférence VIDE — donc les plans des scripts en aval sont
   // identiques au bit près à ce qu'ils étaient avant ce changement.
@@ -469,17 +472,17 @@ export async function runOnboarding(page, p = DEFAULT_PERSONA) {
   // il en reste TROIS : protéines, petit-déjeuner, collations.
   const nPeuImporte = await peuImporte.count().catch(() => 0);
   if (nPeuImporte < 3) {
-    await panne(page, 'onboarding-preferences', `l'étape 6 exige trois réponses et ${nPeuImporte} « Peu importe » seulement sont visibles`);
-    return { ok: false, etape: 6, repas: 0 };
+    await panne(page, 'onboarding-preferences', `l'étape 7 exige trois réponses et ${nPeuImporte} « Peu importe » seulement sont visibles`);
+    return { ok: false, etape: 7, repas: 0 };
   }
   for (let i = 0; i < nPeuImporte; i++) {
     await peuImporte.nth(i).click({ timeout: 2000 }).catch(() => {});
     await sleep(150);
   }
   await sleep(300);
-  if (!(await suivant(6))) return { ok: false, etape: 6, repas: 0 };
+  if (!(await suivant(7))) return { ok: false, etape: 7, repas: 0 };
 
-  // 7 — jours de plan (AUCUN coché par défaut → obligatoire) ; repas déjà tous cochés
+  // 8 — jours de plan (AUCUN coché par défaut → obligatoire) ; repas déjà tous cochés
   for (const d of p.days ?? ['Lun', 'Mer', 'Ven']) {
     await tap(page, d, { exact: true });
     await sleep(200);
@@ -491,8 +494,8 @@ export async function runOnboarding(page, p = DEFAULT_PERSONA) {
   // persistée plutôt que de dormir un nombre de secondes tiré au jugé.
   const repas = await attendrePlan(page);
   if (!repas) {
-    await panne(page, 'onboarding-plan', 'les 7 étapes sont passées mais aucun plan n\'a été persisté (@kyroz:plan)');
-    return { ok: false, etape: 7, repas: 0 };
+    await panne(page, 'onboarding-plan', 'les 8 étapes sont passées mais aucun plan n\'a été persisté (@kyroz:plan)');
+    return { ok: false, etape: 8, repas: 0 };
   }
 
   // ⚠️ CE CONTRÔLE RESTE, SA RAISON A CHANGÉ (2026-09-02). Il disait : « l'étape 5
@@ -508,9 +511,9 @@ export async function runOnboarding(page, p = DEFAULT_PERSONA) {
   }).catch(() => null);
   if (servi !== p.goal) {
     await panne(page, 'onboarding-objectif', `objectif demandé « ${p.goal} », objectif servi « ${servi ?? 'aucun' } » — le sous-titre de GOAL_SUB ne correspond plus à l'écran`);
-    return { ok: false, etape: 5, repas };
+    return { ok: false, etape: 6, repas };
   }
-  return { ok: true, etape: 7, repas };
+  return { ok: true, etape: 8, repas };
 }
 
 /**

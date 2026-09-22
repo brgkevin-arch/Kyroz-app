@@ -21,13 +21,15 @@ const sansCommentaires = (src: string) =>
 const onboarding = sansCommentaires(lire('app/(auth)/onboarding.tsx'));
 const dislikes = sansCommentaires(lire('components/DislikedFoodsField.tsx'));
 
-describe('l’étape « activité » respire', () => {
-  it('le bloc des séances porte SON espacement, il ne l’hérite pas', () => {
-    // 🔴 LE DÉFAUT (build 17) : ce `View` n'existe que pour porter un `onLayout`,
-    // et il repartait donc à zéro là où `s.block` donne `gap` à tous les autres.
-    // L'intertitre collait aux bulles, la ligne « ≈ N kcal » collait au bouton.
-    const bloc = onboarding.match(/<View\s+style=\{\{ gap: Spacing\.\w+ \}\}\s+onLayout=\{\(e\) => \{ ySeances/s);
-    expect(bloc, 'le View qui mesure les séances doit porter un `gap`').not.toBeNull();
+describe('la page « séances » respire', () => {
+  it('elle porte l’espacement commun, elle ne l’hérite pas d’un View de mesure', () => {
+    // 🔴 LE DÉFAUT (build 17) : les séances vivaient dans un `View` qui n'existait que
+    // pour porter un `onLayout`, et il repartait donc à zéro là où `s.block` donne
+    // `gap` à tous les autres — l'intertitre collait aux bulles, la ligne « ≈ N kcal »
+    // collait au bouton. Depuis le 2026-09-22 les séances ont LEUR page : elle doit
+    // s'ouvrir sur `s.block`, comme les autres.
+    const page = onboarding.match(/etape === 'seances' && \(\s*<View style=\{s\.block\}>/);
+    expect(page, 'la page des séances doit s’ouvrir sur `s.block`').not.toBeNull();
   });
 });
 

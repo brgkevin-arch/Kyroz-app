@@ -84,7 +84,7 @@ describe('l’inscription refuse à l’étape 5, pas au dernier tap', () => {
     // une seconde garde (`goal !== null` — plus d'objectif présélectionné, cf.
     // `sexeOnboarding.test.ts`). Ce qui est gardé ici, c'est que le REFUS bloque
     // encore l'étape, pas le nombre de conditions qui l'accompagnent.
-    expect(onboarding).toMatch(/\(step === 5 &&[^)]*!objectifBloque\)/);
+    expect(onboarding).toMatch(/\(etape === 'objectif' &&[^)]*!objectifBloque\)/);
     // …et l'étape doit RESTER dans la liste des étapes gardées : l'oublier ici
     // laisserait `canProceed` retomber sur son `!includes` fourre-tout, donc passer.
     // ⚠️ La sonde ne cite plus la liste ENTIÈRE. Elle l'a fait jusqu'au 2026-09-07, et
@@ -92,9 +92,12 @@ describe('l’inscription refuse à l’étape 5, pas au dernier tap', () => {
     // protéines exige désormais une réponse) — un changement qui ne touche EN RIEN ce
     // qu'elle protège. Ce qu'elle garde, c'est que l'étape 5 figure dans la liste :
     // l'en retirer ferait retomber `canProceed` sur son `!includes` fourre-tout.
-    const gardees = onboarding.match(/!\[([\d, ]+)\]\.includes\(step\)/)?.[1] ?? '';
-    expect(gardees, 'liste des étapes gardées introuvable').not.toBe('');
-    expect(gardees.split(',').map((n) => n.trim())).toContain('5');
+    // 🔴 DEPUIS LE 2026-09-22 IL N'Y A PLUS DE FOURRE-TOUT : les pages ont un nom, et une
+    // page absente de `canProceed` BLOQUE au lieu de passer. C'est l'absence de ce
+    // `!includes` qui est gardée ici — son retour rouvrirait la porte en silence.
+    const garde = onboarding.match(/const canProceed =[\s\S]*?;/)?.[0] ?? '';
+    expect(garde, 'canProceed introuvable').not.toBe('');
+    expect(garde).not.toMatch(/includes\(step\)/);
   });
 
   it('la sortie tient en UN tap, et elle est écrite à l’écran', () => {
@@ -112,7 +115,7 @@ describe('l’inscription refuse à l’étape 5, pas au dernier tap', () => {
     // La classe doit accepter les apostrophes ÉCHAPPÉES : « Sèche n\'est pas… ».
     // Première version coupée au `\'`, elle rendait « Sèche n\ » — un test rouge
     // qui accusait le texte alors que c'était la sonde qui s'arrêtait trop tôt.
-    const bandeau = onboarding.match(/step === 5 && objectifBloque\) return '((?:[^'\\]|\\.)*)'/)?.[1] ?? '';
+    const bandeau = onboarding.match(/etape === 'objectif' && objectifBloque\) return '((?:[^'\\]|\\.)*)'/)?.[1] ?? '';
     expect(bandeau.length, 'le bandeau doit rester une ligne').toBeGreaterThan(0);
     expect(bandeau.length).toBeLessThan(90);
     expect(bandeau).toContain('Maintien');

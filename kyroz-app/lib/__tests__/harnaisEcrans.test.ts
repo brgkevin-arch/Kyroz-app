@@ -432,7 +432,7 @@ describe('harnais Playwright — les tables recopiées suivent la source', () =>
   // étape ajoutée à l'assistant le laisserait s'arrêter une marche trop tôt — et
   // comme la dernière étape est la seule validée, il partirait sans plan.
   it('runOnboarding joue exactement TOTAL_STEPS étapes', () => {
-    const total = Number(/const TOTAL_STEPS = (\d+)/.exec(lire('app/(auth)/onboarding.tsx'))?.[1]);
+    const total = Number(/const TOTAL_STEPS(?::[^=]+)? = (\d+)/.exec(lire('app/(auth)/onboarding.tsx'))?.[1]);
     expect(total, 'TOTAL_STEPS introuvable dans onboarding.tsx').toBeGreaterThan(1);
     const harnais = lire(HARNAIS);
     expect(
