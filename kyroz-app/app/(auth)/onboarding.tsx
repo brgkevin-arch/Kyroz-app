@@ -71,10 +71,10 @@ const MARGE_BAS = 24;
 // d'une question sans réponse — le seul sens de changement sûr sans monter
 // `onboardingDraft.ts::VERSION`. Retirer ou permuter des pages demanderait de la monter.
 const ETAPES = [
-  'prenom', 'infos', 'masseGrasse', 'activite', 'seances', 'repos', 'objectif', 'preferences', 'repas',
+  'prenom', 'infos', 'masseGrasse', 'activite', 'seances', 'repos', 'objectif', 'preferences', 'jours', 'repas',
 ] as const;
 type Etape = typeof ETAPES[number];
-const TOTAL_STEPS: typeof ETAPES['length'] = 9;
+const TOTAL_STEPS: typeof ETAPES['length'] = 10;
 /** Le numéro de page d'une étape — pour y RENVOYER (filets de `finish()`). */
 const numeroEtape = (e: Etape) => ETAPES.indexOf(e) + 1;
 
@@ -389,7 +389,8 @@ export default function Onboarding() {
   // sont des réglages, pas des questions restées sans réponse.
   const preferencesValid = regimeChoisi(restrictions) && (proteinesEgales || cocheesValides(restrictions, proteins).length >= 1);
   const goutsValid = goutPdj !== null && goutCollation !== null;
-  const mealsValid = planWeekdays.length >= 1 && meals.length >= 1;                        // étape 7 — jours + repas
+  const joursValid = planWeekdays.length >= 1;                                             // étape « jours »
+  const mealsValid = meals.length >= 1;                                                    // étape « repas »
   const profileReady = basicsValid && bodyFatValid; // suffisant pour les calculs TDEE/macros
 
   // Étape 5 — L'OBJECTIF SE REFUSE ICI, PAS AU DERNIER TAP (2026-08-20).
@@ -422,6 +423,7 @@ export default function Onboarding() {
     etape === 'repos' ||
     (etape === 'objectif' && goal !== null && !objectifBloque) ||
     (etape === 'preferences' && preferencesValid && goutsValid) ||
+    (etape === 'jours' && joursValid) ||
     (etape === 'repas' && mealsValid);
 
   const toggleMeal = (v: MealType) =>
@@ -515,7 +517,8 @@ export default function Onboarding() {
     if (etape === 'preferences' && !regimeChoisi(restrictions)) return 'Choisis ton régime.';
     if (etape === 'preferences' && !preferencesValid) return 'Choisis tes protéines préférées, ou « Peu importe ».';
     if (etape === 'preferences' && !goutsValid) return 'Dis-nous si tu préfères sucré ou salé, le matin et en collation.';
-    if (etape === 'repas' && !mealsValid) return 'Choisis au moins un jour et un repas.';
+    if (etape === 'jours' && !joursValid) return 'Choisis au moins un jour.';
+    if (etape === 'repas' && !mealsValid) return 'Choisis au moins un repas.';
     return null;
   };
 
@@ -996,27 +999,26 @@ export default function Onboarding() {
           </View>
         )}
 
+        {/* SA PROPRE PAGE depuis le 2026-09-22, en LISTE VERTICALE aux jours écrits en
+            entier, comme les jours de repos (décision fondateur). Titre seul : la ligne
+            « N jours par semaine » est partie avec la rangée de pastilles — les cartes
+            cochées se comptent d'un coup d'œil. Aucun jour pré-coché. */}
+        {etape === 'jours' && (
+          <View style={s.block}>
+            <Text style={s.title}>Tes jours de plan</Text>
+            <View style={s.liste}>
+              {WEEKDAY_OPTS.map((d) => (
+                <OptionCard key={d.val} t={t} title={d.long} compacte selected={planWeekdays.includes(d.val)} onPress={() => togglePlanDay(d.val)} />
+              ))}
+            </View>
+          </View>
+        )}
+
+        {/* ⚠️ Page à RETRAVAILLER avec le fondateur (dernière page de la refonte) : elle
+            garde ici son contenu d'avant, seul son titre a pris la place de l'intertitre. */}
         {etape === 'repas' && (
           <View style={s.block}>
-            {/* Le sous-titre « Choisis les jours où tu veux suivre ton plan » est parti
-                (2026-08-12) : il paraphrasait le titre au-dessus d'une rangée de jours
-                qu'on ne peut que taper. La ligne « N jours par semaine » sous la rangée
-                dit, elle, quelque chose que le titre ne dit pas. */}
-            <Text style={s.title}>Tes jours de plan</Text>
-            <View style={s.daysRow}>
-              {WEEKDAY_OPTS.map((d) => {
-                const on = planWeekdays.includes(d.val);
-                return (
-                  <Presse key={d.val} onPress={() => togglePlanDay(d.val)} activeOpacity={OPACITE_PRESSION}
-                    style={[s.dayCircle, { backgroundColor: on ? t.accent : t.fill, borderColor: on ? t.accent : t.line }]}>
-                    <Text style={{ ...Type.captionStrong, color: on ? t.onAccent : t.textTertiary }}>{d.label}</Text>
-                  </Presse>
-                );
-              })}
-            </View>
-            <Text style={[s.sub, { marginTop: -Spacing.xs }]}>{planWeekdays.length} jour{planWeekdays.length > 1 ? 's' : ''} par semaine</Text>
-
-            <SectionLabel t={t}>Repas inclus</SectionLabel>
+            <Text style={s.title}>Repas inclus</Text>
             {/* La deuxième phrase — « Tu en fais plus de quatre ? Ajoute tes propres
                 repas » — est partie le 2026-08-12 : le bouton « + Ajouter un repas »
                 est juste en dessous et le dit mieux qu'elle. */}
@@ -1176,8 +1178,6 @@ function makeStyles(t: ThemePalette) {
     wrap: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },
     // Une liste verticale de cartes serrées (les jours) : un cran de moins que `block`.
     liste: { gap: Spacing.sm },
-    daysRow: { flexDirection: 'row', gap: Spacing.sm, justifyContent: 'space-between' },
-    dayCircle: { flex: 1, height: 52, borderRadius: Radius.button, borderWidth: Trait.fin, alignItems: 'center', justifyContent: 'center' },
     footer: { padding: Spacing.xl, paddingTop: Spacing.sm, backgroundColor: t.bg },
     indiceBas: { alignItems: 'center', paddingBottom: Spacing.xs },
     hint: { ...Type.captionStrong, color: t.warning, lineHeight: 18, marginBottom: Spacing.md, textAlign: 'center' },

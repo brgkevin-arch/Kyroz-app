@@ -485,20 +485,27 @@ export async function runOnboarding(page, p = DEFAULT_PERSONA) {
   await sleep(300);
   if (!(await suivant(7))) return { ok: false, etape: 7, repas: 0 };
 
-  // 8 — jours de plan (AUCUN coché par défaut → obligatoire) ; repas déjà tous cochés
+  // 8 — jours de plan (AUCUN coché par défaut → obligatoire).
+  // 🔴 LEUR PROPRE PAGE, EN TOUTES LETTRES depuis le 2026-09-22 : « Lun » est devenu
+  // « Lundi ». Les personas gardent l'abréviation (plusieurs scripts la passent) ; on
+  // la traduit ici, là où l'écran est lu.
+  const JOUR_EN_ENTIER = { Lun: 'Lundi', Mar: 'Mardi', Mer: 'Mercredi', Jeu: 'Jeudi', Ven: 'Vendredi', Sam: 'Samedi', Dim: 'Dimanche' };
   for (const d of p.days ?? ['Lun', 'Mer', 'Ven']) {
-    await tap(page, d, { exact: true });
+    await tap(page, JOUR_EN_ENTIER[d] ?? d, { exact: true });
     await sleep(200);
   }
   await sleep(300);
+  if (!(await suivant(8))) return { ok: false, etape: 8, repas: 0 };
+
+  // 9 — repas inclus : déjà tous cochés
   await tapPrimary(page, 'Générer mon plan');
 
   // Le plan est généré à l'arrivée sur l'onglet Plan : on ATTEND la preuve
   // persistée plutôt que de dormir un nombre de secondes tiré au jugé.
   const repas = await attendrePlan(page);
   if (!repas) {
-    await panne(page, 'onboarding-plan', 'les 8 étapes sont passées mais aucun plan n\'a été persisté (@kyroz:plan)');
-    return { ok: false, etape: 8, repas: 0 };
+    await panne(page, 'onboarding-plan', 'les 9 étapes sont passées mais aucun plan n\'a été persisté (@kyroz:plan)');
+    return { ok: false, etape: 9, repas: 0 };
   }
 
   // ⚠️ CE CONTRÔLE RESTE, SA RAISON A CHANGÉ (2026-09-02). Il disait : « l'étape 5
@@ -516,7 +523,7 @@ export async function runOnboarding(page, p = DEFAULT_PERSONA) {
     await panne(page, 'onboarding-objectif', `objectif demandé « ${p.goal} », objectif servi « ${servi ?? 'aucun' } » — le sous-titre de GOAL_SUB ne correspond plus à l'écran`);
     return { ok: false, etape: 6, repas };
   }
-  return { ok: true, etape: 8, repas };
+  return { ok: true, etape: 9, repas };
 }
 
 /**
