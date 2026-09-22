@@ -175,7 +175,8 @@ export type SportType =
   | 'tennis_padel'
   | 'basket'
   | 'marche_rapide'
-  | 'escalade';
+  | 'escalade'
+  | 'pilates';
 
 export interface SportSession {
   type: SportType;
