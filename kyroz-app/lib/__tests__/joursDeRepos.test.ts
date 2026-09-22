@@ -141,7 +141,7 @@ describe('Le réglage n’a qu’UNE maison, et elle propose les sept jours', ()
   it('🔴 les SEPT jours sont proposés — aucune liste filtrée par les jours du plan', () => {
     expect(corpsDeFonction(profilSrc, 'RestDaysPicker')).not.toContain('.filter(');
     // Côté inscription, les puces se posent sur `WEEKDAY_OPTS` entier.
-    expect(onboardingSrc).toMatch(/Jours de repos<\/SectionLabel>[\s\S]{0,2000}?WEEKDAY_OPTS\.map\(/);
+    expect(onboardingSrc).toMatch(/Tes jours de repos<\/Text>[\s\S]{0,2000}?WEEKDAY_OPTS\.map\(/);
     expect(onboardingSrc).not.toContain('WEEKDAY_OPTS.filter((o) => planWeekdays.includes(o.val))');
   });
 
