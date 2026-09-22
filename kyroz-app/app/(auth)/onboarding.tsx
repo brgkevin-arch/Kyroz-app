@@ -36,6 +36,7 @@ import {
 } from '../../lib/types';
 import { MealSlotsPicker } from '../../components/MealSlotsPicker';
 import { NeatPicker } from '../../components/NeatPicker';
+import { MesureField } from '../../components/MesureField';
 import { animerMiseEnPage } from '../../components/Mouvement';
 import { knownSlots } from '../../lib/mealSlots';
 import {
@@ -804,17 +805,16 @@ export default function Onboarding() {
             {sex && (
               <>
                 <BirthDateField t={t} value={birthDate} onChange={setBirthDate} />
-                {/* 🔴 « À renseigner », JAMAIS un chiffre d'exemple (retour testeurs,
-                    2026-09-22 : « Continuer reste grisé même quand on a tout rempli »).
-                    Les exemples « 80 » et « 178 » se lisaient comme des valeurs saisies :
-                    l'écran paraissait complet, le bouton restait grisé, et le message
-                    « Remplis ton poids et ta taille » contredisait ce qu'on voyait. Même
-                    règle que la date juste au-dessus (`BirthDateField`) : un champ vide
-                    dit qu'il est vide, il ne montre pas ce qu'on POURRAIT y mettre.
-                    ⚠️ Les deux champs portant le même placeholder, le harnais les vise
-                    par leur `testID` (verrouillé par `harnaisEcrans.test.ts`). */}
-                <Field t={t} label="Poids" suffix="kg" value={weight} onChangeText={setWeight} placeholder="À renseigner" keyboardType="decimal-pad" testID="champ-poids" />
-                <Field t={t} label="Taille" suffix="cm" value={height} onChangeText={setHeight} placeholder="À renseigner" keyboardType="number-pad" testID="champ-taille" />
+                {/* 🔴 À LA ROULETTE depuis le 2026-09-22 (décision fondateur : « un carrousel
+                    de taille et poids »), comme la date juste au-dessus : une ligne qui
+                    dit « À renseigner » tant que rien n'est validé, une feuille qui
+                    propose, « Valider » qui décide.
+                    *(Historique : c'étaient deux champs à taper, dont les exemples « 80 » et
+                    « 178 » se lisaient comme des valeurs saisies — « Continuer » restait
+                    grisé devant un écran qui avait l'air complet. Corrigé le même jour par
+                    « À renseigner », puis remplacé par ces roulettes.)* */}
+                <MesureField t={t} mesure="poids" value={weight} onChange={setWeight} sex={sex} />
+                <MesureField t={t} mesure="taille" value={height} onChange={setHeight} sex={sex} />
               </>
             )}
           </View>
@@ -1143,8 +1143,8 @@ function NameStep({ t, value, onChange, venuDApple }: { t: ThemePalette; value: 
           l'écran continuait de réclamer. Ce que voit le relecteur, c'est la phrase. */}
       <Animated.Text style={[{ ...Type.body, color: t.textSecondary, lineHeight: 23 }, enter]}>
         {venuDApple
-          ? "On va te bâtir un plan nutrition sur-mesure en moins d'une minute."
-          : "On va te bâtir un plan nutrition sur-mesure en moins d'une minute. D'abord, comment on t'appelle ?"}
+          ? "On va te bâtir un plan nutrition sur-mesure en moins de 2 minutes."
+          : "On va te bâtir un plan nutrition sur-mesure en moins de 2 minutes. D'abord, comment on t'appelle ?"}
       </Animated.Text>
       <Animated.View style={{ opacity: field, marginTop: Spacing.sm }}>
         {/* ⚠️ Le placeholder REPREND le libellé, il ne donne pas d'exemple. C'était

@@ -34,6 +34,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { TOURS } from '../tours';
 import { CIBLE_TACTILE_MIN } from '../../constants/theme';
+import { WEIGHT_BOUNDS, HEIGHT_BOUNDS } from '../safety';
 
 const RACINE = join(__dirname, '..', '..');
 const lire = (rel: string) => readFileSync(join(RACINE, rel), 'utf8');
@@ -345,30 +346,45 @@ describe('harnais Playwright — les libellés cherchés existent encore', () =>
     ).toBe(true);
   });
 
-  // ── Poids et taille (fillId) ──────────────────────────────────────────────
-  // Même placeholder pour les deux (« À renseigner »), donc `fillPh` remplirait le
-  // premier deux fois et laisserait la taille vide : `basicsValid` resterait faux et
-  // le parcours mourrait à l'étape 2 — le défaut exact que ce fichier existe pour
-  // attraper. Le repère est le `testID`, posé sur le champ et visé par le harnais.
+  // ── Poids et taille (choisirMesure) ──────────────────────────────────────
+  // À la ROULETTE depuis le 2026-09-22 (`components/MesureField.tsx`) : le harnais
+  // ouvre la ligne par son `testID`, pose chaque colonne par le sien, puis valide.
+  // Trois choses peuvent casser en silence — un repère renommé, une borne basse
+  // recopiée qui dérive (il poserait un AUTRE poids), et la ligne de la date qui ne
+  // se distingue plus des deux autres (toutes disent « À renseigner »).
   it.each([
-    { quoi: 'champ poids', repere: 'champ-poids' },
-    { quoi: 'champ taille', repere: 'champ-taille' },
-  ])('repère de saisie « $repere » — $quoi', ({ repere }) => {
+    { quoi: 'ligne du poids', repere: 'ligne-${mesure}', fichier: 'components/MesureField.tsx' },
+    { quoi: 'colonne des kilos', repere: 'wheel-poids', fichier: 'components/MesureField.tsx' },
+    { quoi: 'colonne des dixièmes', repere: 'wheel-poids-dixieme', fichier: 'components/MesureField.tsx' },
+    { quoi: 'colonne des centimètres', repere: 'wheel-taille', fichier: 'components/MesureField.tsx' },
+  ])('repère de roulette « $repere » — $quoi', ({ repere, fichier }) => {
     expect(
-      lire('app/(auth)/onboarding.tsx').includes(`testID="${repere}"`),
-      `app/(auth)/onboarding.tsx ne pose plus testID="${repere}" → fillId() ne remplira RIEN, en silence`,
+      lire(fichier).includes(repere),
+      `${fichier} ne pose plus « ${repere} » → le harnais ne trouvera pas la roulette`,
     ).toBe(true);
     expect(
-      lire(HARNAIS).includes(`fillId(page, '${repere}'`),
+      lire(HARNAIS).includes(repere),
       `${HARNAIS} ne vise plus « ${repere} » : mettre à jour cette table`,
     ).toBe(true);
   });
 
-  it('la ligne qui OUVRE la roulette, et le bouton qui la VALIDE', () => {
-    expect(lire('components/BirthDateField.tsx')).toContain('À renseigner');
-    expect(lire('components/BirthDatePicker.tsx')).toContain('label="Valider"');
+  it('🔴 les bornes basses recopiées dans le harnais suivent le garde-fou', () => {
     const harnais = lire(HARNAIS);
-    expect(harnais).toContain('À renseigner');
+    expect(harnais).toContain(`export const POIDS_MIN = ${WEIGHT_BOUNDS[0]};`);
+    expect(harnais).toContain(`export const TAILLE_MIN = ${HEIGHT_BOUNDS[0]};`);
+    // …et la roulette part bien de ces bornes (elle les lit, elle ne les recopie pas).
+    expect(lire('lib/roulettesMesure.ts')).toContain('plage(WEIGHT_BOUNDS[0], WEIGHT_BOUNDS[1])');
+    expect(lire('lib/roulettesMesure.ts')).toContain('plage(HEIGHT_BOUNDS[0], HEIGHT_BOUNDS[1])');
+  });
+
+  it('la ligne qui OUVRE la roulette, et le bouton qui la VALIDE', () => {
+    // ⚠️ Par son NOM ACCESSIBLE depuis le 2026-09-22 : trois lignes disent désormais
+    // « À renseigner », et `.first()` aurait visé la bonne par hasard d'ordre.
+    expect(lire('components/BirthDateField.tsx')).toContain("'Choisir ma date de naissance'");
+    expect(lire('components/BirthDatePicker.tsx')).toContain('label="Valider"');
+    expect(lire('components/MesureField.tsx')).toContain('label="Valider"');
+    const harnais = lire(HARNAIS);
+    expect(harnais).toContain("getByRole('button', { name: 'Choisir ma date de naissance' })");
     expect(harnais).toContain('Valider');
   });
 
