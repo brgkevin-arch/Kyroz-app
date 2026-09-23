@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { ThemePalette, useTheme, Radius, Type, Spacing, Trait, Icone, CIBLE_TACTILE_MIN } from '../constants/theme';
+import { GrilleChoix } from './ui';
 import { SportSession, SportType } from '../lib/types';
 import {
   SPORT_ORDER, SPORT_LABEL, exerciseKcalPerDay,
@@ -55,36 +56,16 @@ export default function SportsEditor({ sports, weight, onChange, aucunSport }: P
     <View>
       {/* 🔴 DEUX SPORTS PAR LIGNE, en rectangles encadrés qui prennent toute la largeur
           (décision fondateur, 2026-09-22 — c'étaient des pastilles qui s'enroulaient).
-          Tap pour ajouter / retirer un sport. */}
-      <View style={s.grille}>
-        {SPORT_ORDER.map((type) => {
-          const on = !!byType(type);
-          return (
-            <Pressable
-              key={type}
-              onPress={() => toggle(type)}
-              style={[s.case, on && s.caseOn]}
-              accessibilityRole="button"
-              accessibilityState={{ selected: on }}
-            >
-              <Text style={[s.caseTxt, on && s.caseTxtOn]} numberOfLines={1}>{SPORT_LABEL[type]}</Text>
-            </Pressable>
-          );
-        })}
-        {/* Nombre impair de sports : une case vide garde la dernière à MOITIÉ de largeur,
-            alignée sur la colonne de gauche, au lieu de s'étirer sur toute la ligne. */}
-        {SPORT_ORDER.length % 2 === 1 && <View style={s.caseVide} />}
-        {aucunSport && (
-          <Pressable
-            onPress={aucunSport.onToggle}
-            style={[s.case, s.caseLarge, aucunSport.selected && s.caseOn]}
-            accessibilityRole="button"
-            accessibilityState={{ selected: aucunSport.selected }}
-          >
-            <Text style={[s.caseTxt, aucunSport.selected && s.caseTxtOn]}>{aucunSport.label}</Text>
-          </Pressable>
-        )}
-      </View>
+          La forme vit dans `ui.tsx::GrilleChoix`, partagée avec les préférences. */}
+      <GrilleChoix
+        t={t}
+        options={SPORT_ORDER.map((type) => ({ label: SPORT_LABEL[type], value: type }))}
+        estChoisi={(type) => !!byType(type)}
+        onChoisir={toggle}
+        pleineLargeur={aucunSport && {
+          label: aucunSport.label, selected: aucunSport.selected, onPress: aucunSport.onToggle,
+        }}
+      />
 
       {/* Réglages par sport sélectionné : fréquence + durée */}
       {selected.map((type) => {
@@ -149,22 +130,6 @@ function Stepper({
 
 const makeStyles = (t: ThemePalette) =>
   StyleSheet.create({
-    grille: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },
-    // `flexBasis` 40 % + `flexGrow` : deux cases par ligne qui se partagent la largeur à
-    // parts égales, l'écart compris — sans calcul de pixels.
-    // ⚠️ `minHeight` et non le seul padding : une cible tactile fait 44 pt au moins.
-    case: {
-      flexBasis: '40%', flexGrow: 1,
-      minHeight: CIBLE_TACTILE_MIN, justifyContent: 'center', alignItems: 'center',
-      paddingVertical: Spacing.md, paddingHorizontal: Spacing.sm, borderRadius: Radius.button,
-      backgroundColor: t.fill, borderWidth: Trait.fin, borderColor: t.line,
-    },
-    caseVide: { flexBasis: '40%', flexGrow: 1 },
-    caseLarge: { flexBasis: '100%' },
-    caseOn: { backgroundColor: t.accent, borderColor: t.accent },
-    caseTxt: { ...Type.bodySmallStrong, color: t.text },
-    caseTxtOn: { color: t.onAccent },
-
     row: {
       marginTop: Spacing.md, padding: Spacing.lg, borderRadius: Radius.card,
       backgroundColor: t.card, borderWidth: Trait.fin, borderColor: t.line, gap: Spacing.md,

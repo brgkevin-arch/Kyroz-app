@@ -141,7 +141,10 @@ describe('Le réglage n’a qu’UNE maison, et elle propose les sept jours', ()
   it('🔴 les SEPT jours sont proposés — aucune liste filtrée par les jours du plan', () => {
     expect(corpsDeFonction(profilSrc, 'RestDaysPicker')).not.toContain('.filter(');
     // Côté inscription, les puces se posent sur `WEEKDAY_OPTS` entier.
-    expect(onboardingSrc).toMatch(/Tes jours de repos<\/Text>[\s\S]{0,2000}?WEEKDAY_OPTS\.map\(/);
+    // Côté inscription : la rangée des sept jours, remontée sur la page des séances
+    // le 2026-09-23, se pose sur `WEEKDAY_OPTS` entier (`RangeeJours`).
+    expect(onboardingSrc).toMatch(/<RangeeJours t=\{t\} choisis=\{restWeekdays\}/);
+    expect(onboardingSrc).toMatch(/function RangeeJours[\s\S]{0,800}?WEEKDAY_OPTS\.map\(/);
     expect(onboardingSrc).not.toContain('WEEKDAY_OPTS.filter((o) => planWeekdays.includes(o.val))');
   });
 
@@ -177,11 +180,15 @@ describe('Le réglage n’a qu’UNE maison, et elle propose les sept jours', ()
     expect(onboardingSrc).toMatch(/rest_weekdays:\s*restTouched\s*\?/);
   });
 
-  it('🔴 « Aucun » ne s\'allume pas tout seul — ce serait une présélection de plus', () => {
-    // Sur un écran où rien n'est coché, `restWeekdays.length === 0` est vrai au
-    // premier rendu : la puce affirmerait « je n'ai aucun jour de repos » à la place
-    // de quelqu'un qui n'a rien dit — le pire des trois états à poser par défaut.
-    expect(onboardingSrc).toMatch(/title="Aucun jour de repos"[^/]*selected=\{restTouched && restWeekdays\.length === 0\}/);
+  it('🔴 à l\'inscription, « aucun jour » ne se DIT plus — il ne s\'écrit donc pas', () => {
+    // La case « Aucun jour de repos » est partie le 2026-09-23 avec la page (la rangée
+    // de sept cases ne laisse pas de place à une huitième). Ce qui la rendait sûre
+    // reste : seul un geste sur un jour lève `restTouched`, donc « rien coché » veut
+    // toujours dire « pas répondu », jamais « aucun repos » — le pire des trois états.
+    expect(onboardingSrc).not.toContain('Aucun jour de repos');
+    expect(onboardingSrc).toMatch(/const toggleRestDay = \(v: number\) => \{\s*setRestTouched\(true\);/);
+    // …et le Profil, lui, garde sa case.
+    expect(profilSrc).toContain('Aucun');
   });
 
   it('🔴 l\'inscription ne pré-coche plus AUCUN jour', () => {

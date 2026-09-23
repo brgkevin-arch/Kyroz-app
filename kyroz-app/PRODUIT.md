@@ -31,7 +31,7 @@ d'**enregistrer ce que tu as mangé**. Kyroz te dit **quoi manger**.
 
 ---
 
-## 1. L'inscription — dix étapes, une seule fois
+## 1. L'inscription — neuf étapes, une seule fois
 
 | Étape | Ce qu'on demande |
 |---|---|
@@ -39,12 +39,11 @@ d'**enregistrer ce que tu as mangé**. Kyroz te dit **quoi manger**.
 | 2 | Sexe, puis date de naissance, poids et taille — les trois à la roulette, rien de pré-rempli |
 | 3 | Morphologie — on choisit sa silhouette dans une planche, pas un chiffre à deviner |
 | 4 | À quoi ressemblent tes journées **hors sport** |
-| 5 | Tes séances (sport, fréquence, durée) — **comptées à part** des journées, sur leur propre page depuis le 2026-09-22 |
-| 6 | Tes jours de repos — facultatif (sans réponse, Kyroz les déduit des séances), et **sautée sans sport déclaré** : sans séance, ils ne changeraient rien au plan |
-| 7 | Objectif : **Sèche · Recomposition · Maintien · Prise de masse propre** |
-| 8 | Régime (omnivore, végétarien, vegan, pescétarien, halal, sans gluten…) **d'abord** ; puis les protéines préférées **du régime choisi** (depuis le 2026-09-19 : ce qui est coché devient une part garantie des déjeuners et dîners, cf. `docs/2026-09-19-decision-preferences-proteines.md`) ; puis sucré ou salé, le matin et en collation ; puis aliments évités et niveau de variété. **Chaque question n'apparaît qu'une fois la précédente répondue** (2026-09-22), et l'écran descend sur elle |
-| 9 | Quels jours suivre le plan — une liste, jours écrits en entier |
-| 10 | Tes repas : lesquels, et à quelles heures. Une ligne rappelle qu'un repas qu'on prépare toujours soi-même (le petit-déj, souvent) se règle ensuite dans Profil → Paramètres des repas |
+| 5 | Tes jours de repos (une ligne de sept cases, facultatif — sans réponse, Kyroz les déduit des séances ; la ligne n'apparaît pas sans sport), puis tes séances (sport, fréquence, durée) — **comptées à part** des journées |
+| 6 | Objectif : **Sèche · Recomposition · Maintien · Prise de masse propre** |
+| 7 | Régime (omnivore, végétarien, vegan, pescétarien, halal, sans gluten…) **d'abord** ; puis les protéines préférées **du régime choisi** (depuis le 2026-09-19 : ce qui est coché devient une part garantie des déjeuners et dîners, cf. `docs/2026-09-19-decision-preferences-proteines.md`) ; puis sucré ou salé, le matin et en collation ; puis les aliments évités. **Chaque question n'apparaît qu'une fois la précédente répondue** (2026-09-22), et l'écran descend sur elle |
+| 8 | Quels jours suivre le plan — une ligne de sept cases — et le niveau de **variété** des repas |
+| 9 | Tes repas : lesquels, et à quelles heures. Une ligne rappelle qu'un repas qu'on prépare toujours soi-même (le petit-déj, souvent) se règle ensuite dans Profil → Paramètres des repas |
 
 ⚠️ **L'étape 4 exige une réponse sur les journées hors sport, et c'est récent (2026-08-19).**
 Avant, la question ne vivait que dans le Profil : le cran le plus prudent (« journées
@@ -63,7 +62,7 @@ proposée — mais l'app le dit **au moment du choix**, nomme ce qui reste ouver
 donne un plan complet, sans déficit »), offre le basculement **en un tap**, et renvoie vers
 un médecin ou un diététicien-nutritionniste si la situation dure.
 
-**Au bout des dix étapes (neuf sans sport) : un plan de 7 jours, en moins d'une seconde.** Pas de file
+**Au bout des neuf étapes : un plan de 7 jours, en moins d'une seconde.** Pas de file
 d'attente, pas de « votre plan sera prêt dans 24 h ».
 
 ---

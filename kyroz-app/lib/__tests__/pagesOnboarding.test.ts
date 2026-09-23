@@ -42,12 +42,15 @@ describe('les pages de l’inscription', () => {
     }
   });
 
-  it('🔴 les jours de repos sautent sans sport déclaré', () => {
-    expect(onboarding).toContain("const etapeServie = (e: Etape) => e !== 'repos' || !noSport;");
-    // …et la navigation passe par les pages SERVIES, pas par le numéro suivant.
-    expect(onboarding).toContain('const suivante = servies[rang];');
-    expect(onboarding).toContain('const precedente = servies[rang - 2];');
-    expect(onboarding).not.toMatch(/setStep\(step [+-] 1\)/);
+  it('🔴 les jours de repos ne s\'affichent pas sans sport déclaré', () => {
+    // C'était une page SAUTÉE jusqu'au 2026-09-23 ; c'est désormais une rangée sur la
+    // page des séances, gardée par le même prédicat. Sans séance, `dayExpenditures`
+    // rend une cible plate : un jour de repos coché n'y déplacerait rien (A23).
+    expect(onboarding).toMatch(/\{!noSport && \([\s\S]{0,200}?<RangeeJours t=\{t\} choisis=\{restWeekdays\}/);
+    // …et plus aucun aiguillage de page : le mécanisme des « pages servies » est parti
+    // avec la page qu'il sautait, au lieu de rester à vide.
+    expect(onboarding).not.toContain('etapeServie');
+    expect(onboarding).not.toContain('servies[rang]');
   });
 });
 
@@ -65,6 +68,43 @@ describe('la dernière page renvoie vers un réglage qui EXISTE', () => {
     expect(profil).toMatch(/<MenuRow[^>]*label="Paramètres des repas"/);
     expect(profil).toMatch(/title="Paramètres des repas"[\s\S]*Repas que tu gères toi-même/);
     expect(profil).toContain("'Je gère'");
+  });
+});
+
+describe('les deux pages à DEUX questions (2026-09-23)', () => {
+  // Une page qui pose deux questions doit les séparer, sinon la seconde se lit comme la
+  // suite de la première — la grille des sports comme la suite de la rangée des jours.
+  const entre = (a: string, b: string) => {
+    const i = onboarding.indexOf(a);
+    return i < 0 ? '' : onboarding.slice(i, b ? onboarding.indexOf(b, i) : undefined);
+  };
+
+  it('« Tes séances » : les jours de repos, puis un intertitre « Sports »', () => {
+    const page = entre("{etape === 'seances' && (", "{etape === 'objectif' && (");
+    expect(page).toContain('<Intitule t={t}>Jours de repos</Intitule>');
+    expect(page).toContain('<Intitule t={t}>Sports</Intitule>');
+    expect(page.indexOf('Jours de repos')).toBeLessThan(page.indexOf('<Intitule t={t}>Sports'));
+  });
+
+  it('« Ton plan » : les jours de plan, puis la variété', () => {
+    const page = entre("{etape === 'jours' && (", "{etape === 'repas' && (");
+    expect(page).toContain('<Text style={s.title}>Ton plan</Text>');
+    expect(page).toContain('<Intitule t={t}>Jours de plan</Intitule>');
+    expect(page).toContain('<Intitule t={t}>Variété des repas</Intitule>');
+    expect(page.indexOf('Jours de plan')).toBeLessThan(page.indexOf('Variété des repas'));
+  });
+
+  it('🔴 lundi → vendredi sont pré-cochés, et rien d’autre ne l’est', () => {
+    // Décision fondateur : la semaine de travail est une hypothèse qui SE VOIT sur la
+    // rangée et se décoche d'un geste. Les jours de REPOS, eux, ne se pré-cochent
+    // toujours pas — c'est leur absence qui fait déduire le moteur (`joursDeRepos`).
+    expect(onboarding).toContain('const [planWeekdays, setPlanWeekdays] = useState<number[]>(JOURS_PLAN_PAR_DEFAUT);');
+    // …et le brouillon repart de la MÊME liste quand la clé est absente : sinon un
+    // brouillon relu rouvre la rangée VIDE (vu à l'écran le 2026-09-23).
+    const draft = readFileSync(join(RACINE, 'lib/onboardingDraft.ts'), 'utf8');
+    expect(draft).toContain('export const JOURS_PLAN_PAR_DEFAUT: number[] = [1, 2, 3, 4, 5];');
+    expect(draft).toContain("lire('planWeekdays', entiers, JOURS_PLAN_PAR_DEFAUT)");
+    expect(onboarding).toContain('const [restWeekdays, setRestWeekdays] = useState<number[]>([]);');
   });
 });
 

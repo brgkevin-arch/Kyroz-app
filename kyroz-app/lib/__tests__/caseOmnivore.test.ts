@@ -106,7 +106,8 @@ describe('D36 — les règles de la case, et la fin de « sans porc »', () => {
       const src = readFileSync(join(__dirname, '..', '..', ecran), 'utf8');
       expect(src, ecran).toContain("{ label: 'Omnivore', value: 'omnivore' }");
       expect(src, ecran).not.toContain("{ label: 'Sans porc', value: 'no_pork' }");
-      expect(src, ecran).toContain('basculerRegime(restrictions, r.value)');
+      // L'onboarding passe par `GrilleChoix` depuis le 2026-09-22 (`onChoisir={(v) => …}`).
+      expect(src, ecran).toMatch(/basculerRegime\(restrictions, (r\.value|v)\)/);
     }
   });
 });

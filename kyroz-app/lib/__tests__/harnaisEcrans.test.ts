@@ -137,7 +137,7 @@ const ANCRES: Ancre[] = [
 
   // ── Assistant d'onboarding (runOnboarding) ──
   { quoi: 'repère de l\'étape 1', texte: 'Ton prénom', dans: 'app/(auth)/onboarding.tsx' },
-  { quoi: 'compteur d\'étapes lu par etapeCourante', texte: 'ÉTAPE n / 6', motif: 'ÉTAPE {rang - 1} / {servies.length - 1}', cherche: '[ÉE]TAPE', dans: 'app/(auth)/onboarding.tsx' },
+  { quoi: 'compteur d\'étapes lu par etapeCourante', texte: 'ÉTAPE n / 6', motif: 'ÉTAPE {step - 1} / {TOTAL_STEPS - 1}', cherche: '[ÉE]TAPE', dans: 'app/(auth)/onboarding.tsx' },
   // ⚠️ LES DEUX SEXES SONT DES ANCRES DEPUIS LE 2026-09-02, et « Homme » est le cas
   // qui a mordu. Tant que l'écran ouvrait sur « Homme » présélectionné, le harnais ne
   // tapait que pour les personas féminins — « Femme » seule suffisait donc ici. En
@@ -448,17 +448,14 @@ describe('harnais Playwright — les tables recopiées suivent la source', () =>
   // « Générer mon plan ». Une étape ajoutée à l'assistant le laisserait s'arrêter une
   // marche trop tôt — et comme la dernière étape est la seule validée, il partirait
   // sans plan.
-  // ⚠️ Depuis le 2026-09-22 la page « jours de repos » SAUTE sans sport déclaré, et le
-  // persona du harnais n'en fait pas : il traverse donc TOTAL_STEPS - 1 pages. Le jour
-  // où il déclare un sport, ce compte redevient TOTAL_STEPS.
-  it('runOnboarding joue exactement les pages servies à son persona', () => {
+  // ℹ️ Plus aucune page ne se saute depuis le 2026-09-23 (les jours de repos ont rejoint
+  // la page des séances) : le harnais traverse toutes les pages du tableau.
+  it('runOnboarding joue exactement les pages de l\'assistant', () => {
     const src = lire('app/(auth)/onboarding.tsx');
     const tableau = Number(/const TOTAL_STEPS(?::[^=]+)? = (\d+)/.exec(src)?.[1]);
     expect(tableau, 'TOTAL_STEPS introuvable dans onboarding.tsx').toBeGreaterThan(1);
-    expect(src, 'la page « repos » ne se saute plus sans sport').toContain("e !== 'repos' || !noSport");
     const harnais = lire(HARNAIS);
-    expect(harnais, 'le persona du harnais déclare désormais un sport : recompter').toContain("tap(page, 'Je ne fais pas de sport')");
-    const total = tableau - 1;
+    const total = tableau;
     expect(
       harnais.includes(`suivant(${total - 1})`),
       `l'assistant a ${total} étapes : ${HARNAIS} doit avancer jusqu'à suivant(${total - 1}) avant « Générer mon plan »`,
