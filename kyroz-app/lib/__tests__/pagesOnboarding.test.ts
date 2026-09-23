@@ -42,12 +42,15 @@ describe('les pages de l’inscription', () => {
     }
   });
 
-  it('🔴 les jours de repos sautent sans sport déclaré', () => {
-    expect(onboarding).toContain("const etapeServie = (e: Etape) => e !== 'repos' || !noSport;");
-    // …et la navigation passe par les pages SERVIES, pas par le numéro suivant.
-    expect(onboarding).toContain('const suivante = servies[rang];');
-    expect(onboarding).toContain('const precedente = servies[rang - 2];');
-    expect(onboarding).not.toMatch(/setStep\(step [+-] 1\)/);
+  it('🔴 les jours de repos ne s\'affichent pas sans sport déclaré', () => {
+    // C'était une page SAUTÉE jusqu'au 2026-09-23 ; c'est désormais une rangée sur la
+    // page des séances, gardée par le même prédicat. Sans séance, `dayExpenditures`
+    // rend une cible plate : un jour de repos coché n'y déplacerait rien (A23).
+    expect(onboarding).toMatch(/\{!noSport && \([\s\S]{0,200}?<RangeeJours t=\{t\} choisis=\{restWeekdays\}/);
+    // …et plus aucun aiguillage de page : le mécanisme des « pages servies » est parti
+    // avec la page qu'il sautait, au lieu de rester à vide.
+    expect(onboarding).not.toContain('etapeServie');
+    expect(onboarding).not.toContain('servies[rang]');
   });
 });
 

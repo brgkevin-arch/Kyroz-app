@@ -72,10 +72,10 @@ const MARGE_BAS = 24;
 // d'une question sans réponse — le seul sens de changement sûr sans monter
 // `onboardingDraft.ts::VERSION`. Retirer ou permuter des pages demanderait de la monter.
 const ETAPES = [
-  'prenom', 'infos', 'masseGrasse', 'activite', 'seances', 'repos', 'objectif', 'preferences', 'jours', 'repas',
+  'prenom', 'infos', 'masseGrasse', 'activite', 'seances', 'objectif', 'preferences', 'jours', 'repas',
 ] as const;
 type Etape = typeof ETAPES[number];
-const TOTAL_STEPS: typeof ETAPES['length'] = 10;
+const TOTAL_STEPS: typeof ETAPES['length'] = 9;
 /** Le numéro de page d'une étape — pour y RENVOYER (filets de `finish()`). */
 const numeroEtape = (e: Etape) => ETAPES.indexOf(e) + 1;
 
@@ -425,8 +425,6 @@ export default function Onboarding() {
     (etape === 'masseGrasse' && bodyFatValid) ||
     (etape === 'activite' && neatValid) ||
     (etape === 'seances' && seancesValid) ||
-    // Facultative : sans geste, rien n'est écrit (`restTouched`) et le moteur déduit.
-    etape === 'repos' ||
     (etape === 'objectif' && goal !== null && !objectifBloque) ||
     (etape === 'preferences' && preferencesValid && goutsValid) ||
     (etape === 'jours' && joursValid) ||
@@ -456,12 +454,10 @@ export default function Onboarding() {
     setRestTouched(true);
     setRestWeekdays((arr) => arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v]);
   };
-  // « Aucun jour de repos » — une réponse À PART ENTIÈRE, pas une case laissée vide.
-  // Avant, l'onboarding démarrait à zéro jour coché et enregistrait ce vide tel quel :
-  // « je n'ai pas répondu » devenait « je m'entraîne 7 j/7 », et le plan repartait
-  // PLAT (mesuré). Le Profil, lui, pré-cochait déjà la déduction — deux écrans, deux
-  // comportements pour le même réglage.
-  const setNoRestDay = () => { setRestTouched(true); setRestWeekdays([]); };
+  // ℹ️ La case « Aucun jour de repos » est partie le 2026-09-23 avec la page : la
+  // rangée de sept cases ne laisse pas de place à une huitième. Ne rien cocher reste
+  // une réponse valable — `restTouched` reste faux, rien n'est écrit, et le moteur
+  // déduit (cf. `rest_weekdays` à la sauvegarde). Le Profil, lui, garde sa case.
 
   // Pré-sélection : les jours de repos que le moteur déduirait de toute façon
   // (`restDaySet`, la MÊME fonction qu'il utilise), projetés sur les jours du plan.
@@ -601,36 +597,21 @@ export default function Onboarding() {
     defilement.current?.scrollTo({ y: yPreferences.current + e.nativeEvent.layout.y - Spacing.lg, animated: true });
   };
 
-  // ── Les pages SERVIES à cette personne ────────────────────────────────────
-  // 🔴 Les jours de repos SAUTENT sans sport déclaré (décision fondateur, 2026-09-22).
-  // Sans séance, `dayExpenditures` rend une cible plate : des jours de repos cochés
-  // n'y déplaceraient rien — un réglage sans effet (A23). C'est le remède que la note
-  // de ce bloc prévoyait depuis le 2026-09-10 : une GARDE plutôt qu'une légende.
-  // ⚠️ Le compteur « ÉTAPE x / n » et la barre suivent les pages servies, pas le
-  // tableau : sauter une page ne laisse pas de trou dans la numérotation.
-  const etapeServie = (e: Etape) => e !== 'repos' || !noSport;
-  const servies = ETAPES.filter(etapeServie);
-  const rang = servies.indexOf(etape) + 1;
-  // Un brouillon peut rouvrir une page qui ne se sert plus (« pas de sport » coché
-  // entre-temps, ou numérotation d'une version précédente) : on avance à la suivante.
-  useEffect(() => {
-    if (etapeServie(etape)) return;
-    const apres = ETAPES.slice(step).find(etapeServie);
-    if (apres) setStep(numeroEtape(apres));
-  }, [etape, noSport]);
+  // ℹ️ PLUS AUCUNE PAGE NE SE SAUTE depuis le 2026-09-23 : les jours de repos ont
+  // quitté leur page pour rejoindre celle des séances, et c'étaient eux, et eux seuls,
+  // qui disparaissaient sans sport déclaré. Le mécanisme des « pages servies » est donc
+  // retiré plutôt que gardé à vide — un aiguillage qui n'aiguille rien se relit comme
+  // une règle vivante (CLAUDE.md, A23). Ce qui reste de la décision : la RANGÉE de
+  // jours de repos ne s'affiche pas quand « Je ne fais pas de sport » est coché.
 
   const next = () => {
     if (saving) return;
     if (!canProceed) { setAvanceTentee(true); return; }
     setAvanceTentee(false);
-    const suivante = servies[rang];
-    if (suivante) setStep(numeroEtape(suivante));
+    if (step < TOTAL_STEPS) setStep(step + 1);
     else finish();
   };
-  const back = () => {
-    const precedente = servies[rang - 2];
-    if (precedente) { setAvanceTentee(false); setStep(numeroEtape(precedente)); }
-  };
+  const back = () => { if (step > 1) { setAvanceTentee(false); setStep(step - 1); } };
 
   const finish = async () => {
     // 🔴 LE SEXE NE SE DEVINE PAS. L'étape 2 interdit d'arriver ici sans lui, donc ce
@@ -771,7 +752,7 @@ export default function Onboarding() {
         <Presse onPress={back} disabled={step === 1} style={[s.backBtn, step === 1 && { opacity: 0 }]}>
           <Ionicons name="chevron-back" size={Icone.action} color={t.text} />
         </Presse>
-        <View style={s.track}><View style={[s.fill, { width: `${(rang / servies.length) * 100}%` }]} /></View>
+        <View style={s.track}><View style={[s.fill, { width: `${(step / TOTAL_STEPS) * 100}%` }]} /></View>
       </View>
 
       <ScrollView
@@ -786,7 +767,7 @@ export default function Onboarding() {
         }}
         scrollEventThrottle={16}
       >
-        {step > 1 && <SectionLabel t={t}>ÉTAPE {rang - 1} / {servies.length - 1}</SectionLabel>}
+        {step > 1 && <SectionLabel t={t}>ÉTAPE {step - 1} / {TOTAL_STEPS - 1}</SectionLabel>}
 
         {etape === 'prenom' && <NameStep t={t} value={firstName} onChange={setFirstName} venuDApple={parApple && firstName.trim().length > 0} />}
 
@@ -860,10 +841,25 @@ export default function Onboarding() {
           </View>
         )}
 
-        {/* Le titre seul, sans sous-titre ni intertitre : il dit déjà la question. */}
+        {/* 🔴 LES JOURS DE REPOS SONT REMONTÉS ICI le 2026-09-23 (décision fondateur :
+            « on supprime l'étape 5 »), au-dessus des sports, en UNE ligne de sept cases.
+            Jours SANS entraînement, sur la semaine entière — ils ne dépendent pas des
+            jours du plan (2026-08-26).
+            ⚠️ La rangée disparaît quand « Je ne fais pas de sport » est coché : sans
+            séance, `dayExpenditures` rend une cible plate, donc un jour de repos coché
+            n'y déplacerait rien (A23). C'est ce que faisait la page sautée qu'elle
+            remplace.
+            ⚠️ Facultative : sans geste, `restTouched` reste faux, rien n'est écrit, et le
+            moteur déduit lui-même les jours de repos. */}
         {etape === 'seances' && (
           <View style={s.block}>
             <Text style={s.title}>Tes séances</Text>
+            {!noSport && (
+              <>
+                <Intitule t={t}>Jours de repos</Intitule>
+                <RangeeJours t={t} choisis={restWeekdays} onChoisir={toggleRestDay} />
+              </>
+            )}
             {/* « Je ne fais pas de sport » est une case de la grille, pleine largeur,
                 sous les sports (refonte visuelle du 2026-09-22). */}
             <SportsEditor
@@ -876,33 +872,6 @@ export default function Onboarding() {
                 onToggle: () => { const v = !noSport; setNoSport(v); if (v) setSports([]); },
               }}
             />
-          </View>
-        )}
-
-        {/* Jours de repos = jours SANS entraînement, sur la semaine entière — ils ne
-            dépendent pas des jours du plan (2026-08-26). SA PROPRE PAGE depuis le
-            2026-09-22, sautée sans sport déclaré (`etapeServie`), titre seul.
-            *(Historique : un paragraphe d'explication a vécu ici jusqu'au 2026-09-10 ;
-            il avait promis deux choses fausses — « mêmes calories », puis « recettes
-            récup ». Le remettre n'est pas le remède : la garde l'est.)* */}
-        {etape === 'repos' && (
-          <View style={s.block}>
-            <Text style={s.title}>Tes jours de repos</Text>
-            {/* Les SEPT jours, quels que soient les jours du plan : on peut ne pas
-                s'entraîner un jour que Kyroz ne planifie pas.
-                En LISTE VERTICALE, jours écrits en entier (décision fondateur,
-                2026-09-22) — des cartes compactes pour que la semaine et « Aucun »
-                tiennent sur un écran sans défiler. */}
-            <View style={s.liste}>
-              {WEEKDAY_OPTS.map((d) => (
-                <OptionCard key={d.val} t={t} title={d.long} compacte selected={restWeekdays.includes(d.val)} onPress={() => toggleRestDay(d.val)} />
-              ))}
-              {/* ⚠️ `restTouched &&` : sans lui, « Aucun » s'allumerait au premier rendu,
-                  puisque rien n'est coché. Ce serait une présélection de plus — celle
-                  qui affirme « je n'ai aucun jour de repos » à la place de quelqu'un qui
-                  n'a rien dit, et c'est le pire des trois états à poser par défaut. */}
-              <OptionCard t={t} title="Aucun jour de repos" compacte selected={restTouched && restWeekdays.length === 0} onPress={setNoRestDay} />
-            </View>
           </View>
         )}
 
@@ -987,32 +956,28 @@ export default function Onboarding() {
               </View>
             )}
 
-            {/* La question « Tu préfères la routine ou la diversité ? » est partie avec
-                le titre seul : les trois cartes portent chacune leur sous-titre. */}
+            {/* ℹ️ « Variété des repas » a rejoint la page des jours de plan le
+                2026-09-23 (décision fondateur) : ce dernier palier ne porte plus que les
+                aliments à éviter. */}
             {niveauMontre >= 3 && (
               <View style={s.block} onLayout={surPalier(3)}>
                 <DislikedFoodsField t={t} value={dislikes} onChange={setDislikes} intitule="phrase" />
-                <Intitule t={t}>Variété des repas</Intitule>
-                <View style={{ gap: Spacing.md }}>
-                  {VARIETY.map((v) => (
-                    <OptionCard key={v.value} t={t} title={v.title} subtitle={v.sub} selected={variety === v.value} onPress={() => setVariety(v.value)} />
-                  ))}
-                </View>
               </View>
             )}
           </View>
         )}
 
-        {/* SA PROPRE PAGE depuis le 2026-09-22, en LISTE VERTICALE aux jours écrits en
-            entier, comme les jours de repos (décision fondateur). Titre seul : la ligne
-            « N jours par semaine » est partie avec la rangée de pastilles — les cartes
-            cochées se comptent d'un coup d'œil. Aucun jour pré-coché. */}
+        {/* 🔴 UNE LIGNE DE SEPT CASES, comme les jours de repos (décision fondateur,
+            2026-09-23 — c'était une liste verticale depuis la veille), et « Variété des
+            repas » remonté ici depuis les préférences. Aucun jour pré-coché. */}
         {etape === 'jours' && (
           <View style={s.block}>
             <Text style={s.title}>Tes jours de plan</Text>
-            <View style={s.liste}>
-              {WEEKDAY_OPTS.map((d) => (
-                <OptionCard key={d.val} t={t} title={d.long} compacte selected={planWeekdays.includes(d.val)} onPress={() => togglePlanDay(d.val)} />
+            <RangeeJours t={t} choisis={planWeekdays} onChoisir={togglePlanDay} />
+            <Intitule t={t}>Variété des repas</Intitule>
+            <View style={{ gap: Spacing.md }}>
+              {VARIETY.map((v) => (
+                <OptionCard key={v.value} t={t} title={v.title} subtitle={v.sub} selected={variety === v.value} onPress={() => setVariety(v.value)} />
               ))}
             </View>
           </View>
@@ -1076,7 +1041,7 @@ export default function Onboarding() {
             promettre d'avancer quand l'étape est incomplète. */}
         <PrimaryButton
           t={t}
-          label={rang === servies.length ? 'Générer mon plan' : 'Continuer'}
+          label={step === TOTAL_STEPS ? 'Générer mon plan' : 'Continuer'}
           onPress={next}
           loading={saving}
           muted={!canProceed}
@@ -1107,6 +1072,33 @@ export default function Onboarding() {
 
 // Écran d'accueil : la toute première chose que voit l'utilisateur. Entrée animée
 // (fondu + montée du titre, puis apparition du champ) → première impression soignée.
+/**
+ * Les sept jours en UNE ligne de cases (décision fondateur, 2026-09-23) — les jours de
+ * repos sur la page des séances, les jours de plan sur la leur. Les libellés sont
+ * courts par nécessité : sept cases sur la largeur d'un téléphone.
+ * ⚠️ `flex: 1` et pas une largeur : la ligne suit la largeur de l'écran, du plus petit
+ * iPhone à la colonne centrée d'un iPad.
+ */
+function RangeeJours({ t, choisis, onChoisir }: { t: ThemePalette; choisis: number[]; onChoisir: (v: number) => void }) {
+  const s = useMemo(() => makeStyles(t), [t]);
+  return (
+    <View style={s.ligneJours}>
+      {WEEKDAY_OPTS.map((d) => {
+        const on = choisis.includes(d.val);
+        return (
+          <Presse
+            key={d.val} onPress={() => onChoisir(d.val)} activeOpacity={OPACITE_PRESSION}
+            accessibilityRole="button" accessibilityLabel={d.long} accessibilityState={{ selected: on }}
+            style={[s.caseJour, { backgroundColor: on ? t.accent : t.fill, borderColor: on ? t.accent : t.line }]}
+          >
+            <Text style={{ ...Type.captionStrong, color: on ? t.onAccent : t.textTertiary }}>{d.label}</Text>
+          </Presse>
+        );
+      })}
+    </View>
+  );
+}
+
 function NameStep({ t, value, onChange, venuDApple }: { t: ThemePalette; value: string; onChange: (s: string) => void; venuDApple: boolean }) {
   const fade = useRef(new Animated.Value(0)).current;   // opacité du bloc titre
   const lift = useRef(new Animated.Value(22)).current;  // léger glissement vers le haut
@@ -1183,8 +1175,13 @@ function makeStyles(t: ThemePalette) {
     title: { color: t.text, ...Type.h1 },
     sub: { ...Type.body, color: t.textSecondary, lineHeight: 21, marginTop: -Spacing.sm },
     wrap: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },
-    // Une liste verticale de cartes serrées (les jours) : un cran de moins que `block`.
+    // Une liste verticale de cartes serrées : un cran de moins que `block`.
     liste: { gap: Spacing.sm },
+    ligneJours: { flexDirection: 'row', gap: Spacing.sm },
+    caseJour: {
+      flex: 1, height: 48, borderRadius: Radius.button, borderWidth: Trait.fin,
+      alignItems: 'center', justifyContent: 'center',
+    },
     // Une ligne d'information discrète en bas de page (la page « repas »).
     note: { ...Type.caption, color: t.textTertiary, lineHeight: 18 },
     footer: { padding: Spacing.xl, paddingTop: Spacing.sm, backgroundColor: t.bg },
