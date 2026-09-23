@@ -38,7 +38,8 @@ import { MealSlotsPicker } from '../../components/MealSlotsPicker';
 import { NeatPicker } from '../../components/NeatPicker';
 import { MesureField } from '../../components/MesureField';
 import { animerMiseEnPage } from '../../components/Mouvement';
-import { knownSlots } from '../../lib/mealSlots';
+import { knownSlots, slotLabel } from '../../lib/mealSlots';
+import { messageRepasGere } from '../../lib/repasGere';
 import {
   validateProfile, goalLabel, goalSubtitle, recalcProfile, DEFAULT_NEAT_LEVEL,
 } from '../../lib/tdee';
@@ -436,8 +437,24 @@ export default function Onboarding() {
     (etape === 'jours' && joursValid) ||
     (etape === 'repas' && mealsValid);
 
-  const toggleMeal = (v: MealType) =>
+  // 🔴 DÉCOCHER UN REPAS OUVRE UNE BOÎTE, UNE SEULE FOIS (décision fondateur, 2026-09-23).
+  // Elle dit, AVEC LE NOM du repas retiré, qu'un repas toujours identique se RÈGLE au
+  // lieu de se retirer. La phrase vivait en bas de la page : elle s'adressait à tout le
+  // monde, donc à personne, et pas au moment où la question se pose.
+  // ⚠️ À la PREMIÈRE décoche seulement : la deuxième n'apprend plus rien, et deux
+  // interruptions d'affilée apprennent surtout qu'on peut les passer (§8).
+  // ⚠️ Le drapeau vit dans l'écran, pas dans le brouillon : rouvrir l'app à cette page
+  // après l'avoir tuée peut donc la remontrer une fois. C'est le prix d'une clé de moins
+  // — une boîte revue coûte moins cher qu'une boîte jamais vue.
+  const [repasGereMontre, setRepasGereMontre] = useState(false);
+  const toggleMeal = (v: MealType) => {
+    const decoche = meals.includes(v);
     setMeals((arr) => arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v]);
+    if (!decoche || repasGereMontre) return;
+    setRepasGereMontre(true);
+    const { titre, message } = messageRepasGere(v, slotLabel(knownSlots({ meal_slots: customSlots }), v));
+    void notify({ title: titre, message });
+  };
 
   // Un créneau créé est RETENU d'office : on ne demande pas à quelqu'un qui vient
   // d'ajouter « Shaker post-training » de le cocher ensuite pour qu'il compte.
@@ -994,11 +1011,14 @@ export default function Onboarding() {
           </View>
         )}
 
-        {/* Dernière page (décision fondateur, 2026-09-22) : le titre « Tes repas », la liste
-            cochée, et UNE ligne en bas vers les repas qu'on gère soi-même.
-            ⚠️ Cette ligne est une affirmation sur le code : la section « Repas que tu gères
-            toi-même » vit bien dans Profil → Paramètres des repas (`profil.tsx`, éditeur
-            des repas, bouton « Je gère »). Si elle déménage, la phrase ment.
+        {/* Dernière page : le titre « Tes repas » et la liste cochée, rien d'autre.
+            🔴 LA LIGNE DU BAS EST DEVENUE UNE BOÎTE le 2026-09-23 (décision fondateur) :
+            elle ne s'affiche plus à tout le monde en permanence, elle s'ouvre à la
+            PREMIÈRE décoche, avec le nom du repas retiré (`toggleMeal`,
+            `lib/repasGere.ts`).
+            ⚠️ Son contenu reste une affirmation sur le code : la section « Repas que tu
+            gères toi-même » vit bien dans Profil → Paramètres des repas (`profil.tsx`,
+            éditeur des repas, bouton « Je gère »). Si elle déménage, la phrase ment.
             ℹ️ Partis avec le titre seul : « Coche ce que tu manges dans une journée. » (les
             cases cochées le disent) et « Sélectionne au moins 1 repas. », que le message
             du bouton dit déjà (« Choisis au moins un repas. »). */}
@@ -1009,10 +1029,6 @@ export default function Onboarding() {
               t={t} customSlots={customSlots} selected={meals}
               onToggle={toggleMeal} onSaveSlot={saveSlot} onDeleteSlot={deleteSlot}
             />
-            <Text style={s.note}>
-              Un repas que tu prépares toujours toi-même, comme ton petit-déj ? Tu pourras le
-              régler dans Profil → Paramètres des repas.
-            </Text>
           </View>
         )}
         {/* L'étape « récap » a été supprimée (2026-06-20) : le récap et le
@@ -1193,8 +1209,6 @@ function makeStyles(t: ThemePalette) {
       flex: 1, height: 48, borderRadius: Radius.button, borderWidth: Trait.fin,
       alignItems: 'center', justifyContent: 'center',
     },
-    // Une ligne d'information discrète en bas de page (la page « repas »).
-    note: { ...Type.caption, color: t.textTertiary, lineHeight: 18 },
     footer: { padding: Spacing.xl, paddingTop: Spacing.sm, backgroundColor: t.bg },
     indiceBas: { alignItems: 'center', paddingBottom: Spacing.xs },
     hint: { ...Type.captionStrong, color: t.warning, lineHeight: 18, marginBottom: Spacing.md, textAlign: 'center' },
