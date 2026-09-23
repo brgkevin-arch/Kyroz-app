@@ -37,6 +37,17 @@ const KEY = '@kyroz:onboardingDraft';
  */
 export const VERSION = 1;
 
+/**
+ * 🔴 LES JOURS DE PLAN PRÉ-COCHÉS — lundi → vendredi (décision fondateur, 2026-09-23),
+ * et la valeur vit ICI pour que l'écran ET le brouillon partent du même endroit.
+ * Le défaut de l'écran ne suffisait pas : un brouillon relu écrasait la pré-sélection
+ * par la valeur de repli du lecteur (`[]`), donc la rangée se rouvrait VIDE — le défaut
+ * « un réglage qui ne survit pas au brouillon », vu à l'écran le jour même.
+ * ⚠️ Une liste ENREGISTRÉE, même vide, reste la réponse de l'utilisateur : ce repli ne
+ * s'applique qu'à un brouillon où la clé est ABSENTE.
+ */
+export const JOURS_PLAN_PAR_DEFAUT: number[] = [1, 2, 3, 4, 5];
+
 export type OnboardingDraft = {
   step: number;
   firstName: string;
@@ -191,7 +202,7 @@ export function analyser(raw: string | null, totalEtapes: number): OnboardingDra
     dislikes: lire('dislikes', chaines, [] as string[]),
     neat: lire<NeatLevel | null>('neat', (v) => dansOuVide(NEATS, v), null),
     variety: lire<VarietyPreference>('variety', (v) => dans(VARIETES, v), 'balanced'),
-    planWeekdays: lire('planWeekdays', entiers, [] as number[]),
+    planWeekdays: lire('planWeekdays', entiers, JOURS_PLAN_PAR_DEFAUT),
     restWeekdays: lire('restWeekdays', entiers, [] as number[]),
     restTouched: lire('restTouched', booleen, false),
     meals: lire<MealType[]>('meals', chaines, ['breakfast', 'lunch', 'dinner', 'snack']),

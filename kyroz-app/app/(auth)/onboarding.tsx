@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { Presse } from '../../components/Presse';
-import { lireBrouillon, ecrireBrouillon, effacerBrouillon, type OnboardingDraft } from '../../lib/onboardingDraft';
+import { JOURS_PLAN_PAR_DEFAUT, lireBrouillon, ecrireBrouillon, effacerBrouillon, type OnboardingDraft } from '../../lib/onboardingDraft';
 import { GOUT_CHOIX, goutEnregistre, type GoutChoix } from '../../lib/gout';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity, Animated, Easing, AppState,
@@ -269,7 +269,13 @@ export default function Onboarding() {
   // la question corrige (cf. `DEFAULT_NEAT_LEVEL` dans lib/tdee.ts).
   const [neat, setNeat] = useState<NeatLevel | null>(null);
   const [variety, setVariety] = useState<VarietyPreference>('balanced');
-  const [planWeekdays, setPlanWeekdays] = useState<number[]>([]); // rien coché par défaut → l'user sélectionne (noir = off, blanc = on)
+  // 🔴 LUNDI → VENDREDI PRÉ-COCHÉS (décision fondateur, 2026-09-23). C'était vide, au
+  // motif qu'un défaut se fait passer pour une réponse — vrai pour le SEXE ou le poids,
+  // qu'on ne peut pas deviner. Ici la semaine de travail est une hypothèse qui se VOIT
+  // et se décoche d'un geste, sur une rangée où les cinq cases sont allumées.
+  // ⚠️ Et elle ne peut pas arriver en silence dans un profil : `plan_weekdays` est
+  // enregistré tel quel, et l'écran montre exactement ce qui sera servi.
+  const [planWeekdays, setPlanWeekdays] = useState<number[]>(JOURS_PLAN_PAR_DEFAUT);
   const [restWeekdays, setRestWeekdays] = useState<number[]>([]);  // jours SANS entraînement, sur la semaine entière → cyclage
   // ⚠️ Tant que l'utilisateur n'y a pas touché, les jours de repos sont PRÉ-COCHÉS
   // depuis le nombre de séances déclaré (cf. l'effet plus bas). Ce drapeau existe
@@ -860,6 +866,10 @@ export default function Onboarding() {
                 <RangeeJours t={t} choisis={restWeekdays} onChoisir={toggleRestDay} />
               </>
             )}
+            {/* Deux questions sur une page : chacune son intertitre, sinon la grille des
+                sports se lit comme la suite de la rangée des jours (demande fondateur,
+                2026-09-23). */}
+            <Intitule t={t}>Sports</Intitule>
             {/* « Je ne fais pas de sport » est une case de la grille, pleine largeur,
                 sous les sports (refonte visuelle du 2026-09-22). */}
             <SportsEditor
@@ -967,12 +977,13 @@ export default function Onboarding() {
           </View>
         )}
 
-        {/* 🔴 UNE LIGNE DE SEPT CASES, comme les jours de repos (décision fondateur,
-            2026-09-23 — c'était une liste verticale depuis la veille), et « Variété des
-            repas » remonté ici depuis les préférences. Aucun jour pré-coché. */}
+        {/* 🔴 UNE LIGNE DE SEPT CASES, comme les jours de repos, et « Variété des repas »
+            remonté ici depuis les préférences (décisions fondateur, 2026-09-23). Le titre
+            couvre les deux questions, chacune ayant son intertitre. */}
         {etape === 'jours' && (
           <View style={s.block}>
-            <Text style={s.title}>Tes jours de plan</Text>
+            <Text style={s.title}>Ton plan</Text>
+            <Intitule t={t}>Jours de plan</Intitule>
             <RangeeJours t={t} choisis={planWeekdays} onChoisir={togglePlanDay} />
             <Intitule t={t}>Variété des repas</Intitule>
             <View style={{ gap: Spacing.md }}>

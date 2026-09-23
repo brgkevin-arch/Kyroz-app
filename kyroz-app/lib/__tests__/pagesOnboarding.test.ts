@@ -71,3 +71,40 @@ describe('la dernière page renvoie vers un réglage qui EXISTE', () => {
   });
 });
 
+describe('les deux pages à DEUX questions (2026-09-23)', () => {
+  // Une page qui pose deux questions doit les séparer, sinon la seconde se lit comme la
+  // suite de la première — la grille des sports comme la suite de la rangée des jours.
+  const entre = (a: string, b: string) => {
+    const i = onboarding.indexOf(a);
+    return i < 0 ? '' : onboarding.slice(i, b ? onboarding.indexOf(b, i) : undefined);
+  };
+
+  it('« Tes séances » : les jours de repos, puis un intertitre « Sports »', () => {
+    const page = entre("{etape === 'seances' && (", "{etape === 'objectif' && (");
+    expect(page).toContain('<Intitule t={t}>Jours de repos</Intitule>');
+    expect(page).toContain('<Intitule t={t}>Sports</Intitule>');
+    expect(page.indexOf('Jours de repos')).toBeLessThan(page.indexOf('<Intitule t={t}>Sports'));
+  });
+
+  it('« Ton plan » : les jours de plan, puis la variété', () => {
+    const page = entre("{etape === 'jours' && (", "{etape === 'repas' && (");
+    expect(page).toContain('<Text style={s.title}>Ton plan</Text>');
+    expect(page).toContain('<Intitule t={t}>Jours de plan</Intitule>');
+    expect(page).toContain('<Intitule t={t}>Variété des repas</Intitule>');
+    expect(page.indexOf('Jours de plan')).toBeLessThan(page.indexOf('Variété des repas'));
+  });
+
+  it('🔴 lundi → vendredi sont pré-cochés, et rien d’autre ne l’est', () => {
+    // Décision fondateur : la semaine de travail est une hypothèse qui SE VOIT sur la
+    // rangée et se décoche d'un geste. Les jours de REPOS, eux, ne se pré-cochent
+    // toujours pas — c'est leur absence qui fait déduire le moteur (`joursDeRepos`).
+    expect(onboarding).toContain('const [planWeekdays, setPlanWeekdays] = useState<number[]>(JOURS_PLAN_PAR_DEFAUT);');
+    // …et le brouillon repart de la MÊME liste quand la clé est absente : sinon un
+    // brouillon relu rouvre la rangée VIDE (vu à l'écran le 2026-09-23).
+    const draft = readFileSync(join(RACINE, 'lib/onboardingDraft.ts'), 'utf8');
+    expect(draft).toContain('export const JOURS_PLAN_PAR_DEFAUT: number[] = [1, 2, 3, 4, 5];');
+    expect(draft).toContain("lire('planWeekdays', entiers, JOURS_PLAN_PAR_DEFAUT)");
+    expect(onboarding).toContain('const [restWeekdays, setRestWeekdays] = useState<number[]>([]);');
+  });
+});
+
