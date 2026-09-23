@@ -219,7 +219,16 @@ installation neuve part du binaire, donc du (6).
   encore `0639ecc` après la compilation, 0 PR ouverte — le piège du 11 août ne s'est pas
   rejoué). *(Le précédent :)* le **(6)** — `ceec1b17`, commit
   `1047b9f`, terminé le 2026-08-11 à 20 h 37. Il a **62 commits de retard** sur `main` — chiffre RE-MESURÉ le 2026-08-26 (il en annonçait 40, mesurés le 2026-08-23), qui **grandit à chaque merge** : le relire avec `git rev-list --count 1047b9f..origin/main` plutôt que de le recopier (même défaut que le décompte d'OTA tenu à la main).
-- **OTA** : la dernière est la **50ᵉ** (groupe `53bcaaa3`, **iOS seulement**, 2026-09-22),
+- **OTA** : la dernière est la **51ᵉ** (groupe `f5eb510c`, **iOS seulement**, 2026-09-23),
+  publiée sur le commit `b65ea04` — `main`, arbre propre, détaché sur `origin/main`.
+  ✅ **Runtime iOS `823c89db…` = le build (22)**, empreinte comparée AVANT publication.
+  Contenu : **l'inscription refondue, 7 → 9 pages** (#343 → #351, E73) — poids et taille
+  à la roulette, activité et séances séparées, jours de repos en une ligne de sept cases
+  sur la page des séances, préférences dévoilées une question à la fois en grille
+  rectangulaire, « Ton plan » avec lundi → vendredi pré-cochés et la variété, et une
+  boîte à la première décoche d'un repas. Pas d'`ENGINE_VERSION` : le moteur de plan ne
+  change pas. Aucun changement natif.
+  *(La précédente :)* la **50ᵉ** (groupe `53bcaaa3`, **iOS seulement**, 2026-09-22),
   publiée sur le commit `54d3d42` — `main`, arbre propre, détaché sur `origin/main`.
   ✅ **Runtime iOS `823c89db…` = le build (22)**, empreinte comparée AVANT publication.
   Contenu : la **déduction après repas respecte l'unité du stock** (#340) — 3 bananes
