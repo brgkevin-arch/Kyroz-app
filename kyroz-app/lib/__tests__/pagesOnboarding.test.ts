@@ -60,8 +60,21 @@ describe('la dernière page renvoie vers un réglage qui EXISTE', () => {
   // l'éditeur que la ligne « Paramètres des repas » du Profil ouvre.
   const profil = sansCommentaires(readFileSync(join(RACINE, 'app/(tabs)/profil.tsx'), 'utf8'));
 
-  it('la phrase est à l’écran', () => {
-    expect(onboarding).toContain('régler dans Profil → Paramètres des repas.');
+  it('la phrase est servie à la première DÉCOCHE, et une seule fois', () => {
+    // Elle vivait en bas de la page, pour tout le monde et en permanence ; c'est une
+    // boîte depuis le 2026-09-23 (décision fondateur), avec le nom du repas retiré.
+    expect(onboarding).toContain('const decoche = meals.includes(v);');
+    expect(onboarding).toContain('if (!decoche || repasGereMontre) return;');
+    expect(onboarding).toContain('setRepasGereMontre(true);');
+    expect(onboarding).toContain('void notify({ title: titre, message });');
+    // …et plus aucune ligne permanente : la page ne porte que son titre et la liste.
+    expect(onboarding).not.toContain('Un repas que tu prépares toujours toi-même');
+  });
+
+  it('le chemin cité par la boîte est écrit à UN endroit', () => {
+    const repasGere = readFileSync(join(RACINE, 'lib/repasGere.ts'), 'utf8');
+    expect(repasGere).toContain("export const CHEMIN_REGLAGE = 'Profil → Paramètres des repas';");
+    expect(repasGere).toContain('${CHEMIN_REGLAGE}');
   });
 
   it('le Profil a bien la ligne ET la section qu’elle promet', () => {
