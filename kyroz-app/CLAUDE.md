@@ -899,8 +899,9 @@ ci-dessus, « aucune répartition n'est inventée »). Mesuré sur le moteur, H 
 plus bas démentait donc la phrase, sur l'écran le plus regardé de l'app.
 ➡️ La phrase passe désormais par le même prédicat que la bulle de visite guidée qui parle
 de la même chose (§8, `moduleParVolume` : amplitude ≥ 40 kcal, seuil et calcul partagés
-avec `FirstPlanReveal`). ⚠️ **Un jour de repos reste un jour de repos** — la lune de la
-rangée de jours ne bouge pas : c'est une déclaration de l'utilisateur, elle est vraie. Ce
+avec `FirstPlanReveal`). ⚠️ **Un jour de repos reste un jour de repos** — l'en-tête
+« Jour 3 – Repos » le dit (il a remplacé la lune de la rangée de jours le 2026-09-23) :
+c'est une déclaration de l'utilisateur, elle est vraie. Ce
 qui était faux, c'est la promesse CALORIQUE accrochée derrière.
 ➡️ Et c'est la **capture des deux textes côte à côte** qui l'a montré, pas la relecture :
 la bulle se conditionnait déjà, l'écran non.
