@@ -258,3 +258,33 @@ export function ressortReduit(r: Ressort, reduire: boolean): Ressort {
   if (!reduire) return r;
   return { amortissement: 1, reponse: Math.min(r.reponse, 0.2) };
 }
+
+/**
+ * La CASCADE d'une page d'inscription (décision fondateur, 2026-09-26 : « super
+ * fluide, à la Apple »). Le titre entre, puis le sous-titre, puis chaque champ,
+ * chacun un `pas` après le précédent — l'œil lit dans l'ordre où les choses
+ * arrivent, comme sur l'écran de configuration d'un iPhone.
+ *
+ * ⚠️ `max` borne l'attente : sans lui, le dixième élément d'une longue page
+ * arriverait une demi-seconde après le premier, et la page paraîtrait LENTE au
+ * lieu de fluide. Au-delà, tout entre ensemble.
+ * ⚠️ `fenetre` distingue l'entrée de la page d'un DÉVOILEMENT : une question qui
+ * apparaît après un choix (le sexe, un palier des préférences) n'attend personne,
+ * elle entre tout de suite.
+ */
+export const CASCADE = {
+  /** Écart entre deux éléments successifs, en ms. */
+  pas: 55,
+  /** Nombre d'éléments décalés ; les suivants partent avec le dernier. */
+  max: 5,
+  /** Passé ce délai après le montage de la page, un élément nouveau entre sans attendre. */
+  fenetre: 400,
+  /** Distance parcourue en entrant, en points. Assez pour se sentir, pas pour se voir. */
+  glissement: 14,
+} as const;
+
+/** Délai d'entrée de l'élément `index`, monté `depuisMontage` ms après sa page. */
+export function delaiCascade(index: number, depuisMontage: number, reduire: boolean): number {
+  if (reduire || depuisMontage > CASCADE.fenetre) return 0;
+  return Math.min(Math.max(0, index), CASCADE.max) * CASCADE.pas;
+}

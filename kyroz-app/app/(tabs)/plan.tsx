@@ -5,7 +5,6 @@ import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, RefreshControl, AppState,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme, ThemePalette, Radius, Spacing, Type, Trait, Icone, OPACITE_PRESSION , Fond } from '../../constants/theme';
 import { useCollapsingTitle, CompactTitleBar } from '../../components/CollapsingTitle';
@@ -821,7 +820,13 @@ export default function PlanScreen() {
   // de banque). Avec la cible plate, un jour déclaré « resto +600 » s'affichait comme
   // 600 kcal de dépassement — alors que c'est exactement ce que l'utilisateur a demandé.
   const dayTarget = (plan && profile) ? dayTargetKcal(profile, plan.days, selectedDay) : profile?.target_kcal;
-  const restDayNums = new Set((plan?.meals ?? []).filter((m) => m.rest_day).map((m) => m.day));
+  // « Repos » ne s'affiche que pour qui a déclaré au moins une séance (décision
+  // fondateur, 2026-09-26). Sans sport, le moteur marque TOUS les jours en repos
+  // (`restDaysForProfile` : 0 séance → 7 jours de repos) — juste en arithmétique,
+  // absurde à l'écran : « Jour 1 – Repos », « Jour 2 – Repos »… Le drapeau
+  // `rest_day` du moteur, lui, n'est pas touché.
+  const aDesSeances = (profile?.sports?.length ?? 0) > 0;
+  const restDayNums = new Set(aDesSeances ? (plan?.meals ?? []).filter((m) => m.rest_day).map((m) => m.day) : []);
   const dayExtraKcal = plan?.day_extras?.[selectedDay]?.kcal ?? 0;
   const dayExtraLabel = plan?.day_extras?.[selectedDay]?.label;
   // Déjà consommé aujourd'hui (repas mangés verrouillés + écarts hors-plan) → « restant ».
@@ -1014,11 +1019,8 @@ export default function PlanScreen() {
                     <View style={[s.dayDot, on && { backgroundColor: t.accent }]}>
                       <Text style={[s.dayNum, { color: on ? t.onAccent : t.text }]}>{meta.num}</Text>
                     </View>
-                    {/* Hauteur réservée même sans lune : sinon la rangée se décale
-                        verticalement selon qu'un jour de repos est présent ou non. */}
-                    <View style={s.dayMoon}>
-                      {repos && <Ionicons name="moon" size={Icone.petite} color={t.textTertiary} />}
-                    </View>
+                    {/* La LUNE des jours de repos a été retirée le 2026-09-23 (décision
+                        fondateur) : le repos se lit dans l'en-tête « Jour 3 – Repos ». */}
                   </Presse>
                 );
               })}
@@ -1030,7 +1032,7 @@ export default function PlanScreen() {
                 liste ». */}
             {dayMacros && (
               <View>
-                <SectionLabel t={t}>Jour {selectedDay}</SectionLabel>
+                <SectionLabel t={t}>Jour {selectedDay}{restDayNums.has(selectedDay) ? ' – Repos' : ''}</SectionLabel>
                 {/* 🔴 LE BANDEAU « JOUR DE REPOS · … » A ÉTÉ RETIRÉ LE 2026-08-25
                     (décision fondateur). Il disait vrai — il avait même été corrigé
                     deux fois pour ça : « (mêmes kcal) » était devenu faux avec la
@@ -1042,8 +1044,9 @@ export default function PlanScreen() {
                     de cet écran n'explique pourquoi un jour de repos affiche moins de
                     calories. La bulle de tuto qui en parlait est partie le même jour,
                     et la notice des Paramètres des repas aussi. Il reste :
-                      · la LUNE de la rangée de jours, qui dit QUE c'est un jour de
-                        repos (avec son `accessibilityLabel`), mais pas pourquoi ;
+                      · « – Repos » dans l'en-tête du jour (la lune de la rangée l'a
+                        remplacé le 2026-09-23), qui dit QUE c'est un jour de repos,
+                        mais pas pourquoi ;
                       · `FirstPlanReveal`, une fois, au tout premier plan.
                     ⚠️ Le moteur, lui, n'a pas changé : `dayTargetKcal` module toujours
                     le budget sur la dépense du jour. C'est le TEXTE qui part, pas la
@@ -1408,10 +1411,6 @@ function makeStyles(t: ThemePalette) {
     // taille FIXE — c'est la condition posée par lib/__tests__/rayonsDA.test.ts.
     dayDot: { width: 40, height: 40, borderRadius: Radius.pill, alignItems: 'center', justifyContent: 'center' },
     dayNum: {  },
-    // ⚠️ La hauteur SUIT la taille de l'icône (2026-08-14). Elle valait 13 pour
-    // une lune de 16 : la lune était rognée en haut et en bas, et ça ne se voit
-    // que sur une capture — un croissant tronqué reste un croissant plausible.
-    dayMoon: { height: Icone.petite, alignItems: 'center', justifyContent: 'center' },
     extraRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: Spacing.md },
     // Les deux actions du jour partagent EXACTEMENT le même gabarit : elles sont de
     // même rang, donc rien ne doit laisser croire que l'une prime sur l'autre.

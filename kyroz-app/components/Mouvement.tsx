@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, Easing, LayoutAnimation, Platform, StyleProp, UIManager, ViewStyle } from 'react-native';
-import { DUREE, dureeReduite } from '../lib/motion';
+import { DUREE, dureeReduite, ressortReduit, ressortRN, type Ressort } from '../lib/motion';
 import { reduceMotionActif, useReduceMotion } from '../lib/reduceMotion';
 
 // ── Ce qui APPARAÎT, DISPARAÎT ou SE DÉPLACE dans une liste ──────────────────
@@ -82,19 +82,29 @@ export function animerMiseEnPage(duree: number = DUREE.court): void {
  * 0 à 100 % en une frame, le seul moment où l'écran dit « ça avance ».
  */
 export function Jauge({
-  style, remplissage, pct, couleur,
+  style, remplissage, pct, couleur, ressort,
 }: {
   style?: StyleProp<ViewStyle>;
   remplissage?: StyleProp<ViewStyle>;
   /** 0 à 100. */
   pct: number;
   couleur: string;
+  /**
+   * Un ressort au lieu du fondu court : pour une jauge qu'on ne remplit pas trente
+   * fois d'affilée (la progression de l'inscription), où le geste peut prendre le
+   * temps de se POSER. Sans lui, `DUREE.instant`, le défaut des Courses.
+   */
+  ressort?: Ressort;
 }) {
   const reduire = useReduceMotion();
   const part = Math.max(0, Math.min(1, pct / 100));
   const valeur = useRef(new Animated.Value(part)).current;
 
   useEffect(() => {
+    if (ressort) {
+      Animated.spring(valeur, { toValue: part, ...ressortRN(ressortReduit(ressort, reduire)), useNativeDriver: true }).start();
+      return;
+    }
     Animated.timing(valeur, {
       toValue: part,
       duration: dureeReduite(DUREE.instant, reduire),
@@ -103,7 +113,7 @@ export function Jauge({
       easing: Easing.out(Easing.cubic),
       useNativeDriver: true,
     }).start();
-  }, [part, reduire, valeur]);
+  }, [part, reduire, valeur, ressort]);
 
   return (
     <Animated.View style={style}>
