@@ -820,7 +820,13 @@ export default function PlanScreen() {
   // de banque). Avec la cible plate, un jour déclaré « resto +600 » s'affichait comme
   // 600 kcal de dépassement — alors que c'est exactement ce que l'utilisateur a demandé.
   const dayTarget = (plan && profile) ? dayTargetKcal(profile, plan.days, selectedDay) : profile?.target_kcal;
-  const restDayNums = new Set((plan?.meals ?? []).filter((m) => m.rest_day).map((m) => m.day));
+  // « Repos » ne s'affiche que pour qui a déclaré au moins une séance (décision
+  // fondateur, 2026-09-26). Sans sport, le moteur marque TOUS les jours en repos
+  // (`restDaysForProfile` : 0 séance → 7 jours de repos) — juste en arithmétique,
+  // absurde à l'écran : « Jour 1 – Repos », « Jour 2 – Repos »… Le drapeau
+  // `rest_day` du moteur, lui, n'est pas touché.
+  const aDesSeances = (profile?.sports?.length ?? 0) > 0;
+  const restDayNums = new Set(aDesSeances ? (plan?.meals ?? []).filter((m) => m.rest_day).map((m) => m.day) : []);
   const dayExtraKcal = plan?.day_extras?.[selectedDay]?.kcal ?? 0;
   const dayExtraLabel = plan?.day_extras?.[selectedDay]?.label;
   // Déjà consommé aujourd'hui (repas mangés verrouillés + écarts hors-plan) → « restant ».
