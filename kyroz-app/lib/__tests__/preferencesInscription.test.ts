@@ -28,7 +28,9 @@ describe('la page « séances » respire', () => {
     // `gap` à tous les autres — l'intertitre collait aux bulles, la ligne « ≈ N kcal »
     // collait au bouton. Depuis le 2026-09-22 les séances ont LEUR page : elle doit
     // s'ouvrir sur `s.block`, comme les autres.
-    const page = onboarding.match(/etape === 'seances' && \(\s*<View style=\{s\.block\}>/);
+    // ℹ️ Depuis le 2026-09-26 les pages s'ouvrent sur `BlocCascade` (entrée en cascade),
+    // qui porte le même `s.block` : c'est le STYLE qui compte ici, pas la balise.
+    const page = onboarding.match(/etape === 'seances' && \(\s*<(?:View|BlocCascade) style=\{s\.block\}[ >]/);
     expect(page, 'la page des séances doit s’ouvrir sur `s.block`').not.toBeNull();
   });
 });

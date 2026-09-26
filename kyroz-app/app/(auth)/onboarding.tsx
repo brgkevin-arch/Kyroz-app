@@ -6,7 +6,7 @@ import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity, Animated, Easing, AppState,
   type LayoutChangeEvent,
 } from 'react-native';
-import { DUREE, dureeReduite } from '../../lib/motion';
+import { DUREE, RESSORT, dureeReduite } from '../../lib/motion';
 import { resteAScroller } from '../../lib/apercuIntro';
 import { reduceMotionActif } from '../../lib/reduceMotion';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -37,7 +37,8 @@ import {
 import { MealSlotsPicker } from '../../components/MealSlotsPicker';
 import { NeatPicker } from '../../components/NeatPicker';
 import { MesureField } from '../../components/MesureField';
-import { animerMiseEnPage } from '../../components/Mouvement';
+import { Jauge } from '../../components/Mouvement';
+import { BlocCascade } from '../../components/Cascade';
 import { knownSlots, slotLabel } from '../../lib/mealSlots';
 import { messageRepasGere } from '../../lib/repasGere';
 import {
@@ -627,14 +628,18 @@ export default function Onboarding() {
   // une règle vivante (CLAUDE.md, A23). Ce qui reste de la décision : la RANGÉE de
   // jours de repos ne s'affiche pas quand « Je ne fais pas de sport » est coché.
 
+  // Le SENS de la dernière navigation : la page suivante monte, la précédente
+  // descend — l'écran dit dans quelle direction on s'est déplacé.
+  const sens = useRef<1 | -1>(1);
   const next = () => {
+    sens.current = 1;
     if (saving) return;
     if (!canProceed) { setAvanceTentee(true); return; }
     setAvanceTentee(false);
     if (step < TOTAL_STEPS) setStep(step + 1);
     else finish();
   };
-  const back = () => { if (step > 1) { setAvanceTentee(false); setStep(step - 1); } };
+  const back = () => { if (step > 1) { sens.current = -1; setAvanceTentee(false); setStep(step - 1); } };
 
   const finish = async () => {
     // 🔴 LE SEXE NE SE DEVINE PAS. L'étape 2 interdit d'arriver ici sans lui, donc ce
@@ -775,7 +780,8 @@ export default function Onboarding() {
         <Presse onPress={back} disabled={step === 1} style={[s.backBtn, step === 1 && { opacity: 0 }]}>
           <Ionicons name="chevron-back" size={Icone.action} color={t.text} />
         </Presse>
-        <View style={s.track}><View style={[s.fill, { width: `${(step / TOTAL_STEPS) * 100}%` }]} /></View>
+        {/* Sur ressort : la barre GLISSE jusqu'au cran suivant au lieu d'y sauter. */}
+        <Jauge style={s.track} remplissage={s.fill} pct={(step / TOTAL_STEPS) * 100} couleur={t.accent} ressort={RESSORT.pose} />
       </View>
 
       <ScrollView
@@ -795,7 +801,7 @@ export default function Onboarding() {
         {etape === 'prenom' && <NameStep t={t} value={firstName} onChange={setFirstName} venuDApple={parApple && firstName.trim().length > 0} />}
 
         {etape === 'infos' && (
-          <View style={s.block}>
+          <BlocCascade style={s.block} sens={sens.current}>
             <Text style={s.title}>Tes infos de base</Text>
             <Text style={s.sub}>Pour calculer ton métabolisme et tes macros au plus juste.</Text>
             {/* Le sexe OUVRE l'étape : les trois champs suivants n'apparaissent qu'une
@@ -809,7 +815,7 @@ export default function Onboarding() {
               t={t}
               options={[{ label: 'Homme', value: 'male' }, { label: 'Femme', value: 'female' }]}
               value={sex}
-              onChange={(v) => { animerMiseEnPage(); setSex(v); }}
+              onChange={setSex}
             />
             {sex && (
               <>
@@ -826,7 +832,7 @@ export default function Onboarding() {
                 <MesureField t={t} mesure="taille" value={height} onChange={setHeight} sex={sex} />
               </>
             )}
-          </View>
+          </BlocCascade>
         )}
 
         {/* ⚠️ `&& sex` : le sélecteur de %MG est SEXUÉ — planches de silhouettes
@@ -834,7 +840,7 @@ export default function Onboarding() {
             garantit déjà le sexe ; la garde rend cette dépendance visible ici, là où on
             la lirait, plutôt que dans le type d'un composant deux fichiers plus loin. */}
         {etape === 'masseGrasse' && sex && (
-          <View style={s.block}>
+          <BlocCascade style={s.block} sens={sens.current}>
             <Text style={s.title}>Ta masse grasse</Text>
             <Text style={s.sub}>
               Choisis la silhouette la plus proche de toi, ou saisis ton % si tu le connais.
@@ -847,7 +853,7 @@ export default function Onboarding() {
               onChange={(pct, src) => { setBodyFat(pct); setBodyFatSource(src); }}
               body={{ sex, age: ageN, weight_kg: wN, height_cm: hN }}
             />
-          </View>
+          </BlocCascade>
         )}
 
         {/* 🔴 UNE PAGE PAR QUESTION depuis le 2026-09-22 (décision fondateur) : l'activité
@@ -858,10 +864,10 @@ export default function Onboarding() {
             capitales dans le Profil qui partage le composant — la demande ne visait que
             l'onboarding. */}
         {etape === 'activite' && (
-          <View style={s.block}>
+          <BlocCascade style={s.block} sens={sens.current}>
             <Text style={s.title}>Ton activité</Text>
             <NeatPicker t={t} value={neat} onChange={setNeat} intitule="phrase" />
-          </View>
+          </BlocCascade>
         )}
 
         {/* 🔴 LES JOURS DE REPOS SONT REMONTÉS ICI le 2026-09-23 (décision fondateur :
@@ -875,7 +881,7 @@ export default function Onboarding() {
             ⚠️ Facultative : sans geste, `restTouched` reste faux, rien n'est écrit, et le
             moteur déduit lui-même les jours de repos. */}
         {etape === 'seances' && (
-          <View style={s.block}>
+          <BlocCascade style={s.block} sens={sens.current}>
             <Text style={s.title}>Tes séances</Text>
             {!noSport && (
               <>
@@ -899,11 +905,11 @@ export default function Onboarding() {
                 onToggle: () => { const v = !noSport; setNoSport(v); if (v) setSports([]); },
               }}
             />
-          </View>
+          </BlocCascade>
         )}
 
         {etape === 'objectif' && (
-          <View style={s.block}>
+          <BlocCascade style={s.block} sens={sens.current}>
             <Text style={s.title}>Ton objectif</Text>
             <Text style={s.sub}>Le plan sera calibré précisément pour ça.</Text>
             <View style={{ gap: Spacing.md }}>
@@ -931,14 +937,14 @@ export default function Onboarding() {
                 </Presse>
               </Card>
             )}
-          </View>
+          </BlocCascade>
         )}
 
         {/* Titre seul, intertitres en casse de phrase, et chaque question n'apparaît
             qu'une fois la précédente répondue (décision fondateur, 2026-09-22 ; le
             mécanisme est expliqué avec `niveauMontre`). */}
         {etape === 'preferences' && (
-          <View style={s.block} onLayout={(e) => { yPreferences.current = e.nativeEvent.layout.y; }}>
+          <BlocCascade style={s.block} sens={sens.current} onLayout={(e) => { yPreferences.current = e.nativeEvent.layout.y; }}>
             <Text style={s.title}>Tes préférences</Text>
 
             {/* 🔴 La grille RECTANGULAIRE des séances (décision fondateur, 2026-09-22) :
@@ -991,14 +997,14 @@ export default function Onboarding() {
                 <DislikedFoodsField t={t} value={dislikes} onChange={setDislikes} intitule="phrase" />
               </View>
             )}
-          </View>
+          </BlocCascade>
         )}
 
         {/* 🔴 UNE LIGNE DE SEPT CASES, comme les jours de repos, et « Variété des repas »
             remonté ici depuis les préférences (décisions fondateur, 2026-09-23). Le titre
             couvre les deux questions, chacune ayant son intertitre. */}
         {etape === 'jours' && (
-          <View style={s.block}>
+          <BlocCascade style={s.block} sens={sens.current}>
             <Text style={s.title}>Ton plan</Text>
             <Intitule t={t}>Jours de plan</Intitule>
             <RangeeJours t={t} choisis={planWeekdays} onChoisir={togglePlanDay} />
@@ -1008,7 +1014,7 @@ export default function Onboarding() {
                 <OptionCard key={v.value} t={t} title={v.title} subtitle={v.sub} selected={variety === v.value} onPress={() => setVariety(v.value)} />
               ))}
             </View>
-          </View>
+          </BlocCascade>
         )}
 
         {/* Dernière page : le titre « Tes repas » et la liste cochée, rien d'autre.
@@ -1023,13 +1029,13 @@ export default function Onboarding() {
             cases cochées le disent) et « Sélectionne au moins 1 repas. », que le message
             du bouton dit déjà (« Choisis au moins un repas. »). */}
         {etape === 'repas' && (
-          <View style={s.block}>
+          <BlocCascade style={s.block} sens={sens.current}>
             <Text style={s.title}>Tes repas</Text>
             <MealSlotsPicker
               t={t} customSlots={customSlots} selected={meals}
               onToggle={toggleMeal} onSaveSlot={saveSlot} onDeleteSlot={deleteSlot}
             />
-          </View>
+          </BlocCascade>
         )}
         {/* L'étape « récap » a été supprimée (2026-06-20) : le récap et le
             disclaimer vivent dans le reveal du 1er plan
