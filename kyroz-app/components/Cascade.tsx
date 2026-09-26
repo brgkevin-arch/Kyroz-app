@@ -1,5 +1,5 @@
 import React, { Children, Fragment, cloneElement, isValidElement, useEffect, useRef } from 'react';
-import { Animated, Easing, StyleProp, View, ViewStyle, LayoutChangeEvent } from 'react-native';
+import { Animated, Easing, StyleProp, StyleSheet, View, ViewStyle, LayoutChangeEvent } from 'react-native';
 import { CASCADE, DUREE, RESSORT, delaiCascade, dureeReduite, ressortReduit, ressortRN } from '../lib/motion';
 import { reduceMotionActif } from '../lib/reduceMotion';
 
@@ -74,7 +74,10 @@ function aplatir(children: React.ReactNode): React.ReactElement[] {
  * aussitôt, avec le même geste.
  *
  * ⚠️ Chaque enfant est enveloppé : le `gap` du bloc s'applique donc aux
- * enveloppes, comme avant aux enfants. Et un `onLayout` posé sur un enfant
+ * enveloppes, comme avant aux enfants. 🔴 ET CHAQUE ENVELOPPE REPREND CE `gap`
+ * (signalé sur capture le 2026-09-27) : un composant qui rend un FRAGMENT
+ * (`NeatPicker`, intitulé + quatre cartes) comptait sur le `gap` du bloc pour
+ * espacer ses propres éléments. Enveloppé sans lui, tout s'est collé. Et un `onLayout` posé sur un enfant
  * REMONTE sur son enveloppe — sinon sa position mesurée deviendrait 0 (relative à
  * l'enveloppe), et le défilement automatique des préférences viserait le haut
  * de la page.
@@ -90,6 +93,8 @@ export function BlocCascade({
   const monte = useRef(Date.now()).current;
   const reduire = reduceMotionActif();
   const depuis = Date.now() - monte;
+  const plat = StyleSheet.flatten(style) ?? {};
+  const espacement = { gap: plat.gap, rowGap: plat.rowGap };
   return (
     <View style={style} onLayout={onLayout}>
       {aplatir(children).map((enfant, i) => {
@@ -97,7 +102,7 @@ export function BlocCascade({
         const surMesure = props.onLayout;
         const nu = surMesure ? cloneElement(enfant as React.ReactElement<{ onLayout?: unknown }>, { onLayout: undefined }) : enfant;
         return (
-          <Apparition key={enfant.key ?? i} delai={delaiCascade(i, depuis, reduire)} sens={sens} onLayout={surMesure}>
+          <Apparition key={enfant.key ?? i} style={espacement} delai={delaiCascade(i, depuis, reduire)} sens={sens} onLayout={surMesure}>
             {nu}
           </Apparition>
         );
