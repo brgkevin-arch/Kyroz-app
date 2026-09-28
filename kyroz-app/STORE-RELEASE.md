@@ -219,7 +219,17 @@ installation neuve part du binaire, donc du (6).
   encore `0639ecc` après la compilation, 0 PR ouverte — le piège du 11 août ne s'est pas
   rejoué). *(Le précédent :)* le **(6)** — `ceec1b17`, commit
   `1047b9f`, terminé le 2026-08-11 à 20 h 37. Il a **62 commits de retard** sur `main` — chiffre RE-MESURÉ le 2026-08-26 (il en annonçait 40, mesurés le 2026-08-23), qui **grandit à chaque merge** : le relire avec `git rev-list --count 1047b9f..origin/main` plutôt que de le recopier (même défaut que le décompte d'OTA tenu à la main).
-- **OTA** : la dernière est la **51ᵉ** (groupe `f5eb510c`, **iOS seulement**, 2026-09-23),
+- **OTA** : la dernière est la **53ᵉ** (groupe `f7f00775`, **iOS seulement**, 2026-09-28),
+  publiée sur le commit `b00a0cc` — `main`, arbre propre, détaché sur `origin/main`.
+  ℹ️ Même contenu que la **52ᵉ** (groupe `f77afb19`, 2026-09-27), republiée parce que
+  la 52ᵉ était partie d'un arbre marqué NON propre (seule modification :
+  `.claude/launch.json`, outil local hors app) — `check:ota` la refusait à raison.
+  ✅ **Runtime iOS `823c89db…` = le build (22)**, empreinte comparée AVANT publication.
+  Contenu (#354) : **Plan** — plus de lune dans la rangée des jours, « Jour N – Repos » dans
+  l'en-tête seulement si une séance est déclarée ; **inscription** — les pages entrent en
+  cascade (fondu + légère montée, descente au retour), barre de progression sur ressort.
+  Pas d'`ENGINE_VERSION`, aucun changement natif.
+  *(La précédente :)* la **51ᵉ** (groupe `f5eb510c`, **iOS seulement**, 2026-09-23),
   publiée sur le commit `b65ea04` — `main`, arbre propre, détaché sur `origin/main`.
   ✅ **Runtime iOS `823c89db…` = le build (22)**, empreinte comparée AVANT publication.
   Contenu : **l'inscription refondue, 7 → 9 pages** (#343 → #351, E73) — poids et taille
