@@ -30,7 +30,6 @@ import { MessageEnLigne } from '../../components/MessageEnLigne';
 import { preuveExigee, messageEchecReauth } from '../../lib/suppressionCompte';
 import { WeightSummaryCard } from '../../components/WeightSummaryCard';
 import { useTour, resetAllTours } from '../../components/GuidedTour';
-import { visiteApp } from '../../lib/tours';
 import { BodyFatPicker } from '../../components/BodyFatPicker';
 import { DislikedFoodsField } from '../../components/DislikedFoodsField';
 import { ProteinesParRegime } from '../../components/ProteinesParRegime';
@@ -411,6 +410,9 @@ export default function ProfilScreen() {
   // SUITE — elle part du Plan (sa première étape y navigue) et y revient. Sans ce
   // lancement immédiat, l'action n'aurait aucun effet visible : la personne resterait
   // devant une ligne de menu qui a l'air de n'avoir rien fait.
+  // ⚠️ `relancer` et non `startTour` : c'est le PLAN qui porte la visite (ses étapes,
+  // et son défilement jusqu'au premier repas). S'il n'est pas monté — app ouverte
+  // directement sur le Profil —, on l'ouvre : la visite, oubliée, y repart d'elle-même.
   // ⚠️ Pas de `notify` de confirmation : le dialogue est lui aussi une modale, et
   // il se poserait PAR-DESSUS la bulle qu'on vient de lancer (ou l'inverse). Le
   // tour qui démarre EST le retour visuel — c'est plus clair qu'un message qui
@@ -419,12 +421,11 @@ export default function ProfilScreen() {
   // visite partait depuis la feuille Réglages, restée ouverte — iOS la refusait, et elle
   // restait invisible par-dessus l'écran une fois la feuille refermée. On ferme d'abord ;
   // la visite attend que la feuille soit partie (`startTour`, lib/modalesPresentees.ts).
-  const { startTour } = useTour();
-  const [repasAuto] = useRepasAuto();
+  const { relancer } = useTour();
   const revoirVisite = async () => {
     await resetAllTours();
     setReglages(false);
-    startTour('app', visiteApp({ repasAuto }));
+    if (!relancer('app')) router.navigate('/(tabs)/plan');
   };
 
   const appVersion = Constants.expoConfig?.version ?? '1.0.0';

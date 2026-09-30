@@ -46,12 +46,18 @@ export const ESSAIS_MESURE = 20;
  * ⚠️ Une cible PLUS HAUTE que la zone dégagée ne peut pas y tenir : la faire
  * défiler ne la rendrait pas plus visible, ça ne ferait que bouger l'écran sous
  * quelqu'un qui lit. On la déclare visible.
+ *
+ * ➕ `margeBas` (2026-09-30) : la visite d'onglets pose sa CARTE en bas de l'écran,
+ * au-dessus de la barre. Une cible « à l'écran » mais sous la carte est aussi
+ * invisible qu'une cible sous la barre — c'est exactement ce qui cachait le bouton
+ * « J'ai cuisiné » dont parle l'arrêt du Plan. Le bas se dégage donc de la hauteur de
+ * la carte, le haut garde sa marge ordinaire.
  */
-export function dejaVisible(cadre: Cadre, hauteurEcran: number, marge = MARGE_VISIBLE): boolean {
-  const zone = hauteurEcran - marge * 2;
+export function dejaVisible(cadre: Cadre, hauteurEcran: number, marge = MARGE_VISIBLE, margeBas = marge): boolean {
+  const zone = hauteurEcran - marge - margeBas;
   if (zone <= 0) return true;              // écran plus petit que ses propres barres
   if (cadre.height >= zone) return true;   // rien à gagner à défiler
-  return cadre.y >= marge && cadre.y + cadre.height <= hauteurEcran - marge;
+  return cadre.y >= marge && cadre.y + cadre.height <= hauteurEcran - margeBas;
 }
 
 /**

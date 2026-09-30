@@ -7,6 +7,7 @@ import { Meal } from '../lib/types';
 import { useFavorites } from '../hooks/useFavorites';
 import { useMealSlots } from '../hooks/useMealSlots';
 import { slotLabel } from '../lib/mealSlots';
+import { useTourTarget } from './GuidedTour';
 
 // Les libellés des 4 créneaux INTÉGRÉS, en version longue (« Petit-déjeuner »
 // plutôt que « Petit-déj ») : c'est le surtitre de la carte, il a la place. Un
@@ -19,7 +20,7 @@ const MEAL_LABELS: Record<string, string> = {
 };
 
 export function MealCard({
-  meal, onPress, onCook, onReload, onDislike, onShopping, missing, reserveNonVide,
+  meal, onPress, onCook, onReload, onDislike, onShopping, missing, reserveNonVide, tourId,
 }: {
   meal: Meal;
   onPress?: () => void;
@@ -29,16 +30,26 @@ export function MealCard({
   onShopping?: () => void;   // → liste de courses (raccourci depuis « il te manque »)
   missing?: string[];        // ce qui manque en réserve, quantités comprises (undefined si réserve vide)
   reserveNonVide?: boolean;  // la réserve contient au moins 1 aliment
-  // 🔴 PLUS AUCUNE CIBLE DE VISITE GUIDÉE ICI (2026-08-25). La carte portait quatre
+  /**
+   * La visite de l'app amène CETTE carte au-dessus de la sienne, à l'arrêt du Plan
+   * (2026-09-30) : c'est le repas dont on voit le bouton « J'ai cuisiné » pendant que
+   * la carte en parle. Posé par `plan.tsx` sur le premier repas encore à faire.
+   * ⚠️ Toute la carte, pas le bouton : le bouton seul arrivait sous le titre replié,
+   * sans le nom du plat au-dessus.
+   */
+  tourId?: string;
+  // 🔴 L'HISTOIRE DES CIBLES DE CETTE CARTE (2026-08-25). La carte portait quatre
   // props `*TourId` — dont DEUX que plus personne ne passait (`tourId`,
   // `actionsTourId`), survivantes des bulles retirées la veille. La dernière encore
   // branchée (`statutTourId`) posait l'anneau sur le surtitre du prochain repas
   // cuisinable pour une phrase qui parle de TOUS les repas ; la bulle du Plan se
-  // pose désormais au centre, sans cible (cf. `lib/tours.ts`).
+  // posait au centre, sans cible (cf. `lib/tours.ts`).
   // ⚠️ Ce n'est pas qu'un nettoyage : une cible accrochée à une carte DISPARAÎT avec
-  // elle, et `startTour` renonce alors au tour entier. Le Plan n'avait plus de
-  // tutoriel du tout dès que la journée était entièrement cochée.
+  // elle, et `startTour` renonçait alors au tour entier. Le Plan n'avait plus de
+  // tutoriel du tout dès que la journée était entièrement cochée. ➡️ Le `tourId`
+  // d'aujourd'hui ne peut plus faire ça : une étape d'onglet se joue sans sa cible.
 }) {
+  const cible = useTourTarget(tourId);
   const t = useTheme();
   const { isFavorite, toggle } = useFavorites();
   const slots = useMealSlots();
@@ -67,6 +78,7 @@ export function MealCard({
       // ➡️ Les boutons INTÉRIEURS gardent leur rôle ; c'est le conteneur qui cède le
       // sien. Garde-fou : `lib/__tests__/presseImbriquee.test.ts`.
       accessibilityRole="none"
+      ref={cible}
       style={[{ backgroundColor: t.card, borderRadius: Radius.card, padding: Spacing.xl, opacity: muted ? 0.6 : 1 }, cardShadow(t)]}
     >
       {/* Un seul surtitre « TYPE · DURÉE » au lieu de deux coins opposés : le nom

@@ -64,6 +64,30 @@ describe('Visée — faut-il déplacer l’écran pour montrer la cible ?', () =
   });
 });
 
+describe('Visée — la carte de la visite prend le bas de l’écran (2026-09-30)', () => {
+  // Retour fondateur : à l'arrêt du Plan, la carte parlait du bouton « J'ai cuisiné »
+  // qui tombait pile SOUS elle. « À l'écran » ne suffit plus : il faut être au-dessus
+  // de la carte. D'où une marge du BAS distincte de celle du haut.
+  const CARTE = 88 + 190 + 16 + 12;                  // barre + carte + écarts, en points
+
+  it('🔴 une cible sous la carte n’est PAS visible, même dans l’écran', () => {
+    const sousLaCarte = cadre(ECRAN - CARTE + 20, 170);
+    expect(dejaVisible(sousLaCarte, ECRAN), 'sans la carte, elle passait pour visible').toBe(true);
+    expect(dejaVisible(sousLaCarte, ECRAN, MARGE_VISIBLE, CARTE)).toBe(false);
+  });
+
+  it('une cible au-dessus de la carte ne fait défiler personne', () => {
+    expect(dejaVisible(cadre(300, 170), ECRAN, MARGE_VISIBLE, CARTE)).toBe(true);
+  });
+
+  it('la frontière est au point près, et le haut garde sa marge', () => {
+    const juste = ECRAN - CARTE - 170;
+    expect(dejaVisible(cadre(juste, 170), ECRAN, MARGE_VISIBLE, CARTE)).toBe(true);
+    expect(dejaVisible(cadre(juste + 1, 170), ECRAN, MARGE_VISIBLE, CARTE)).toBe(false);
+    expect(dejaVisible(cadre(MARGE_VISIBLE - 1, 170), ECRAN, MARGE_VISIBLE, CARTE)).toBe(false);
+  });
+});
+
 describe('Visée — une mesure ne se croit qu’une fois STABLE', () => {
   it('deux lectures identiques valent « l’écran s’est arrêté »', () => {
     expect(memeCadre(cadre(300), cadre(300))).toBe(true);

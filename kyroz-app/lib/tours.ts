@@ -41,12 +41,11 @@
 // passer les autres pour du décor. D'où la borne `ETAPES_MAX`, et d'où aucun arrêt
 // sur un réglage, un bouton secondaire ou un écran hors de la barre d'onglets.
 //
-// ℹ️ Aucune étape ne vise d'objet (`targetId`) : la visite désigne des ONGLETS, et
-// le moteur les pointe lui-même sur la barre (`GuidedTour.tsx::CarteVisite`). Tout le
-// mécanisme de ciblage (mesure, défilement, anneau, trou) et `lib/visee.ts` tournent
-// donc à VIDE. Ils sont conservés à dessein — ils portent trois correctifs durement
-// acquis — et `visiteGuidee.test.ts` porte un cas qui ASSÈNE cette dormance, pour
-// que ses autres contrôles ne passent pas au vert en ne mesurant plus rien.
+// ℹ️ La visite désigne des ONGLETS, que le moteur pointe lui-même sur la barre
+// (`GuidedTour.tsx::CarteVisite`). Une seule étape vise un objet — le premier repas à
+// faire, sur le Plan — et seulement pour l'AMENER au-dessus de la carte : l'anneau et
+// le trou du mécanisme d'origine ne servent plus (ils restent, avec leurs trois
+// correctifs durement acquis). `visiteGuidee.test.ts` assène cet état exact.
 
 /**
  * La FORME de l'objet surligné, dans le vocabulaire de la DA (CLAUDE.md §8) —
@@ -83,8 +82,11 @@ export type Onglet = typeof ONGLETS[number];
 
 export interface TourStep {
   /**
-   * Un objet à surligner dans l'écran. **Aucune étape n'en vise aujourd'hui** (voir
-   * l'en-tête) : absent, la bulle ne dessine ni anneau ni trou.
+   * Un objet de l'écran. Deux usages selon l'étape :
+   *  · étape SANS onglet (bulle d'origine) : il est ENCERCLÉ — anneau et trou, et
+   *    `forme` devient obligatoire ;
+   *  · étape AVEC onglet (la visite) : il est seulement AMENÉ au-dessus de la carte,
+   *    rien n'est dessiné autour, et l'arrêt se joue même quand la cible manque.
    */
   targetId?: string;
   /**
@@ -141,6 +143,14 @@ export function visiteApp({ repasAuto }: VisiteContext): TourStep[] {
   return [
     {
       onglet: 'plan',
+      // 🔴 LA CIBLE SERT À MONTRER, PAS À ENCERCLER (2026-09-30, retour fondateur sur la
+      // visite : « la carte parle d'un bouton qu'on ne voit pas »). Le bouton « J'ai
+      // cuisiné » du premier repas tombait pile SOUS la carte, à toute heure. Le moteur
+      // fait donc défiler le Plan jusqu'à ce repas pour l'amener au-dessus de la carte —
+      // sans anneau ni trou (une visite d'onglets n'en dessine pas, d'où l'absence de
+      // `forme`). Posée par plan.tsx sur le premier repas ENCORE À FAIRE, jamais sur un
+      // rang fixe ; sans repas à faire, l'arrêt se joue quand même, sans défilement.
+      targetId: 'plan-repas',
       title: 'Tes repas du jour',
       // Prouvé par : plan.tsx::cookMeal pour le bouton (`deductIngredients`, puis
       // `setMealStatus('eaten')` qui recale la journée par `rebalanceDay`) ; et, réglage

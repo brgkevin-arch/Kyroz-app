@@ -2520,9 +2520,14 @@ visite qui montre toute l'app, pas de visite pour les trucs inutiles, bien fluid
 d'excès de texte »). Elle remplace les tours d'onglet :
 **5 arrêts au total (plan 1 · courses 1 · réserve 1 · recettes 1 · profil 1)**, un par
 onglet, dans l'ordre de la barre.
-- **Quand** : une fois, sur le Plan, juste après la révélation du premier plan (et l'offre du
-  rappel, sur mobile) — jamais « pendant que ton plan se génère » : le moteur rend une semaine
-  en quelques millisecondes, la phrase annoncerait une attente qui n'existe pas. **Nouveaux
+- **Quand** : une fois, sur le Plan, juste après la révélation du premier plan — jamais
+  « pendant que ton plan se génère » : le moteur rend une semaine en quelques millisecondes,
+  la phrase annoncerait une attente qui n'existe pas. L'offre du rappel (mobile) vient APRÈS
+  la visite, plus avant (révélation → rappel → visite faisait trois fenêtres et sept taps
+  d'affilée) : `onFin` de `useScreenTour`, appelé seulement quand la `Modal` de la visite a
+  FINI de disparaître (`onDismiss`, iOS et web ; Android n'anime pas sa fermeture). 🔴 iOS
+  refuse une `Modal` présentée pendant qu'une autre s'efface — l'offre, marquée « faite »
+  avant de s'afficher, serait perdue sans un mot. **Nouveaux
   comptes seulement** : qui a vu l'ancienne bulle du Plan est tenu pour l'avoir vue
   (`lib/tours.ts::VU_PAR_HERITAGE`) ; il la retrouve dans Profil → Réglages → « Revoir la
   visite ».
@@ -2530,8 +2535,17 @@ onglet, dans l'ordre de la barre.
   reste visible derrière un voile léger (0,45 — la bulle centrée noircissait à 0,72 ce qu'on
   voulait montrer) ; la barre reste vive et touchable (un onglet tapé amène son arrêt) ; la
   carte se pose au-dessus de la barre et la POINTE. Une seule valeur animée (le rang de
-  l'étape) porte la carte, sa pointe et les points de progression. Terminer ou passer ramène
-  au Plan. La hauteur de la barre a une source unique : `theme.ts::HAUTEUR_BARRE_ONGLETS`.
+  l'étape) porte la carte, sa pointe et le trait de progression, **par `translateX` et
+  l'animation NATIVE** : sur le fil JavaScript, la pointe calait pendant que l'onglet ouvert se
+  construit (liste de courses, recettes). Terminer ou passer ramène au Plan. La hauteur de la
+  barre a une source unique : `theme.ts::HAUTEUR_BARRE_ONGLETS`.
+- **L'arrêt du Plan MONTRE ce dont il parle** (retour fondateur, 2026-09-30 : « la carte
+  parle d'un bouton qu'on ne voit pas »). Le bouton « J'ai cuisiné » du premier repas tombait
+  pile sous la carte, à toute heure. Le Plan pose `tourId="plan-repas"` sur le premier repas
+  ENCORE À FAIRE, et le moteur fait défiler jusqu'à l'amener AU-DESSUS de la carte
+  (`visee.ts::dejaVisible` a une marge du bas distincte : barre + carte mesurée). Sans anneau :
+  la cible ne sert qu'à montrer. Sans repas à faire, l'arrêt se joue quand même. « Revoir la
+  visite » passe par le lanceur du Plan (`relancer`), qui porte ce défilement.
 - **Rédaction** : le TITRE dit ce qu'est l'onglet, la LIGNE dit la seule chose qu'on ne voit
   pas en le regardant (`TEXTE_MAX` = 90). Les deux bulles d'avant sont devenues les lignes du
   Plan (« J'ai cuisiné » / l'auto-coche) et du Profil (la pesée qui recale le plan).

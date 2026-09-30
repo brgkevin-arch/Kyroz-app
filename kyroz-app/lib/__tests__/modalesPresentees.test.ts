@@ -98,6 +98,7 @@ describe('chaque `Modal` se recense, et la visite guidée attend', () => {
     const src = sansCommentaires(readFileSync(join(RACINE, 'app', '(tabs)', 'profil.tsx'), 'utf8'));
     const corps = src.slice(src.indexOf('const revoirVisite'), src.indexOf('const appVersion'));
     expect(corps.indexOf('setReglages(false)')).toBeGreaterThan(-1);
-    expect(corps.indexOf('setReglages(false)')).toBeLessThan(corps.indexOf("startTour('app'"));
+    expect(corps.indexOf("relancer('app')")).toBeGreaterThan(-1);
+    expect(corps.indexOf('setReglages(false)')).toBeLessThan(corps.indexOf("relancer('app')"));
   });
 });

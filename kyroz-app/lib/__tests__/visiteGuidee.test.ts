@@ -371,7 +371,9 @@ describe('Visite guidée — l’anneau épouse la forme de sa cible', () => {
   const FORMES = ['carte', 'bouton', 'pastille'];
 
   it('chaque étape CIBLÉE déclare sa forme — un défaut implicite se re-oublie', () => {
-    for (const e of ETAPES_CIBLEES) {
+    // ⚠️ Hors visite d'onglets : là, la cible n'est qu'AMENÉE au-dessus de la carte,
+    // rien n'est dessiné autour (cas suivant).
+    for (const e of ETAPES_CIBLEES.filter((x) => !x.onglet)) {
       expect(e.forme, `${nom(e)} : forme absente`).toBeDefined();
       expect(FORMES, `${nom(e)} : forme inconnue`).toContain(e.forme);
     }
@@ -382,8 +384,8 @@ describe('Visite guidée — l’anneau épouse la forme de sa cible', () => {
     // centrée n'a ni trou ni anneau (`GuidedTour::Spotlight`, branche `!rect`).
     // Une `forme` posée là serait un réglage qui ne pilote rien — le défaut A23,
     // celui-là même qui avait laissé `rayon` inerte sur les 21 étapes de juillet.
-    const fautives = TOUTES_LES_ETAPES.filter((e) => !e.targetId && e.forme !== undefined);
-    expect(fautives.map(nom), 'ces bulles centrées déclarent une forme que rien ne dessine').toEqual([]);
+    const fautives = TOUTES_LES_ETAPES.filter((e) => (!e.targetId || e.onglet) && e.forme !== undefined);
+    expect(fautives.map(nom), 'ces étapes déclarent une forme que rien ne dessine').toEqual([]);
   });
 
   it('aucune forme déclarée n’est inconnue du moteur', () => {
@@ -393,11 +395,32 @@ describe('Visite guidée — l’anneau épouse la forme de sa cible', () => {
     // le même jour, la seconde coupe a ramené les étapes ciblées à ZÉRO.
     // ➡️ Ce qui reste vérifié : aucune forme SERVIE n'échappe au moteur (vide
     // aujourd'hui, donc vrai sans rien dire — et c'est le cas ci-dessous qui le DIT).
-    const servies = new Set(ETAPES_CIBLEES.map((e) => e.forme));
+    // Les étapes d'onglet n'encerclent rien, donc ne servent aucune forme.
+    const servies = new Set(ETAPES_CIBLEES.filter((e) => !e.onglet).map((e) => e.forme));
     for (const f of servies) expect(FORMES, `forme « ${f} » inconnue du moteur`).toContain(f);
   });
 
-  it('🔴 le CIBLAGE est DORMANT — aucune bulle ne vise plus d’objet', () => {
+  it('🔴 le ciblage ne sert plus qu’à AMENER — une seule cible, sur l’arrêt du Plan', () => {
+    // ── L'état du 2026-09-30, et pourquoi on l'ASSÈNE ───────────────────────────
+    //
+    // De la coupe du 2026-08-25 au 2026-09-30, aucune étape ne visait d'objet : ce cas
+    // s'appelait « le CIBLAGE est DORMANT » et exigeait zéro cible (histoire plus bas).
+    // Le retour du fondateur sur la visite (« la carte parle d'un bouton qu'on ne voit
+    // pas ») a rallumé la mesure et le défilement, pour UNE étape : l'arrêt du Plan
+    // amène le premier repas à faire au-dessus de la carte. L'anneau et le trou, eux,
+    // restent éteints — une étape d'onglet n'en dessine pas.
+    // ➡️ Ce cas assène cet état exact : une cible de plus, ou une cible sur une étape
+    // qui ENCERCLE, rougit, et oblige à relire les contrôles d'anneau ci-dessus.
+    expect(ETAPES_CIBLEES.map(nom)).toEqual(['plan-repas']);
+    expect(ETAPES_CIBLEES.every((e) => e.onglet), 'une étape ciblée qui ENCERCLE est revenue').toBe(true);
+    const appelants = FICHIERS
+      .filter((f) => f.chemin !== 'components/GuidedTour.tsx')
+      .filter((f) => /useTourTarget\(/.test(sansCommentaires(f.src)))
+      .map((f) => f.chemin);
+    expect(appelants, 'seule la carte de repas pose une cible de visite').toEqual(['components/MealCard.tsx']);
+  });
+
+  it('(histoire) le ciblage a été DORMANT du 2026-08-25 au 2026-09-30', () => {
     // ── Pourquoi ce cas existe, et pourquoi il est le plus important du bloc ────
     //
     // Après la double coupe du 2026-08-25, les deux bulles restantes (Plan, Profil)
@@ -417,18 +440,13 @@ describe('Visite guidée — l’anneau épouse la forme de sa cible', () => {
     // faut le supprimer. Le mécanisme est CONSERVÉ à dessein (il porte trois
     // correctifs durement acquis : le trou arrondi, la mesure stable, la sortie
     // garantie) ; sa suppression est une décision de produit, pas un nettoyage.
-    expect(
-      ETAPES_CIBLEES.map(nom),
-      'une bulle vise de nouveau un objet : les contrôles de ciblage de ce fichier redeviennent vivants',
-    ).toEqual([]);
-    // ⚠️ Hors du moteur, et hors commentaires : `GuidedTour.tsx` DÉCLARE le hook (il
-    // est conservé), et deux commentaires le citent. Compter les occurrences brutes
-    // ferait rougir ce cas sur du texte — il doit compter les APPELS.
-    const appelants = FICHIERS
-      .filter((f) => f.chemin !== 'components/GuidedTour.tsx')
-      .filter((f) => /useTourTarget\(/.test(sansCommentaires(f.src)))
-      .map((f) => f.chemin);
-    expect(appelants, 'ces fichiers reposent une cible de visite guidée').toEqual([]);
+    // ➡️ Il n'assène plus rien : l'état du jour est vérifié par le cas précédent. Il
+    // garde la leçon — des contrôles VERTS EN NE MESURANT RIEN — et une sonde qui sait
+    // encore dire NON sur l'ancienne règle (zéro cible), pour qu'on ne la remette pas
+    // en croyant restaurer une protection.
+    const ancienneRegle = (cibles: string[]) => cibles.length === 0;
+    expect(ancienneRegle(ETAPES_CIBLEES.map(nom))).toBe(false);
+    expect(ancienneRegle([])).toBe(true);
   });
 
   it('le moteur traduit les trois formes — aucune ne retombe sur un angle droit', () => {
@@ -578,13 +596,16 @@ describe('Visite guidée — l’anneau ne désigne jamais l’objet d’une aut
     expect(/\b(\w*[Tt]ourId)=\{\s*\w+\s*===\s*\d/.test(avant)).toBe(true);
   });
 
-  it('🔴 une étape sans cible traverse le filtre de disponibilité', () => {
+  it('🔴 une étape sans cible — ou d’onglet — traverse le filtre de disponibilité', () => {
     // `startTour` écarte les étapes dont la cible n'est pas montée, et renonce si
     // AUCUNE ne survit. Sans exception pour les étapes sans cible, une bulle
     // centrée serait écartée à tous les coups et le tour ne se jouerait jamais —
     // ce qui est arrivé au Plan autrement (cible sur une carte disparue).
-    expect(CODE, 'le filtre de `startTour` ignore les étapes sans cible').toMatch(
-      /steps\.filter\(\(s\) => !s\.targetId \|\| montee\(s\.targetId\)\)/,
+    // ➕ 2026-09-30 : même exception pour une étape d'ONGLET. Sa cible (le premier
+    // repas à faire) manque dès que la journée est entièrement cochée ; sans elle,
+    // la visite perdrait son arrêt du Plan — le défaut du 2026-08-25, revenu par ici.
+    expect(CODE, 'le filtre de `startTour` écarte une étape sans cible ou d’onglet').toMatch(
+      /steps\.filter\(\(s\) => !s\.targetId \|\| s\.onglet \|\| montee\(s\.targetId\)\)/,
     );
     // Et la boucle de mesure ne s'acharne pas sur une cible qui n'existe pas.
     expect(CODE, 'la mesure doit court-circuiter quand l’étape n’a pas de cible').toMatch(
@@ -731,5 +752,53 @@ describe('La visite de l’app — un arrêt par onglet, dans l’ordre de la ba
     expect(racine).toMatch(/\[data-testid\^="visite-"\]:focus/);
     const carte = moteur.slice(moteur.indexOf('function CarteVisite('), moteur.indexOf('function Bulle('));
     for (const id of ['visite-passer', 'visite-suivant', 'visite-onglet-']) expect(carte).toContain(id);
+  });
+});
+
+// ── Les trois correctifs du 2026-09-30, sur retour du fondateur ─────────────
+//
+// « Regarde la visite et dis-moi si, d'un œil d'utilisateur, c'est fluide et
+// compréhensible » → quatre défauts relevés, trois corrigés ici (le quatrième, les
+// repas cochés d'office le soir de l'inscription, est une PR à part).
+describe('La visite après relecture — ce qu’elle montre, quand elle cède la place, comment elle bouge', () => {
+  const moteur = sansCommentaires(readFileSync(join(RACINE, 'components', 'GuidedTour.tsx'), 'utf8'));
+  const plan = sansCommentaires(readFileSync(join(RACINE, 'app', '(tabs)', 'plan.tsx'), 'utf8'));
+  const carte = moteur.slice(moteur.indexOf('function CarteVisite('), moteur.indexOf('function Bulle('));
+
+  it('1 — l’arrêt du Plan amène le premier repas À FAIRE au-dessus de la carte', () => {
+    // La carte disait « Tape « J'ai cuisiné » » : le bouton tombait pile SOUS elle.
+    expect(plan).toMatch(/const premierAFaire = dayMeals\.findIndex\(\(m\) => !m\.fixed && m\.status !== 'eaten' && m\.status !== 'skipped'\)/);
+    expect(plan).toMatch(/tourId=\{i === premierAFaire \? 'plan-repas' : undefined\}/);
+    // …et « visible » veut dire AU-DESSUS de la carte, pas seulement dans l'écran.
+    expect(moteur, 'la zone libre ne retranche plus la carte').toMatch(/HAUTEUR_BARRE_ONGLETS \+ \(hauteurCarte\.current \|\| HAUTEUR_CARTE_ORDINAIRE\)/);
+    expect(moteur).toMatch(/dejaVisible\(c, hauteurEcran, MARGE_VISIBLE, basLibre\)/);
+    expect(carte, 'la carte ne dit plus sa hauteur au moteur').toMatch(/onLayout=\{\(e\) => onHauteur\(/);
+    // Le Plan donne son défilement à la visite ; « Revoir la visite » passe par lui.
+    expect(plan).toMatch(/useScreenTour\(\s*'app',[\s\S]{0,120}scrollRef/);
+  });
+
+  it('3 — l’offre du rappel vient APRÈS la visite, une fois sa fenêtre fermée', () => {
+    // Avant : révélation → rappel → visite, trois fenêtres d'affilée.
+    const fermer = plan.slice(plan.indexOf('const fermerReveal'), plan.indexOf('const [birthdayAge'));
+    expect(fermer, 'la révélation propose encore le rappel').not.toMatch(/proposerLeRappel/);
+    expect(plan).toMatch(/onFin: proposerLeRappel/);
+    // 🔴 Et pas pendant que la visite s'efface : iOS refuserait la fenêtre du rappel.
+    expect(moteur).toMatch(/onDismiss=\{apresFermeture\}/);
+    const fin = moteur.slice(moteur.indexOf('const end = useCallback'), moteur.indexOf('const apresFermeture'));
+    expect(fin, '`end` appelle `onFin` tout de suite, hors Android').toMatch(/if \(Platform\.OS === 'android'\) fin\?\.\(\);\s*else finEnAttente\.current = fin;/);
+  });
+
+  it('4 — la carte, sa pointe et le trait de progression bougent par l’animation NATIVE', () => {
+    // Sur le fil JavaScript, la pointe calait pendant que l'onglet ouvert se construit.
+    expect(carte, 'une animation de la carte repasse sur le fil JavaScript').not.toMatch(/useNativeDriver: false/);
+    expect(carte).toMatch(/useNativeDriver: true/);
+    expect(carte, 'la carte anime de nouveau une position ou une largeur').not.toMatch(/(left|width): (suivre|pos\.interpolate)\(/);
+    expect((carte.match(/translateX: suivre\(/g) ?? []).length, 'carte, pointe et trait glissent par translateX').toBe(3);
+  });
+
+  it('« Revoir la visite » relance celle du Plan, et l’y emmène s’il n’est pas monté', () => {
+    const profil = sansCommentaires(readFileSync(join(RACINE, 'app', '(tabs)', 'profil.tsx'), 'utf8'));
+    expect(profil).toMatch(/if \(!relancer\('app'\)\) router\.navigate\('\/\(tabs\)\/plan'\)/);
+    expect(profil, 'le Profil reconstruit la visite au lieu de relancer celle du Plan').not.toMatch(/startTour\('app'/);
   });
 });
