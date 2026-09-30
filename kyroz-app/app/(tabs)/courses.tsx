@@ -683,8 +683,8 @@ export default function CoursesScreen() {
             décrit désormais les DEUX moments du geste, parce que c'est ce que le code
             fait : cocher marque, terminer range. */}
         <Text style={s.hint}>
-          Coche ce que tu prends. « Courses terminées » range le tout dans ta réserve.
-          Appui long → tu retires un article de la liste.
+          Coche ce que tu prends, puis « Courses terminées » range le tout dans ta réserve.
+          Appui long pour retirer un article.
         </Text>
     </View>
   );
@@ -713,7 +713,9 @@ export default function CoursesScreen() {
         renderSectionHeader={({ section }) => (
           <View style={s.section}>
             <Text style={s.sectionTxt}>{section.title.toUpperCase()}</Text>
-            <Text style={s.sectionCount}>{section.left} sur {section.data.length}</Text>
+            {/* Même sens que l'en-tête (« 0 / 42 cochés ») : on compte ce qui est COCHÉ.
+                « 4 sur 4 » comptait les restants et se lisait à l'envers (2026-09-30). */}
+            <Text style={s.sectionCount}>{section.data.length - section.left} / {section.data.length}</Text>
           </View>
         )}
         // UN BLOC par rayon, pas une carte par article : les lignes se séparent
