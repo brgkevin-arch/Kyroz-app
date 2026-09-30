@@ -225,7 +225,7 @@ export default function ReserveScreen() {
             </View>
             <Text style={s.emptyTitle}>Ta réserve est vide</Text>
             <Text style={s.emptySub}>
-              Ajoute ce que tu as déjà — ou fais tes courses : « Courses terminées » range
+              Ajoute ce que tu as déjà — ou fais tes courses : « Courses terminées » range
               tout ce que tu as coché ici, au frais ou au sec.
             </Text>
             <View style={{ height: 8 }} />
