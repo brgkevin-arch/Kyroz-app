@@ -678,7 +678,7 @@ export default function ProfilScreen() {
             le haut, puis redescendre. Une bulle qui déplace l'écran à contresens de
             sa propre progression se lit comme un bug, pas comme une visite. */}
         <View style={s.tdee}>
-          <Text style={s.tdeeL}>Dépense estimée · maintenance (TDEE)</Text>
+          <Text style={s.tdeeL}>Ta dépense par jour, pour garder ton poids</Text>
           <Text style={s.tdeeV}>{profile.tdee_kcal.toLocaleString('fr-FR')} kcal</Text>
         </View>
 
@@ -709,7 +709,7 @@ export default function ProfilScreen() {
             adresse. */}
         <SectionTitle t={t}>Infos</SectionTitle>
         <View style={s.menu}>
-          <MenuRow t={t} label="Informations" value={`${SEX_LABELS[profile.sex]} · ${profile.age} ans · ${frnum(profile.weight_kg)} kg${profile.body_fat_pct != null ? ` · ${frnum(profile.body_fat_pct)}% MG` : ''}`} onPress={() => setEditor('info')} />
+          <MenuRow t={t} label="Informations" value={`${SEX_LABELS[profile.sex]} · ${profile.age} ans · ${frnum(profile.weight_kg)} kg${profile.body_fat_pct != null ? ` · ${frnum(profile.body_fat_pct)} % de gras` : ''}`} onPress={() => setEditor('info')} />
           <MenuRow t={t} label="Sport & activité" value={`${profile.sports?.length ? `${profile.sports.length} sport${profile.sports.length > 1 ? 's' : ''}` : 'Aucun sport'} · ${NEAT_SHORT[profile.neat_level ?? DEFAULT_NEAT_LEVEL]}`} onPress={() => setEditor('sports')} last />
         </View>
 
