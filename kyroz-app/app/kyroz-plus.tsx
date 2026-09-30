@@ -14,6 +14,7 @@ import { PHOTOS_NOTICE_LOCALE } from '../lib/photos';
 import { PREMIUM_PRICES, annualSavingPct, paywallBanner, withStorePrices, type StorePrices } from '../lib/premium';
 import { buy, fetchStorePrices, purchasesConfigured, restore, PURCHASE_BUDGET_MS } from '../lib/purchases';
 import { DISCLAIMER } from '../constants/legal';
+import { RYTHME_HEBDOMADAIRE_ACTIF } from '../lib/featureFlags';
 
 // ── Écran Kyroz+ — route racine /kyroz-plus ──────────────────────────────────
 //
@@ -61,10 +62,15 @@ const BRIQUES = [
   },
 ];
 
+// 🔴 « Le réglage de tes jours plus copieux » figurait ici alors que ce réglage est
+// ÉTEINT depuis le 2026-08-18 (`RYTHME_HEBDOMADAIRE_ACTIF`) et introuvable dans l'app :
+// la page qu'on lit AVANT de payer promettait une fonction qui n'existe pas (relevé
+// le 2026-09-30). La phrase suit désormais l'interrupteur au lieu de le recopier.
 const GRATUIT =
   "Ton plan de la semaine macro par macro, ta liste de courses, toutes les recettes, " +
   "ta réserve, tes favoris, ta pesée et le recalcul de tes calories, " +
-  "le réglage de tes jours plus copieux, et la synchro de ton compte. " +
+  (RYTHME_HEBDOMADAIRE_ACTIF ? "le réglage de tes jours plus copieux, " : "") +
+  "et la synchro de ton compte. " +
   "Rien de tout ça ne passera jamais derrière un abonnement.";
 
 export default function KyrozPlusScreen() {

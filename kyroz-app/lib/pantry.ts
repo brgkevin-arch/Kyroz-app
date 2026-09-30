@@ -160,6 +160,17 @@ export function refDuNom(name: string): string | undefined {
   return REF_PAR_NOM.get(norm(name));
 }
 
+/**
+ * Le nom à AFFICHER pour un article : celui du catalogue quand le nom en désigne un.
+ * Les listes et réserves enregistrées avant le 2026-09-30 portent « Bœuf haché 5% mg »
+ * (la clé en minuscules de la liste de courses) : on corrige à l'affichage, sans
+ * toucher au nom stocké, qui sert de clé au cochage et au rapprochement.
+ */
+export function nomAffiche(name: string): string {
+  const ref = refDuNom(name);
+  return ref ? RECIPE_INGREDIENTS[ref].name : name;
+}
+
 /** Le prédicat à employer partout où l'on apparie un stock et un ingrédient. */
 export function memeAliment(a: string, b: string): boolean {
   const ra = refDuNom(a);

@@ -28,7 +28,9 @@ export function buildShoppingList(plan: MealPlan, pantry: PantryItem[] = [], jou
       const existing = aggregated.get(key);
       const qty = ingredient.quantity_g;
       if (existing) existing.quantity += qty;
-      else aggregated.set(key, { name: key, quantity: qty, unit: ingredient.unit ?? 'g' });
+      // Le NOM affiché est celui du catalogue, pas la clé en minuscules : « Bœuf haché
+      // 5% MG » devenait « 5% mg » (des milligrammes), « type Fage » « type fage ».
+      else aggregated.set(key, { name: ingredient.name, quantity: qty, unit: ingredient.unit ?? 'g' });
     }
   }
 
