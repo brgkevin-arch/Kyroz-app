@@ -219,7 +219,13 @@ installation neuve part du binaire, donc du (6).
   encore `0639ecc` après la compilation, 0 PR ouverte — le piège du 11 août ne s'est pas
   rejoué). *(Le précédent :)* le **(6)** — `ceec1b17`, commit
   `1047b9f`, terminé le 2026-08-11 à 20 h 37. Il a **62 commits de retard** sur `main` — chiffre RE-MESURÉ le 2026-08-26 (il en annonçait 40, mesurés le 2026-08-23), qui **grandit à chaque merge** : le relire avec `git rev-list --count 1047b9f..origin/main` plutôt que de le recopier (même défaut que le décompte d'OTA tenu à la main).
-- **OTA** : la dernière est la **53ᵉ** (groupe `f7f00775`, **iOS seulement**, 2026-09-28),
+- **OTA** : la dernière est la **54ᵉ** (groupe `bd45f4b3`, **iOS seulement**, 2026-09-30),
+  publiée sur le commit `5ffa4ce` — `main`, arbre propre, détaché sur `origin/main`.
+  ✅ **Runtime iOS `823c89db…` = le build (22)**, empreinte comparée AVANT publication.
+  Contenu (#357) : **moteur** — sans aucune séance déclarée, plus aucun jour de repos ; le
+  Plan sert enfin les glucides affichés au Profil (écart moyen −34 → −6 g/jour).
+  `ENGINE_VERSION` 62 → 63 : chaque plan se régénère une fois, suivi du jour conservé.
+  *(La précédente :)* la **53ᵉ** (groupe `f7f00775`, **iOS seulement**, 2026-09-28),
   publiée sur le commit `b00a0cc` — `main`, arbre propre, détaché sur `origin/main`.
   ℹ️ Même contenu que la **52ᵉ** (groupe `f77afb19`, 2026-09-27), republiée parce que
   la 52ᵉ était partie d'un arbre marqué NON propre (seule modification :
