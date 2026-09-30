@@ -96,13 +96,17 @@ export default function RootLayout() {
   // l'iPhone ne dessine jamais (demande fondateur, 2026-09-22, sur la page 2 de
   // l'onboarding). Le curseur dit déjà quel champ est actif, comme en natif. Une
   // règle pour les 17 champs de l'app plutôt qu'un style recopié sur chacun.
+  // ➕ Les boutons de la VISITE (2026-09-30) : sa `Modal` donne d'office le focus à son
+  // premier bouton (piège de focus de react-native-web), donc un cadre orange entourait
+  // l'onglet Plan dès l'ouverture, sans que personne n'ait rien touché. Ciblés par leur
+  // `testID` (`data-testid` sur le web), pas tous les boutons de l'app.
   // ⚠️ Dans un effet, jamais au chargement du module : le site est pré-rendu sous
   // Node, sans `document`, et le déploiement entier tomberait (CLAUDE.md §11).
   useEffect(() => {
     if (Platform.OS !== 'web' || document.getElementById(STYLE_SANS_CONTOUR)) return;
     const style = document.createElement('style');
     style.id = STYLE_SANS_CONTOUR;
-    style.textContent = 'input:focus, textarea:focus { outline: none; }';
+    style.textContent = 'input:focus, textarea:focus, [data-testid^="visite-"]:focus { outline: none; }';
     document.head.appendChild(style);
   }, []);
   return (

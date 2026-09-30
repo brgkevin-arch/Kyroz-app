@@ -3,18 +3,24 @@ import {
   Animated, Easing, View, Text, StyleSheet, Modal, Pressable, TouchableOpacity, useWindowDimensions, ViewStyle,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useTheme, Radius, ThemePalette, Type, Spacing, CIBLE_TACTILE_MIN, Trait, OPACITE_PRESSION } from '../constants/theme';
-import { TourStep, TOURS, FormeCible } from '../lib/tours';
+import { router } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTheme, Radius, ThemePalette, Type, Spacing, CIBLE_TACTILE_MIN, Trait, OPACITE_PRESSION, HAUTEUR_BARRE_ONGLETS } from '../constants/theme';
+import { TourStep, TOURS, FormeCible, ONGLETS, Onglet, TourId, VU_PAR_HERITAGE } from '../lib/tours';
 import { Cadre, dejaVisible, memeCadre, ESSAIS_MESURE, PAS_MESURE_MS } from '../lib/visee';
 import { RESSORT, DUREE, ressortRN, ressortReduit, dureeReduite } from '../lib/motion';
 import { useReduceMotion } from '../lib/reduceMotion';
 import { quandAucuneModale } from '../lib/modalesPresentees';
 
-// ── Visite guidée (coachmark / spotlight) ────────────────────────────────────
-// Overlay sombre qui « découpe » un trou autour d'un élément cible et affiche
-// une bulle (titre + texte + Précédent / Suivant / Passer). Générique :
-// n'importe quel écran pose `useTourTarget('…')` sur ses éléments puis appelle
-// startTour(tourId, steps). « Déjà vu » mémorisé en AsyncStorage (@kyroz:tour:*).
+// ── Visite guidée ────────────────────────────────────────────────────────────
+// Deux rendus, choisis par l'étape :
+//  · une étape qui porte un `onglet` (la visite de l'app, 2026-09-30) amène l'écran
+//    sur cet onglet et pose une CARTE au-dessus de la barre, pointée sur lui, l'écran
+//    visible derrière un voile léger (`CarteVisite`) ;
+//  · sinon, l'overlay sombre d'origine — un trou autour d'une cible (`useTourTarget`)
+//    ou une bulle au centre (`Spotlight`).
+// N'importe quel écran appelle startTour(tourId, steps). « Déjà vu » mémorisé en
+// AsyncStorage (@kyroz:tour:*).
 //
 // ⚠️ Ce fichier est le MOTEUR, pas le contenu : les étapes vivent dans
 // `lib/tours.ts`, qui n'importe rien et se teste. Le moteur, lui, tire
@@ -47,10 +53,20 @@ const TourContext = createContext<TourContextValue | null>(null);
 
 const STORAGE_PREFIX = '@kyroz:tour:';
 
-/** Le tour a-t-il déjà été vu (terminé ou passé) ? */
+/**
+ * Le tour a-t-il déjà été vu (terminé ou passé) ?
+ * ⚠️ Le « déjà vu » d'un ANCIEN tour compte aussi (`VU_PAR_HERITAGE`, lib/tours.ts) :
+ * la visite de l'app a remplacé les tours d'onglet le 2026-09-30, et sans cette
+ * lecture, tous les comptes existants se la verraient imposer au lendemain de la mise
+ * à jour. Elle reste à leur portée dans « Revoir la visite ».
+ */
 export async function hasSeenTour(tourId: string): Promise<boolean> {
   try {
-    return (await AsyncStorage.getItem(STORAGE_PREFIX + tourId)) === 'done';
+    const ids = [tourId, ...(VU_PAR_HERITAGE[tourId as TourId] ?? [])];
+    for (const id of ids) {
+      if ((await AsyncStorage.getItem(STORAGE_PREFIX + id)) === 'done') return true;
+    }
+    return false;
   } catch {
     return false;
   }
@@ -170,6 +186,12 @@ const BUBBLE_MAX_W = 360;
 const DIM = 'rgba(0,0,0,0.72)';
 
 /**
+ * La route d'un onglet. `as never` : les routes typées ne sont pas activées (même
+ * procédé que `ReglagesSheet::versRoute`).
+ */
+const routeOnglet = (o: Onglet) => `/(tabs)/${o}` as never;
+
+/**
  * La forme déclarée par l'étape, traduite en rayon de la DA. C'est ICI que vivent
  * les pixels : `lib/tours.ts` reste pur (il ne peut pas importer `theme.ts`, qui
  * tire react-native), donc il nomme la forme et le moteur la dessine.
@@ -195,6 +217,10 @@ export function TourProvider({ children }: { children: React.ReactNode }) {
   const refs = useRef<Map<string, React.RefObject<Measurable | null>>>(new Map());
   const scrollRef = useRef<React.RefObject<any> | undefined>(undefined);
   const [active, setActive] = useState<ActiveTour | null>(null);
+  // Lue par `end` et `next`, qui doivent savoir D'OÙ la visite est partie pour y
+  // ramener (cf. `end`) sans se recréer à chaque étape.
+  const activeRef = useRef<ActiveTour | null>(null);
+  activeRef.current = active;
   const [rect, setRect] = useState<Rect | null>(null);
   // 🔴 « JE CHERCHE ENCORE » ET « IL N'Y A RIEN À MONTRER » SONT DEUX ÉTATS, et
   // les confondre laissait un écran NOIR SANS AUCUNE SORTIE (voir le rendu en
@@ -285,18 +311,39 @@ export function TourProvider({ children }: { children: React.ReactNode }) {
   // l'ouverture. Une seule source, et surtout la seule qui couvre les sorties que
   // ces deux-là ne voient pas (app tuée, onglet fermé). Les rétablir ici serait un
   // second endroit à tenir d'accord, pour un cas déjà couvert.
+  // 🔴 UNE VISITE D'ONGLETS RAMÈNE LÀ OÙ ELLE A COMMENCÉ (le Plan, 2026-09-30) —
+  // qu'on la termine ou qu'on la passe. Sans ça, « Passer » à la troisième étape
+  // laissait la personne sur la Réserve, un onglet qu'elle n'a pas choisi, vide à ce
+  // stade, au lieu de l'écran de sa journée.
   const end = useCallback(() => {
+    const depart = activeRef.current?.steps[0]?.onglet;
     setActive(null);
     setRect(null);
+    if (depart) router.navigate(routeOnglet(depart));
   }, []);
 
   const next = useCallback(() => {
-    setActive((cur) => {
-      if (!cur) return cur;
-      if (cur.index < cur.steps.length - 1) return { ...cur, index: cur.index + 1 };
-      return null;
-    });
+    const cur = activeRef.current;
+    if (!cur) return;
+    if (cur.index < cur.steps.length - 1) setActive({ ...cur, index: cur.index + 1 });
+    else end();
+  }, [end]);
+
+  // Aller droit à une étape : un onglet tapé PENDANT la visite y amène son arrêt. La
+  // barre reste vive sous le voile (`CarteVisite`) — ce qui a l'air touchable doit
+  // l'être, sinon le premier tap sur un onglet se lit comme une app figée.
+  const allerA = useCallback((i: number) => {
+    setActive((cur) => (cur && i >= 0 && i < cur.steps.length ? { ...cur, index: i } : cur));
   }, []);
+
+  // 🔴 LA VISITE MONTRE L'ONGLET DONT ELLE PARLE (2026-09-30). Une étape qui porte un
+  // `onglet` y amène l'écran à son arrivée : c'est ce qui fait d'une suite de bulles
+  // une VISITE — la carte parle des courses pendant qu'on voit la liste derrière elle.
+  // ⚠️ `navigate` et non `push` : on change d'onglet, on n'empile pas d'écran.
+  const ongletCourant = active?.steps[active.index]?.onglet;
+  useEffect(() => {
+    if (ongletCourant) router.navigate(routeOnglet(ongletCourant));
+  }, [ongletCourant]);
 
   // Revenir en arrière : une bulle lue trop vite était perdue pour toujours, il
   // fallait relancer le tour entier depuis le « ? ». `setRect(null)` n'est pas
@@ -424,10 +471,13 @@ export function TourProvider({ children }: { children: React.ReactNode }) {
           ne peut pas quitter est pire que pas de tutoriel. */}
       <Modal visible={!!active} transparent animationType="fade" onRequestClose={end}>
         {step && (
-          rect || sansCible
-            ? <Spotlight t={t} rect={rect} step={step} index={active!.index}
-                total={active!.steps.length} isLast={isLast} onNext={next} onPrev={prev} onSkip={end} />
-            : <View style={[StyleSheet.absoluteFill, { backgroundColor: DIM }]} />
+          step.onglet
+            ? <CarteVisite t={t} steps={active!.steps} index={active!.index} isLast={isLast}
+                onNext={next} onSkip={end} onAller={allerA} />
+            : rect || sansCible
+              ? <Spotlight t={t} rect={rect} step={step} index={active!.index}
+                  total={active!.steps.length} isLast={isLast} onNext={next} onPrev={prev} onSkip={end} />
+              : <View style={[StyleSheet.absoluteFill, { backgroundColor: DIM }]} />
         )}
       </Modal>
     </TourContext.Provider>
@@ -632,6 +682,156 @@ function Spotlight({
   );
 }
 
+// ── La carte de la VISITE D'ONGLETS (2026-09-30) ─────────────────────────────
+//
+// Décision fondateur : « une seule visite qui montre toute l'app, bien fluide, sans
+// trop d'excès de texte ». Ce que ce rendu change par rapport à la bulle centrée :
+//  · l'écran reste VISIBLE — voile léger, pas le noir à 72 % qui cachait justement ce
+//    qu'on présentait ;
+//  · la BARRE D'ONGLETS reste vive : l'onglet présenté y est allumé par la navigation
+//    elle-même, et la carte le POINTE ;
+//  · une seule valeur porte le mouvement (`pos`, le rang de l'étape) : la carte, sa
+//    pointe et les points de progression en dérivent, donc ils glissent ENSEMBLE d'un
+//    onglet à l'autre — trois objets qui lisent la même chose, pas trois animations à
+//    tenir d'accord.
+
+/** Moins sombre que `DIM` : la visite MONTRE l'écran, la bulle centrée le cachait. */
+const VOILE_VISITE = 'rgba(0,0,0,0.45)';
+/** Côté du carré qui, tourné d'un huitième de tour, dessine la pointe de la carte. */
+const POINTE = 16;
+/** Largeur d'un point de progression, au repos et sur l'étape courante. */
+const POINT = 6;
+const POINT_ACTIF = 18;
+
+function CarteVisite({
+  t, steps, index, isLast, onNext, onSkip, onAller,
+}: {
+  t: ThemePalette;
+  steps: TourStep[];
+  index: number;
+  isLast: boolean;
+  onNext: () => void;
+  onSkip: () => void;
+  onAller: (i: number) => void;
+}) {
+  const { width: W } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
+  const reduire = useReduceMotion();
+  const s = makeStyles(t);
+  const step = steps[index];
+
+  // Le centre de chaque onglet. La barre ne se mesure pas depuis une `Modal` : on
+  // applique SA règle — des onglets à parts égales (`flex: 1`), entre deux marges
+  // égales à la plus grande zone sûre latérale (le `BottomTabBar` d'expo-router).
+  // Le rang vient de `ONGLETS`, que `visiteGuidee.test.ts` tient d'accord avec le layout.
+  const marge = Math.max(insets.left, insets.right);
+  const centre = (o: Onglet | undefined) => {
+    const rang = Math.max(0, ONGLETS.indexOf(o ?? ONGLETS[0]));
+    return marge + ((W - 2 * marge) * (rang + 0.5)) / ONGLETS.length;
+  };
+  // La carte suit son onglet sans sortir de l'écran (sur un téléphone, elle est déjà
+  // pleine largeur : seule la pointe voyage) ; la pointe reste hors des coins arrondis.
+  const largeur = Math.min(W - 32, BUBBLE_MAX_W);
+  const gauches = steps.map((e) => clamp(centre(e.onglet) - largeur / 2, 16, W - 16 - largeur));
+  const pointes = steps.map((e, i) =>
+    clamp(centre(e.onglet) - gauches[i], Radius.card, largeur - Radius.card) - POINTE / 2);
+
+  const pos = useRef(new Animated.Value(index)).current;
+  useEffect(() => {
+    Animated.spring(pos, {
+      toValue: index,
+      // ⚠️ `false` obligatoire : `left` et `width` ne sont pas des propriétés natives.
+      // Admissible pour la même raison que l'anneau : rien d'autre ne tourne pendant
+      // une visite, l'écran est figé sous le voile.
+      useNativeDriver: false,
+      ...ressortRN(ressortReduit(RESSORT.pose, reduire)),
+    }).start();
+  }, [index, reduire, pos]);
+  // Une interpolation exige deux points d'entrée : une visite d'UNE étape reste posée.
+  const suivre = (valeurs: number[]) => (valeurs.length > 1
+    ? pos.interpolate({ inputRange: valeurs.map((_, i) => i), outputRange: valeurs })
+    : valeurs[0]);
+
+  // Le TEXTE, lui, ne glisse pas avec la carte : il change entièrement, donc il se POSE
+  // (fondu + un léger décalage dans le sens de la marche). Même règle que la bulle :
+  // ce qui informe reste, ce qui déplace se retire quand on réduit les animations.
+  const fondu = useRef(new Animated.Value(0)).current;
+  const decale = useRef(new Animated.Value(0)).current;
+  const avant = useRef(index);
+  useEffect(() => {
+    const sens = index >= avant.current ? 1 : -1;
+    avant.current = index;
+    fondu.setValue(0);
+    decale.setValue(reduire ? 0 : sens * Spacing.md);
+    Animated.parallel([
+      Animated.timing(fondu, { toValue: 1, duration: dureeReduite(DUREE.court, reduire), easing: Easing.out(Easing.cubic), useNativeDriver: true }),
+      Animated.timing(decale, { toValue: 0, duration: DUREE.court, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
+    ]).start();
+  }, [index, reduire, fondu, decale]);
+
+  return (
+    <View style={StyleSheet.absoluteFill}>
+      {/* Le voile couvre l'ÉCRAN, pas la barre. Il avale les taps : la visite montre,
+          elle ne laisse pas cocher un repas par erreur au passage. */}
+      <View style={[s.voile, { bottom: HAUTEUR_BARRE_ONGLETS }]} />
+
+      {/* La barre, elle, reste vive ET touchable : un onglet tapé amène son arrêt. */}
+      <View style={[s.barre, { height: HAUTEUR_BARRE_ONGLETS, paddingHorizontal: marge }]}>
+        {ONGLETS.map((o) => {
+          const i = steps.findIndex((e) => e.onglet === o);
+          return (
+            <Pressable
+              key={o}
+              testID={`visite-onglet-${o}`}
+              style={s.onglet}
+              disabled={i < 0}
+              onPress={() => onAller(i)}
+              accessibilityRole="button"
+              accessibilityLabel={i >= 0 ? steps[i].title : undefined}
+            />
+          );
+        })}
+      </View>
+
+      <Animated.View style={[s.carte, { width: largeur, left: suivre(gauches), bottom: HAUTEUR_BARRE_ONGLETS + Spacing.lg }]}>
+        <Animated.View style={{ opacity: fondu, transform: [{ translateX: decale }] }}>
+          {/* Des points plutôt qu'un « 2 / 5 » : on voit où l'on en est sans rien lire. */}
+          <View style={s.points}>
+            {steps.map((_, i) => (
+              <Animated.View
+                key={i}
+                style={[s.point, {
+                  width: pos.interpolate({ inputRange: [i - 1, i, i + 1], outputRange: [POINT, POINT_ACTIF, POINT], extrapolate: 'clamp' }),
+                  opacity: pos.interpolate({ inputRange: [i - 1, i, i + 1], outputRange: [0.35, 1, 0.35], extrapolate: 'clamp' }),
+                }]}
+              />
+            ))}
+          </View>
+          <Text style={s.title}>{step.title}</Text>
+          <Text style={s.text}>{step.text}</Text>
+          <View style={s.actions}>
+            {/* « Passer » disparaît à la dernière étape : « C'est parti » y sort déjà. */}
+            <Pressable testID="visite-passer" onPress={onSkip} hitSlop={8} accessibilityRole="button" disabled={isLast}>
+              <Text style={s.skip}>{isLast ? '' : 'Passer'}</Text>
+            </Pressable>
+            <Pressable
+              testID="visite-suivant"
+              onPress={onNext}
+              style={({ pressed }) => [s.nextBtn, pressed && { opacity: OPACITE_PRESSION }]}
+              accessibilityRole="button"
+            >
+              <Text style={s.nextTxt}>{isLast ? "C'est parti" : 'Suivant'}</Text>
+            </Pressable>
+          </View>
+        </Animated.View>
+        {/* La pointe, APRÈS le contenu : elle recouvre le trait bas de la carte à son
+            endroit, et ses deux côtés tracés le prolongent jusqu'à l'onglet. */}
+        <Animated.View pointerEvents="none" style={[s.pointe, { left: suivre(pointes) }]} />
+      </Animated.View>
+    </View>
+  );
+}
+
 /**
  * Le CONTENU de la bulle, séparé de son placement.
  * ⚠️ Séparé pour une raison de fond, pas de rangement : il est rendu à DEUX
@@ -708,5 +908,30 @@ function makeStyles(t: ThemePalette) {
     prev: { ...Type.bodySmallStrong, color: t.textSecondary },
     nextBtn: { backgroundColor: t.accent, borderRadius: Radius.button, paddingHorizontal: Spacing.xxl, paddingVertical: Spacing.md, minHeight: CIBLE_TACTILE_MIN, justifyContent: 'center' },
     nextTxt: { ...Type.bodySmallStrong, color: t.onAccent },
+    // ── Visite d'onglets ──
+    voile: { position: 'absolute', top: 0, left: 0, right: 0, backgroundColor: VOILE_VISITE },
+    barre: { position: 'absolute', left: 0, right: 0, bottom: 0, flexDirection: 'row' },
+    onglet: { flex: 1 },
+    carte: {
+      position: 'absolute',
+      backgroundColor: t.cardElevated,
+      borderRadius: Radius.card,
+      borderWidth: Trait.fin,
+      borderColor: t.line,
+      padding: Spacing.xl,
+    },
+    points: { flexDirection: 'row', gap: Spacing.xs, marginBottom: Spacing.md },
+    point: { height: POINT, borderRadius: Radius.pill, backgroundColor: t.accent },
+    pointe: {
+      position: 'absolute',
+      bottom: -POINTE / 2,
+      width: POINTE,
+      height: POINTE,
+      backgroundColor: t.cardElevated,
+      borderRightWidth: Trait.fin,
+      borderBottomWidth: Trait.fin,
+      borderColor: t.line,
+      transform: [{ rotate: '45deg' }],
+    },
   });
 }

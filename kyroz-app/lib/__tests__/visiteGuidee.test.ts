@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import {
-  TOURS, TourId, TourStep, tourSteps,
+  TOURS, TourId, TourStep, tourSteps, visiteApp, ONGLETS, VU_PAR_HERITAGE,
   TITRE_MAX, TEXTE_MAX, ETAPES_MAX,
 } from '../tours';
 
@@ -101,9 +101,9 @@ function lanceurDeTour(): Map<string, string> {
 }
 
 /** Un contexte qui ACTIVE toutes les branches : le test doit voir chaque étape. */
-const CTX_COMPLET = { days: 7, moduleParVolume: true, objectifDateDisponible: true, repasAuto: true };
+const CTX_COMPLET = { repasAuto: true };
 /** Le contexte inverse, pour vérifier que les variantes tiennent aussi. */
-const CTX_MINIMAL = { days: 1, moduleParVolume: false, objectifDateDisponible: false, repasAuto: false };
+const CTX_MINIMAL = { repasAuto: false };
 
 // ⚠️ `?? []` : un id absent du `switch` de `tourSteps` rend `undefined`, et sans
 // ce repli l'erreur remontait à l'IMPORT du module — vitest affichait alors
@@ -204,13 +204,16 @@ describe('Visite guidée — les tours existent et tiennent debout', () => {
     ).toEqual([]);
   });
 
-  it('le tour du Plan et celui du Profil tiennent aussi dans leur variante minimale', () => {
-    // Les deux seuls tours conditionnés. Une variante qui rendrait zéro étape, ou
-    // qui déborderait, ne se verrait pas en ne testant que le cas complet.
-    for (const id of ['plan', 'profil'] as TourId[]) {
+  it('chaque visite tient aussi dans sa variante minimale', () => {
+    // La ligne du Plan est conditionnée (auto-coche). Une variante qui rendrait zéro
+    // étape, ou qui déborderait, ne se verrait pas en ne testant que le cas complet.
+    for (const id of TOURS.map((t) => t.id) as TourId[]) {
       const steps = tourSteps(id, CTX_MINIMAL);
       expect(steps.length, `« ${id} » vide en contexte minimal`).toBeGreaterThan(0);
       expect(steps.length).toBeLessThanOrEqual(ETAPES_MAX);
+      for (const e of steps) {
+        expect(e.text.length, `texte trop long en contexte minimal : « ${e.text} »`).toBeLessThanOrEqual(TEXTE_MAX);
+      }
     }
   });
 });
@@ -611,8 +614,11 @@ describe('Visite guidée — l’anneau ne désigne jamais l’objet d’une aut
 
 describe('Le décompte des bulles ne se recopie pas — il se mesure', () => {
   const SPEC = readFileSync(join(RACINE, 'CLAUDE.md'), 'utf8');
+  // ⚠️ La phrase a changé de forme le 2026-09-30 : il n'y a plus de tours d'onglet mais
+  // UNE visite, comptée par ARRÊT et par onglet. La sonde suit la phrase, le principe
+  // reste : c'est la spec qu'on compare au code, jamais un total figé.
   const LIGNE = SPEC.match(
-    /(\d+) bulles au total \(plan (\d+) · profil (\d+)\)/,
+    /(\d+) arrêts au total \(plan (\d+) · courses (\d+) · réserve (\d+) · recettes (\d+) · profil (\d+)\)/,
   );
 
   it('la sonde trouve bien la phrase de CLAUDE.md — sinon elle passerait à vide', () => {
@@ -622,19 +628,17 @@ describe('Le décompte des bulles ne se recopie pas — il se mesure', () => {
   });
 
   it('🔴 la spec annonce EXACTEMENT ce que le code sert', () => {
-    const [, total, plan, profil] = LIGNE!.map(Number);
+    const [, total, plan, courses, reserve, recettes, profil] = LIGNE!.map(Number);
     // Contexte COMPLET : c'est le décompte maximal, celui que la spec décrit.
-    // ⚠️ Courses, Recettes et Réserve ont quitté cette liste le 2026-08-25 avec leurs
-    // tours (deux coupes successives, même journée). La phrase de CLAUDE.md a suivi à
-    // chaque fois — et c'est parce que le contrôle porte sur la PHRASE, pas sur un
-    // total figé, que chaque coupe a rendu la spec fausse tout de suite au lieu de la
-    // laisser dériver.
-    const reel = {
-      plan: tourSteps('plan', CTX_COMPLET).length,
-      profil: tourSteps('profil', CTX_COMPLET).length,
-    };
-    expect({ ...reel, total: Object.values(reel).reduce((a, b) => a + b, 0) })
-      .toEqual({ plan, profil, total });
+    // ⚠️ Courses, Recettes et Réserve avaient quitté cette liste le 2026-08-25 avec
+    // leurs tours ; elles y reviennent le 2026-09-30, un arrêt chacune, dans la visite
+    // unique. C'est parce que le contrôle porte sur la PHRASE, pas sur un total figé,
+    // que chaque changement rend la spec fausse tout de suite au lieu de la laisser dériver.
+    const etapes = TOUS_LES_TOURS.flatMap((t) => t.steps);
+    const par = (o: string) => etapes.filter((e) => e.onglet === o).length;
+    const reel = { plan: par('plan'), courses: par('courses'), reserve: par('reserve'), recettes: par('recettes'), profil: par('profil') };
+    expect({ ...reel, total: etapes.length })
+      .toEqual({ plan, courses, reserve, recettes, profil, total });
   });
 
   it('aucun commentaire ne recite un nombre de bulles — il périmerait en silence', () => {
@@ -645,8 +649,87 @@ describe('Le décompte des bulles ne se recopie pas — il se mesure', () => {
       const lignes = src.split('\n').filter((l) => /^\s*(\/\/|\*|\/\*)/.test(l));
       for (const l of lignes) {
         expect(l, `${f} : un décompte de bulles recopié en commentaire`)
-          .not.toMatch(/\b\d+\s+bulles\s+(au total|servies|sur)/i);
+          .not.toMatch(/\b\d+\s+(bulles|arrêts)\s+(au total|servies|sur)/i);
       }
     }
+  });
+});
+
+// ── La visite de l'app : un arrêt par onglet, dans l'ordre de la barre ───────
+//
+// Décision fondateur du 2026-09-30 : « une seule visite qui montre toute l'app ». Le
+// moteur NAVIGUE vers l'onglet de chaque arrêt et le POINTE sur la barre à partir de
+// son rang dans `ONGLETS` — donc tout ce qui suit est une affirmation sur la barre
+// réelle, et c'est elle qu'on relit.
+describe('La visite de l’app — un arrêt par onglet, dans l’ordre de la barre', () => {
+  const layout = sansCommentaires(readFileSync(join(RACINE, 'app', '(tabs)', '_layout.tsx'), 'utf8'));
+  const barre = [...layout.matchAll(/<Tabs\.Screen name="([\w-]+)"/g)].map((m) => m[1]);
+  const moteur = sansCommentaires(readFileSync(join(RACINE, 'components', 'GuidedTour.tsx'), 'utf8'));
+
+  it('la sonde lit bien la barre — sinon tout ce bloc passerait à vide', () => {
+    expect(barre.length, 'aucun `Tabs.Screen` lu dans le layout des onglets').toBeGreaterThanOrEqual(4);
+  });
+
+  it('🔴 `ONGLETS` est la barre, dans son ordre — la pointe viserait à côté sinon', () => {
+    // Le moteur place la pointe de la carte au centre du N-ième onglet : un onglet
+    // ajouté, retiré ou déplacé dans le layout décalerait la visite d'un cran, en
+    // silence, sur tous les arrêts qui le suivent.
+    expect([...ONGLETS]).toEqual(barre);
+  });
+
+  it('chaque onglet a exactement UN arrêt, et la visite suit la barre de gauche à droite', () => {
+    for (const ctx of [CTX_COMPLET, CTX_MINIMAL]) {
+      const etapes = visiteApp(ctx);
+      expect(etapes.map((e) => e.onglet), 'un arrêt sans onglet, en double, ou dans le désordre').toEqual([...ONGLETS]);
+    }
+  });
+
+  it('elle part du Plan, et c’est le Plan qui la lance', () => {
+    // Elle ramène là où elle a commencé (`GuidedTour::end`) : son premier arrêt doit
+    // être l'écran où l'on arrive, et l'écran qui la lance doit être celui-là.
+    expect(visiteApp(CTX_COMPLET)[0].onglet).toBe('plan');
+    expect(lanceurDeTour().get('app')).toBe('app/(tabs)/plan.tsx');
+  });
+
+  it('🔴 la ligne du Plan ne promet l’auto-coche que quand elle est allumée', () => {
+    // Éteinte, « Kyroz coche pour toi » serait faux : seul le bouton coche alors.
+    const plan = (repasAuto: boolean) => visiteApp({ repasAuto }).find((e) => e.onglet === 'plan')!.text;
+    expect(plan(true)).toMatch(/Kyroz coche pour toi/);
+    expect(plan(false)).not.toMatch(/coche pour toi|tout seul|automatique/i);
+    expect(plan(false)).toMatch(/J'ai cuisiné/);
+  });
+
+  it('un compte qui a vu l’ancienne bulle du Plan ne se voit pas imposer la visite', () => {
+    // Décision du 2026-09-30 : nouveaux comptes seulement. L'héritage doit être déclaré
+    // ET lu par le moteur — une table que personne ne lit ne protège personne.
+    expect(VU_PAR_HERITAGE.app).toContain('plan');
+    const lecture = moteur.slice(moteur.indexOf('export async function hasSeenTour'), moteur.indexOf('async function markSeen'));
+    expect(lecture, '`hasSeenTour` ne lit plus l’héritage').toMatch(/VU_PAR_HERITAGE\[/);
+  });
+
+  it('la carte et la barre lisent la MÊME hauteur de barre', () => {
+    // Deux copies du nombre divergeraient à la première retouche de la barre, et la
+    // carte recouvrirait les onglets qu'elle montre.
+    expect(layout).toMatch(/height: HAUTEUR_BARRE_ONGLETS/);
+    expect(layout).not.toMatch(/height: Platform\.OS === 'ios' \? 88/);
+    expect(moteur).toMatch(/HAUTEUR_BARRE_ONGLETS/);
+  });
+
+  it('🔴 une visite d’onglets se quitte toujours, et ramène à son départ', () => {
+    const carte = moteur.slice(moteur.indexOf('function CarteVisite('), moteur.indexOf('function Bulle('));
+    expect(carte, 'la carte a perdu son « Passer »').toMatch(/'Passer'/);
+    expect(carte, 'la dernière étape n’a plus de sortie').toMatch(/"C'est parti"/);
+    const fin = moteur.slice(moteur.indexOf('const end = useCallback'), moteur.indexOf('const next = useCallback'));
+    expect(fin, '`end` ne ramène plus à l’onglet de départ').toMatch(/steps\[0\]\?\.onglet/);
+    expect(fin).toMatch(/router\.navigate\(/);
+  });
+
+  it('les boutons de la visite n’affichent pas le cadre de focus du web', () => {
+    // La `Modal` de react-native-web donne le focus à son premier bouton : sans la
+    // règle, un cadre orange entourait l'onglet Plan dès l'ouverture (vu le 2026-09-30).
+    const racine = sansCommentaires(readFileSync(join(RACINE, 'app', '_layout.tsx'), 'utf8'));
+    expect(racine).toMatch(/\[data-testid\^="visite-"\]:focus/);
+    const carte = moteur.slice(moteur.indexOf('function CarteVisite('), moteur.indexOf('function Bulle('));
+    for (const id of ['visite-passer', 'visite-suivant', 'visite-onglet-']) expect(carte).toContain(id);
   });
 });

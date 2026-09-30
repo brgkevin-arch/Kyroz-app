@@ -1,6 +1,6 @@
 import { Tabs, Redirect } from 'expo-router';
 import { Platform, ColorValue, StyleSheet } from 'react-native';
-import { useTheme, Type, Spacing, Trait } from '../../constants/theme';
+import { useTheme, Type, Spacing, Trait, HAUTEUR_BARRE_ONGLETS } from '../../constants/theme';
 import Materiau, { useVerre } from '../../components/Materiau';
 import { styleBarre } from '../../lib/materiau';
 import { useAuth } from '../../hooks/useAuth';
@@ -58,7 +58,7 @@ export default function TabLayout() {
         // ne regarde.
         tabBarStyle: {
           ...styleBarre(verre, t.card, t.line, Trait.fin),
-          height: Platform.OS === 'ios' ? 88 : 68,
+          height: HAUTEUR_BARRE_ONGLETS,
           paddingBottom: Platform.OS === 'ios' ? 28 : 10,
           paddingTop: Spacing.sm,
         },

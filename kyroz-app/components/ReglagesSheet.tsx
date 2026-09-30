@@ -26,7 +26,7 @@ import { JOURS_PESEE, weighInResume } from '../lib/weight';
 // ➡️ Compté par `lib/__tests__/feuillesEmpilees.test.ts`, dont le chantier est
 // désormais VIDE : plus aucun composant de feuille n'ouvre de boîte de dialogue.
 import { MessageEnLigne } from './MessageEnLigne';
-import { TOURS } from '../lib/tours';
+import { ONGLETS } from '../lib/tours';
 // ⚠️ `SUPPORT_EMAIL` était importé pour la ligne « Aide & contact », retirée le
 // 2026-08-10 (elle poussait la même route que « Donner mon avis » en affichant une
 // adresse qu'elle n'ouvrait pas). L'import a bien failli partir avec elle — il a
@@ -80,7 +80,7 @@ interface Props {
   version: string;
   onClose: () => void;
   onExport: () => void;
-  onRevoirTutos: () => void;
+  onRevoirVisite: () => void;
   onLogout: () => void;
   onDelete: () => void;
   /** Cadence de pesée — remontée ici le 2026-08-14 (cf. `WeightCheckin`). */
@@ -99,7 +99,7 @@ interface Props {
 }
 
 export function ReglagesSheet({
-  t, version, onClose, onExport, onRevoirTutos, onLogout, onDelete,
+  t, version, onClose, onExport, onRevoirVisite, onLogout, onDelete,
   weighInFrequency, onWeighInFrequency, weighInDay, onWeighInDay,
   dragHandlers, sheetScrollProps,
 }: Props) {
@@ -333,7 +333,9 @@ export function ReglagesSheet({
               qui affiche une action qu'il ne fait pas est un mensonge d'interface,
               pas une commodité. */}
           <MenuRow t={t} label="Donner mon avis" value="Un problème, une idée" onPress={() => versRoute('/avis')} />
-          <MenuRow t={t} label="Revoir les tutos" value={`${TOURS.length} visites guidées`} onPress={onRevoirTutos} />
+          {/* Une seule visite depuis le 2026-09-30 : elle passe par chaque onglet. Le
+              nombre vient de la liste des onglets, il ne se recopie pas. */}
+          <MenuRow t={t} label="Revoir la visite" value={`${ONGLETS.length} onglets`} onPress={onRevoirVisite} />
           {/* Exigée par Apple 1.4.1 (divulgation des méthodes derrière une mesure de
               santé). Elle vit ici plutôt que sous « Confidentialité » : elle explique
               comment le plan est CALCULÉ, pas ce qu'on fait des données. */}

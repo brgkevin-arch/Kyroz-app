@@ -29,8 +29,8 @@ import { ActionSheet } from '../../components/ActionSheet';
 import { MessageEnLigne } from '../../components/MessageEnLigne';
 import { preuveExigee, messageEchecReauth } from '../../lib/suppressionCompte';
 import { WeightSummaryCard } from '../../components/WeightSummaryCard';
-import { useScreenTour, resetAllTours } from '../../components/GuidedTour';
-import { profilTour, TOURS } from '../../lib/tours';
+import { useTour, resetAllTours } from '../../components/GuidedTour';
+import { visiteApp } from '../../lib/tours';
 import { BodyFatPicker } from '../../components/BodyFatPicker';
 import { DislikedFoodsField } from '../../components/DislikedFoodsField';
 import { ProteinesParRegime } from '../../components/ProteinesParRegime';
@@ -407,10 +407,10 @@ export default function ProfilScreen() {
   // et l'écran `/avis` la montre lui-même en repli quand aucun client mail ne
   // répond. Deux adresses en dur, c'est la première qui ment le jour où elle change.
 
-  // « Revoir les tutos » : on oublie les cinq tours, puis on relance TOUT DE SUITE
-  // celui de cet écran. Sans ce lancement immédiat, l'action n'aurait aucun effet
-  // visible — la personne resterait devant une ligne de menu qui a l'air de n'avoir
-  // rien fait, et les autres tours ne reviendraient qu'en changeant d'onglet.
+  // « Revoir la visite » : on oublie qu'elle a été vue, puis on la relance TOUT DE
+  // SUITE — elle part du Plan (sa première étape y navigue) et y revient. Sans ce
+  // lancement immédiat, l'action n'aurait aucun effet visible : la personne resterait
+  // devant une ligne de menu qui a l'air de n'avoir rien fait.
   // ⚠️ Pas de `notify` de confirmation : le dialogue est lui aussi une modale, et
   // il se poserait PAR-DESSUS la bulle qu'on vient de lancer (ou l'inverse). Le
   // tour qui démarre EST le retour visuel — c'est plus clair qu'un message qui
@@ -419,10 +419,12 @@ export default function ProfilScreen() {
   // visite partait depuis la feuille Réglages, restée ouverte — iOS la refusait, et elle
   // restait invisible par-dessus l'écran une fois la feuille refermée. On ferme d'abord ;
   // la visite attend que la feuille soit partie (`startTour`, lib/modalesPresentees.ts).
-  const revoirTutos = async () => {
+  const { startTour } = useTour();
+  const [repasAuto] = useRepasAuto();
+  const revoirVisite = async () => {
     await resetAllTours();
     setReglages(false);
-    rejouerTour();
+    startTour('app', visiteApp({ repasAuto }));
   };
 
   const appVersion = Constants.expoConfig?.version ?? '1.0.0';
@@ -451,22 +453,9 @@ export default function ProfilScreen() {
     return haut - bas >= 40 ? { bas, haut } : null;
   }, [profile]);
 
-  // Cibles de la visite guidée qui ne passent pas par un composant (les lignes de
-  // menu, elles, reçoivent un `tourId`). ⚠️ Comme `modulation` ci-dessus : AVANT
-  // le retour anticipé.
-  // ⚠️ `profil-tdee`, `profil-sport`, `profil-objectif-date`, `profil-regenerer` et
-  // `profil-donnees` sont partis avec leurs bulles (coupe des tutos, 2026-08-25) :
-  // cinq bulles qui commentaient des lignes de menu déjà intitulées. Une cible que
-  // plus aucune étape ne vise se relit comme une bulle perdue en route.
-  // « Régénérer » est devenu un BOUTON, hors de la liste de réglages : il ne peut
-  // donc plus porter le `tourId` de `MenuRow`, il lui faut sa propre ref. Sans elle
-  // l'étape n'aurait pas de cible montée — et une étape sans cible est écartée EN
-  // SILENCE, laissant un tour plus court qui a l'air complet (cf. E25).
-  const { rejouer: rejouerTour } = useScreenTour(
-    'profil',
-    profilTour({ objectifDateDisponible: premium.can('dated_goal') }),
-    { pret: !!profile, scrollRef },
-  );
+  // ℹ️ Le Profil n'a plus de tour à lui depuis le 2026-09-30 : sa bulle (« Ta pesée
+  // met tout à jour ») est devenue la ligne de son arrêt dans la visite de l'app, qui
+  // part du Plan. Il n'en garde que la porte de rejeu, dans ses réglages.
 
   if (!profile) return null;
 
@@ -797,7 +786,7 @@ export default function ProfilScreen() {
           version={appVersion}
           onClose={() => setReglages(false)}
           onExport={doExport}
-          onRevoirTutos={revoirTutos}
+          onRevoirVisite={revoirVisite}
           onLogout={doLogout}
           onDelete={() => { setApresReglages('supprimer'); setReglages(false); }}
           weighInFrequency={profile.weigh_in_frequency ?? DEFAULT_WEIGH_IN_FREQUENCY}

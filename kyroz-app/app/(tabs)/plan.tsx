@@ -29,7 +29,7 @@ import { PrimaryButton, SectionLabel } from '../../components/ui';
 import { HydrationBar, useHydrationEnabled } from '../../components/HydrationBar';
 import { useScreenTour, hasSeenTour } from '../../components/GuidedTour';
 import { animerMiseEnPage } from '../../components/Mouvement';
-import { planTour } from '../../lib/tours';
+import { visiteApp } from '../../lib/tours';
 import { useProfile } from '../../hooks/useProfile';
 import { useFavorites } from '../../hooks/useFavorites';
 import { useWeightLog } from '../../hooks/useWeightLog';
@@ -38,7 +38,7 @@ import { useNotificationIntent, consommerNotificationIntent } from '../../hooks/
 import { useReminder } from '../../hooks/useReminder';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { semaineEcoulee } from '../../lib/semainePlan';
-import { buildLocalPlan, carryTracking, nextPlanSeed, profileSignature, swapMeal, computeDailyTotals, rebalanceDay, resetTracking, adaptDayOptions, AdaptOption, mealIngredients, reAdaptMealRecipe, mealPoolSize, dayTargetKcal, baseDayTargets, ON_TARGET_TOLERANCE_KCAL } from '../../lib/planEngine';
+import { buildLocalPlan, carryTracking, nextPlanSeed, profileSignature, swapMeal, computeDailyTotals, rebalanceDay, resetTracking, adaptDayOptions, AdaptOption, mealIngredients, reAdaptMealRecipe, mealPoolSize, dayTargetKcal, ON_TARGET_TOLERANCE_KCAL } from '../../lib/planEngine';
 import { DISLIKE_THRESHOLD, dislikeCandidates, applyDislikedIngredient } from '../../lib/dislike';
 import { todayStamp, localStamp } from '../../lib/weight';
 import { recordOffPlan, resolveOffPlan, forgetOffPlan } from '../../lib/offPlanJournal';
@@ -209,41 +209,31 @@ export default function PlanScreen() {
   };
   const [birthdayAge, setBirthdayAge] = useState<number | null>(null); // 🎂 une fois l'an
   const autoTried = React.useRef(false);
-  const tourTried = React.useRef(false);
   const scrollRef = React.useRef<ScrollView>(null);
   const repli = useCollapsingTitle();
-  // Cibles de la visite guidée (ref directe sur l'élément → spotlight aligné).
-  // ⚠️ Les cibles `plan-serie`, `plan-macros`, `plan-repartition` et `plan-actions`
-  // sont parties avec leurs bulles (coupe des tutos, 2026-08-25). Une cible que plus
-  // aucune étape ne vise n'est pas inoffensive : elle se relit comme une bulle perdue
-  // en route. Restent les deux que le tour du Plan sert, selon le réglage d'auto-coche
-  // — `plan-auto` (le surtitre d'une carte) et `plan-cook` (le bouton).
-  // ⚠️ `useTourTarget('plan-offplan')` a été RETIRÉ avec l'étape de visite guidée
-  // qui s'y ancrait (cf. PARCOURS_HORS_PLAN_ACTIF, lib/offPlanJournal.ts).
-
-  // Les cibles des jours diffèrent-elles réellement ? Sans sport déclaré, non —
-  // `dayExpenditures` retombe alors sur une cible plate, et la bulle qui parle de
-  // « jours d'entraînement » mentirait à qui n'en a pas. Même seuil et même
-  // calcul que `FirstPlanReveal`, pour que les deux écrans ne se contredisent
-  // pas sur la même question.
-  const moduleParVolume = useMemo(() => {
-    if (!profile) return false;
-    const j = baseDayTargets(profile, Math.max(1, Math.min(profile.plan_days ?? 7, 7)));
-    return Math.max(...j) - Math.min(...j) >= 40;
-  }, [profile]);
+  // ℹ️ Plus aucune cible de visite guidée sur cet écran (`useTourTarget`) : la visite
+  // de l'app désigne des ONGLETS, pas des objets (lib/tours.ts, en tête). La dernière
+  // bulle du Plan — « J'ai cuisiné » ou l'auto-coche — est devenue la ligne de son
+  // arrêt, et `moduleParVolume`, qu'elle recevait encore sans le lire, est parti avec.
 
   useEffect(() => { load(); }, []);
 
-  // Visite guidée : au 1er affichage d'un plan, s'il n'a jamais été vu.
-  // ⚠️ Le reveal du 1er plan passe AVANT le tour : tant qu'il est affiché, le
-  // tour n'est pas « prêt » → il démarre à sa fermeture, pas par-dessus.
+  // ── La visite de l'app : une fois, juste après le premier plan (2026-09-30) ──
+  // Elle part d'ICI parce que c'est l'écran où l'on arrive, et elle passe ensuite par
+  // chaque onglet avant d'y revenir (`GuidedTour.tsx::CarteVisite`).
+  // ⚠️ Le reveal du 1er plan passe AVANT : tant qu'il est affiché, la visite n'est pas
+  // « prête », elle démarre à sa fermeture, pas par-dessus. Et JAMAIS « pendant que ton
+  // plan se génère » : le moteur rend une semaine en quelques millisecondes, la phrase
+  // annoncerait une attente qui n'existe pas.
+  // ⚠️ Nouveaux comptes seulement : qui a vu l'ancienne bulle du Plan est tenu pour
+  // l'avoir vue (`VU_PAR_HERITAGE`, lib/tours.ts).
   useScreenTour(
-    'plan',
-    planTour({ days: plan?.days ?? 7, moduleParVolume, repasAuto }),
+    'app',
+    visiteApp({ repasAuto }),
     // ⚠️ `showOffer` compte autant que `showReveal` : les trois surfaces se
-    // suivent (reveal → offre → tour) et deux modales superposées avalent les
+    // suivent (reveal → offre → visite) et deux modales superposées avalent les
     // taps l'une de l'autre.
-    { pret: !loading && !!plan && !showReveal && !showOffer, scrollRef },
+    { pret: !loading && !!plan && !showReveal && !showOffer },
   );
 
   // ── L'offre du rappel doit aussi atteindre les comptes DÉJÀ créés ──────────
@@ -261,7 +251,7 @@ export default function PlanScreen() {
   useEffect(() => {
     if (loading || !plan || showReveal || offreTentee.current) return;
     offreTentee.current = true;
-    hasSeenTour('plan').then((vu) => { if (vu) proposerLeRappel(); });
+    hasSeenTour('app').then((vu) => { if (vu) proposerLeRappel(); });
   }, [loading, plan, showReveal]);
 
   // Garde-manger : rechargé à chaque fois qu'on revient sur l'onglet Plan, pour
@@ -1051,7 +1041,8 @@ export default function PlanScreen() {
                     ⚠️ Le moteur, lui, n'a pas changé : `dayTargetKcal` module toujours
                     le budget sur la dépense du jour. C'est le TEXTE qui part, pas la
                     mécanique — ne pas « réparer » l'un en croyant l'autre cassé.
-                    ⚠️ `moduleParVolume` reste calculé : `planTour` le reçoit encore. */}
+                    ℹ️ `moduleParVolume` est parti le 2026-09-30 avec la dernière bulle
+                    du Plan, qui le recevait encore sans le lire. */}
                 <View style={{ height: 12 }} />
                 <MacroBar
                   protein_g={dayMacros.protein_g}
