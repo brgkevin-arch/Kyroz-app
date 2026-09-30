@@ -10,6 +10,7 @@ import {
 import { frDateLongue } from '../lib/dateLabel';
 import { formatQuantity } from '../lib/units';
 import { ConfirmationEnLigne } from './ConfirmationEnLigne';
+import { nomAffiche } from '../lib/pantry';
 
 // ── Historique des listes de courses ─────────────────────────────────────────
 //
@@ -163,7 +164,7 @@ export function ShoppingHistory({
 function Ligne({ s, item, pale }: { s: ReturnType<typeof makeStyles>; item: ShoppingTripItem; pale?: boolean }) {
   return (
     <View style={s.ligne}>
-      <Text style={[s.nom, pale && s.pale]} numberOfLines={1}>{item.name}</Text>
+      <Text style={[s.nom, pale && s.pale]} numberOfLines={1}>{nomAffiche(item.name)}</Text>
       {/* Une sortie peut contenir un article AJOUTÉ À LA MAIN sans quantité
           (« café ») : `formatQuantity` rendrait « 0 g » — un chiffre inventé,
           relu six mois plus tard comme s'il avait été mesuré ce jour-là. */}

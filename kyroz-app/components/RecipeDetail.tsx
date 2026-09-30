@@ -165,7 +165,12 @@ export function RecipeDetail({ recipe, portions = 1, adaptedIngredients, adapted
           <Text style={[s.fiber, { flex: 1 }]}>~{adaptedIngredients ? mealFiberFromIngredients(adaptedIngredients) : mealFiberG(recipe, f)} g de fibres (estimé)</Text>
         </View>
 
-        {recipe.why_fr && <Text style={s.why}>{recipe.why_fr}</Text>}
+        {/* 🔴 LA NOTE `why_fr` N'EST PLUS AFFICHÉE (décision fondateur, 2026-09-30). C'est
+            une justification écrite pour CONSTRUIRE le catalogue (« Muscu/combats prise de
+            masse : … »), jamais tenue à jour : 40 notes sur 559 annonçaient un objectif
+            que l'étiquette dément, au moins 17 décrivaient un ingrédient retiré (« Dinde
+            et beurre de cacahuète » sur un plat qui n'en a plus). Elle reste dans les
+            données pour l'atelier ; l'écran ne montre que ce que le moteur garantit. */}
 
         {/* Ingrédients | préparation côte à côte sur tablette.
             C'est LE cas d'usage tablette énoncé par le fondateur — cuisiner avec
@@ -274,7 +279,6 @@ function makeStyles(t: ThemePalette, isTablet: boolean) {
     tagRow: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm, marginTop: -Spacing.sm },
     tag: { ...Type.microStrong, backgroundColor: t.fill, color: t.textSecondary, paddingHorizontal: Spacing.sm, paddingVertical: Spacing.xs, borderRadius: Radius.pill, overflow: 'hidden' },
     warn: { ...Type.caption, color: t.warning, marginTop: -Spacing.sm },
-    why: { ...Type.bodySmall, color: t.textSecondary, fontStyle: 'italic', lineHeight: 20, marginTop: -Spacing.sm },
     macros: { flexDirection: 'row', backgroundColor: t.card, borderRadius: Radius.card, padding: Spacing.lg, justifyContent: 'space-around' },
     fiber: { ...Type.caption, color: t.textTertiary, marginTop: -Spacing.sm },
     memePlat: { ...Type.bodySmall, color: t.textSecondary },

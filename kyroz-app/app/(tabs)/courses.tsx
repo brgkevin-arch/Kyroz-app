@@ -19,7 +19,7 @@ import { joursAAcheter, mentionDepart } from '../../lib/coursesDepuis';
 import { useProfile } from '../../hooks/useProfile';
 import { formatQuantity, toBaseUnit } from '../../lib/units';
 import { searchFoods } from '../../lib/foods';
-import { loadPantry, savePantry, addOrMerge, isStaple } from '../../lib/pantry';
+import { loadPantry, savePantry, addOrMerge, isStaple, nomAffiche } from '../../lib/pantry';
 import {
   ShoppingTrip, loadHistory, saveHistory, recordTrip, removeTrip, historySummary,
 } from '../../lib/shoppingHistory';
@@ -168,7 +168,7 @@ export default function CoursesScreen() {
     // portées différentes derrière le même appui long, donc deux phrases.
     if (item.manuel) {
       const oui = await confirm({
-        title: `Supprimer ${item.name} ?`,
+        title: `Supprimer ${nomAffiche(item.name)} ?`,
         message: "Tu l'as ajouté toi-même, donc il ne reviendra pas tout seul.",
         confirmLabel: 'Supprimer',
         destructive: true,
@@ -178,7 +178,7 @@ export default function CoursesScreen() {
       return;
     }
     const ok = await confirm({
-      title: `Retirer ${item.name} ?`,
+      title: `Retirer ${nomAffiche(item.name)} ?`,
       message: 'Il quitte ta liste de courses. Ton plan de repas ne change pas : tu le retrouveras en tirant la liste vers le bas.',
       confirmLabel: 'Retirer',
       destructive: true,
@@ -758,7 +758,7 @@ export default function CoursesScreen() {
               <View style={[s.dot, { borderColor: item.checked ? t.accent : t.lineStrong, backgroundColor: item.checked ? t.accent : 'transparent' }]}>
                 {item.checked && <Ionicons name="checkmark" size={Icone.petite} color={t.onAccent} />}
               </View>
-              <Text style={[s.name, item.checked && { textDecorationLine: 'line-through', color: t.textTertiary }]} numberOfLines={1}>{item.name}</Text>
+              <Text style={[s.name, item.checked && { textDecorationLine: 'line-through', color: t.textTertiary }]} numberOfLines={1}>{nomAffiche(item.name)}</Text>
               {/* Un ajout manuel n'a souvent pas de quantité : `formatQuantity`
                   rendrait « 0 g », un chiffre faux là où un blanc dit la vérité. */}
               {item.quantity > SANS_QUANTITE && (
