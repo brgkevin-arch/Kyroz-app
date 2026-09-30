@@ -4,8 +4,11 @@ import { RecipeObjective } from './types';
 // recettes (DRY). Il est MÉCANIQUE : déduit des kcal de base de la recette et
 // vérifié sur les 512 par `lib/__tests__/tags.test.ts`. Ce qui est affiché ici
 // est donc vrai par construction.
+// 🔴 `cut` se dit « Sèche », comme l'objectif que la personne a choisi à l'inscription et
+// qu'elle relit au Profil (2026-09-30). « Perte de gras » faisait deux mots pour la même
+// chose : on cherchait sa sèche et on trouvait une étiquette qu'on n'avait jamais cochée.
 export const OBJ_LABEL: Record<RecipeObjective, string> = {
-  cut: 'Perte de gras', maintain: 'Maintien', bulk: 'Prise de masse',
+  cut: 'Sèche', maintain: 'Maintien', bulk: 'Prise de masse',
 };
 
 // ⚠️ `SPORT_LABEL` (côté RECETTE) a été SUPPRIMÉ le 2026-08-03. `Recipe.sports` existe
