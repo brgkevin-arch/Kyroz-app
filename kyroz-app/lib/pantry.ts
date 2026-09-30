@@ -172,8 +172,14 @@ export function memeAliment(a: string, b: string): boolean {
 // des 30 recettes. ORDRE IMPORTANT : règles spécifiques avant les génériques,
 // car le 1er match gagne (ex. « lait de coco » avant « lait », « poisson » avant
 // « pois », « beurre de cacahuète » avant « beurre »).
+// 🔴 LE PREMIER MOT TROUVÉ GAGNE, et un mot court en attrape de plus longs :
+// « pignon » rangeait les CHAMPIGNONS dans « Autres ». Et 58 aliments sur 139 y
+// tombaient (2026-09-30) : carotte, pomme, maquereau, millet, mozzarella… faute de
+// mot-clé ; le rayon « Autres » de la liste de courses en comptait 14 sur 42.
+// Garde-fou : `lib/__tests__/rayonsCourses.test.ts`.
 const CAT_MAP: [string, PantryCategory][] = [
   // Collisions de sous-chaîne — à matcher en premier
+  ['champignon', 'légumes'],
   ['lait de coco', 'autres'],
   ['beurre de cacahuète', 'autres'], ["beurre d'amande", 'autres'],
   ['cacahuète', 'autres'], ['amande', 'autres'],
@@ -186,6 +192,7 @@ const CAT_MAP: [string, PantryCategory][] = [
   ['poulet', 'viandes'], ['bœuf', 'viandes'], ['boeuf', 'viandes'], ['steak', 'viandes'],
   ['dinde', 'viandes'], ['jambon', 'viandes'], ['saumon', 'viandes'], ['thon', 'viandes'],
   ['cabillaud', 'viandes'], ['crevette', 'viandes'], ['poisson', 'viandes'],
+  ['porc', 'viandes'], ['maquereau', 'viandes'], ['sardine', 'viandes'],
 
   // Légumes & fruits
   ['brocoli', 'légumes'], ['épinard', 'légumes'], ['epinard', 'légumes'], ['tomate', 'légumes'],
@@ -196,6 +203,11 @@ const CAT_MAP: [string, PantryCategory][] = [
   ['ananas', 'légumes'], ['maïs', 'légumes'], ['mais', 'légumes'], ['edamame', 'légumes'],
   ['ratatouille', 'légumes'], ['petits pois', 'légumes'], ['pomme de terre', 'légumes'],
   ['fruit', 'légumes'], ['légume', 'légumes'],
+  ['asperge', 'légumes'], ['betterave', 'légumes'], ['carotte', 'légumes'], ['chou', 'légumes'],
+  ['roquette', 'légumes'], ['kiwi', 'légumes'], ['mangue', 'légumes'], ['pomme', 'légumes'],
+  ['raisin', 'légumes'],
+  // ⚠️ Dattes (séchées) et châtaignes (sous vide) restent dans « Autres » : la catégorie
+  // décide aussi du rangement de la Réserve, et « Légumes & fruits » veut dire FRAIS.
 
   // Féculents, céréales & légumineuses
   ['riz', 'féculents'], ['quinoa', 'féculents'], ['pâte', 'féculents'], ['pates', 'féculents'],
@@ -203,12 +215,14 @@ const CAT_MAP: [string, PantryCategory][] = [
   ['semoule', 'féculents'], ['tortilla', 'féculents'], ['farine', 'féculents'],
   ['boulgour', 'féculents'], ['galette de riz', 'féculents'],
   ['lentille', 'féculents'], ['pois chiche', 'féculents'], ['haricot', 'féculents'],
+  ['millet', 'féculents'], ['sarrasin', 'féculents'], ['polenta', 'féculents'],
+  ['pois cassé', 'féculents'], ['fève', 'féculents'], ['chapelure', 'féculents'],
 
   // Produits laitiers & œufs
   ['fromage', 'laitiers'], ['lait', 'laitiers'], ['yaourt', 'laitiers'], ['œuf', 'laitiers'],
   ['oeuf', 'laitiers'], ['skyr', 'laitiers'], ['feta', 'laitiers'], ['parmesan', 'laitiers'],
   ['emmental', 'laitiers'], ['crème', 'laitiers'], ['creme', 'laitiers'], ['cottage', 'laitiers'],
-  ['beurre', 'laitiers'],
+  ['beurre', 'laitiers'], ['mozzarella', 'laitiers'],
 ];
 
 export function categorize(name: string): PantryCategory {
