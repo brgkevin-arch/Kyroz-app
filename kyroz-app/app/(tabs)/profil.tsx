@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useCallback, useRef } from 'react';
+import React, { useMemo, useState, useCallback, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform } from 'react-native';
 import { Presse } from '../../components/Presse';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -668,7 +668,7 @@ export default function ProfilScreen() {
             le haut, puis redescendre. Une bulle qui déplace l'écran à contresens de
             sa propre progression se lit comme un bug, pas comme une visite. */}
         <View style={s.tdee}>
-          <Text style={s.tdeeL}>Dépense estimée · maintenance (TDEE)</Text>
+          <Text style={s.tdeeL}>Ta dépense par jour, pour garder ton poids</Text>
           <Text style={s.tdeeV}>{profile.tdee_kcal.toLocaleString('fr-FR')} kcal</Text>
         </View>
 
@@ -699,7 +699,7 @@ export default function ProfilScreen() {
             adresse. */}
         <SectionTitle t={t}>Infos</SectionTitle>
         <View style={s.menu}>
-          <MenuRow t={t} label="Informations" value={`${SEX_LABELS[profile.sex]} · ${profile.age} ans · ${frnum(profile.weight_kg)} kg${profile.body_fat_pct != null ? ` · ${frnum(profile.body_fat_pct)}% MG` : ''}`} onPress={() => setEditor('info')} />
+          <MenuRow t={t} label="Informations" value={`${SEX_LABELS[profile.sex]} · ${profile.age} ans · ${frnum(profile.weight_kg)} kg${profile.body_fat_pct != null ? ` · ${frnum(profile.body_fat_pct)} % de gras` : ''}`} onPress={() => setEditor('info')} />
           <MenuRow t={t} label="Sport & activité" value={`${profile.sports?.length ? `${profile.sports.length} sport${profile.sports.length > 1 ? 's' : ''}` : 'Aucun sport'} · ${NEAT_SHORT[profile.neat_level ?? DEFAULT_NEAT_LEVEL]}`} onPress={() => setEditor('sports')} last />
         </View>
 
@@ -1058,7 +1058,8 @@ function InfoEditor({ t, profile, onSave, onWeighIn, dragHandlers, sheetScrollPr
           reprend le libellé au lieu de suggérer « Kévin », le prénom du fondateur. */}
       <Field t={t} label="Prénom" value={prenom} onChangeText={setPrenom} placeholder="Ton prénom" autoCapitalize="words" />
       <Segmented t={t} options={[{ label: 'Homme', value: 'male' }, { label: 'Femme', value: 'female' }]} value={sex} onChange={setSex} />
-      <SectionLabel t={t}>Date de naissance</SectionLabel>
+      {/* Pas de titre de section ici : le champ porte déjà « Date de naissance », et
+          l'éditeur l'affichait deux fois de suite (relevé le 2026-09-30). */}
       <BirthDateField t={t} value={birthDate} onChange={setBirthDate} fallbackAge={profile.birth_date ? undefined : profile.age} />
       {/* Renvoi, pas champ : le poids a UNE porte d'entrée, et c'est celle qui
           tient l'historique. Le libellé dit où l'on va, pas seulement que ça se
@@ -1236,8 +1237,18 @@ function SportsProfileEditor({ t, profile, onSave, dragHandlers, sheetScrollProp
   const [sports, setSports] = useState<SportSession[]>(profile.sports ?? []);
   const [neat, setNeat] = useState<NeatLevel>(profile.neat_level ?? DEFAULT_NEAT_LEVEL);
   const [restDays, setRestDays] = useState<number[]>(effectiveRestWeekdays(profile));
-  const togRestDay = (v: number) => setRestDays((arr) => arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v]);
+  // 🔴 SANS SÉANCE, PAS DE JOURS DE REPOS (2026-09-30, comme à l'inscription). Le moteur
+  // n'en tient plus compte sans séance (`restDaysForProfile`) : montrer la rangée,
+  // c'était proposer un réglage qui ne pilote rien.
+  // ⚠️ Et quand on AJOUTE un premier sport ici, la rangée apparaît PRÉ-COCHÉE de la
+  // déduction, tant qu'on n'y a pas touché : sinon « Aucun » y serait coché d'office, et
+  // le moteur lirait « je m'entraîne 7 j/7 » — le piège « pas répondu = aucun » (§6).
+  const [restTouche, setRestTouche] = useState(totalSessionsPerWeek(profile.sports) > 0);
+  const togRestDay = (v: number) => { setRestTouche(true); setRestDays((arr) => arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v]); };
   const trainingDaysEq = Math.min(totalSessionsPerWeek(sports), 7);
+  useEffect(() => {
+    if (!restTouche && trainingDaysEq > 0) setRestDays(orderedWeekdays(deducedRestWeekdays(TOUS_LES_JOURS, trainingDaysEq)));
+  }, [restTouche, trainingDaysEq]);
   // ⚠️ AUCUN FILTRE SUR LES JOURS DU PLAN. Il y en avait un, et il mordait : ouvrir
   // cet écran puis « Enregistrer » suffisait à effacer en silence un jour de repos
   // tombé hors du plan. Un jour de repos est un fait sur la semaine de
@@ -1245,7 +1256,9 @@ function SportsProfileEditor({ t, profile, onSave, dragHandlers, sheetScrollProp
   const submit = () => onSave(withRecalc({
     ...profile, sports, neat_level: neat,
     training_days_per_week: trainingDaysEq, activity_level: activityFromDays(trainingDaysEq),
-    rest_weekdays: orderedWeekdays(restDays),
+    // Sans séance, on ne réécrit PAS les jours de repos : ils ne pilotent rien, et
+    // « jamais répondu » doit rester distinguable d'une réponse (§6).
+    rest_weekdays: trainingDaysEq > 0 ? orderedWeekdays(restDays) : profile.rest_weekdays,
   }));
   return (
     <EditorShell t={t} title="Sport & activité" onSave={submit} dragHandlers={dragHandlers} sheetScrollProps={sheetScrollProps}>
@@ -1256,8 +1269,14 @@ function SportsProfileEditor({ t, profile, onSave, dragHandlers, sheetScrollProp
 
       <SectionLabel t={t}>TES SÉANCES</SectionLabel>
       <Text style={{ ...Type.caption, color: t.textSecondary, lineHeight: 18, marginBottom: Spacing.xs }}>Tes sports servent à estimer tes calories dépensées. Plus c'est précis, plus ton plan l'est.</Text>
-      <SportsEditor sports={sports} weight={profile.weight_kg} onChange={setSports} />
-      <RestDaysPicker t={t} value={restDays} onToggle={togRestDay} onNone={() => setRestDays([])} />
+      <SportsEditor
+        sports={sports} weight={profile.weight_kg} onChange={setSports}
+        // Même case qu'à l'inscription : « aucun sport » est une RÉPONSE, qui se lit.
+        aucunSport={{ label: 'Je ne fais pas de sport', selected: sports.length === 0, onToggle: () => setSports([]) }}
+      />
+      {trainingDaysEq > 0 && (
+        <RestDaysPicker t={t} value={restDays} onToggle={togRestDay} onNone={() => { setRestTouche(true); setRestDays([]); }} />
+      )}
     </EditorShell>
   );
 }

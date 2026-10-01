@@ -18,8 +18,7 @@ import { searchFoods } from '../../lib/foods';
 import {
   PantryItem, PantryCategory, Conservation,
   loadPantry, savePantry, addOrMerge, removeItem, categorize,
-  visiblePantry, conservationDe, parConservation, setConservation,
-} from '../../lib/pantry';
+  visiblePantry, conservationDe, parConservation, setConservation, nomAffiche } from '../../lib/pantry';
 
 const CATEGORY_ORDER: PantryCategory[] = ['viandes', 'légumes', 'féculents', 'laitiers', 'autres'];
 const CATEGORY_LABELS: Record<PantryCategory, string> = {
@@ -144,7 +143,7 @@ export default function ReserveScreen() {
     // Changer de rangement fait SORTIR l'aliment de la liste qu'on regarde. Sans
     // un mot, il a l'air d'avoir disparu.
     if (editConservation !== conservationDe(editItem)) {
-      flashToast(editConservation === 'sec' ? `${editItem.name} rangé au sec` : `${editItem.name} rangé au frais`);
+      flashToast(editConservation === 'sec' ? `${nomAffiche(editItem.name)} rangé au sec` : `${nomAffiche(editItem.name)} rangé au frais`);
     }
     setEditItem(null);
   };
@@ -225,7 +224,7 @@ export default function ReserveScreen() {
             </View>
             <Text style={s.emptyTitle}>Ta réserve est vide</Text>
             <Text style={s.emptySub}>
-              Ajoute ce que tu as déjà — ou fais tes courses : « Courses terminées » range
+              Ajoute ce que tu as déjà — ou fais tes courses : « Courses terminées » range
               tout ce que tu as coché ici, au frais ou au sec.
             </Text>
             <View style={{ height: 8 }} />
@@ -301,7 +300,7 @@ export default function ReserveScreen() {
                             onPress={() => openEdit(it)}
                             activeOpacity={OPACITE_PRESSION}
                           >
-                            <Text style={s.invName} numberOfLines={1}>{it.name}</Text>
+                            <Text style={s.invName} numberOfLines={1}>{nomAffiche(it.name)}</Text>
                             <Text style={s.invQty}>{formatQuantity(it.name, it.quantity, it.unit)}</Text>
                           </Presse>
                         ))}
@@ -360,7 +359,7 @@ export default function ReserveScreen() {
       {/* Édition de la quantité */}
       <ActionSheet visible={!!editItem} onClose={() => setEditItem(null)}>
         <Text style={s.sheetTitle}>Modifier la quantité</Text>
-        <Text style={s.editName}>{editItem?.name}</Text>
+        <Text style={s.editName}>{editItem ? nomAffiche(editItem.name) : ''}</Text>
         <View style={s.stepRow}>
           <Presse onPress={() => bumpEditQty(-1)} style={s.stepBtn} activeOpacity={OPACITE_PRESSION} accessibilityLabel="Diminuer la quantité">
             <Ionicons name="remove" size={Icone.action} color={t.text} />
