@@ -775,6 +775,17 @@ describe('La visite après relecture — ce qu’elle montre, quand elle cède l
     expect(carte, 'la carte ne dit plus sa hauteur au moteur').toMatch(/onLayout=\{\(e\) => onHauteur\(/);
     // Le Plan donne son défilement à la visite ; « Revoir la visite » passe par lui.
     expect(plan).toMatch(/useScreenTour\(\s*'app',[\s\S]{0,120}scrollRef/);
+    // 🔴 Et une CALE sous son contenu pendant l'arrêt (vu au simulateur) : sans elle, un
+    // dîner en dernière position restait bloqué en bas, bouton sous la carte.
+    expect(plan).toContain("const espaceVisite = useEspaceVisite('plan');");
+    expect(plan).toMatch(/\{espaceVisite > 0 && <View style=\{\{ height: espaceVisite \}\} \/>\}\s*<\/ScrollView>/);
+    expect(moteur, 'la cale ne vaut plus que pour les arrêts qui amènent une cible').toMatch(/const espaceBas = step\?\.onglet && step\.targetId/);
+  });
+
+  it('sur téléphone, la carte reste centrée — seule la pointe voyage', () => {
+    // Vu au simulateur (402 pt) : avec 10 pt de jeu, la carte flottait d'un arrêt à
+    // l'autre, ce qui se lisait comme une hésitation.
+    expect(carte).toMatch(/jeu < JEU_MINIMUM\s*\?\s*\(W - largeur\) \/ 2/);
   });
 
   it('3 — l’offre du rappel vient APRÈS la visite, une fois sa fenêtre fermée', () => {

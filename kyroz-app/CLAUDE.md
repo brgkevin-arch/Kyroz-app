@@ -2537,8 +2537,10 @@ onglet, dans l'ordre de la barre.
   carte se pose au-dessus de la barre et la POINTE. Une seule valeur animée (le rang de
   l'étape) porte la carte, sa pointe et le trait de progression, **par `translateX` et
   l'animation NATIVE** : sur le fil JavaScript, la pointe calait pendant que l'onglet ouvert se
-  construit (liste de courses, recettes). Terminer ou passer ramène au Plan. La hauteur de la
-  barre a une source unique : `theme.ts::HAUTEUR_BARRE_ONGLETS`.
+  construit (liste de courses, recettes). Sur téléphone, la carte reste CENTRÉE et seule la
+  pointe voyage (moins de 48 pt de jeu : la déplacer de quelques points se lisait comme une
+  hésitation, vu au simulateur). Terminer ou passer ramène au Plan. La hauteur de la barre a
+  une source unique : `theme.ts::HAUTEUR_BARRE_ONGLETS`.
 - **L'arrêt du Plan MONTRE ce dont il parle** (retour fondateur, 2026-09-30 : « la carte
   parle d'un bouton qu'on ne voit pas »). Le bouton « J'ai cuisiné » du premier repas tombait
   pile sous la carte, à toute heure. Le Plan pose `tourId="plan-repas"` sur le premier repas
@@ -2546,6 +2548,12 @@ onglet, dans l'ordre de la barre.
   (`visee.ts::dejaVisible` a une marge du bas distincte : barre + carte mesurée). Sans anneau :
   la cible ne sert qu'à montrer. Sans repas à faire, l'arrêt se joue quand même. « Revoir la
   visite » passe par le lanceur du Plan (`relancer`), qui porte ce défilement.
+  🔴 Pendant cet arrêt, le Plan pose une CALE sous son contenu (`useEspaceVisite`, de la
+  hauteur de la carte) : vu au simulateur, un dîner en DERNIÈRE position ne pouvait pas
+  remonter — l'écran ne défile pas au-delà de son contenu — et son bouton restait à moitié
+  sous la carte. Le web ne le montrait pas (écran plus haut). Vérifié sur iPhone 17 :
+  dîner entier au-dessus de la carte ; et l'offre du rappel s'ouvre bien APRÈS la visite,
+  sans gel.
 - **Rédaction** : le TITRE dit ce qu'est l'onglet, la LIGNE dit la seule chose qu'on ne voit
   pas en le regardant (`TEXTE_MAX` = 90). Les deux bulles d'avant sont devenues les lignes du
   Plan (« J'ai cuisiné » / l'auto-coche) et du Profil (la pesée qui recale le plan).

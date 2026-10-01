@@ -807,6 +807,9 @@ const POINT_ACTIF = 18;
  * arrêt, avant que la carte ne se soit posée ; ensuite c'est la mesure qui décide.
  */
 const HAUTEUR_CARTE_ORDINAIRE = 190;
+/** En deçà de ce jeu horizontal (pt), la carte reste centrée : la déplacer de quelques
+ *  points ne désignerait rien, seule la pointe le fait. */
+const JEU_MINIMUM = 48;
 
 function CarteVisite({
   t, steps, index, isLast, onNext, onSkip, onAller, onHauteur,
@@ -836,10 +839,18 @@ function CarteVisite({
     const rang = Math.max(0, ONGLETS.indexOf(o ?? ONGLETS[0]));
     return marge + ((W - 2 * marge) * (rang + 0.5)) / ONGLETS.length;
   };
-  // La carte suit son onglet sans sortir de l'écran (sur un téléphone, elle est déjà
-  // pleine largeur : seule la pointe voyage) ; la pointe reste hors des coins arrondis.
+  // La carte suit son onglet sans sortir de l'écran ; la pointe reste hors des coins
+  // arrondis.
+  // 🔴 SUR TÉLÉPHONE, LA CARTE NE BOUGE PAS (vu au simulateur, iPhone 17, 402 pt). Elle
+  // y est presque pleine largeur : il ne lui restait que 10 pt de jeu, qu'elle
+  // parcourait d'un arrêt à l'autre — un flottement de quelques points, qui se lit comme
+  // une hésitation et pas comme un déplacement. Sous `JEU_MINIMUM`, elle reste centrée et
+  // seule la pointe voyage ; au-delà (tablette), la carte suit vraiment son onglet.
   const largeur = Math.min(W - 32, BUBBLE_MAX_W);
-  const gauches = steps.map((e) => clamp(centre(e.onglet) - largeur / 2, 16, W - 16 - largeur));
+  const jeu = W - 32 - largeur;
+  const gauches = steps.map((e) => (jeu < JEU_MINIMUM
+    ? (W - largeur) / 2
+    : clamp(centre(e.onglet) - largeur / 2, 16, W - 16 - largeur)));
   const pointes = steps.map((e, i) =>
     clamp(centre(e.onglet) - gauches[i], Radius.card, largeur - Radius.card) - POINTE / 2);
 
