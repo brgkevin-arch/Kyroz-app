@@ -210,6 +210,15 @@ export const Fond = {
   feuille: 40,
 } as const;
 
+/**
+ * Hauteur de la barre d'onglets (`app/(tabs)/_layout.tsx`, dégagement bas compris).
+ * ⚠️ Écrite ICI et non dans le layout : la visite guidée pose sa carte juste au-dessus
+ * de la barre et pointe ses onglets (`GuidedTour.tsx::CarteVisite`). Deux copies du
+ * même nombre divergeraient à la première retouche de la barre — et la carte
+ * recouvrirait les onglets qu'elle est censée montrer.
+ */
+export const HAUTEUR_BARRE_ONGLETS = Platform.OS === 'ios' ? 88 : 68;
+
 // 🔴 Cible tactile minimale d'Apple (Human Interface Guidelines). Ce n'est pas
 // un espacement non plus : c'est une HAUTEUR, et elle se fabrique le plus
 // souvent par le `paddingVertical` d'un bouton — ce qui explique que la mesure

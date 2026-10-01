@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { profilTour } from '../tours';
+import { visiteApp } from '../tours';
 
 // ── L'écran Profil après la roue dentée (E25) ───────────────────────────────
 //
@@ -172,7 +172,9 @@ describe('Profil — la visite guidée descend l’écran, elle ne fait pas d’
     return decl ? SRC_PROFIL.indexOf(`ref={${decl[1]}}`) : -1;
   }
 
-  const etapes = profilTour({ objectifDateDisponible: true });
+  // Le Profil n'a plus de tour à lui depuis le 2026-09-30 : son arrêt vit dans la
+  // visite de l'app. Ce sont ses étapes qu'on relit ici.
+  const etapes = visiteApp({ repasAuto: true }).filter((e) => e.onglet === 'profil');
   /** Les étapes qui visent un objet. Une étape SANS `targetId` se pose au centre
    *  (`lib/tours.ts`) : elle ne fait défiler nulle part, donc l'ordre ne la concerne pas. */
   const ciblees = etapes.filter((e) => e.targetId);
@@ -185,7 +187,8 @@ describe('Profil — la visite guidée descend l’écran, elle ne fait pas d’
   // ce cas rougit et oblige à rétablir la vérification d'ordre au lieu de la
   // découvrir absente. Le va-et-vient de défilement qu'elle évitait, lui, existe
   // toujours.
-  it('le tour du Profil n’a AUCUNE cible — sinon le contrôle d’ordre ci-dessous redevient obligatoire', () => {
+  it('l’arrêt du Profil n’a AUCUNE cible — sinon le contrôle d’ordre ci-dessous redevient obligatoire', () => {
+    expect(etapes.length, 'la visite n’a plus d’arrêt sur le Profil : ce bloc ne mesure plus rien').toBe(1);
     expect(
       ciblees.map((e) => e.targetId),
       'une étape du Profil vise de nouveau un objet : rétablis le contrôle d’ordre de ce bloc',

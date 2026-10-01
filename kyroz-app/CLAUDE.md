@@ -2515,13 +2515,58 @@ et l'écran ne sert qu'à juger le rendu (opacité forcée à 1). Procédure :
 
 ### La visite guidée dit ce que le code FAIT (2026-08-08)
 
-Un tour par onglet, déclenché **à la première visite de CET onglet** — jamais tous au
-démarrage. **2 bulles au total (plan 1 · profil 1)** : seuls ces deux onglets en ont
-encore une. Chaque bulle est une `Modal` dont les panneaux avalent les taps, pas une
-infobulle qu'on ignore — et les deux se posent **au centre**, sans anneau.
+🔴 **UNE SEULE VISITE, D'ONGLET EN ONGLET** (2026-09-30, décision fondateur : « une seule
+visite qui montre toute l'app, pas de visite pour les trucs inutiles, bien fluide, sans trop
+d'excès de texte »). Elle remplace les tours d'onglet :
+**5 arrêts au total (plan 1 · courses 1 · réserve 1 · recettes 1 · profil 1)**, un par
+onglet, dans l'ordre de la barre.
+- **Quand** : une fois, sur le Plan, juste après la révélation du premier plan — jamais
+  « pendant que ton plan se génère » : le moteur rend une semaine en quelques millisecondes,
+  la phrase annoncerait une attente qui n'existe pas. L'offre du rappel (mobile) vient APRÈS
+  la visite, plus avant (révélation → rappel → visite faisait trois fenêtres et sept taps
+  d'affilée) : `onFin` de `useScreenTour`, appelé seulement quand la `Modal` de la visite a
+  FINI de disparaître (`onDismiss`, iOS et web ; Android n'anime pas sa fermeture). 🔴 iOS
+  refuse une `Modal` présentée pendant qu'une autre s'efface — l'offre, marquée « faite »
+  avant de s'afficher, serait perdue sans un mot. **Nouveaux
+  comptes seulement** : qui a vu l'ancienne bulle du Plan est tenu pour l'avoir vue
+  (`lib/tours.ts::VU_PAR_HERITAGE`) ; il la retrouve dans Profil → Réglages → « Revoir la
+  visite ».
+- **Comment** (`GuidedTour.tsx::CarteVisite`) : chaque arrêt NAVIGUE vers son onglet ; l'écran
+  reste visible derrière un voile léger (0,45 — la bulle centrée noircissait à 0,72 ce qu'on
+  voulait montrer) ; la barre reste vive et touchable (un onglet tapé amène son arrêt) ; la
+  carte se pose au-dessus de la barre et la POINTE. Une seule valeur animée (le rang de
+  l'étape) porte la carte, sa pointe et le trait de progression, **par `translateX` et
+  l'animation NATIVE** : sur le fil JavaScript, la pointe calait pendant que l'onglet ouvert se
+  construit (liste de courses, recettes). Sur téléphone, la carte reste CENTRÉE et seule la
+  pointe voyage (moins de 48 pt de jeu : la déplacer de quelques points se lisait comme une
+  hésitation, vu au simulateur). Terminer ou passer ramène au Plan. La hauteur de la barre a
+  une source unique : `theme.ts::HAUTEUR_BARRE_ONGLETS`.
+- **L'arrêt du Plan MONTRE ce dont il parle** (retour fondateur, 2026-09-30 : « la carte
+  parle d'un bouton qu'on ne voit pas »). Le bouton « J'ai cuisiné » du premier repas tombait
+  pile sous la carte, à toute heure. Le Plan pose `tourId="plan-repas"` sur le premier repas
+  ENCORE À FAIRE, et le moteur fait défiler jusqu'à l'amener AU-DESSUS de la carte
+  (`visee.ts::dejaVisible` a une marge du bas distincte : barre + carte mesurée). Sans anneau :
+  la cible ne sert qu'à montrer. Sans repas à faire, l'arrêt se joue quand même. « Revoir la
+  visite » passe par le lanceur du Plan (`relancer`), qui porte ce défilement.
+  🔴 Pendant cet arrêt, le Plan pose une CALE sous son contenu (`useEspaceVisite`, de la
+  hauteur de la carte) : vu au simulateur, un dîner en DERNIÈRE position ne pouvait pas
+  remonter — l'écran ne défile pas au-delà de son contenu — et son bouton restait à moitié
+  sous la carte. Le web ne le montrait pas (écran plus haut). Vérifié sur iPhone 17 :
+  dîner entier au-dessus de la carte ; et l'offre du rappel s'ouvre bien APRÈS la visite,
+  sans gel.
+- **Rédaction** : le TITRE dit ce qu'est l'onglet, la LIGNE dit la seule chose qu'on ne voit
+  pas en le regardant (`TEXTE_MAX` = 90). Les deux bulles d'avant sont devenues les lignes du
+  Plan (« J'ai cuisiné » / l'auto-coche) et du Profil (la pesée qui recale le plan).
+- ⚠️ Web seulement : la `Modal` de react-native-web donne le focus à son premier bouton, que
+  le navigateur entourait d'un cadre orange ; la règle `[data-testid^="visite-"]:focus` de
+  `app/_layout.tsx` le retire, pour les boutons de la visite seulement.
+
+*Avant le 2026-09-30* : un tour par onglet, déclenché à la première visite de CET onglet,
+réduit à deux bulles centrées (Plan, Profil). Ce qui suit en garde l'histoire — les règles de
+rédaction et les correctifs du moteur valent toujours.
 
 🔴 **PLUS DE « ? » DE REJEU DANS LES EN-TÊTES** (2026-08-25 : « une fois que l'user a lu,
-c'est bon »). Il reste **une** porte, « Revoir les tutos » dans les réglages du Profil,
+c'est bon »). Il reste **une** porte, « Revoir la visite » dans les réglages du Profil,
 et elle n'est pas optionnelle : un tour est marqué VU dès son OUVERTURE (seul instant
 qui résiste à une app tuée par iOS), donc une bulle ENTREVUE compte comme lue. Sans
 aucun recours, un tuto passé par erreur serait perdu à vie.
@@ -2565,7 +2610,8 @@ l'utilisateur. Elle ne l'est plus — la page le dit désormais, au lieu de cite
 supprimée. C'est `metrics.test.ts` qui l'a signalé le jour même.
 
 ⚠️ **CE DÉCOMPTE EST VERROUILLÉ CONTRE LE CODE** (`visiteGuidee.test.ts`) et il ne se
-recopie pas : il a valu 21, puis 19, puis 20, puis 5. Un inventaire écrit à trois endroits
+recopie pas : il a valu 21, puis 19, puis 20, puis 5, puis 2 — et 5 arrêts depuis le
+2026-09-30. Un inventaire écrit à trois endroits
 finit par se confirmer tout seul (CLAUDE.md §8, le compteur d'émojis) — celui-ci rougit
 le jour où une bulle part ou arrive.
 
@@ -2663,8 +2709,9 @@ que les appeler. Garde-fous : `visee.test.ts` + `visiteGuidee.test.ts`.
 
 ⚠️ **Tout écran qui reçoit un tour reçoit sa porte de sortie.** « Passer » marque le tour
 vu **définitivement** ; le « ? » de rejeu n'existait que sur le Plan, donc passer le tour
-d'un autre onglet le perdait à vie. Composant `TourButton` sur les cinq en-têtes, plus
-« Revoir les tutos » dans le Profil (`resetAllTours`).
+d'un autre onglet le perdait à vie. Composant `TourButton` sur les cinq en-têtes (retiré le
+2026-08-25), plus « Revoir les tutos » dans le Profil (`resetAllTours`) — devenu « Revoir la
+visite » le 2026-09-30.
 
 ➡️ **Garde-fou : `lib/__tests__/visiteGuidee.test.ts`**, vérifié par 5 mutations. Il
 vérifie surtout qu'**aucune étape ne vise une cible absente du code** — c'est le chemin
@@ -2732,7 +2779,7 @@ quand il n'est pas dans une liste de réglages.
 E48) — l'ordre compte, il dit ce qui est important :
 · ~~la **série** est une pastille discrète dans l'EN-TÊTE~~ — **retirée le 2026-09-19**
   avec la série (E69) ; l'en-tête ne porte plus que le titre, le prénom et la roue. La
-  porte de sortie du tutoriel vit dans « Revoir les tutos », derrière la roue ;
+  porte de rejeu de la visite vit dans « Revoir la visite », derrière la roue ;
 · la **carte du poids** est le sujet de l'écran : chiffre en `Type.hero`, écart,
   courbe MESURÉE (jamais une largeur en dur — cf. §11, `useWindowDimensions`), et un
   bouton pleine largeur à l'accent ;

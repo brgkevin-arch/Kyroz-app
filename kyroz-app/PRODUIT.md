@@ -65,6 +65,13 @@ un médecin ou un diététicien-nutritionniste si la situation dure.
 **Au bout des neuf étapes : un plan de 7 jours, en moins d'une seconde.** Pas de file
 d'attente, pas de « votre plan sera prêt dans 24 h ».
 
+**Puis une visite de l'app, une seule fois** (depuis le 2026-09-30). Cinq arrêts, un par
+onglet : Plan, Courses, Réserve, Recettes, Profil. Chaque arrêt amène l'onglet à l'écran et
+dit en une ligne ce qu'on ne voit pas en le regardant (la réserve se vide toute seule quand on
+cuisine, la liste de courses la déduit, une pesée recale le plan). Elle se passe d'un tap, et
+se revoit dans Profil → Réglages → « Revoir la visite ». Les comptes créés avant elle ne la
+reçoivent pas d'office.
+
 ---
 
 ## 2. Ce que l'app a calculé pendant ce temps
@@ -97,8 +104,9 @@ La journée, repas par repas, avec ses macros. Une rangée de jours en haut. Sur
   2026-08-24) : **une heure après le début du repas suivant**, et en fin de journée
   (23 h 59) pour le dernier. Sur les créneaux par défaut, ça donne 14 h · 17 h · 21 h ·
   23 h 59 à quatre repas, et 14 h · 21 h · 23 h 59 à trois. C'est exactement le même
-  geste qu'un tap — déduction, macros, recalage — le tutoriel du Plan l'annonce, et il se
-  coupe dans Profil → Paramètres des repas. Un repas coché à tort se décoche d'une touche.
+  geste qu'un tap — déduction, macros, recalage — la visite de l'app l'annonce (son arrêt
+  sur le Plan), et il se coupe dans Profil → Paramètres des repas. ⚠️ Un repas coché ne se
+  décoche plus : le bouton « Annuler » est parti le 2026-08-25 (`resetMealStatus` retiré).
 - **« Je l'ai sauté »** — le repas ne compte pas, son budget bascule sur les suivants.
   ⚠️ **C'est un fait, pas une faute** : la carte l'écrit sans signe de jugement, le nom du
   plat n'est pas barré. On peut annuler.

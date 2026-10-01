@@ -27,9 +27,9 @@ import { DislikeSheet } from '../../components/DislikeSheet';
 import { ActionSheet } from '../../components/ActionSheet';
 import { PrimaryButton, SectionLabel } from '../../components/ui';
 import { HydrationBar, useHydrationEnabled } from '../../components/HydrationBar';
-import { useScreenTour, hasSeenTour } from '../../components/GuidedTour';
+import { useScreenTour, hasSeenTour, useEspaceVisite } from '../../components/GuidedTour';
 import { animerMiseEnPage } from '../../components/Mouvement';
-import { planTour } from '../../lib/tours';
+import { visiteApp } from '../../lib/tours';
 import { useProfile } from '../../hooks/useProfile';
 import { useFavorites } from '../../hooks/useFavorites';
 import { useWeightLog } from '../../hooks/useWeightLog';
@@ -38,7 +38,7 @@ import { useNotificationIntent, consommerNotificationIntent } from '../../hooks/
 import { useReminder } from '../../hooks/useReminder';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { semaineEcoulee } from '../../lib/semainePlan';
-import { buildLocalPlan, carryTracking, nextPlanSeed, profileSignature, swapMeal, computeDailyTotals, rebalanceDay, resetTracking, adaptDayOptions, AdaptOption, mealIngredients, reAdaptMealRecipe, mealPoolSize, dayTargetKcal, baseDayTargets, ON_TARGET_TOLERANCE_KCAL } from '../../lib/planEngine';
+import { buildLocalPlan, carryTracking, nextPlanSeed, profileSignature, swapMeal, computeDailyTotals, rebalanceDay, resetTracking, adaptDayOptions, AdaptOption, mealIngredients, reAdaptMealRecipe, mealPoolSize, dayTargetKcal, ON_TARGET_TOLERANCE_KCAL } from '../../lib/planEngine';
 import { DISLIKE_THRESHOLD, dislikeCandidates, applyDislikedIngredient } from '../../lib/dislike';
 import { todayStamp, localStamp } from '../../lib/weight';
 import { recordOffPlan, resolveOffPlan, forgetOffPlan } from '../../lib/offPlanJournal';
@@ -188,8 +188,10 @@ export default function PlanScreen() {
    * 🔴 **C'est le SEUL endroit où le rappel est proposé de lui-même.** Avant, il
    * n'existait qu'à Profil → roue dentée → Notifications : la permission n'était
    * quasiment jamais demandée, donc le levier de rétention du North Star restait
-   * éteint. On le pose juste après le reveal parce que c'est le premier instant
-   * où la valeur est livrée — le plan vient d'apparaître derrière la carte.
+   * éteint. Il vient juste APRÈS la visite de l'app (2026-09-30, décision
+   * fondateur) : la valeur est livrée, et l'app vient d'être montrée. Il passait
+   * avant, entre la révélation et la visite — trois fenêtres d'affilée, sept taps
+   * avant de toucher l'app.
    *
    * ⚠️ **Le web ne marque RIEN.** Il n'y a pas de notification locale dans un
    * navigateur (`offrirLeRappel` le sait) ; poser le drapeau là ferait perdre
@@ -203,65 +205,64 @@ export default function PlanScreen() {
     setShowOffer(true);
   };
 
-  const fermerReveal = async () => {
-    setShowReveal(false);
-    await proposerLeRappel();
-  };
+  // ⚠️ Plus de rappel ici : il attend la fin de la visite (`onFin` ci-dessous).
+  const fermerReveal = () => setShowReveal(false);
   const [birthdayAge, setBirthdayAge] = useState<number | null>(null); // 🎂 une fois l'an
   const autoTried = React.useRef(false);
-  const tourTried = React.useRef(false);
   const scrollRef = React.useRef<ScrollView>(null);
+  // La cale que la visite demande sous le contenu pendant son arrêt ici : sans elle, un
+  // dîner en dernière position ne pouvait pas remonter au-dessus de sa carte.
+  const espaceVisite = useEspaceVisite('plan');
   const repli = useCollapsingTitle();
-  // Cibles de la visite guidée (ref directe sur l'élément → spotlight aligné).
-  // ⚠️ Les cibles `plan-serie`, `plan-macros`, `plan-repartition` et `plan-actions`
-  // sont parties avec leurs bulles (coupe des tutos, 2026-08-25). Une cible que plus
-  // aucune étape ne vise n'est pas inoffensive : elle se relit comme une bulle perdue
-  // en route. Restent les deux que le tour du Plan sert, selon le réglage d'auto-coche
-  // — `plan-auto` (le surtitre d'une carte) et `plan-cook` (le bouton).
-  // ⚠️ `useTourTarget('plan-offplan')` a été RETIRÉ avec l'étape de visite guidée
-  // qui s'y ancrait (cf. PARCOURS_HORS_PLAN_ACTIF, lib/offPlanJournal.ts).
-
-  // Les cibles des jours diffèrent-elles réellement ? Sans sport déclaré, non —
-  // `dayExpenditures` retombe alors sur une cible plate, et la bulle qui parle de
-  // « jours d'entraînement » mentirait à qui n'en a pas. Même seuil et même
-  // calcul que `FirstPlanReveal`, pour que les deux écrans ne se contredisent
-  // pas sur la même question.
-  const moduleParVolume = useMemo(() => {
-    if (!profile) return false;
-    const j = baseDayTargets(profile, Math.max(1, Math.min(profile.plan_days ?? 7, 7)));
-    return Math.max(...j) - Math.min(...j) >= 40;
-  }, [profile]);
+  // ℹ️ Plus aucune cible de visite guidée sur cet écran (`useTourTarget`) : la visite
+  // de l'app désigne des ONGLETS, pas des objets (lib/tours.ts, en tête). La dernière
+  // bulle du Plan — « J'ai cuisiné » ou l'auto-coche — est devenue la ligne de son
+  // arrêt, et `moduleParVolume`, qu'elle recevait encore sans le lire, est parti avec.
 
   useEffect(() => { load(); }, []);
 
-  // Visite guidée : au 1er affichage d'un plan, s'il n'a jamais été vu.
-  // ⚠️ Le reveal du 1er plan passe AVANT le tour : tant qu'il est affiché, le
-  // tour n'est pas « prêt » → il démarre à sa fermeture, pas par-dessus.
+  // ── La visite de l'app : une fois, juste après le premier plan (2026-09-30) ──
+  // Elle part d'ICI parce que c'est l'écran où l'on arrive, et elle passe ensuite par
+  // chaque onglet avant d'y revenir (`GuidedTour.tsx::CarteVisite`).
+  // ⚠️ Le reveal du 1er plan passe AVANT : tant qu'il est affiché, la visite n'est pas
+  // « prête », elle démarre à sa fermeture, pas par-dessus. Et JAMAIS « pendant que ton
+  // plan se génère » : le moteur rend une semaine en quelques millisecondes, la phrase
+  // annoncerait une attente qui n'existe pas.
+  // ⚠️ Nouveaux comptes seulement : qui a vu l'ancienne bulle du Plan est tenu pour
+  // l'avoir vue (`VU_PAR_HERITAGE`, lib/tours.ts).
+  // ⚠️ Les trois surfaces se suivent — reveal → visite → offre du rappel — et deux
+  // modales superposées avalent les taps l'une de l'autre. `showOffer` reste dans
+  // `pret` par sûreté : un compte déjà créé peut recevoir l'offre avant la visite
+  // qu'il relance.
+  // 🔴 L'OFFRE PART À `onFin`, que le moteur n'appelle qu'une fois la visite
+  // ENTIÈREMENT fermée : iOS refuse une `Modal` présentée pendant qu'une autre finit
+  // de disparaître, et l'offre — marquée « faite » avant de s'afficher — serait
+  // perdue pour toujours, sans un mot.
+  // `scrollRef` : l'arrêt du Plan fait défiler l'écran pour amener le premier repas
+  // à faire au-dessus de la carte (`tourId` sur `MealCard`, plus bas).
   useScreenTour(
-    'plan',
-    planTour({ days: plan?.days ?? 7, moduleParVolume, repasAuto }),
-    // ⚠️ `showOffer` compte autant que `showReveal` : les trois surfaces se
-    // suivent (reveal → offre → tour) et deux modales superposées avalent les
-    // taps l'une de l'autre.
-    { pret: !loading && !!plan && !showReveal && !showOffer, scrollRef },
+    'app',
+    visiteApp({ repasAuto }),
+    { pret: !loading && !!plan && !showReveal && !showOffer, scrollRef, onFin: proposerLeRappel },
   );
 
   // ── L'offre du rappel doit aussi atteindre les comptes DÉJÀ créés ──────────
   //
-  // Le chemin ci-dessus (`fermerReveal`) ne sert que les primo-arrivants : le
+  // Le chemin ci-dessus (la fin de la visite) ne sert que les primo-arrivants : le
   // reveal est marqué comme vu d'office pour quiconque a déjà un plan. Sans ce
   // second chemin, tous les testeurs actuels — c'est-à-dire tout le monde
   // aujourd'hui — ne verraient jamais la proposition, et le défaut qu'on corrige
   // resterait entier pour eux.
   //
-  // ⚠️ **Après le tour, jamais avant** : la visite guidée est une `Modal` et une
-  // proposition posée par-dessus lui volerait ses taps. Si le tour n'a pas encore
-  // été vu, on ne propose pas cette fois-ci — la prochaine ouverture le fera.
+  // ⚠️ **Après la visite, jamais avant** : la visite est une `Modal` et une
+  // proposition posée par-dessus lui volerait ses taps. Si elle n'a pas encore été
+  // vue, on ne propose pas ici — sa fin le fera (`onFin`), ou la prochaine ouverture
+  // si l'app a été tuée en route (la visite est marquée vue dès son ouverture).
   const offreTentee = useRef(false);
   useEffect(() => {
     if (loading || !plan || showReveal || offreTentee.current) return;
     offreTentee.current = true;
-    hasSeenTour('plan').then((vu) => { if (vu) proposerLeRappel(); });
+    hasSeenTour('app').then((vu) => { if (vu) proposerLeRappel(); });
   }, [loading, plan, showReveal]);
 
   // Garde-manger : rechargé à chaque fois qu'on revient sur l'onglet Plan, pour
@@ -805,16 +806,16 @@ export default function PlanScreen() {
   };
 
   const dayMeals = plan?.meals.filter((m) => m.day === selectedDay) ?? [];
-  // 🔴 PLUS AUCUNE CIBLE DE TUTO SUR UNE CARTE DE REPAS (2026-08-25). Il y en avait
-  // une, accrochée au premier repas encore à faire (`premierCuisinable`) — d'abord
-  // le bouton « J'ai cuisiné », puis le surtitre. Deux raisons de la retirer, et la
-  // seconde est un défaut mesuré :
-  //  1. la bulle parle de TOUS les repas ; l'anneau en désignait UN (« COLLATION »).
-  //  2. une cible qui vit sur une carte disparaît avec elle. Journée entièrement
-  //     cochée = aucune carte cuisinable = `startTour` renonce, et le Plan n'avait
-  //     alors AUCUN tutoriel — ce qui, l'auto-coche allumée, arrive tous les soirs.
-  //     Mesuré dans le navigateur le 2026-08-25 : table de cibles vide, aucune trace.
-  // ➡️ La bulle du Plan se pose au centre, sans cible (`lib/tours.ts`).
+  // 🔴 LA CIBLE DE LA VISITE EST REVENUE SUR UNE CARTE DE REPAS (2026-09-30), et pas
+  // pour la même raison qu'avant. Elle avait été retirée le 2026-08-25 pour deux
+  // défauts : l'anneau désignait UN repas pour une phrase qui parle de tous, et une
+  // cible absente (journée entièrement cochée) faisait renoncer au tuto entier.
+  // ➡️ Aujourd'hui elle ne sert qu'à AMENER ce repas au-dessus de la carte de la
+  // visite — sans anneau — et une étape d'onglet se joue même sans sa cible
+  // (`GuidedTour::demarrer`). Les deux défauts ne peuvent donc plus revenir par elle.
+  // ⚠️ Le PREMIER REPAS ENCORE À FAIRE, pas le rang 0 : c'est la seule carte qui porte
+  // le bouton « J'ai cuisiné » dont parle la carte (même condition que `MealCard`).
+  const premierAFaire = dayMeals.findIndex((m) => !m.fixed && m.status !== 'eaten' && m.status !== 'skipped');
   const dayMacros = plan?.total_macros_per_day[selectedDay - 1];
   // Cible DU JOUR, banque de calories comprise (= la cible du profil s'il n'y a pas
   // de banque). Avec la cible plate, un jour déclaré « resto +600 » s'affichait comme
@@ -1051,7 +1052,8 @@ export default function PlanScreen() {
                     ⚠️ Le moteur, lui, n'a pas changé : `dayTargetKcal` module toujours
                     le budget sur la dépense du jour. C'est le TEXTE qui part, pas la
                     mécanique — ne pas « réparer » l'un en croyant l'autre cassé.
-                    ⚠️ `moduleParVolume` reste calculé : `planTour` le reçoit encore. */}
+                    ℹ️ `moduleParVolume` est parti le 2026-09-30 avec la dernière bulle
+                    du Plan, qui le recevait encore sans le lire. */}
                 <View style={{ height: 12 }} />
                 <MacroBar
                   protein_g={dayMacros.protein_g}
@@ -1139,6 +1141,7 @@ export default function PlanScreen() {
                     onShopping={() => router.push('/(tabs)/courses')}
                     missing={m.fixed ? undefined : missing}
                     reserveNonVide={reserveNonVide}
+                    tourId={i === premierAFaire ? 'plan-repas' : undefined}
                   />
                 );
               })}
@@ -1173,6 +1176,7 @@ export default function PlanScreen() {
             chiffres ? » se pose. Elle ne se posait nulle part : les sources vivaient
             derrière trois taps, sous « Aide et retours ». Cf. components/LienMethodologie. */}
         <LienMethodologie />
+        {espaceVisite > 0 && <View style={{ height: espaceVisite }} />}
       </ScrollView>
 
       {/* ⚠️ « Plan » et non « Salut Kévin 👋 » : la barre compacte reprend le mot

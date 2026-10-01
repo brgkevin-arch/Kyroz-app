@@ -106,7 +106,7 @@ describe('2 — ce que la purge (de CHANGEMENT DE COMPTE) épargne, et ce qu’e
     // Les « déjà vu » ont été gardés le matin du 2026-09-19, puis rendus à la purge :
     // la déconnexion ne purge plus, donc la purge ne frappe plus qu'un compte DIFFÉRENT.
     // Pour lui, « ton premier plan est prêt » est vrai, et les visites sont neuves.
-    const dejaVu = ['@kyroz:tour:plan', '@kyroz:tour:profil', '@kyroz:firstPlanSeen',
+    const dejaVu = ['@kyroz:tour:app', '@kyroz:tour:plan', '@kyroz:tour:profil', '@kyroz:firstPlanSeen',
       '@kyroz:reminderOffered', '@kyroz:preferencesProteinesRevues'];
     expect(clesAPurger(dejaVu)).toEqual(dejaVu);
   });

@@ -4,7 +4,7 @@ import { join } from 'node:path';
 import {
   heuresLimites, repasEchus, repasEchusVeille, getRepasAuto, FIN_DE_JOURNEE, minutesDepuisMinuit,
 } from '../repasAuto';
-import { planTour } from '../tours';
+import { visiteApp } from '../tours';
 import { BUILTIN_SLOTS } from '../mealSlots';
 import { GRACE_HOURS } from '../mealtime';
 import type { Meal, MealSlot } from '../types';
@@ -278,11 +278,11 @@ describe('🔴 aucun texte ne promet un retour arrière qui n’existe pas', () 
     expect(retourPossible, 'un chemin « mangé » → « planifié » est réapparu : les textes peuvent le dire').toBe(false);
   });
 
-  it('la bulle du Plan ne propose pas d’annuler', () => {
+  it('l’arrêt du Plan dans la visite ne propose pas d’annuler', () => {
     if (retourPossible) return;
     for (const variante of [true, false]) {
-      const [etape] = planTour({ days: 7, moduleParVolume: false, repasAuto: variante });
-      expect(PROMESSE.test(etape.text), `la bulle (repasAuto=${variante}) promet un retour arrière`).toBe(false);
+      const etape = visiteApp({ repasAuto: variante }).find((e) => e.onglet === 'plan')!;
+      expect(PROMESSE.test(etape.text), `la ligne du Plan (repasAuto=${variante}) promet un retour arrière`).toBe(false);
     }
   });
 
