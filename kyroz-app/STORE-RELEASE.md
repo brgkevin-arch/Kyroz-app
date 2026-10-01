@@ -219,7 +219,16 @@ installation neuve part du binaire, donc du (6).
   encore `0639ecc` après la compilation, 0 PR ouverte — le piège du 11 août ne s'est pas
   rejoué). *(Le précédent :)* le **(6)** — `ceec1b17`, commit
   `1047b9f`, terminé le 2026-08-11 à 20 h 37. Il a **62 commits de retard** sur `main` — chiffre RE-MESURÉ le 2026-08-26 (il en annonçait 40, mesurés le 2026-08-23), qui **grandit à chaque merge** : le relire avec `git rev-list --count 1047b9f..origin/main` plutôt que de le recopier (même défaut que le décompte d'OTA tenu à la main).
-- **OTA** : la dernière est la **56ᵉ** (groupe `ba457f48`, **iOS seulement**, 2026-09-30),
+- **OTA** : la dernière est la **57ᵉ** (groupe `ebf6fe0c`, **iOS seulement**, 2026-10-01),
+  publiée sur le commit `6e8d1f2` — `main`, arbre propre, détaché sur `origin/main`.
+  ✅ **Runtime iOS `823c89db…` = le build (22)**, empreinte comparée AVANT publication.
+  Contenu (#356, #365) : **une seule visite de l'app** après la révélation du premier plan
+  — cinq arrêts, un par onglet, chacun amène l'onglet à l'écran (le Plan défile jusqu'au
+  premier repas à faire) ; « Revoir la visite » dans Profil › Réglages ; le rappel
+  quotidien est proposé APRÈS la visite. Et **rien n'est coché d'office avant le premier
+  plan** (inscription du soir : plus de repas « MANGÉ » ni retirés de la réserve).
+  Pas d'`ENGINE_VERSION`, aucun changement natif. Vérifié au simulateur iPhone 17.
+  *(La précédente :)* la **56ᵉ** (groupe `ba457f48`, **iOS seulement**, 2026-09-30),
   publiée sur le commit `792c680` — `main`, arbre propre, détaché sur `origin/main`.
   ✅ **Runtime iOS `823c89db…` = le build (22)**, empreinte comparée AVANT publication.
   Contenu (#363, second tour de l'app) : Kyroz+ ne promet plus « le réglage de tes jours
