@@ -1585,9 +1585,9 @@
         }
       ],
       "instructions": [
-        "Chauffe avoine + lait 4-5 min en remuant.",
+        "Fais chauffer les flocons d'avoine dans le lait 4 à 5 minutes à feu doux, en remuant, jusqu'à ce que le porridge épaississe.",
         "Hors du feu, incorpore la whey.",
-        "Ajoute banane et myrtilles.",
+        "Ajoute la banane en rondelles et les myrtilles.",
         "Parsème les amandes concassées."
       ],
       "why": "Muscu/endurance prise de masse : glucides complexes + protéines complètes, idéal post-training.",
@@ -1647,9 +1647,9 @@
         }
       ],
       "instructions": [
-        "Mélange avoine, chia, skyr et lait.",
-        "Laisse une nuit au frigo.",
-        "Ajoute les framboises au matin."
+        "Mélange les flocons d'avoine, les graines de chia, le skyr et le lait d'amande dans un bocal.",
+        "Laisse reposer une nuit au réfrigérateur.",
+        "Le matin, ajoute les framboises."
       ],
       "why": "Muscu maintien/perte de gras : préparé la veille, riche en protéines et fibres rassasiantes.",
       "macros_per_serving": {
@@ -1714,10 +1714,9 @@
         }
       ],
       "instructions": [
-        "Mixe tous les ingrédients.",
-        "Cuis de petites galettes 2 min par face.",
-        "Sers nature ou avec un fruit.",
-        "Parsème les noisettes concassées."
+        "Mixe les flocons d'avoine, la banane, l'œuf entier, les blancs d'œufs et la whey jusqu'à obtenir une pâte lisse.",
+        "Fais cuire de petites galettes 2 minutes par face dans une poêle antiadhésive chaude, jusqu'à ce qu'elles soient dorées.",
+        "Parsème les noisettes concassées et sers aussitôt."
       ],
       "why": "Muscu prise de masse : alternative gourmande haute en protéines pour un petit-déj costaud.",
       "macros_per_serving": {
@@ -1777,9 +1776,9 @@
         }
       ],
       "instructions": [
-        "Saisis les champignons 3 min.",
-        "Verse les œufs battus + jambon.",
-        "Cuis 4 min, plie.",
+        "Fais saisir les champignons émincés 3 minutes à feu vif dans l'huile d'olive.",
+        "Bats les œufs, verse-les sur les champignons et ajoute le jambon en lanières.",
+        "Laisse cuire 4 minutes à feu moyen, jusqu'à ce que le dessus soit presque pris, puis plie l'omelette.",
         "Sers avec le pain complet grillé."
       ],
       "why": "Muscu/combats perte de gras : très protéiné, pauvre en glucides pour démarrer léger.",
@@ -1896,9 +1895,9 @@
         }
       ],
       "instructions": [
-        "Verse le skyr.",
-        "Ajoute flocons, amandes, fruits rouges.",
-        "Filet de miel."
+        "Verse le skyr dans un bol.",
+        "Ajoute les flocons d'avoine, les amandes concassées et les fruits rouges.",
+        "Termine par un filet de miel."
       ],
       "why": "Muscu/endurance perte de gras : très protéiné, sucres maîtrisés, rapide.",
       "macros_per_serving": {
@@ -1969,9 +1968,8 @@
         }
       ],
       "instructions": [
-        "Mixe le tout en texture épaisse.",
+        "Mixe la protéine végétale, la mangue, la banane, les épinards, le lait d'amande et les flocons d'avoine jusqu'à obtenir une texture épaisse.",
         "Verse dans un bol.",
-        "Ajoute des toppings au choix.",
         "Parsème les amandes concassées."
       ],
       "why": "Endurance maintien : glucides accessibles + micronutriments, léger sur l'estomac.",
@@ -2024,9 +2022,9 @@
         }
       ],
       "instructions": [
-        "Toaste le pain de seigle.",
-        "Étale le cottage cheese.",
-        "Dépose tomates + filet d'huile."
+        "Fais griller le pain de seigle.",
+        "Étale le cottage cheese sur les tartines.",
+        "Dépose les tomates en rondelles et arrose d'un filet d'huile d'olive."
       ],
       "why": "Muscu perte de gras : protéines lentes du cottage cheese, satiété longue.",
       "macros_per_serving": {
@@ -2091,9 +2089,9 @@
         }
       ],
       "instructions": [
-        "Cuis avoine + lait + cacao 5 min.",
-        "Incorpore whey et beurre de cacahuète.",
-        "Garnis de banane."
+        "Fais cuire les flocons d'avoine dans le lait avec le cacao 5 minutes à feu doux, en remuant.",
+        "Hors du feu, incorpore la whey et le beurre de cacahuète.",
+        "Garnis de banane en rondelles."
       ],
       "why": "Muscu prise de masse : calorique et protéiné, parfait surplus propre.",
       "macros_per_serving": {
@@ -2152,9 +2150,9 @@
         }
       ],
       "instructions": [
-        "Verse le yaourt.",
-        "Ajoute pomme en dés, noix, flocons.",
-        "Filet de miel."
+        "Verse le yaourt grec dans un bol.",
+        "Ajoute la pomme en dés, les noix et les flocons d'avoine.",
+        "Termine par un filet de miel."
       ],
       "why": "Muscu maintien : équilibre protéines/lipides oméga-3 des noix, jour off.",
       "macros_per_serving": {
@@ -2295,9 +2293,9 @@
         }
       ],
       "instructions": [
-        "Trempe le pain dans œuf + lait + whey.",
-        "Dore 2 min par face.",
-        "Garnis de fruits et sirop.",
+        "Bats les œufs avec le lait et la whey, puis trempe les tranches de pain complet dans ce mélange.",
+        "Fais-les dorer 2 minutes par face dans une poêle antiadhésive chaude.",
+        "Garnis de fruits rouges et arrose de sirop d'érable.",
         "Parsème les amandes concassées."
       ],
       "why": "Muscu prise de masse : version protéinée du classique, glucides + protéines élevés.",
@@ -2475,8 +2473,8 @@
         }
       ],
       "instructions": [
-        "Verse le fromage blanc.",
-        "Ajoute flocons, kiwi, graines."
+        "Verse le fromage blanc dans un bol.",
+        "Ajoute les flocons d'avoine, le kiwi en rondelles et les graines de courge."
       ],
       "why": "Endurance perte de gras : léger, riche en protéines et en magnésium des graines.",
       "macros_per_serving": {
@@ -2528,9 +2526,9 @@
         }
       ],
       "instructions": [
-        "Émiette le tofu, poêle avec curcuma 5 min.",
-        "Ajoute les épinards.",
-        "Sers avec le pain grillé."
+        "Émiette le tofu et fais-le revenir 5 minutes dans l'huile d'olive avec le curcuma, en remuant.",
+        "Ajoute les épinards et laisse-les tomber 1 minute.",
+        "Sers avec le pain complet grillé."
       ],
       "why": "Muscu perte de gras 100% végétal : alternative protéinée sans œuf.",
       "macros_per_serving": {
@@ -2589,9 +2587,9 @@
         }
       ],
       "instructions": [
-        "Cuis le quinoa dans le lait 12 min.",
-        "Ajoute pomme + cannelle.",
-        "Incorpore la whey hors du feu."
+        "Rince le quinoa, puis fais-le cuire 12 minutes à feu doux dans le lait d'amande, en remuant de temps en temps.",
+        "Ajoute la pomme en dés et la cannelle.",
+        "Hors du feu, incorpore la whey et parsème les amandes."
       ],
       "why": "Endurance maintien : quinoa = glucides + protéine complète, sans gluten.",
       "macros_per_serving": {
@@ -2649,8 +2647,8 @@
         }
       ],
       "instructions": [
-        "Toaste le pita.",
-        "Étale le fromage, dépose saumon et concombre.",
+        "Fais griller le pain pita.",
+        "Étale le cottage cheese, puis dépose le saumon fumé et le concombre en rondelles.",
         "Ajoute l'avocat en lamelles."
       ],
       "why": "Muscu maintien : oméga-3 du saumon + protéines, petit-déj salé rapide.",
@@ -2716,8 +2714,8 @@
         }
       ],
       "instructions": [
-        "Mixe tout au blender 45 s.",
-        "Bois immédiatement."
+        "Mixe la whey, les flocons d'avoine, le lait, les dattes, le beurre de cacahuète et la banane 45 secondes au blender.",
+        "Bois aussitôt."
       ],
       "why": "Muscu prise de masse : bombe calorique propre pour prendre de la masse facilement.",
       "macros_per_serving": {
@@ -2839,8 +2837,8 @@
         }
       ],
       "instructions": [
-        "Verse le skyr.",
-        "Ajoute flocons, amandes, miel."
+        "Verse le skyr dans un bol.",
+        "Ajoute les flocons d'avoine, les amandes et le miel."
       ],
       "why": "Muscu/combats maintien : caséine lente, parfaite entre deux repas ou avant le coucher.",
       "macros_per_serving": {
@@ -2887,7 +2885,7 @@
         }
       ],
       "instructions": [
-        "Mixe et bois."
+        "Mixe la whey, la banane et le lait, puis bois aussitôt."
       ],
       "why": "Muscu prise de masse : shake post-training simple pour relancer la synthèse protéique.",
       "macros_per_serving": {
@@ -3154,8 +3152,8 @@
         }
       ],
       "instructions": [
-        "Mélange yaourt et chia.",
-        "Ajoute myrtilles et miel."
+        "Mélange le yaourt grec et les graines de chia.",
+        "Ajoute les myrtilles et le miel."
       ],
       "why": "Muscu perte de gras : protéines + oméga-3 du chia, antioxydants des myrtilles.",
       "macros_per_serving": {
@@ -3208,8 +3206,8 @@
         }
       ],
       "instructions": [
-        "Fouette fromage blanc + whey + cacao.",
-        "Réfrigère 10 min."
+        "Fouette le fromage blanc avec la whey et le cacao jusqu'à ce que la mousse soit lisse.",
+        "Réserve 10 minutes au réfrigérateur."
       ],
       "why": "Muscu perte de gras : dessert protéiné ultra rassasiant, calories basses.",
       "macros_per_serving": {
@@ -3270,8 +3268,8 @@
       ],
       "instructions": [
         "Fais cuire l'escalope de dinde 6 minutes à la poêle à feu moyen, 3 minutes par face, jusqu'à ce qu'elle soit blanche à cœur, puis laisse-la tiédir et émince-la.",
-        "Tartine les galettes.",
-        "Dépose la dinde et le concombre.",
+        "Tartine le cottage cheese sur les galettes de riz.",
+        "Dépose la dinde et le concombre en rondelles.",
         "Ajoute l'avocat en lamelles."
       ],
       "why": "Muscu/combats perte de gras : protéines maigres, croquant, faible en gras.",
@@ -3386,7 +3384,7 @@
         }
       ],
       "instructions": [
-        "Mixe tout."
+        "Mixe la whey, la banane, le miel, le lait d'amande et les flocons d'avoine."
       ],
       "why": "Endurance maintien : ratio glucides/protéines pensé pour la récup post-effort.",
       "macros_per_serving": {
@@ -3543,8 +3541,8 @@
         }
       ],
       "instructions": [
-        "Cuis les œufs durs 9 min.",
-        "Sers avec avocat et tomate."
+        "Fais cuire les œufs 9 minutes dans l'eau bouillante, puis passe-les sous l'eau froide et écale-les.",
+        "Sers-les avec l'avocat en lamelles et la tomate en quartiers."
       ],
       "why": "Muscu/combats perte de gras : protéines + bons lipides, sans glucides.",
       "macros_per_serving": {
@@ -3768,7 +3766,7 @@
         }
       ],
       "instructions": [
-        "Mixe en smoothie."
+        "Mixe la protéine végétale, le kiwi, les épinards, le lait d'amande et la banane jusqu'à ce que le smoothie soit lisse."
       ],
       "why": "Endurance perte de gras : léger, vitaminé, protéines végétales.",
       "macros_per_serving": {
@@ -3821,8 +3819,8 @@
         }
       ],
       "instructions": [
-        "Tartine le cottage cheese.",
-        "Dépose le concombre."
+        "Tartine le cottage cheese sur le pain de seigle.",
+        "Dépose le concombre en rondelles et arrose d'un filet d'huile d'olive."
       ],
       "why": "Muscu perte de gras : salé, protéiné, faible densité calorique.",
       "macros_per_serving": {
@@ -3881,9 +3879,9 @@
         }
       ],
       "instructions": [
-        "Mélange chia + lait + protéine.",
-        "Repos 1 nuit.",
-        "Ajoute fruits et miel."
+        "Mélange les graines de chia, le lait d'amande et la protéine végétale.",
+        "Laisse reposer une nuit au réfrigérateur.",
+        "Ajoute les fruits rouges et le miel."
       ],
       "why": "Endurance maintien : oméga-3, fibres, préparé à l'avance.",
       "macros_per_serving": {
@@ -3936,9 +3934,10 @@
         }
       ],
       "instructions": [
-        "Cuis le riz ; brocoli vapeur.",
-        "Saisis le poulet 6-7 min.",
-        "Assemble."
+        "Rince le riz basmati, puis fais-le cuire 11 minutes dans un grand volume d'eau salée et égoutte-le.",
+        "Fais cuire le brocoli 5 minutes à la vapeur : il doit rester vert vif.",
+        "Fais saisir le poulet en morceaux 6 à 7 minutes dans l'huile d'olive, jusqu'à ce qu'il soit doré et blanc à cœur.",
+        "Assemble le riz, le brocoli et le poulet dans un bol."
       ],
       "why": "Muscu prise de masse : le classique protéine maigre + glucides pour le glycogène.",
       "macros_per_serving": {
@@ -3992,9 +3991,9 @@
         }
       ],
       "instructions": [
-        "Patate douce au four 25 min.",
-        "Poêle le saumon.",
-        "Épinards tombés."
+        "Coupe la patate douce en cubes et fais-la rôtir 25 minutes au four à 200 °C, jusqu'à ce qu'elle soit tendre.",
+        "Fais cuire le pavé de saumon à la poêle 4 minutes côté peau puis 2 minutes de l'autre, jusqu'à ce que la chair s'effeuille.",
+        "Fais tomber les épinards 2 minutes dans la poêle avec l'huile d'olive."
       ],
       "why": "Endurance/muscu maintien : oméga-3 anti-inflammatoires, repas récup jour off.",
       "macros_per_serving": {
@@ -4060,9 +4059,9 @@
         }
       ],
       "instructions": [
-        "Revenir oignon + épices.",
-        "Lentilles + tomate + coco + eau, 18 min.",
-        "Sers sur le riz."
+        "Fais revenir l'oignon émincé 3 minutes dans l'huile d'olive avec les épices.",
+        "Ajoute les lentilles corail, la tomate concassée, le lait de coco et un verre d'eau, puis laisse mijoter 18 minutes, jusqu'à ce que les lentilles se défassent.",
+        "Fais cuire le riz basmati 11 minutes dans l'eau bouillante salée et sers le dahl dessus."
       ],
       "why": "Endurance/combats perte de gras : fibres et fer végétal, densité protéique à surveiller.",
       "macros_per_serving": {
@@ -4191,9 +4190,10 @@
         }
       ],
       "instructions": [
-        "Cuis le quinoa.",
-        "Dore le tofu en dés.",
-        "Ajoute légumes + sauce soja."
+        "Rince le quinoa, puis fais-le cuire 12 minutes à couvert dans deux fois son volume d'eau salée.",
+        "Coupe le tofu en dés et fais-le dorer 8 minutes dans l'huile d'olive, jusqu'à ce qu'il soit doré sur toutes les faces.",
+        "Ajoute la courgette et le poivron en dés, fais-les sauter 5 minutes, puis verse la sauce soja.",
+        "Sers sur le quinoa."
       ],
       "why": "Combats/endurance perte de gras : végétal complet, léger pour le séchage.",
       "macros_per_serving": {
@@ -4309,9 +4309,9 @@
         }
       ],
       "instructions": [
-        "Patate douce en cubes au four 25 min.",
-        "Rôtis le poulet 20 min.",
-        "Haricots verts vapeur."
+        "Coupe la patate douce en cubes, arrose-la d'huile d'olive et fais-la rôtir 25 minutes au four à 200 °C.",
+        "Fais rôtir le poulet 20 minutes au four, jusqu'à ce qu'il soit doré et blanc à cœur.",
+        "Fais cuire les haricots verts 8 minutes à la vapeur."
       ],
       "why": "Muscu prise de masse : glucides à index modéré, repas batch-cooking idéal.",
       "macros_per_serving": {
@@ -4371,9 +4371,9 @@
         }
       ],
       "instructions": [
-        "Revenir oignon + bœuf.",
-        "Ajoute tomate, mijote 15 min.",
-        "Sers sur les pâtes."
+        "Fais revenir l'oignon émincé et le bœuf haché 5 minutes dans l'huile d'olive, en écrasant la viande à la spatule.",
+        "Ajoute la tomate concassée et laisse mijoter 15 minutes à feu doux.",
+        "Fais cuire les pâtes complètes al dente dans un grand volume d'eau bouillante salée, puis sers la sauce dessus."
       ],
       "why": "Muscu/combats prise de masse : confort food protéinée, glucides complets.",
       "macros_per_serving": {
@@ -4558,9 +4558,9 @@
         }
       ],
       "instructions": [
-        "Pommes de terre rôties 25 min.",
-        "Saisis la bavette 3 min par face.",
-        "Sers avec la salade."
+        "Coupe les pommes de terre en quartiers, arrose-les d'huile d'olive et fais-les rôtir 25 minutes au four à 200 °C.",
+        "Fais saisir la bavette 3 minutes par face dans une poêle très chaude.",
+        "Sers avec la salade verte."
       ],
       "why": "Muscu/combats prise de masse : viande rouge riche en fer, repas de force.",
       "macros_per_serving": {
@@ -4614,9 +4614,9 @@
         }
       ],
       "instructions": [
-        "Cuis le quinoa.",
-        "Poêle le saumon.",
-        "Asperges rôties 12 min."
+        "Rince le quinoa, puis fais-le cuire 12 minutes à couvert dans deux fois son volume d'eau salée.",
+        "Fais rôtir les asperges 12 minutes au four à 200 °C avec l'huile d'olive.",
+        "Fais cuire le pavé de saumon à la poêle 4 minutes côté peau puis 2 minutes de l'autre, jusqu'à ce que la chair s'effeuille."
       ],
       "why": "Endurance/muscu maintien : oméga-3 + protéine complète, repas récup.",
       "macros_per_serving": {
@@ -4748,9 +4748,9 @@
         }
       ],
       "instructions": [
-        "Fais revenir le poivron avec les épices.",
-        "Égoutte et rince les haricots rouges, ajoute-les avec le maïs et la tomate, mijote 20 min.",
-        "Sers avec le riz."
+        "Fais revenir le poivron en dés 3 minutes dans l'huile d'olive avec les épices.",
+        "Égoutte et rince les haricots rouges, ajoute-les avec le maïs et la tomate concassée, puis laisse mijoter 20 minutes.",
+        "Fais cuire le riz basmati 11 minutes dans l'eau bouillante salée et sers le chili dessus."
       ],
       "why": "Endurance perte de gras : végétal très rassasiant, riche en fibres.",
       "macros_per_serving": {
@@ -4935,9 +4935,10 @@
         }
       ],
       "instructions": [
-        "Cuis le quinoa.",
-        "Dore le tofu.",
-        "Égoutte et rince les pois chiches, écrase-les en houmous, dresse avec la betterave et la roquette."
+        "Rince le quinoa, puis fais-le cuire 12 minutes à couvert dans deux fois son volume d'eau salée.",
+        "Coupe le tofu en dés et fais-le dorer 8 minutes dans l'huile d'olive.",
+        "Égoutte et rince les pois chiches, puis écrase-les en houmous.",
+        "Dresse le bol avec le quinoa, le tofu, le houmous, la betterave en dés et la roquette."
       ],
       "why": "Endurance maintien : bowl végétal complet, double protéine végétale.",
       "macros_per_serving": {
@@ -5267,9 +5268,9 @@
         }
       ],
       "instructions": [
-        "Revenir oignon + carotte.",
-        "Lentilles + tomate + eau, 20 min.",
-        "Mixe, sers avec le pain."
+        "Fais revenir l'oignon et la carotte émincés 3 minutes dans l'huile d'olive.",
+        "Ajoute les lentilles corail, la tomate concassée et un demi-litre d'eau, puis laisse mijoter 20 minutes.",
+        "Mixe la soupe et sers-la avec le pain complet."
       ],
       "why": "Endurance perte de gras : chaude, rassasiante, riche en fibres.",
       "macros_per_serving": {
@@ -5441,9 +5442,9 @@
         }
       ],
       "instructions": [
-        "Riz complet à cuire.",
-        "Grille le tempeh mariné.",
-        "Chou-fleur rôti 25 min."
+        "Fais cuire le riz complet 25 minutes à couvert et à feu doux dans deux fois et demie son volume d'eau salée.",
+        "Fais griller le tempeh en tranches 3 minutes par face dans une poêle chaude avec un peu d'huile d'olive.",
+        "Détaille le chou-fleur en bouquets, arrose-les d'huile d'olive et fais-les rôtir 25 minutes au four à 200 °C."
       ],
       "why": "Muscu maintien : protéine végétale fermentée complète, jour off.",
       "macros_per_serving": {
@@ -5495,9 +5496,9 @@
         }
       ],
       "instructions": [
-        "Cuis les pommes de terre.",
-        "Grille le maquereau 8 min.",
-        "Sers avec la salade."
+        "Fais cuire les pommes de terre 20 minutes à l'eau bouillante salée, jusqu'à ce que la pointe d'un couteau s'y enfonce sans résistance.",
+        "Fais griller le maquereau 8 minutes, jusqu'à ce que la chair s'effeuille.",
+        "Sers avec la salade verte arrosée d'huile d'olive."
       ],
       "why": "Endurance maintien : oméga-3 abondants, récup post-sortie longue.",
       "macros_per_serving": {
@@ -5618,9 +5619,10 @@
         }
       ],
       "instructions": [
-        "Cuis et dore la polenta.",
-        "Réchauffe la ratatouille.",
-        "Œuf poché dessus + parmesan."
+        "Verse la polenta en pluie dans trois fois son volume d'eau salée frémissante et remue 5 minutes à feu doux, jusqu'à ce qu'elle soit épaisse.",
+        "Étale-la en galette dans une poêle chaude avec l'huile d'olive, laisse-la dorer 5 minutes sans y toucher, puis retourne-la et dore l'autre face 3 minutes.",
+        "Réchauffe la ratatouille 5 minutes à feu doux.",
+        "Fais pocher les œufs 3 minutes dans l'eau frémissante, pose-les sur la galette avec la ratatouille et parsème de parmesan."
       ],
       "why": "Endurance maintien : sans gluten, légumes + protéine, réconfortant.",
       "macros_per_serving": {
@@ -5685,9 +5687,9 @@
         }
       ],
       "instructions": [
-        "Égoutte et rince les pois chiches, sèche-les bien puis rôtis-les épicés 20 min.",
-        "Cuis le boulgour.",
-        "Mélange avec les légumes et la feta."
+        "Égoutte et rince les pois chiches, sèche-les bien, puis fais-les rôtir 20 minutes au four à 200 °C avec les épices et un filet d'huile d'olive, jusqu'à ce qu'ils soient croustillants.",
+        "Fais cuire le boulgour 10 minutes à couvert dans une fois et demie son volume d'eau salée.",
+        "Mélange-le avec la courgette et la tomate en dés, les pois chiches rôtis et la feta émiettée."
       ],
       "why": "Endurance perte de gras : protéines végétales, méditerranéen, fibres.",
       "macros_per_serving": {
@@ -5865,9 +5867,10 @@
         }
       ],
       "instructions": [
-        "Pane le cabillaud (œuf + chapelure).",
-        "Cuis 12 min au four.",
-        "Sers avec purée et petits pois."
+        "Passe le dos de cabillaud dans l'œuf battu, puis dans la chapelure.",
+        "Arrose-le d'huile d'olive et fais-le cuire 12 minutes au four à 200 °C, jusqu'à ce que la chair s'effeuille.",
+        "Fais cuire les pommes de terre 20 minutes à l'eau bouillante salée, puis écrase-les en purée.",
+        "Fais cuire les petits pois 5 minutes à l'eau bouillante et sers le tout ensemble."
       ],
       "why": "Muscu maintien : version saine du fish and chips, protéine maigre.",
       "macros_per_serving": {
@@ -6049,9 +6052,9 @@
         }
       ],
       "instructions": [
-        "Cuis les nouilles.",
-        "Dore le tofu mariné.",
-        "Sauté avec brocoli + sauce."
+        "Fais cuire les nouilles complètes 8 minutes à l'eau bouillante salée, puis égoutte-les.",
+        "Coupe le tofu en dés, laisse-le mariner quelques minutes dans la sauce soja, puis fais-le dorer 8 minutes dans l'huile d'olive.",
+        "Ajoute le brocoli en petits bouquets et les nouilles, et fais sauter le tout 4 minutes à feu vif."
       ],
       "why": "Endurance/combats perte de gras : végétal, léger, asiatique.",
       "macros_per_serving": {
@@ -6109,9 +6112,9 @@
         }
       ],
       "instructions": [
-        "Cuis pommes de terre + oignon.",
-        "Verse les œufs + jambon.",
-        "Cuis la tortilla 10 min."
+        "Fais cuire les pommes de terre en fines rondelles et l'oignon émincé 15 minutes à feu moyen dans l'huile d'olive, jusqu'à ce qu'ils soient tendres.",
+        "Bats les œufs, ajoute le jambon en dés et verse le tout sur les pommes de terre.",
+        "Laisse cuire la tortilla 10 minutes à feu doux, jusqu'à ce que le dessus soit pris."
       ],
       "why": "Muscu maintien : protéines + glucides, se mange chaud ou froid.",
       "macros_per_serving": {
@@ -6236,9 +6239,9 @@
         }
       ],
       "instructions": [
-        "Cuis le riz.",
-        "Grille le thon 2 min par face.",
-        "Haricots verts vapeur."
+        "Rince le riz basmati, puis fais-le cuire 11 minutes dans un grand volume d'eau salée et égoutte-le.",
+        "Fais griller le thon 2 minutes par face dans une poêle très chaude avec l'huile d'olive : le cœur doit rester rosé.",
+        "Fais cuire les haricots verts 8 minutes à la vapeur."
       ],
       "why": "Combats perte de gras : protéine maigre, glucides maîtrisés pour le poids.",
       "macros_per_serving": {
@@ -6297,9 +6300,9 @@
         }
       ],
       "instructions": [
-        "Revenir oignon + curry.",
-        "Poulet + coco + poivron, 15 min.",
-        "Sers sur le riz."
+        "Fais revenir l'oignon émincé 3 minutes avec le curry.",
+        "Ajoute le poulet en morceaux, le lait de coco et le poivron en lanières, et laisse mijoter 15 minutes, jusqu'à ce que le poulet soit blanc à cœur.",
+        "Fais cuire le riz basmati 11 minutes dans l'eau bouillante salée et sers le curry dessus."
       ],
       "why": "Muscu prise de masse : crémeux, calorique, protéiné.",
       "macros_per_serving": {
@@ -6668,9 +6671,10 @@
         }
       ],
       "instructions": [
-        "Forme des boulettes de dinde hachée.",
-        "Cuis 10 min.",
-        "Sers avec boulgour, courgettes, feta."
+        "Hache l'escalope de dinde au couteau et forme de petites boulettes.",
+        "Fais-les cuire 10 minutes dans l'huile d'olive, en les retournant, jusqu'à ce qu'elles soient dorées et cuites à cœur.",
+        "Fais cuire le boulgour 10 minutes dans une fois et demie son volume d'eau salée, et fais revenir la courgette en dés 5 minutes.",
+        "Sers les boulettes avec le boulgour, la courgette et la feta émiettée."
       ],
       "why": "Muscu/combats perte de gras : protéine maigre, glucides limités.",
       "macros_per_serving": {
@@ -6923,9 +6927,9 @@
         }
       ],
       "instructions": [
-        "Toaste le pain.",
-        "Dépose les sardines.",
-        "Sers avec la salade de tomate."
+        "Fais griller le pain complet.",
+        "Dépose les sardines sur les tartines.",
+        "Sers avec la salade et les tomates en rondelles arrosées d'huile d'olive."
       ],
       "why": "Endurance maintien : oméga-3 + calcium, ultra rapide, récup.",
       "macros_per_serving": {
@@ -6985,9 +6989,9 @@
         }
       ],
       "instructions": [
-        "Cuis le riz.",
+        "Rince le riz basmati, puis fais-le cuire 11 minutes dans un grand volume d'eau salée et égoutte-le.",
         "Glace le tempeh à la sauce soja, à feu vif, jusqu'à ce qu'elle nappe et brille.",
-        "Brocoli vapeur, assemble."
+        "Fais cuire le brocoli 5 minutes à la vapeur, puis assemble le riz, le tempeh et le brocoli."
       ],
       "why": "Muscu/endurance prise de masse végétal : protéine complète, glucides.",
       "macros_per_serving": {
@@ -7169,9 +7173,9 @@
         }
       ],
       "instructions": [
-        "Saisis le bœuf.",
-        "Mijote avec carottes + champignons 30 min.",
-        "Sers avec pommes vapeur."
+        "Fais saisir le bœuf en morceaux 3 minutes à feu vif dans l'huile d'olive.",
+        "Ajoute les carottes en rondelles, les champignons et un verre d'eau, puis laisse mijoter 30 minutes à couvert.",
+        "Fais cuire les pommes de terre 20 minutes à la vapeur et sers-les avec le bœuf."
       ],
       "why": "Muscu prise de masse : plat mijoté riche en fer, batch-cooking.",
       "macros_per_serving": {
@@ -7357,9 +7361,9 @@
         }
       ],
       "instructions": [
-        "Saisis le poulet.",
-        "Ajoute pâtes + eau + courgettes, cuis 12 min.",
-        "Parmesan en fin."
+        "Fais saisir le poulet en morceaux 5 minutes dans l'huile d'olive.",
+        "Ajoute les pâtes complètes, la courgette en dés et de l'eau à hauteur, puis laisse cuire 12 minutes en remuant, jusqu'à ce que les pâtes soient al dente.",
+        "Parsème de parmesan au moment de servir."
       ],
       "why": "Muscu prise de masse : un seul plat, protéiné et calorique.",
       "macros_per_serving": {
@@ -7425,9 +7429,9 @@
         }
       ],
       "instructions": [
-        "Saisis la dinde hachée.",
-        "Égoutte et rince les haricots rouges, ajoute-les avec la tomate et le poivron, mijote 20 min.",
-        "Sers avec le riz et un filet d’huile d’olive."
+        "Hache l'escalope de dinde et fais-la saisir 5 minutes dans l'huile d'olive.",
+        "Égoutte et rince les haricots rouges, ajoute-les avec la tomate concassée et le poivron en dés, puis laisse mijoter 20 minutes.",
+        "Fais cuire le riz basmati 11 minutes dans l'eau bouillante salée et sers le chili dessus."
       ],
       "why": "Muscu/combats perte de gras : double protéine maigre, fibres, rassasiant.",
       "macros_per_serving": {
@@ -7492,9 +7496,10 @@
         }
       ],
       "instructions": [
-        "Dore le tofu.",
-        "Glace avec sauce soja + miel.",
-        "Sers avec riz et haricots."
+        "Coupe le tofu en dés et fais-le dorer 8 minutes dans l'huile d'olive.",
+        "Verse la sauce soja et le miel, et laisse caraméliser 2 minutes en remuant, jusqu'à ce que la sauce nappe le tofu.",
+        "Fais cuire le riz basmati 11 minutes dans l'eau bouillante salée et les haricots verts 8 minutes à la vapeur.",
+        "Sers le tofu avec le riz et les haricots verts."
       ],
       "why": "Combats maintien : végétal, saveurs sucrées-salées, léger.",
       "macros_per_serving": {
@@ -7735,8 +7740,8 @@
         }
       ],
       "instructions": [
-        "Cuire les flocons à l'eau 4 min, laisser tiédir.",
-        "Mélanger au fromage blanc, ajouter fruits rouges et amandes concassées."
+        "Fais cuire les flocons d'avoine 4 minutes dans l'eau, puis laisse tiédir.",
+        "Mélange-les au fromage blanc et ajoute les fruits rouges et les amandes concassées."
       ],
       "why": "Léger et protéiné : densité protéique haute pour peu de calories.",
       "macros_per_serving": {
@@ -7758,7 +7763,7 @@
         "sport": [
           "endurance"
         ],
-        "temps_min": 10
+        "temps_min": 15
       },
       "base_servings": 1,
       "ingredients": [
@@ -7788,8 +7793,8 @@
         }
       ],
       "instructions": [
-        "Cuire le sarrasin 12 min, égoutter.",
-        "Servir tiède avec yaourt de soja, myrtilles et chia."
+        "Fais cuire le sarrasin 12 minutes dans l'eau bouillante, puis égoutte-le.",
+        "Sers-le tiède avec le yaourt de soja, les myrtilles et les graines de chia."
       ],
       "why": "Vegan & sans gluten : porridge complet pour endurance, IG modéré.",
       "macros_per_serving": {
@@ -7842,8 +7847,8 @@
         }
       ],
       "instructions": [
-        "Cuire le millet dans 250 ml d'eau 12 min.",
-        "Incorporer protéine et lait de coco, garnir de mangue."
+        "Fais cuire le millet 12 minutes dans 250 ml d'eau.",
+        "Incorpore la protéine végétale et le lait de coco, puis garnis de mangue."
       ],
       "why": "Vegan jour repos : millet + coco, glucides lents et lipides.",
       "macros_per_serving": {
@@ -7902,8 +7907,8 @@
         }
       ],
       "instructions": [
-        "Cuire flocons + cacao dans le lait 4 min.",
-        "Hors du feu ajouter la whey, parsemer de noisettes."
+        "Fais cuire les flocons d'avoine et le cacao 4 minutes dans le lait, en remuant.",
+        "Hors du feu, ajoute la whey et parsème de noisettes."
       ],
       "why": "Version gourmande muscu : cacao non sucré, capacité protéique élevée.",
       "macros_per_serving": {
@@ -7955,8 +7960,8 @@
         }
       ],
       "instructions": [
-        "Verser le skyr, ajouter flocons et amandes.",
-        "Garnir de framboises."
+        "Verse le skyr dans un bol, puis ajoute les flocons d'avoine et les amandes.",
+        "Garnis de framboises."
       ],
       "why": "Très protéiné et frais : parfait pour la sèche, satiété longue.",
       "macros_per_serving": {
@@ -8009,8 +8014,8 @@
         }
       ],
       "instructions": [
-        "Mélanger skyr et flocons.",
-        "Napper de beurre d'amande, ajouter la banane en rondelles."
+        "Mélange le skyr et les flocons d'avoine.",
+        "Nappe de beurre d'amande et ajoute la banane en rondelles."
       ],
       "why": "Prise de masse rapide : protéines, glucides et bons lipides.",
       "macros_per_serving": {
@@ -8062,8 +8067,8 @@
         }
       ],
       "instructions": [
-        "Mélanger fromage blanc et flocons.",
-        "Ajouter la pomme râpée et les noix."
+        "Mélange le fromage blanc et les flocons d'avoine.",
+        "Ajoute la pomme râpée et les noix."
       ],
       "why": "Équilibré pour endurance matinale, fibres et protéines.",
       "macros_per_serving": {
@@ -8116,8 +8121,8 @@
         }
       ],
       "instructions": [
-        "Disposer le cottage cheese.",
-        "Ajouter ananas en dés, flocons et graines de courge."
+        "Dispose le cottage cheese dans un bol.",
+        "Ajoute l'ananas en dés, les flocons d'avoine et les graines de courge."
       ],
       "why": "Salé-sucré protéiné, faible en gras pour la sèche.",
       "macros_per_serving": {
@@ -8170,8 +8175,8 @@
         }
       ],
       "instructions": [
-        "Mélanger yaourt grec et flocons.",
-        "Napper de miel, ajouter les noix."
+        "Mélange le yaourt grec et les flocons d'avoine.",
+        "Nappe de miel et ajoute les noix."
       ],
       "why": "Jour repos : yaourt grec plus riche, lipides et glucides lents.",
       "macros_per_serving": {
@@ -8277,8 +8282,8 @@
         }
       ],
       "instructions": [
-        "Verser le yaourt de soja, ajouter flocons.",
-        "Garnir de banane et beurre de cacahuète."
+        "Verse le yaourt de soja dans un bol et ajoute les flocons d'avoine.",
+        "Garnis de banane en rondelles et de beurre de cacahuète."
       ],
       "why": "Vegan prise de masse : double densité, protéines végétales.",
       "macros_per_serving": {
@@ -8336,8 +8341,8 @@
         }
       ],
       "instructions": [
-        "Mixer protéine, mangue et lait d'amande.",
-        "Verser, garnir de flocons et chia."
+        "Mixe la protéine végétale, la mangue et le lait d'amande.",
+        "Verse dans un bol et garnis de flocons d'avoine et de graines de chia."
       ],
       "why": "Vegan, frais et digeste avant un effort d'endurance.",
       "macros_per_serving": {
@@ -8395,8 +8400,8 @@
         }
       ],
       "instructions": [
-        "Mélanger chia, protéine, cacao et lait d'amande, reposer 4 h.",
-        "Garnir de banane."
+        "Mélange les graines de chia, la protéine végétale, le cacao et le lait d'amande, puis laisse reposer 4 heures au réfrigérateur.",
+        "Garnis de banane en rondelles."
       ],
       "why": "Vegan jour repos : oméga-3 du chia + ancre protéique, satiété élevée.",
       "macros_per_serving": {
@@ -8455,8 +8460,8 @@
         }
       ],
       "instructions": [
-        "Émietter le tofu, poêler avec épinards et levure maltée.",
-        "Servir sur pain complet grillé."
+        "Émiette le tofu et fais-le revenir 5 minutes dans l'huile d'olive avec les épinards et la levure maltée.",
+        "Sers sur le pain complet grillé."
       ],
       "why": "Vegan salé et protéiné : alternative aux œufs brouillés.",
       "macros_per_serving": {
@@ -8754,8 +8759,8 @@
         }
       ],
       "instructions": [
-        "Tartiner le cottage cheese sur le pain.",
-        "Déposer saumon fumé et concombre."
+        "Tartine le cottage cheese sur le pain complet.",
+        "Dépose le saumon fumé et le concombre en rondelles."
       ],
       "why": "Pescatarien protéiné, oméga-3, faible en gras saturés.",
       "macros_per_serving": {
@@ -8808,8 +8813,8 @@
         }
       ],
       "instructions": [
-        "Tartiner le beurre de cacahuète, ajouter banane.",
-        "Accompagner du yaourt de soja."
+        "Tartine le beurre de cacahuète sur le pain complet et ajoute la banane en rondelles.",
+        "Accompagne du yaourt de soja."
       ],
       "why": "Vegan endurance : dense en énergie avant un long effort.",
       "macros_per_serving": {
@@ -8893,7 +8898,7 @@
         "sport": [
           "endurance"
         ],
-        "temps_min": 6
+        "temps_min": 15
       },
       "base_servings": 1,
       "ingredients": [
@@ -8923,8 +8928,8 @@
         }
       ],
       "instructions": [
-        "Cuire le quinoa 12 min, laisser refroidir.",
-        "Mélanger au yaourt de soja, garnir kiwi et amandes."
+        "Fais cuire le quinoa 12 minutes dans deux fois son volume d'eau, puis laisse-le refroidir.",
+        "Mélange-le au yaourt de soja et garnis de kiwi et d'amandes."
       ],
       "why": "Vegan & sans gluten : quinoa = protéines complètes, bon pour l'endurance.",
       "macros_per_serving": {
@@ -8976,8 +8981,8 @@
         }
       ],
       "instructions": [
-        "Cuire le millet 12 min.",
-        "Mélanger yaourt de soja, pomme râpée et chia."
+        "Fais cuire le millet 12 minutes dans deux fois son volume d'eau.",
+        "Mélange-le au yaourt de soja, à la pomme râpée et aux graines de chia."
       ],
       "why": "Vegan léger sans gluten : faible densité calorique, fibres.",
       "macros_per_serving": {
@@ -9030,8 +9035,8 @@
         }
       ],
       "instructions": [
-        "Mixer tous les ingrédients.",
-        "Servir frais."
+        "Mixe la whey, la banane, le lait et le beurre de cacahuète.",
+        "Sers bien frais."
       ],
       "why": "Shake prise de masse classique : protéines rapides + glucides + lipides.",
       "macros_per_serving": {
@@ -9084,8 +9089,8 @@
         }
       ],
       "instructions": [
-        "Mixer whey, flocons, lait et cacao.",
-        "Servir."
+        "Mixe la whey, les flocons d'avoine, le lait et le cacao.",
+        "Sers aussitôt."
       ],
       "why": "Collation muscle solide : glucides lents de l'avoine + whey.",
       "macros_per_serving": {
@@ -9138,8 +9143,8 @@
         }
       ],
       "instructions": [
-        "Mixer protéine, fruits rouges et lait d'amande.",
-        "Ajouter le chia, servir."
+        "Mixe la protéine végétale, les fruits rouges et le lait d'amande.",
+        "Ajoute les graines de chia et sers."
       ],
       "why": "Vegan léger : protéines végétales, peu calorique pour la sèche.",
       "macros_per_serving": {
@@ -9192,8 +9197,8 @@
         }
       ],
       "instructions": [
-        "Mixer protéine, mangue, lait d'amande et coco.",
-        "Servir frais."
+        "Mixe la protéine végétale, la mangue, le lait d'amande et le lait de coco.",
+        "Sers bien frais."
       ],
       "why": "Vegan endurance : glucides des fruits + énergie de la coco.",
       "macros_per_serving": {
@@ -9349,8 +9354,8 @@
         }
       ],
       "instructions": [
-        "Mélanger skyr et myrtilles.",
-        "Parsemer d'amandes."
+        "Mélange le skyr et les myrtilles.",
+        "Parsème d'amandes."
       ],
       "why": "Sèche express : densité protéique max, faible en gras.",
       "macros_per_serving": {
@@ -9397,8 +9402,8 @@
         }
       ],
       "instructions": [
-        "Mélanger fromage blanc et fruits rouges.",
-        "Ajouter les noix."
+        "Mélange le fromage blanc et les fruits rouges.",
+        "Ajoute les noix."
       ],
       "why": "Combats / gestion du poids : protéines rassasiantes, peu calorique.",
       "macros_per_serving": {
@@ -9445,8 +9450,8 @@
         }
       ],
       "instructions": [
-        "Tartiner le cottage sur le pain.",
-        "Ajouter concombre et poivre."
+        "Tartine le cottage cheese sur le pain complet.",
+        "Ajoute le concombre en rondelles et poivre."
       ],
       "why": "Salé protéiné, faible en gras pour contrôler les calories.",
       "macros_per_serving": {
@@ -9554,8 +9559,8 @@
         }
       ],
       "instructions": [
-        "Mixer dattes, beurre de cacahuète et flocons.",
-        "Incorporer la protéine, former des boules, réfrigérer."
+        "Mixe les dattes, le beurre de cacahuète et les flocons d'avoine.",
+        "Incorpore la protéine végétale, forme des boules et réserve-les au réfrigérateur."
       ],
       "why": "Vegan endurance : énergie dense et transportable, ancre protéique.",
       "macros_per_serving": {
@@ -9718,8 +9723,8 @@
         }
       ],
       "instructions": [
-        "Mélanger flocons, whey et miel.",
-        "Lier avec le beurre de cacahuète, presser, réfrigérer."
+        "Mélange les flocons d'avoine, la whey et le miel.",
+        "Lie le tout avec le beurre de cacahuète, presse dans un petit plat et réserve au réfrigérateur."
       ],
       "why": "Barre muscle : protéines + glucides, idéale post-training.",
       "macros_per_serving": {
@@ -9772,8 +9777,8 @@
         }
       ],
       "instructions": [
-        "Tartiner le beurre d'amande sur les galettes.",
-        "Ajouter banane, accompagner du yaourt de soja."
+        "Tartine le beurre d'amande sur les galettes de riz.",
+        "Ajoute la banane en rondelles et accompagne du yaourt de soja."
       ],
       "why": "Vegan & sans gluten : glucides rapides + protéines, autour du cardio.",
       "macros_per_serving": {
@@ -9826,8 +9831,8 @@
         }
       ],
       "instructions": [
-        "Tartiner le cottage sur les galettes.",
-        "Déposer tomate et poivre.",
+        "Tartine le cottage cheese sur les galettes de riz.",
+        "Dépose la tomate en rondelles et poivre.",
         "Ajoute l'avocat en lamelles."
       ],
       "why": "Sans gluten, léger et protéiné pour la sèche.",
@@ -9984,8 +9989,8 @@
         }
       ],
       "instructions": [
-        "Mélanger chia et yaourt de soja, reposer 3 h.",
-        "Garnir de framboises."
+        "Mélange les graines de chia et le yaourt de soja, puis laisse reposer 3 heures au réfrigérateur.",
+        "Garnis de framboises."
       ],
       "why": "Vegan : oméga-3 et protéines, faible en calories.",
       "macros_per_serving": {
@@ -10026,8 +10031,8 @@
         }
       ],
       "instructions": [
-        "Cuire les edamame à la vapeur 5 min.",
-        "Saler légèrement, filet d'huile."
+        "Fais cuire les edamame 5 minutes à la vapeur.",
+        "Sale légèrement et arrose d'un filet d'huile d'olive."
       ],
       "why": "Vegan combats : protéines pures, volume, très peu calorique.",
       "macros_per_serving": {
@@ -10190,8 +10195,8 @@
         }
       ],
       "instructions": [
-        "Couper la banane, napper de beurre de cacahuète.",
-        "Râper le chocolat, servir avec le yaourt de soja."
+        "Coupe la banane et nappe-la de beurre de cacahuète.",
+        "Râpe le chocolat noir par-dessus et sers avec le yaourt de soja."
       ],
       "why": "Vegan endurance : recharge glucidique gourmande + ancre protéique.",
       "macros_per_serving": {
@@ -10238,8 +10243,8 @@
         }
       ],
       "instructions": [
-        "Mélanger cottage et ananas.",
-        "Parsemer de graines de courge."
+        "Mélange le cottage cheese et l'ananas en dés.",
+        "Parsème de graines de courge."
       ],
       "why": "Sèche : protéines maigres, frais et rassasiant.",
       "macros_per_serving": {
@@ -10292,8 +10297,8 @@
         }
       ],
       "instructions": [
-        "Cuire les pâtes al dente.",
-        "Poêler le poulet, mélanger avec pesto, pâtes et roquette."
+        "Fais cuire les pâtes complètes al dente dans un grand volume d'eau bouillante salée.",
+        "Fais cuire le poulet en morceaux 6 à 7 minutes à la poêle, puis mélange-le avec le pesto, les pâtes et la roquette."
       ],
       "why": "Muscu/prise de masse : protéines maigres + glucides, capacité haute.",
       "macros_per_serving": {
@@ -10984,7 +10989,7 @@
         "sport": [
           "muscu"
         ],
-        "temps_min": 22
+        "temps_min": 30
       },
       "base_servings": 1,
       "ingredients": [
@@ -11014,8 +11019,8 @@
         }
       ],
       "instructions": [
-        "Cuire le riz.",
-        "Griller le poulet à l'huile d'olive jusqu'à ce qu'il soit doré, servir avec brocoli vapeur."
+        "Fais cuire le riz complet 25 minutes à couvert et à feu doux dans deux fois et demie son volume d'eau salée.",
+        "Fais griller le poulet dans l'huile d'olive jusqu'à ce qu'il soit doré, et sers avec le brocoli cuit 5 minutes à la vapeur."
       ],
       "why": "Muscu : sans gluten, protéines maigres, capacité solide.",
       "macros_per_serving": {
@@ -12343,8 +12348,8 @@
         }
       ],
       "instructions": [
-        "Rôtir la patate douce 25 min.",
-        "Poêler le poulet, servir avec brocoli."
+        "Coupe la patate douce en cubes et fais-la rôtir 25 minutes au four à 200 °C.",
+        "Fais cuire le poulet en morceaux 6 à 7 minutes à la poêle dans l'huile d'olive, et sers avec le brocoli cuit 5 minutes à la vapeur."
       ],
       "why": "Muscu sans gluten : glucides à IG modéré, capacité solide.",
       "macros_per_serving": {
@@ -13607,9 +13612,8 @@
         }
       ],
       "instructions": [
-        "Mélanger thon et fromage blanc.",
-        "Garnir la tortilla, ajouter crudités, rouler.",
-        "Ajoute l'avocat en lamelles."
+        "Mélange le thon émietté et le fromage blanc.",
+        "Garnis la tortilla de ce mélange, de salade, de concombre et d'avocat en lamelles, puis roule-la."
       ],
       "why": "Pescatarien léger : protéiné, sauce sans gras, à emporter.",
       "macros_per_serving": {
@@ -14031,8 +14035,10 @@
         }
       ],
       "instructions": [
-        "Cuis la semoule.",
-        "Égoutte et rince les pois chiches, mijote-les 12 min avec le poulet et les légumes dans un fond d'eau salée et épicée : les légumes rendent leur jus et le lient."
+        "Verse sur la semoule autant d'eau bouillante salée, couvre 5 minutes, puis égrène-la à la fourchette.",
+        "Fais dorer le poulet en morceaux 3 minutes dans l'huile d'olive.",
+        "Égoutte et rince les pois chiches, ajoute-les avec la carotte et la courgette en rondelles et un fond d'eau salée et épicée, puis laisse mijoter 12 minutes : les légumes rendent leur jus et lient la sauce.",
+        "Sers sur la semoule."
       ],
       "why": "Muscu : couscous complet, double protéine, capacité haute.",
       "macros_per_serving": {
@@ -15551,8 +15557,8 @@
         }
       ],
       "instructions": [
-        "Cuire le sarrasin 12 min.",
-        "Incorporer la protéine, garnir de banane et beurre de cacahuète."
+        "Fais cuire le sarrasin 12 minutes dans deux fois son volume d'eau.",
+        "Incorpore la protéine végétale, puis garnis de banane et de beurre de cacahuète."
       ],
       "why": "Vegan & sans gluten : porridge énergétique, ancre protéique végétale.",
       "macros_per_serving": {
@@ -15617,8 +15623,8 @@
         }
       ],
       "instructions": [
-        "Cuire le millet dans le lait d'amande 12 min.",
-        "Incorporer protéine et cacao, garnir de dattes.",
+        "Fais cuire le millet 12 minutes dans le lait d'amande, en remuant.",
+        "Incorpore la protéine végétale et le cacao, puis garnis de dattes.",
         "Parsème les noisettes concassées."
       ],
       "why": "Vegan & sans gluten : version chocolatée, jour repos.",
@@ -15671,8 +15677,8 @@
         }
       ],
       "instructions": [
-        "Mélanger chia et yaourt de soja, reposer 4 h.",
-        "Garnir de mangue et lait de coco."
+        "Mélange les graines de chia et le yaourt de soja, puis laisse reposer 4 heures au réfrigérateur.",
+        "Garnis de mangue en dés et de lait de coco."
       ],
       "why": "Vegan & sans gluten : oméga-3 du chia + ancre protéique.",
       "macros_per_serving": {
@@ -15724,8 +15730,8 @@
         }
       ],
       "instructions": [
-        "Verser le yaourt de soja.",
-        "Garnir de fruits rouges, banane et amandes."
+        "Verse le yaourt de soja dans un bol.",
+        "Garnis de fruits rouges, de banane en rondelles et d'amandes."
       ],
       "why": "Vegan & sans gluten : protéiné et frais, peu calorique.",
       "macros_per_serving": {
@@ -15777,8 +15783,8 @@
         }
       ],
       "instructions": [
-        "Mixer protéine, framboises et lait d'amande.",
-        "Verser, garnir de chia."
+        "Mixe la protéine végétale, les framboises et le lait d'amande.",
+        "Verse dans un bol et garnis de graines de chia."
       ],
       "why": "Vegan & sans gluten : digeste avant un effort, protéines végétales.",
       "macros_per_serving": {
@@ -15830,8 +15836,8 @@
         }
       ],
       "instructions": [
-        "Cuire le quinoa 12 min.",
-        "Mélanger au yaourt de soja, ajouter pomme râpée et amandes."
+        "Fais cuire le quinoa 12 minutes dans deux fois son volume d'eau, puis laisse-le tiédir.",
+        "Mélange-le au yaourt de soja et ajoute la pomme râpée et les amandes."
       ],
       "why": "Vegan & sans gluten : quinoa = protéines complètes, fibres.",
       "macros_per_serving": {
@@ -15890,8 +15896,8 @@
         }
       ],
       "instructions": [
-        "Cuire le riz dans le lait d'amande 18 min.",
-        "Incorporer la protéine, ajouter dattes, cannelle et amandes."
+        "Fais cuire le riz 18 minutes à feu doux dans le lait d'amande, en remuant souvent.",
+        "Incorpore la protéine végétale, puis ajoute les dattes, la cannelle et les amandes."
       ],
       "why": "Vegan & sans gluten : riz au lait revisité, énergie durable.",
       "macros_per_serving": {
@@ -16001,8 +16007,8 @@
         }
       ],
       "instructions": [
-        "Verser le yaourt de soja.",
-        "Garnir de kiwi et graines de courge."
+        "Verse le yaourt de soja dans un bol.",
+        "Garnis de kiwi en rondelles et de graines de courge."
       ],
       "why": "Vegan & sans gluten : sèche, densité protéique haute.",
       "macros_per_serving": {
@@ -16067,8 +16073,8 @@
         }
       ],
       "instructions": [
-        "Mélanger chia, protéine, cacao et lait d'amande, reposer 4 h.",
-        "Garnir de banane et beurre d'amande."
+        "Mélange les graines de chia, la protéine végétale, le cacao et le lait d'amande, puis laisse reposer 4 heures au réfrigérateur.",
+        "Garnis de banane et de beurre d'amande."
       ],
       "why": "Vegan & sans gluten : gourmand, riche en oméga-3 et lipides.",
       "macros_per_serving": {
@@ -16120,8 +16126,8 @@
         }
       ],
       "instructions": [
-        "Mixer yaourt de soja, mangue et avocat.",
-        "Ajouter le chia, servir épais."
+        "Mixe le yaourt de soja, la mangue et l'avocat.",
+        "Ajoute les graines de chia et sers bien épais."
       ],
       "why": "Vegan & sans gluten : crémeux, lipides de qualité de l'avocat.",
       "macros_per_serving": {
@@ -16173,8 +16179,8 @@
         }
       ],
       "instructions": [
-        "Tartiner le beurre de cacahuète sur les galettes.",
-        "Ajouter banane, accompagner du yaourt de soja."
+        "Tartine le beurre de cacahuète sur les galettes de riz.",
+        "Ajoute la banane en rondelles et accompagne du yaourt de soja."
       ],
       "why": "Vegan & sans gluten : glucides rapides + protéines avant le cardio.",
       "macros_per_serving": {
@@ -16226,8 +16232,8 @@
         }
       ],
       "instructions": [
-        "Cuire le millet 12 min.",
-        "Mélanger au yaourt de soja, garnir framboises et noisettes."
+        "Fais cuire le millet 12 minutes dans deux fois son volume d'eau.",
+        "Mélange-le au yaourt de soja et garnis de framboises et de noisettes."
       ],
       "why": "Vegan & sans gluten : porridge fruité, ancre protéique.",
       "macros_per_serving": {
@@ -16405,9 +16411,8 @@
         }
       ],
       "instructions": [
-        "Mixer protéine, banane, lait d'amande et cacao.",
-        "Servir frais.",
-        "Ajoute le beurre de cacahuète."
+        "Mixe la protéine végétale, la banane, le lait d'amande, le cacao et le beurre de cacahuète.",
+        "Sers bien frais."
       ],
       "why": "Vegan & sans gluten : shake post-training, protéines végétales.",
       "macros_per_serving": {
@@ -16454,8 +16459,8 @@
         }
       ],
       "instructions": [
-        "Mélanger yaourt de soja et myrtilles.",
-        "Parsemer d'amandes."
+        "Mélange le yaourt de soja et les myrtilles.",
+        "Parsème d'amandes."
       ],
       "why": "Vegan & sans gluten : sèche, densité protéique élevée.",
       "macros_per_serving": {
@@ -16564,8 +16569,8 @@
         }
       ],
       "instructions": [
-        "Tartiner le beurre d'amande sur les galettes.",
-        "Râper le chocolat, servir avec le yaourt de soja."
+        "Tartine le beurre d'amande sur les galettes de riz.",
+        "Râpe le chocolat noir par-dessus et sers avec le yaourt de soja."
       ],
       "why": "Vegan & sans gluten : en-cas gourmand + ancre protéique.",
       "macros_per_serving": {
@@ -16665,8 +16670,8 @@
         }
       ],
       "instructions": [
-        "Mixer yaourt de soja et ananas.",
-        "Ajouter le chia, servir."
+        "Mixe le yaourt de soja et l'ananas.",
+        "Ajoute les graines de chia et sers."
       ],
       "why": "Vegan & sans gluten : frais et protéiné, faible en calories.",
       "macros_per_serving": {
@@ -16828,8 +16833,8 @@
         }
       ],
       "instructions": [
-        "Couper la pomme en dés, la cuire 3 min à couvert au micro-ondes, l'écraser à la fourchette et mélanger au chia.",
-        "Ajouter les noix concassées, servir avec le yaourt de soja."
+        "Coupe la pomme en dés, fais-la cuire 3 minutes à couvert au micro-ondes, écrase-la à la fourchette et mélange-la aux graines de chia.",
+        "Ajoute les noix concassées et sers avec le yaourt de soja."
       ],
       "why": "Vegan & sans gluten : léger, fibres et oméga-3.",
       "macros_per_serving": {
@@ -17256,8 +17261,8 @@
         }
       ],
       "instructions": [
-        "Cuire la polenta dans le lait 8 min en remuant.",
-        "Hors du feu incorporer la whey, napper de miel et noisettes."
+        "Fais cuire la polenta 8 minutes dans le lait, en remuant sans arrêt.",
+        "Hors du feu, incorpore la whey, puis nappe de miel et parsème de noisettes."
       ],
       "why": "Sans gluten : alternative crémeuse au porridge d'avoine, capacité protéique.",
       "macros_per_serving": {
@@ -17322,8 +17327,8 @@
         }
       ],
       "instructions": [
-        "Cuire la polenta dans le lait d'amande 8 min.",
-        "Incorporer protéine et cacao, garnir de banane.",
+        "Fais cuire la polenta 8 minutes dans le lait d'amande, en remuant.",
+        "Incorpore la protéine végétale et le cacao, puis garnis de banane.",
         "Parsème les cerneaux de noix."
       ],
       "why": "Vegan & sans gluten : porridge de maïs chocolaté, énergie durable.",
@@ -17376,8 +17381,8 @@
         }
       ],
       "instructions": [
-        "Cuire la polenta à l'eau 8 min, laisser tiédir.",
-        "Mélanger au fromage blanc, garnir fruits rouges et amandes."
+        "Fais cuire la polenta 8 minutes dans l'eau, en remuant, puis laisse-la tiédir.",
+        "Mélange-la au fromage blanc et garnis de fruits rouges et d'amandes."
       ],
       "why": "Sans gluten : sèche, densité protéique haute pour peu de calories.",
       "macros_per_serving": {
@@ -17436,8 +17441,8 @@
         }
       ],
       "instructions": [
-        "Écraser les châtaignes cuites dans le lait d'amande chaud.",
-        "Incorporer la protéine, garnir de pomme et noisettes."
+        "Écrase les châtaignes cuites dans le lait d'amande chaud.",
+        "Incorpore la protéine végétale, puis garnis de pomme et de noisettes."
       ],
       "why": "Vegan & sans gluten : châtaigne douce, glucides lents pour jour repos.",
       "macros_per_serving": {
@@ -17490,8 +17495,8 @@
         }
       ],
       "instructions": [
-        "Écraser grossièrement les châtaignes.",
-        "Mélanger au skyr, garnir de banane et chocolat râpé."
+        "Écrase grossièrement les châtaignes.",
+        "Mélange-les au skyr, puis garnis de banane et de chocolat râpé."
       ],
       "why": "Sans gluten : automnal et protéiné, glucides de la châtaigne.",
       "macros_per_serving": {
@@ -17550,8 +17555,8 @@
         }
       ],
       "instructions": [
-        "Cuire le riz dans le lait 18 min à feu doux.",
-        "Hors du feu incorporer la whey, garnir de framboises.",
+        "Fais cuire le riz 18 minutes à feu doux dans le lait, en remuant souvent.",
+        "Hors du feu, incorpore la whey, puis garnis de framboises.",
         "Parsème les amandes concassées."
       ],
       "why": "Sans gluten : riz au lait protéiné, réconfortant et calorique.",
@@ -17617,8 +17622,8 @@
         }
       ],
       "instructions": [
-        "Cuire le riz dans le lait d'amande 18 min.",
-        "Ajouter coco et protéine, garnir mangue et chia."
+        "Fais cuire le riz 18 minutes à feu doux dans le lait d'amande, en remuant souvent.",
+        "Ajoute le lait de coco et la protéine végétale, puis garnis de mangue et de graines de chia."
       ],
       "why": "Vegan & sans gluten : version tropicale, lipides pour la satiété.",
       "macros_per_serving": {
@@ -17860,8 +17865,8 @@
         }
       ],
       "instructions": [
-        "Cuire le quinoa 12 min, laisser tiédir.",
-        "Mélanger au skyr, garnir myrtilles et amandes."
+        "Fais cuire le quinoa 12 minutes dans deux fois son volume d'eau, puis laisse-le tiédir.",
+        "Mélange-le au skyr et garnis de myrtilles et d'amandes."
       ],
       "why": "Sans gluten : quinoa = protéines complètes, satiété longue.",
       "macros_per_serving": {
@@ -17920,8 +17925,8 @@
         }
       ],
       "instructions": [
-        "Cuire le millet dans le lait 12 min.",
-        "Hors du feu incorporer la whey, ajouter pomme et cannelle."
+        "Fais cuire le millet 12 minutes dans le lait, en remuant.",
+        "Hors du feu, incorpore la whey, puis ajoute la pomme en dés, la cannelle et les noix."
       ],
       "why": "Sans gluten : porridge chaud protéiné, alternative à l'avoine.",
       "macros_per_serving": {
@@ -17974,8 +17979,8 @@
         }
       ],
       "instructions": [
-        "Cuire le sarrasin 12 min.",
-        "Mélanger au cottage cheese, garnir de fruit et graines."
+        "Fais cuire le sarrasin 12 minutes dans deux fois son volume d'eau.",
+        "Mélange-le au cottage cheese et garnis de pomme en dés et de graines de courge."
       ],
       "why": "Sans gluten : rustique et protéiné, faible en gras.",
       "macros_per_serving": {
@@ -18021,8 +18026,8 @@
         }
       ],
       "instructions": [
-        "Mélanger chia et yaourt de soja, reposer 4 h.",
-        "Garnir de kiwi."
+        "Mélange les graines de chia et le yaourt de soja, puis laisse reposer 4 heures au réfrigérateur.",
+        "Garnis de kiwi en rondelles."
       ],
       "why": "Vegan & sans gluten : léger, oméga-3 et protéines.",
       "macros_per_serving": {
@@ -18074,8 +18079,8 @@
         }
       ],
       "instructions": [
-        "Émietter les châtaignes cuites.",
-        "Mélanger au skyr, ajouter raisins et noisettes."
+        "Émiette les châtaignes cuites.",
+        "Mélange-les au skyr et ajoute les raisins et les noisettes."
       ],
       "why": "Sans gluten : très protéiné, glucides doux de la châtaigne.",
       "macros_per_serving": {
@@ -18127,8 +18132,8 @@
         }
       ],
       "instructions": [
-        "Mixer skyr, fruits rouges et lait d'amande.",
-        "Verser, garnir de graines de courge."
+        "Mixe le skyr, les fruits rouges et le lait d'amande.",
+        "Verse dans un bol et garnis de graines de courge."
       ],
       "why": "Sans gluten : sèche, protéines maigres et volume.",
       "macros_per_serving": {
@@ -18180,8 +18185,8 @@
         }
       ],
       "instructions": [
-        "Verser le yaourt de soja.",
-        "Garnir de banane, beurre d'amande et chia."
+        "Verse le yaourt de soja dans un bol.",
+        "Garnis de banane en rondelles, de beurre d'amande et de graines de chia."
       ],
       "why": "Vegan & sans gluten : dense en énergie, ancre protéique végétale.",
       "macros_per_serving": {
@@ -18473,8 +18478,8 @@
         }
       ],
       "instructions": [
-        "Écraser les châtaignes en purée.",
-        "Tartiner sur les galettes, parsemer de noisettes, servir avec le yaourt."
+        "Écrase les châtaignes en purée.",
+        "Tartine-la sur les galettes de riz, parsème de noisettes et sers avec le yaourt de soja."
       ],
       "why": "Vegan & sans gluten : en-cas doux, glucides pour l'endurance.",
       "macros_per_serving": {
@@ -18527,9 +18532,9 @@
         }
       ],
       "instructions": [
-        "Tartiner le cottage sur les galettes.",
-        "Déposer concombre, poivre et herbes.",
-        "Ajoute l'huile d'olive."
+        "Tartine le cottage cheese sur les galettes de riz.",
+        "Dépose le concombre en rondelles, poivre et ajoute des herbes.",
+        "Arrose d'un filet d'huile d'olive."
       ],
       "why": "Sans gluten combats : rassasiant, très peu calorique.",
       "macros_per_serving": {
@@ -18637,8 +18642,8 @@
         }
       ],
       "instructions": [
-        "Émietter les galettes de riz, mixer avec dattes et protéine.",
-        "Lier au beurre de cacahuète, former des boules."
+        "Émiette les galettes de riz et mixe-les avec les dattes et la protéine végétale.",
+        "Lie le tout avec le beurre de cacahuète et forme des boules."
       ],
       "why": "Vegan & sans gluten : énergie transportable pour l'endurance.",
       "macros_per_serving": {
@@ -18685,8 +18690,8 @@
         }
       ],
       "instructions": [
-        "Émietter les châtaignes dans le skyr.",
-        "Saupoudrer de cannelle, ajouter les amandes."
+        "Émiette les châtaignes dans le skyr.",
+        "Saupoudre de cannelle et ajoute les amandes."
       ],
       "why": "Sans gluten : protéines lentes + glucides doux.",
       "macros_per_serving": {
@@ -18739,8 +18744,8 @@
         }
       ],
       "instructions": [
-        "Mixer whey, banane et lait.",
-        "Émietter la galette de riz dessus."
+        "Mixe la whey, la banane et le lait.",
+        "Émiette la galette de riz par-dessus."
       ],
       "why": "Sans gluten : shake post-training avec glucides rapides.",
       "macros_per_serving": {
@@ -18793,8 +18798,8 @@
         }
       ],
       "instructions": [
-        "Griller des dés de polenta jusqu'à croustillance.",
-        "Servir sur le yaourt de soja avec sirop et noix."
+        "Fais griller des dés de polenta jusqu'à ce qu'ils soient croustillants.",
+        "Sers-les sur le yaourt de soja avec le sirop d'érable et les noix."
       ],
       "why": "Vegan & sans gluten : texture croustillante, ancre protéique.",
       "macros_per_serving": {
@@ -18841,8 +18846,8 @@
         }
       ],
       "instructions": [
-        "Mélanger fromage blanc et mangue en dés.",
-        "Parsemer de graines de courge."
+        "Mélange le fromage blanc et la mangue en dés.",
+        "Parsème de graines de courge."
       ],
       "why": "Sans gluten : sèche, très protéiné et frais.",
       "macros_per_serving": {
@@ -19068,8 +19073,9 @@
         }
       ],
       "instructions": [
-        "Nacrer le riz, puis mouiller à l'eau chaude salée, louche par louche, en attendant que chaque louche soit absorbée.",
-        "Ajouter poulet et champignons poêlés, finir au parmesan."
+        "Fais nacrer le riz 2 minutes dans l'huile d'olive, puis mouille-le à l'eau chaude salée, louche par louche, pendant 18 minutes, en attendant que chaque louche soit absorbée.",
+        "Pendant ce temps, fais poêler le poulet en morceaux et les champignons 6 minutes, jusqu'à ce que le poulet soit doré.",
+        "Ajoute-les au riz et termine avec le parmesan."
       ],
       "why": "Sans gluten : risotto protéiné, capacité élevée pour la masse.",
       "macros_per_serving": {
@@ -19121,8 +19127,9 @@
         }
       ],
       "instructions": [
-        "Nacrer le riz, puis mouiller progressivement à l'eau chaude salée, louche par louche.",
-        "Ajouter crevettes et courgette, finir au citron."
+        "Fais nacrer le riz 2 minutes dans l'huile d'olive, puis mouille-le progressivement à l'eau chaude salée, louche par louche, pendant 18 minutes.",
+        "Ajoute la courgette en dés 5 minutes avant la fin, puis les crevettes pour les 2 dernières minutes.",
+        "Termine avec un trait de citron."
       ],
       "why": "Pescatarien sans gluten : protéiné, lipides maîtrisés.",
       "macros_per_serving": {
@@ -19305,8 +19312,8 @@
         }
       ],
       "instructions": [
-        "Émincer les pommes de terre, disposer en couches avec le jambon.",
-        "Napper de crème de soja, couvrir de mozzarella, cuire 35 min à 180°C."
+        "Émince les pommes de terre et dispose-les en couches avec le jambon dans un plat.",
+        "Nappe de crème de soja, couvre de mozzarella et fais cuire 35 minutes au four à 180 °C."
       ],
       "why": "Sans gluten jour repos : gratin réconfortant, protéines et calcium.",
       "macros_per_serving": {
@@ -19977,8 +19984,9 @@
         }
       ],
       "instructions": [
-        "Cuire le millet 12 min.",
-        "Rôtir le saumon et le brocoli, dresser au citron."
+        "Fais cuire le millet 12 minutes dans deux fois son volume d'eau salée.",
+        "Arrose le saumon et le brocoli d'huile d'olive et fais-les rôtir 15 minutes au four à 200 °C.",
+        "Dresse avec un trait de citron."
       ],
       "why": "Pescatarien sans gluten jour repos : oméga-3 et glucides lents.",
       "macros_per_serving": {
