@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import {
   heuresLimites, repasEchus, repasEchusVeille, getRepasAuto, FIN_DE_JOURNEE, minutesDepuisMinuit,
+  bornePremierJour,
 } from '../repasAuto';
 import { visiteApp } from '../tours';
 import { BUILTIN_SLOTS } from '../mealSlots';
@@ -113,33 +114,33 @@ describe('ce qui est échu, et ce qu’on ne touche jamais', () => {
   const jour = [repas('breakfast'), repas('lunch'), repas('snack'), repas('dinner')];
 
   it('à 14 h, seul le petit-déjeuner est échu', () => {
-    expect(repasEchus(jour, BUILTIN_SLOTS, 14 * 60).map((m) => m.meal_type)).toEqual(['breakfast']);
+    expect(repasEchus(jour, BUILTIN_SLOTS, 14 * 60, null).map((m) => m.meal_type)).toEqual(['breakfast']);
   });
 
   it('à 13 h 59, rien ne l’est encore — le déjeuner vient à peine de commencer', () => {
-    expect(repasEchus(jour, BUILTIN_SLOTS, 13 * 60 + 59)).toHaveLength(0);
+    expect(repasEchus(jour, BUILTIN_SLOTS, 13 * 60 + 59, null)).toHaveLength(0);
   });
 
   it('en fin de journée, tout ce qui reste l’est', () => {
-    expect(repasEchus(jour, BUILTIN_SLOTS, FIN_DE_JOURNEE)).toHaveLength(4);
+    expect(repasEchus(jour, BUILTIN_SLOTS, FIN_DE_JOURNEE, null)).toHaveLength(4);
   });
 
   it('🔴 un repas que l’utilisateur a TRANCHÉ n’est jamais repris', () => {
     // Mangé ou sauté : il a décidé, on ne repasse pas derrière lui.
     const tranches = [repas('breakfast', { status: 'eaten' }), repas('lunch', { status: 'skipped' })];
-    expect(repasEchus(tranches, BUILTIN_SLOTS, FIN_DE_JOURNEE)).toHaveLength(0);
+    expect(repasEchus(tranches, BUILTIN_SLOTS, FIN_DE_JOURNEE, null)).toHaveLength(0);
   });
 
   it('🔴 un repas FIXE n’est jamais coché', () => {
     // L'app ne le suit pas : il n'a même pas de bouton « J'ai cuisiné ». Le cocher
     // déduirait de la réserve des ingrédients qu'aucune recette de Kyroz ne décrit.
     const fixe = [repas('lunch', { fixed: true } as Partial<Meal>)];
-    expect(repasEchus(fixe, BUILTIN_SLOTS, FIN_DE_JOURNEE)).toHaveLength(0);
-    expect(repasEchusVeille(fixe)).toHaveLength(0);
+    expect(repasEchus(fixe, BUILTIN_SLOTS, FIN_DE_JOURNEE, null)).toHaveLength(0);
+    expect(repasEchusVeille(fixe, BUILTIN_SLOTS, null)).toHaveLength(0);
   });
 
   it('la veille solde tout ce qui n’a pas été tranché, quelle que soit l’heure', () => {
-    expect(repasEchusVeille(jour)).toHaveLength(4);
+    expect(repasEchusVeille(jour, BUILTIN_SLOTS, null)).toHaveLength(4);
   });
 
   it('minutesDepuisMinuit lit l’heure LOCALE', () => {
@@ -207,6 +208,51 @@ describe('🔴 le jour de plan est celui d’AUJOURD’HUI, jamais « le prochai
     expect(bloc).toContain('exact >= 0 ? exact + 1 : null');
     expect(plan).toContain('const jour = idxDuJour(new Date().getDay());');
     expect(plan).toContain('if (jour === null) return;');
+  });
+});
+
+describe('🔴 rien n’est échu AVANT le premier plan (inscription du soir, 2026-10-01)', () => {
+  // Qui s'inscrivait à 21 h 45 trouvait petit-déj, déjeuner et collation « MANGÉ »,
+  // 1 545 kcal comptées et leurs ingrédients retirés de la réserve — des repas que
+  // Kyroz ne lui avait jamais proposés.
+  const jour = [repas('breakfast'), repas('lunch'), repas('snack'), repas('dinner')];
+  const inscription = 21 * 60 + 45;
+
+  it('à l’heure de l’inscription, rien n’est coché — tout était échu AVANT le plan', () => {
+    expect(repasEchus(jour, BUILTIN_SLOTS, inscription, null), 'sans borne : le défaut d’avant').toHaveLength(3);
+    expect(repasEchus(jour, BUILTIN_SLOTS, inscription, inscription)).toHaveLength(0);
+  });
+
+  it('le dîner, encore ouvert à l’inscription, se coche à son heure comme d’habitude', () => {
+    expect(repasEchus(jour, BUILTIN_SLOTS, FIN_DE_JOURNEE, inscription).map((m) => m.meal_type)).toEqual(['dinner']);
+  });
+
+  it('🔴 le solde du lendemain matin ne les reprend pas non plus', () => {
+    // Sans la borne, il les aurait retirés de la réserve au premier lancement du
+    // lendemain — le même défaut, une nuit plus tard.
+    expect(repasEchusVeille(jour, BUILTIN_SLOTS, null)).toHaveLength(4);
+    expect(repasEchusVeille(jour, BUILTIN_SLOTS, inscription).map((m) => m.meal_type)).toEqual(['dinner']);
+  });
+
+  it('la frontière : une heure limite ÉGALE à l’inscription était déjà passée', () => {
+    const limiteDejeuner = heuresLimites(BUILTIN_SLOTS).get('lunch' as never)!;
+    expect(repasEchus(jour, BUILTIN_SLOTS, FIN_DE_JOURNEE, limiteDejeuner).map((m) => m.meal_type)).not.toContain('lunch');
+    expect(repasEchus(jour, BUILTIN_SLOTS, FIN_DE_JOURNEE, limiteDejeuner - 1).map((m) => m.meal_type)).toContain('lunch');
+  });
+
+  it('la borne ne vaut QUE le jour du premier plan', () => {
+    const debut = { jour: '2026-09-30', minutes: inscription };
+    expect(bornePremierJour(debut, '2026-09-30')).toBe(inscription);
+    expect(bornePremierJour(debut, '2026-10-01')).toBeNull();
+    expect(bornePremierJour(null, '2026-09-30')).toBeNull();
+  });
+
+  it('le Plan note le début au PREMIER plan, avant `setPlan`, et le passe aux deux chemins', () => {
+    const premier = plan.slice(plan.indexOf("if (!reroll && !(await AsyncStorage.getItem(FIRST_PLAN_KEY)))"));
+    expect(premier.slice(0, 600)).toContain('await noterDebutSuivi(todayStamp(), minutesDepuisMinuit());');
+    expect(premier.indexOf('noterDebutSuivi')).toBeLessThan(premier.indexOf('setPlan(p)'));
+    expect(plan).toMatch(/minutesDepuisMinuit\(\),[\s\S]{0,140}bornePremierJour\(await lireDebutSuivi\(\), todayStamp\(\)\)/);
+    expect(plan).toMatch(/repasEchusVeille\([\s\S]{0,120}bornePremierJour\(await lireDebutSuivi\(\), hier\)/);
   });
 });
 

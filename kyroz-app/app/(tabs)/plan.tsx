@@ -51,6 +51,7 @@ import { pushPantry } from '../../lib/sync';
 import { activeSlots } from '../../lib/mealSlots';
 import {
   useRepasAuto, repasEchus, repasEchusVeille, minutesDepuisMinuit, dejaSolde, marquerSolde,
+  lireDebutSuivi, noterDebutSuivi, bornePremierJour,
 } from '../../lib/repasAuto';
 import { useFirstName } from '../../lib/profileName';
 import { salutation } from '../../lib/salutation';
@@ -454,8 +455,15 @@ export default function PlanScreen() {
     if (await dejaSolde(hier)) return;                 // déjà soldé (deux écrans, un seul débit)
     await marquerSolde(hier);
     const jour = idxDuJour(new Date(Date.now() - 86400000).getDay());
-    if (jour === null) return;
-    const dus = repasEchusVeille(p.meals.filter((m) => m.day === jour));
+    if (jour === null || !profile) return;
+    // 🔴 Pas les repas dont l'heure était passée avant le PREMIER plan (inscription du
+    // soir) : la veille, ils n'avaient pas été cochés ; ce solde les aurait retirés de la
+    // réserve quand même, au premier lancement du lendemain (`lib/repasAuto.ts`).
+    const dus = repasEchusVeille(
+      p.meals.filter((m) => m.day === jour),
+      activeSlots(profile),
+      bornePremierJour(await lireDebutSuivi(), hier),
+    );
     if (dus.length === 0) return;
     let items = await loadPantry();
     for (const m of dus) items = deductIngredients(items, mealIngredients(m));
@@ -538,6 +546,10 @@ export default function PlanScreen() {
       // reveal est ouvert (cf. effet du tour).
       if (!reroll && !(await AsyncStorage.getItem(FIRST_PLAN_KEY))) {
         await AsyncStorage.setItem(FIRST_PLAN_KEY, '1');
+        // Le moment où le suivi COMMENCE : l'auto-coche ne reprendra jamais un repas dont
+        // l'heure était déjà passée (lib/repasAuto.ts). Noté AVANT `setPlan`, que la
+        // première auto-coche suit de près.
+        await noterDebutSuivi(todayStamp(), minutesDepuisMinuit());
         setShowReveal(true);
         capture(Events.firstPlanViewed, { duree_generation_ms: dureeMoteurMs });
       }
@@ -636,6 +648,8 @@ export default function PlanScreen() {
       plan.meals.filter((m) => m.day === jour),
       activeSlots(profile),
       minutesDepuisMinuit(),
+      // Le jour du premier plan, rien de ce qui était échu AVANT lui (lib/repasAuto.ts).
+      bornePremierJour(await lireDebutSuivi(), todayStamp()),
     );
     if (dus.length === 0) return;
 
