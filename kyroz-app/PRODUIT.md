@@ -93,6 +93,9 @@ La journée, repas par repas, avec ses macros. Une rangée de jours en haut. Sur
 
 - **« J'ai cuisiné »** — le repas est validé, les ingrédients sortent de la réserve, les
   repas restants se recalent pour tenir la cible du jour.
+  ⚠️ **Rien n'est coché d'office le jour de l'inscription pour ce qui précède le plan**
+  (depuis le 2026-10-01) : un repas dont l'heure était déjà passée quand le premier plan
+  est arrivé reste à faire — ni coché le soir même, ni retiré de la réserve le lendemain.
   ⚠️ **Un repas se coche aussi TOUT SEUL quand son heure est passée** (depuis le
   2026-08-24) : **une heure après le début du repas suivant**, et en fin de journée
   (23 h 59) pour le dernier. Sur les créneaux par défaut, ça donne 14 h · 17 h · 21 h ·

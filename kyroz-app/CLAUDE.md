@@ -586,6 +586,14 @@ OUTPUT         → Plan + liste de courses + recettes
       repas est passé » ailleurs dans l'app, et elle est bornée à la fin de journée.
       Invariant compté : aucun repas ne se ferme moins de deux heures après son début,
       quelle que soit la configuration.
+      🔴 **RIEN N'EST ÉCHU AVANT LE PREMIER PLAN** (2026-10-01, relevé en relisant la visite
+      de l'app) : qui s'inscrivait à 21 h 45 trouvait petit-déj, déjeuner et collation
+      « MANGÉ », 1 545 kcal comptées et les ingrédients retirés de la réserve — des repas
+      jamais proposés. Le moment du tout premier plan est noté (`@kyroz:debutSuivi`) ; un
+      repas dont l'heure limite était déjà passée ce jour-là n'est repris ni le soir même
+      (`repasEchus`) ni au solde du lendemain (`repasEchusVeille`). Paramètre de borne
+      OBLIGATOIRE dans les deux (`null` = aucune) ; une régénération en cours de journée
+      garde la règle ordinaire.
       C'est **exactement** « J'ai cuisiné » (réserve, macros verrouillées, recalage),
       avec `auto: true` sur `meal_cooked` pour que la north star reste lisible
       (METRICS.md §3). Réglage d'appareil **ALLUMÉ par défaut**, dans Profil → Paramètres

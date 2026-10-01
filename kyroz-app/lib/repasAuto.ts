@@ -151,23 +151,87 @@ function cochable(m: Meal): boolean {
   return !m.status && !m.fixed;
 }
 
+// ── 🔴 RIEN N'EST ÉCHU AVANT LE PREMIER PLAN (2026-10-01) ────────────────────
+//
+// Relevé en relisant la visite de l'app « d'un œil d'utilisateur » (2026-09-30) :
+// qui s'inscrit à 21 h 45 découvrait son plan avec le petit-déjeuner, le déjeuner et
+// la collation déjà « MANGÉ », 1 545 kcal comptées et leurs ingrédients retirés de la
+// réserve — des repas que Kyroz ne lui avait jamais proposés. Et la première ligne de
+// la visite (« Si tu oublies, Kyroz coche pour toi ») tombait pile sur ce constat.
+// L'auto-coche ne regardait que l'HEURE, jamais le moment où le plan est arrivé.
+//
+// ➡️ Un repas dont l'heure limite était DÉJÀ passée quand le tout premier plan a été
+// généré n'est jamais repris : ni le jour même (`repasEchus`), ni au solde du
+// lendemain matin (`repasEchusVeille`), qui l'aurait retiré de la réserve à son tour.
+// Il reste « planifié », et « J'ai cuisiné » reste à un tap.
+// ⚠️ Le TOUT PREMIER plan seulement : une régénération en cours de journée garde la
+// règle ordinaire — la personne avait un plan ce matin-là.
+// ⚠️ Paramètre OBLIGATOIRE dans les deux fonctions (`null` = aucune restriction) : un
+// garde-fou optionnel disparaît chez l'appelant qui l'oublie.
+
+/** Le moment où ce compte a reçu son tout premier plan, sur CET appareil. */
+export interface DebutDuSuivi {
+  /** Jour local (`YYYY-MM-DD`). */
+  jour: string;
+  /** Minutes depuis minuit, heure locale. */
+  minutes: number;
+}
+
+const DEBUT_SUIVI_KEY = '@kyroz:debutSuivi';
+
+/** La borne du jour `stamp` : les minutes du premier plan si c'est CE jour-là, sinon `null`. */
+export function bornePremierJour(debut: DebutDuSuivi | null, stamp: string): number | null {
+  return debut && debut.jour === stamp ? debut.minutes : null;
+}
+
+export async function lireDebutSuivi(): Promise<DebutDuSuivi | null> {
+  try {
+    const raw = await AsyncStorage.getItem(DEBUT_SUIVI_KEY);
+    if (!raw) return null;
+    const d = JSON.parse(raw);
+    return typeof d?.jour === 'string' && typeof d?.minutes === 'number' ? d : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Note le moment du premier plan — une seule fois : la première écriture fait foi. */
+export async function noterDebutSuivi(jour: string, minutes: number): Promise<void> {
+  try {
+    if (await AsyncStorage.getItem(DEBUT_SUIVI_KEY)) return;
+    await AsyncStorage.setItem(DEBUT_SUIVI_KEY, JSON.stringify({ jour, minutes }));
+  } catch {}
+}
+
+/** L'heure limite d'un repas était-elle déjà passée quand le premier plan est arrivé ? */
+function avantLePlan(limite: number, borne: number | null): boolean {
+  return borne !== null && limite <= borne;
+}
+
 /**
  * Les repas d'une journée dont l'heure limite est passée et que personne n'a
- * tranchés. `minutes` = minutes depuis minuit (heure locale).
+ * tranchés. `minutes` = minutes depuis minuit (heure locale). `borne` : cf. plus haut
+ * (`bornePremierJour`), `null` hors du jour du premier plan.
  */
 export function repasEchus(
-  meals: Meal[], slots: readonly MealSlot[], minutes: number,
+  meals: Meal[], slots: readonly MealSlot[], minutes: number, borne: number | null,
 ): Meal[] {
   const limites = heuresLimites(slots);
-  return meals.filter((m) => cochable(m) && (limites.get(m.meal_type) ?? FIN_DE_JOURNEE) <= minutes);
+  return meals.filter((m) => {
+    if (!cochable(m)) return false;
+    const limite = limites.get(m.meal_type) ?? FIN_DE_JOURNEE;
+    return !avantLePlan(limite, borne) && limite <= minutes;
+  });
 }
 
 /**
  * Les repas d'une journée RÉVOLUE à encaisser avant l'effacement du suivi.
- * Tous les créneaux non tranchés, quelle que soit leur heure : la journée est finie.
+ * Tous les créneaux non tranchés, quelle que soit leur heure : la journée est finie —
+ * sauf ceux dont l'heure était passée avant le premier plan (`borne`).
  */
-export function repasEchusVeille(meals: Meal[]): Meal[] {
-  return meals.filter(cochable);
+export function repasEchusVeille(meals: Meal[], slots: readonly MealSlot[], borne: number | null): Meal[] {
+  const limites = heuresLimites(slots);
+  return meals.filter((m) => cochable(m) && !avantLePlan(limites.get(m.meal_type) ?? FIN_DE_JOURNEE, borne));
 }
 
 // ── Solde de la veille : anti double-déduction ──────────────────────────────
