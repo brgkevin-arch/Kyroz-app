@@ -144,7 +144,12 @@ describe('Le réglage n’a qu’UNE maison, et elle propose les sept jours', ()
     // Côté inscription : la rangée des sept jours, remontée sur la page des séances
     // le 2026-09-23, se pose sur `WEEKDAY_OPTS` entier (`RangeeJours`).
     expect(onboardingSrc).toMatch(/<RangeeJours t=\{t\} choisis=\{restWeekdays\}/);
-    expect(onboardingSrc).toMatch(/function RangeeJours[\s\S]{0,800}?WEEKDAY_OPTS\.map\(/);
+    // ⚠️ Depuis le 2026-09-30 la rangée est PARTAGÉE (`components/RangeeJours.tsx`) avec le
+    // Profil et les Réglages : c'est là qu'on vérifie qu'elle pose les sept jours, sans filtre.
+    const rangee = readFileSync(join(__dirname, '..', '..', 'components', 'RangeeJours.tsx'), 'utf8');
+    expect(rangee).toMatch(/function RangeeJours[\s\S]{0,800}?JOURS_SEMAINE\.map\(/);
+    expect(rangee).not.toMatch(/JOURS_SEMAINE\.filter\(/);
+    expect((rangee.match(/val: [0-6] \}/g) ?? []).length, 'les sept jours de la semaine').toBe(7);
     expect(onboardingSrc).not.toContain('WEEKDAY_OPTS.filter((o) => planWeekdays.includes(o.val))');
   });
 

@@ -57,6 +57,7 @@ import { useAnalyticsConsent } from '../../hooks/useAnalyticsConsent';
 import AnalyticsConsentStep from '../../components/AnalyticsConsentStep';
 import { DISCLAIMER, AVERTISSEMENT_MEDICAL } from '../../constants/legal';
 import { LienMethodologie } from '../../components/LienMethodologie';
+import { RangeeJours } from '../../components/RangeeJours';
 
 // En dessous de cette hauteur, ce qui reste sous le pli ne vaut pas un indice — et à
 // moins de cette distance de la fin, on est arrivé. Une seule valeur pour les deux :
@@ -1112,26 +1113,6 @@ export default function Onboarding() {
  * ⚠️ `flex: 1` et pas une largeur : la ligne suit la largeur de l'écran, du plus petit
  * iPhone à la colonne centrée d'un iPad.
  */
-function RangeeJours({ t, choisis, onChoisir }: { t: ThemePalette; choisis: number[]; onChoisir: (v: number) => void }) {
-  const s = useMemo(() => makeStyles(t), [t]);
-  return (
-    <View style={s.ligneJours}>
-      {WEEKDAY_OPTS.map((d) => {
-        const on = choisis.includes(d.val);
-        return (
-          <Presse
-            key={d.val} onPress={() => onChoisir(d.val)} activeOpacity={OPACITE_PRESSION}
-            accessibilityRole="button" accessibilityLabel={d.long} accessibilityState={{ selected: on }}
-            style={[s.caseJour, { backgroundColor: on ? t.accent : t.fill, borderColor: on ? t.accent : t.line }]}
-          >
-            <Text style={{ ...Type.captionStrong, color: on ? t.onAccent : t.textTertiary }}>{d.label}</Text>
-          </Presse>
-        );
-      })}
-    </View>
-  );
-}
-
 function NameStep({ t, value, onChange, venuDApple }: { t: ThemePalette; value: string; onChange: (s: string) => void; venuDApple: boolean }) {
   const fade = useRef(new Animated.Value(0)).current;   // opacité du bloc titre
   const lift = useRef(new Animated.Value(22)).current;  // léger glissement vers le haut
@@ -1210,11 +1191,6 @@ function makeStyles(t: ThemePalette) {
     wrap: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },
     // Une liste verticale de cartes serrées : un cran de moins que `block`.
     liste: { gap: Spacing.sm },
-    ligneJours: { flexDirection: 'row', gap: Spacing.sm },
-    caseJour: {
-      flex: 1, height: 48, borderRadius: Radius.button, borderWidth: Trait.fin,
-      alignItems: 'center', justifyContent: 'center',
-    },
     footer: { padding: Spacing.xl, paddingTop: Spacing.sm, backgroundColor: t.bg },
     indiceBas: { alignItems: 'center', paddingBottom: Spacing.xs },
     hint: { ...Type.captionStrong, color: t.warning, lineHeight: 18, marginBottom: Spacing.md, textAlign: 'center' },

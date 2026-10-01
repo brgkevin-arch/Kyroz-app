@@ -13,8 +13,15 @@ import { ThemeMode, useThemeMode, setThemeMode } from '../../lib/themeMode';
 import { ACCENTS, ACCENT_IDS, useAccentId, setAccentId, readableOn } from '../../lib/accentColor';
 import { DISCLAIMER } from '../../constants/legal';
 import { CIQUAL_ATTRIBUTION } from '../../lib/foods';
-import { Card, PrimaryButton, Chip, OptionCard, Field, SectionLabel, Segmented, SectionTitle, MenuRow, clavierScrollProps } from '../../components/ui';
+import { Card, PrimaryButton, Chip, OptionCard, Field, SectionLabel, Segmented, SectionTitle, MenuRow, clavierScrollProps, GrilleChoix } from '../../components/ui';
+import { RangeeJours } from '../../components/RangeeJours';
+import { MesureField } from '../../components/MesureField';
 import { GOUT_CHOIX, goutEnregistre, goutLu, type GoutChoix } from '../../lib/gout';
+
+// Les goûts se présentent comme à l'inscription : deux tranches côte à côte, « Peu
+// importe » en case pleine largeur dessous (harmonisation du 2026-09-30).
+const GOUT_TRANCHES = GOUT_CHOIX.filter((g) => g.value !== 'egal');
+const GOUT_EGAL = GOUT_CHOIX.find((g) => g.value === 'egal')!;
 import { useRepasAuto } from '../../lib/repasAuto';
 import { bankedDailyTargets, offsetsForPlan, servedWeekdays } from '../../lib/calorieBank';
 import { usePremium } from '../../hooks/usePremium';
@@ -1076,7 +1083,9 @@ function InfoEditor({ t, profile, onSave, onWeighIn, dragHandlers, sheetScrollPr
       <Text style={{ ...Type.caption, color: t.textTertiary, lineHeight: 17, marginTop: -Spacing.sm }}>
         Ton poids se met à jour en te pesant : c'est ce qui garde ta courbe et ton suivi justes.
       </Text>
-      <Field t={t} label="Taille" suffix="cm" value={height} onChangeText={setHeight} keyboardType="number-pad" />
+      {/* À la roulette, comme à l'inscription (2026-09-30) : le même chiffre ne se saisit
+          pas au clavier ici et à la molette là-bas. */}
+      <MesureField t={t} mesure="taille" value={height} onChange={setHeight} sex={sex} />
       <SectionLabel t={t}>Masse grasse (optionnel)</SectionLabel>
       {/* `draft` : le repère de plausibilité chiffre l'impact sur le corps EN COURS
           d'édition, pas sur le profil enregistré. */}
@@ -1741,12 +1750,26 @@ function PrefEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }: Edit
   return (
     <EditorShell t={t} title="Préférences" onSave={submit} dragHandlers={dragHandlers} sheetScrollProps={sheetScrollProps}>
       <SectionLabel t={t}>Régime</SectionLabel>
-      <View style={styles.wrap}>{RESTRICTIONS.map((r) => <Chip key={r.value} t={t} label={r.label} selected={restrictions.includes(r.value)} onPress={() => { const suivant = basculerRegime(restrictions, r.value); setRestrictions(suivant); setProteins((p) => cocheesValides(suivant, p)); }} />)}</View>
-      <ProteinesParRegime t={t} restrictions={restrictions} valeurs={cocheesValides(restrictions, proteins)} onChange={setProteins} />
+      {/* Même grille qu'à l'inscription (2026-09-30) : la même question ne se pose pas
+          de deux façons selon l'écran. */}
+      <GrilleChoix
+        t={t} options={RESTRICTIONS} estChoisi={(v) => restrictions.includes(v)}
+        onChoisir={(v) => { const suivant = basculerRegime(restrictions, v); setRestrictions(suivant); setProteins((p) => cocheesValides(suivant, p)); }}
+      />
+      <ProteinesParRegime
+        t={t} restrictions={restrictions} valeurs={cocheesValides(restrictions, proteins)} onChange={setProteins} grille
+        peuImporte={{ selected: cocheesValides(restrictions, proteins).length === 0, onToggle: () => setProteins([]) }}
+      />
       <SectionLabel t={t}>Petit-déjeuner</SectionLabel>
-      <View style={styles.wrap}>{GOUT_CHOIX.map((g) => <Chip key={g.value} t={t} label={g.label} selected={goutPdj === g.value} onPress={() => setGoutPdj(g.value)} />)}</View>
+      <GrilleChoix
+        t={t} options={GOUT_TRANCHES} estChoisi={(v) => goutPdj === v} onChoisir={setGoutPdj}
+        pleineLargeur={{ label: GOUT_EGAL.label, selected: goutPdj === GOUT_EGAL.value, onPress: () => setGoutPdj(GOUT_EGAL.value) }}
+      />
       <SectionLabel t={t}>Collations</SectionLabel>
-      <View style={styles.wrap}>{GOUT_CHOIX.map((g) => <Chip key={g.value} t={t} label={g.label} selected={goutCol === g.value} onPress={() => setGoutCol(g.value)} />)}</View>
+      <GrilleChoix
+        t={t} options={GOUT_TRANCHES} estChoisi={(v) => goutCol === v} onChoisir={setGoutCol}
+        pleineLargeur={{ label: GOUT_EGAL.label, selected: goutCol === GOUT_EGAL.value, onPress: () => setGoutCol(GOUT_EGAL.value) }}
+      />
       <DislikedFoodsField t={t} value={dislikes} onChange={setDislikes} />
       {hiddenNamed.length > 0 && (
         <>
@@ -1799,15 +1822,16 @@ function RestDaysPicker({ t, value, onToggle, onNone }: { t: ThemePalette; value
           n'explique donc la bascule ; il reste la lune de la rangée de jours (qui
           dit QUE, pas POURQUOI) et `FirstPlanReveal`, une fois. C'est un choix
           d'épure assumé, pas un oubli à rattraper. */}
-      <View style={styles.wrap}>
-        {opts.map((d) => <Chip key={d.val} t={t} label={d.label} selected={value.includes(d.val)} onPress={() => onToggle(d.val)} />)}
+      {/* Une ligne de sept cases, comme à l'inscription (harmonisation du 2026-09-30). */}
+      <RangeeJours t={t} choisis={value} onChoisir={onToggle} />
+      <View>
         {/* « Aucun » n'est PAS un état caché : c'est la même donnée (liste vide),
             rendue visible. Sans cette puce, « je m'entraîne 7 j/7 » et « je n'ai pas
             répondu » se ressemblent à l'écran alors qu'ils ne demandent pas le même
             plan — et depuis que le réglage déplace jusqu'à 330 kcal, les confondre
             coûte cher. Elle se lit comme sélectionnée dès qu'aucun jour ne l'est,
             donc l'écran ne peut jamais montrer « rien du tout ». */}
-        <Chip t={t} label="Aucun" selected={value.length === 0} onPress={onNone} />
+        <GrilleChoix t={t} options={[]} estChoisi={() => false} onChoisir={() => {}} pleineLargeur={{ label: 'Aucun jour de repos', selected: value.length === 0, onPress: onNone }} />
       </View>
     </>
   );
@@ -1907,7 +1931,7 @@ function MealsEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }: Edi
   return (
     <EditorShell t={t} title="Paramètres des repas" onSave={submit} canSave={weekdays.length >= 1 && meals.length >= 1} dragHandlers={dragHandlers} sheetScrollProps={sheetScrollProps}>
       <SectionLabel t={t}>Jours du plan</SectionLabel>
-      <View style={styles.wrap}>{WEEKDAY_OPTS.map((d) => <Chip key={d.val} t={t} label={d.label} selected={weekdays.includes(d.val)} onPress={() => togDay(d.val)} />)}</View>
+      <RangeeJours t={t} choisis={weekdays} onChoisir={togDay} />
       <SectionLabel t={t}>Repas inclus</SectionLabel>
       {/* 🔴 « Tu manges plus de quatre fois par jour ? … » retiré le 2026-08-25
           (décision fondateur). Le bouton d'ajout de `MealSlotsPicker` dit déjà ce
