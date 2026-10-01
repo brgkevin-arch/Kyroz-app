@@ -1077,7 +1077,10 @@ export default function PlanScreen() {
                   plannedKcal={dayMacros.kcal}
                   consumedKcal={consumedDayKcal}
                 />
-                <SousCibleNote t={t} manque={(dayTarget ?? dayMacros.kcal) - dayMacros.kcal} />
+                <SousCibleNote
+                  t={t} manque={(dayTarget ?? dayMacros.kcal) - dayMacros.kcal}
+                  repasAVenir={(plan?.meals ?? []).filter((m) => m.day === selectedDay && !m.status).length}
+                />
                 {dayExtraKcal > 0 && (
                   <View style={s.extraRow}>
                     <Text style={{ ...Type.caption, color: t.textSecondary }}>
@@ -1389,12 +1392,19 @@ export default function PlanScreen() {
  * (sa ligne de dépassement a été retirée), donc cette note est désormais le SEUL
  * commentaire de l'écran Plan sur un écart à la cible.
  */
-function SousCibleNote({ t, manque }: { t: ThemePalette; manque: number }) {
+function SousCibleNote({ t, manque, repasAVenir }: { t: ThemePalette; manque: number; repasAVenir: number }) {
   if (manque <= ON_TARGET_TOLERANCE_KCAL) return null;
+  // 🔴 LA CAUSE DIFFÈRE SELON QU'IL RESTE DES REPAS (relevé le 2026-09-30). Quand tous les
+  // repas du jour sont passés (mangés ou sautés), la note accusait la taille des portions
+  // alors qu'il n'y a simplement plus rien à ajuster — cas typique : une séance ajoutée
+  // le soir monte la cible après coup, au-dessus de repas déjà verrouillés.
+  const cause = repasAVenir > 0
+    ? 'les portions de tes repas ne peuvent pas monter plus haut.'
+    : 'tes repas du jour sont passés, il n\'y a plus rien à ajuster.';
   return (
     <Text style={{ ...Type.caption, color: t.textTertiary, lineHeight: 17, marginTop: Spacing.sm }}>
-      Ta journée s'arrête {Math.round(manque).toLocaleString('fr-FR')} kcal sous ta cible : les portions de tes repas
-      ne peuvent pas monter plus haut. Une journée sous la cible ne compromet rien.
+      Ta journée s'arrête {Math.round(manque).toLocaleString('fr-FR')} kcal sous ta cible : {cause} Une journée sous
+      la cible ne compromet rien.
     </Text>
   );
 }

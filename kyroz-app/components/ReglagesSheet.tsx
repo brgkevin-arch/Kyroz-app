@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import Constants from 'expo-constants';
 import { ThemePalette, Spacing, Type, Radius, Trait, Icone, OPACITE_PRESSION, CIBLE_TACTILE_MIN, useTheme } from '../constants/theme';
 import { Chip, Segmented, SectionTitle, MenuRow } from './ui';
+import { RangeeJours } from './RangeeJours';
 import { useReminder } from '../hooks/useReminder';
 import { usePlanCheckin } from '../hooks/usePlanCheckin';
 import { useAnalyticsConsent } from '../hooks/useAnalyticsConsent';
@@ -16,7 +17,7 @@ import { ReminderTimeField } from './ReminderTimeField';
 import { ReminderTime, formatReminderTime, DEFAULT_REMINDER_TIME } from '../lib/reminder';
 import { remindersSupported } from '../lib/notifications';
 import { WeighInDay, WeighInFrequency } from '../lib/types';
-import { JOURS_PESEE, weighInResume } from '../lib/weight';
+import { weighInResume } from '../lib/weight';
 // 🔴 `useDialog` A ÉTÉ RETIRÉ D'ICI le 2026-08-14, et ce n'est pas un nettoyage.
 // Cette feuille est rendue par `profil.tsx` DANS un `<Sheet>`, donc dans une
 // `Modal`. Sur iOS, une modale ne se présente pas par-dessus une modale en place :
@@ -232,17 +233,8 @@ export function ReglagesSheet({
             pas comme les cases à cocher des jours de repos. Re-toucher le jour actif ne
             le désélectionne donc pas — il n'existe pas de rendez-vous « aucun jour ». */}
         <Text style={s.label}>Jour de la pesée</Text>
-        <View style={s.jours}>
-          {JOURS_PESEE.map((j) => (
-            <Chip
-              key={j.value}
-              t={t}
-              label={j.court}
-              selected={weighInDay === j.value}
-              onPress={() => onWeighInDay(j.value)}
-            />
-          ))}
-        </View>
+        {/* Une ligne de sept cases, comme partout ailleurs (2026-09-30). */}
+        <RangeeJours t={t} choisis={[weighInDay]} onChoisir={(v) => onWeighInDay(v as WeighInDay)} />
         <Text style={s.aide}>On te proposera un check-in {weighInResume(weighInFrequency, weighInDay)}.</Text>
 
         <Text style={s.label}>Propositions d'ajustement</Text>
@@ -443,7 +435,6 @@ function makeStyles(t: ThemePalette) {
     pastilles: { flexDirection: 'row', gap: Spacing.sm, flexWrap: 'wrap' },
     // Les sept jours passent à la ligne sur les petits écrans plutôt que de rétrécir :
     // une cible tactile ne se négocie pas (CIBLE_TACTILE_MIN, §8).
-    jours: { flexDirection: 'row', gap: Spacing.sm, flexWrap: 'wrap' },
     pastille: {
       width: CIBLE_TACTILE_MIN, height: CIBLE_TACTILE_MIN, borderRadius: Radius.pill,
       alignItems: 'center', justifyContent: 'center', borderWidth: Trait.controle,
