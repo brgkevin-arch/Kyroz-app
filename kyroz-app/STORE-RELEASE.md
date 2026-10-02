@@ -219,7 +219,15 @@ installation neuve part du binaire, donc du (6).
   encore `0639ecc` après la compilation, 0 PR ouverte — le piège du 11 août ne s'est pas
   rejoué). *(Le précédent :)* le **(6)** — `ceec1b17`, commit
   `1047b9f`, terminé le 2026-08-11 à 20 h 37. Il a **62 commits de retard** sur `main` — chiffre RE-MESURÉ le 2026-08-26 (il en annonçait 40, mesurés le 2026-08-23), qui **grandit à chaque merge** : le relire avec `git rev-list --count 1047b9f..origin/main` plutôt que de le recopier (même défaut que le décompte d'OTA tenu à la main).
-- **OTA** : la dernière est la **57ᵉ** (groupe `ebf6fe0c`, **iOS seulement**, 2026-10-01),
+- **OTA** : la dernière est la **58ᵉ** (groupe `d6eade28`, **iOS seulement**, 2026-10-02),
+  publiée sur le commit `83647bc` — `main`, arbre propre, détaché sur `origin/main`.
+  ✅ **Runtime iOS `823c89db…` = le build (22)**, empreinte comparée AVANT publication.
+  Contenu (#367, #368, #370) : le **Profil présenté comme l’inscription** et la note sous
+  la cible qui dit la vraie cause ; les **étapes de 131 recettes rédigées** au tutoiement
+  (`ENGINE_VERSION` 64, le plan se régénère une fois, mêmes repas) ; le **format vendu**
+  dans la liste de courses (« 1 pot de 250 g · il t’en faut 5 g »), le paquet entier
+  rangé en réserve à la clôture. Aucun changement natif. Export simulé vérifié.
+  *(La précédente :)* la **57ᵉ** (groupe `ebf6fe0c`, **iOS seulement**, 2026-10-01),
   publiée sur le commit `6e8d1f2` — `main`, arbre propre, détaché sur `origin/main`.
   ✅ **Runtime iOS `823c89db…` = le build (22)**, empreinte comparée AVANT publication.
   Contenu (#356, #365) : **une seule visite de l'app** après la révélation du premier plan
