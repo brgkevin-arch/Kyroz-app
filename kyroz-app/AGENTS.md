@@ -1693,12 +1693,16 @@ produit en suspens — il ne reste qu'à coder.
   manuel garde SA quantité. Garde-fou : `formatsVendus.test.ts` (couverture des 139 refs, vraies
   listes de 4 régimes, l'écran s'en sert). Vu à l'écran : clôture → réserve à 300 g d'escalope
   pour 155 demandés, « 6 œufs » pour 1.
-  ⚠️ **F9, trouvée en mesurant, NON corrigée — à trancher** : un repas CUISINÉ est compté deux
-  fois. La liste vaut « besoin de la semaine − réserve », or cuisiner débite la réserve sans
-  retirer le repas du besoin. Après une journée cuisinée, la liste se remplit à nouveau :
-  **16 articles fantômes** avec l'ancien rangement, **4** avec le format vendu (H 90 kg, plan
-  canonique). Corriger touche la règle « la borne ne glisse pas » (`lib/coursesDepuis.ts`,
-  décision du 2026-09-17) : décision fondateur.
+  ✅ **F9 CORRIGÉE le même jour** (trouvée en mesurant, tranchée par le fondateur : « fais
+  donc ») : un repas CUISINÉ était compté deux fois — la liste vaut « besoin − réserve », et
+  cuisiner débite la réserve sans retirer le repas du besoin. Après une journée cuisinée,
+  **16 articles fantômes** avec l'ancien rangement, **4** avec le format vendu → **0**, le soir
+  comme le lendemain. La règle (`coursesDepuis.ts::repasACompter`) : après des « Courses
+  terminées » pendant la semaine du plan, la liste ne compte que les jours à venir et,
+  aujourd'hui, les repas pas encore tranchés ; AVANT les courses, la règle du 2026-09-17
+  (« la borne ne glisse pas ») tient. L'écran le dit : « Depuis tes dernières courses : pour
+  les repas qu'il te reste à cuisiner. » Garde-fou `coursesApresCloture.test.ts` (mesure sur
+  le moteur, 3 mutations).
   **Avec, dans la même OTA : les étapes de recettes réécrites (#368)** — 152 étapes à
   l'infinitif et 25 « + » → 0 (131 recettes, même composition, `ENGINE_VERSION` 64,
   `etapesRedigees.test.ts`) ; temps annoncé corrigé sur pd23, pd43, rep73.

@@ -575,8 +575,9 @@ OUTPUT         → Plan + liste de courses + recettes
         proposait du poulet à un végétarien.
       🔴 **ET ELLE REÇOIT LE PAQUET, PAS LE BESOIN** (2026-10-02, décision fondateur, AGENTS.md
       E75) : la liste montre le format vendu (`lib/formatsVendus.ts`), la clôture range le
-      paquet entier, le reste est déduit des listes suivantes. ⚠️ F9 reste ouverte : un repas
-      cuisiné est compté deux fois (`docs/fiabilite-liste-et-reserve.md`).
+      paquet entier, le reste est déduit des listes suivantes. Et après des « Courses
+      terminées », la liste ne compte que les repas qu'il reste à cuisiner (F9 :
+      `lib/coursesDepuis.ts::repasACompter`) — un repas cuisiné n'est plus compté deux fois.
 - [x] **Auto-coche des repas** (2026-08-24, `lib/repasAuto.ts`) — un repas non tranché
       passe en « mangé » **une heure après le début du repas SUIVANT**, et le dernier de
       la journée à **23 h 59** (jamais minuit : `resetTracking` efface le suivi au

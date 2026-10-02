@@ -65,7 +65,9 @@ describe('ce que la réserve fait DISPARAÎTRE quand on la soustrait', () => {
 describe('l’écran Courses soustrait TOUJOURS, sans condition', () => {
   it('la liste charge la réserve à chaque calcul', () => {
     expect(courses).toContain('const pantry = await loadPantry();');
-    expect(courses).toContain('buildShoppingList(plan, pantry, joursAAcheter(plan, profile?.plan_weekdays))');
+    // La réserve est passée sans condition ; depuis F9 (2026-10-02), les repas comptés
+    // viennent de `repasACompter` (seulement ceux qu'il reste à cuisiner après des courses).
+    expect(courses).toContain('buildShoppingList({ ...plan, meals: perimetre.meals }, pantry, perimetre.jours)');
   });
 
   it('plus aucun interrupteur de suivi ne subsiste', () => {

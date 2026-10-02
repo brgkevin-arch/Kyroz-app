@@ -6,12 +6,14 @@
 > C'est une version plus simple que M2 tel qu'écrit plus bas : le format est PROPOSÉ et rangé
 > tel quel, sans question à la clôture ; s'il diffère de l'achat réel, on corrige dans la Réserve.
 >
-> 🔴 **F9, trouvée en le mesurant, NON corrigée : un repas cuisiné est compté deux fois.**
-> La liste vaut « besoin de la semaine − réserve » ; cuisiner débite la réserve, mais le repas
-> reste dans le besoin. Après une journée cuisinée, des articles reviennent sur la liste alors
-> que tout a été acheté : **16** avec l'ancien rangement, **4** avec le format vendu (H 90 kg,
-> plan canonique). La corriger touche la règle « la borne ne glisse pas » de
-> `kyroz-app/lib/coursesDepuis.ts` (décision du 2026-09-17) : c'est au fondateur de trancher.
+> ✅ **F9, trouvée en le mesurant et CORRIGÉE le même jour : un repas cuisiné était compté
+> deux fois.** La liste vaut « besoin de la semaine − réserve » ; cuisiner débite la réserve,
+> mais le repas restait dans le besoin. Après une journée cuisinée, des articles revenaient sur
+> la liste alors que tout avait été acheté : **16** avec l'ancien rangement, **4** avec le
+> format vendu, **0** depuis. Après des « Courses terminées » pendant la semaine du plan, la
+> liste ne compte que les jours à venir et, le jour même, les repas pas encore tranchés
+> (`kyroz-app/lib/coursesDepuis.ts::repasACompter`). Avant les courses, la règle du
+> 2026-09-17 tient : la liste part du jour de génération et ne glisse pas.
 
 Analyse du 21 septembre 2026. Rien n'est décidé ici.
 
