@@ -17,6 +17,86 @@
 ---
 
 
+## Fiches livrées — descendues une par une depuis le 2026-08-30
+
+> La règle d'`AGENTS.md` : *« quand une tâche est faite, elle descend dans le Journal avec sa
+> date »*. Texte intact, déplacé tel quel ; le numéro reste unique entre les deux fichiers
+> (`agentsIds.test.ts`).
+
+### E — Dette technique
+
+*Descendues le 2026-10-02, une fois publiées (51ᵉ et 57ᵉ OTA).*
+
+- **E74 · UNE SEULE VISITE DE L'APP, D'ONGLET EN ONGLET** — ✅ publiée (57ᵉ OTA, 2026-10-01)
+  🔴 **DÉCISION FONDATEUR du 2026-09-30** : *« une seule visite qui montre toute l'app, pas de
+  visite pour les trucs inutiles, bien fluide, sans trop d'excès de texte »*. Elle remplace les
+  deux bulles centrées (Plan, Profil) : **cinq arrêts, un par onglet**, dans l'ordre de la barre,
+  chacun NAVIGUE vers son onglet ; une carte au-dessus de la barre le pointe, l'écran reste
+  visible derrière un voile léger. Titre = ce qu'est l'onglet, une ligne = ce qu'on n'y voit pas
+  (`TEXTE_MAX` 90). Lancée une fois après la révélation du premier plan — **jamais** « pendant que
+  ton plan se génère » (le moteur met ~8 ms). Nouveaux comptes seulement (`VU_PAR_HERITAGE`) ;
+  « Revoir la visite » dans Profil › Réglages. PR **#356**.
+  **Relue « d'un œil d'utilisateur » à la demande du fondateur, quatre défauts, tous corrigés :**
+  · l'arrêt du Plan parlait du bouton « J'ai cuisiné »… caché SOUS la carte, à toute heure → le
+    Plan défile jusqu'au premier repas à faire, avec une CALE sous son contenu pendant l'arrêt
+    (vu au simulateur : un dîner en dernière position ne pouvait pas remonter) ;
+  · révélation → rappel → visite faisaient trois fenêtres d'affilée → le rappel passe APRÈS, à
+    `onFin`, appelé seulement une fois la `Modal` FERMÉE (`onDismiss`) : 🔴 iOS refuse une
+    `Modal` présentée pendant qu'une autre s'efface, et l'offre, marquée « faite » avant de
+    s'afficher, aurait été perdue sans un mot (lu dans `RCTModalHostViewComponentView.mm`) ;
+  · la pointe bougeait sur le fil JavaScript, celui qui construit l'onglet ouvert → `translateX`
+    natif ; et la carte reste centrée sur téléphone (10 pt de jeu la faisaient flotter) ;
+  · le soir de l'inscription, l'auto-coche cochait des repas jamais proposés → PR **#365**
+    (`@kyroz:debutSuivi`, borne OBLIGATOIRE dans `repasEchus` / `repasEchusVeille`, le solde du
+    lendemain compris).
+  **Vérifié au simulateur iPhone 17** (build de développement de la branche) : visite juste après
+  « Voir mon plan », déjeuner puis dîner entiers au-dessus de la carte, rappel après « C'est
+  parti » sans gel, « Revoir la visite » relancée depuis le Plan.
+  ⚠️ **Piège de simulateur payé ici** : le port 8081 était tenu par une AUTRE session, et l'app
+  chargeait SON code. Procédure dans la mémoire (`reference-ios-native-build-kyroz`) : son propre
+  Metro sur 8082 + `RCT_jsLocation` écrit par `simctl spawn defaults`.
+  ➡️ Garde-fous : `visiteGuidee.test.ts` (un arrêt par onglet, `ONGLETS` = la barre, ordre,
+  héritage, retour au Plan, rappel après fermeture, animation native…), `visee.test.ts` (la carte
+  prend le bas de l'écran), `repasAuto.test.ts` (rien n'est échu avant le premier plan) — 20 + 6
+  mutations, toutes rouges.
+
+- **E73 · L'INSCRIPTION REFONDUE — 7 → 9 pages, une page par PR** — ✅ publiée (51ᵉ OTA, 2026-09-23)
+  🔴 **DÉCISION FONDATEUR des 2026-09-22 / 23**, partie de retours de testeurs : *« l'app n'est
+  pas toujours intuitive »*. Méthode tenue de bout en bout : **une page = une PR**, le fondateur
+  relit dans le panneau navigateur (pages déjà validées PRÉ-REMPLIES, il arrive directement sur
+  celle qu'il doit voir), puis valide, puis on merge. **Neuf PR** : #343, #344, #345, #346, #347,
+  #348, #349, #350, #351.
+  **Ce qui a changé, page par page :**
+  · **Accueil** — « en moins de 2 minutes » (c'était « une minute », seul endroit du dépôt) ;
+  · **Infos de base** — les exemples « 80 » / « 178 » se lisaient comme des valeurs saisies, donc
+    « Continuer » restait grisé devant un écran qui avait l'air complet (**le bug signalé**) : les
+    champs disent « À renseigner », puis **poids et taille sont passés à la ROULETTE**
+    (`MesureField`, `lib/roulettesMesure.ts`), bornes LUES dans `lib/safety.ts` ;
+  · **Activité / Séances / Jours de repos** — l'activité hors sport et les séances sont deux pages ;
+    les jours de repos ont eu leur page (sautée sans sport), puis ils sont REMONTÉS sur la page des
+    séances en une ligne de sept cases, sous l'intertitre « Jours de repos », les sports sous
+    « Sports » ; **escalade** (5,8 MET, Compendium 15537) et **Pilates** (3,0, 02105) ajoutés → 12
+    sports en grille de deux, ± sans cercle ;
+  · **Préférences** — les questions apparaissent l'une après l'autre (régime → protéines → sucré ou
+    salé → aliments à éviter), l'écran descend sur le bloc qui vient d'apparaître, et tout passe
+    par la grille rectangulaire (`ui.tsx::GrilleChoix`, partagée avec les séances) ;
+  · **Ton plan** — jours de plan en ligne de sept, **lundi → vendredi pré-cochés**, variété des
+    repas rapatriée ici ;
+  · **Tes repas** — la ligne du bas est devenue une BOÎTE, servie à la PREMIÈRE décoche, qui NOMME
+    le repas retiré et renvoie vers Profil → Paramètres des repas.
+  **Trois pièges payés en route, et ils dépassent ce chantier :**
+  · `snapToInterval` **n'existe pas** dans react-native-web : les roulettes s'arrêtaient entre deux
+    lignes dans un navigateur (l'iPhone, lui, aimantait déjà). Correctif : CSS `scroll-snap` ;
+  · **le brouillon d'inscription écrase un défaut d'écran** — les cinq jours pré-cochés
+    revenaient VIDES dès qu'un brouillon était relu. La liste vit maintenant dans
+    `onboardingDraft.ts` (`JOURS_PLAN_PAR_DEFAUT`), lue par l'écran ET par le brouillon ;
+  · le panneau navigateur **n'exécute pas** `scroll({behavior:'smooth'})` : un défilement animé s'y
+    vérifie en interceptant `Element.prototype.scroll`, jamais à l'œil.
+  ⚠️ **Le mécanisme des « pages servies » a été RETIRÉ** avec la page qu'il sautait : un aiguillage
+  qui n'aiguille plus rien se relit comme une règle vivante (A23).
+  ➡️ Garde-fou : `lib/__tests__/pagesOnboarding.test.ts` — chaque page nommée doit avoir sa
+  condition dans `canProceed` (sinon « Continuer » ne passe JAMAIS) et son rendu.
+
 ## Fiches livrées — descendues de la liste unique le 2026-08-30
 
 > **Pourquoi elles sont ici.** La règle en tête de la liste unique dit : *« quand une tâche
