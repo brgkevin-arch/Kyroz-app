@@ -219,7 +219,13 @@ installation neuve part du binaire, donc du (6).
   encore `0639ecc` après la compilation, 0 PR ouverte — le piège du 11 août ne s'est pas
   rejoué). *(Le précédent :)* le **(6)** — `ceec1b17`, commit
   `1047b9f`, terminé le 2026-08-11 à 20 h 37. Il a **62 commits de retard** sur `main` — chiffre RE-MESURÉ le 2026-08-26 (il en annonçait 40, mesurés le 2026-08-23), qui **grandit à chaque merge** : le relire avec `git rev-list --count 1047b9f..origin/main` plutôt que de le recopier (même défaut que le décompte d'OTA tenu à la main).
-- **OTA** : la dernière est la **58ᵉ** (groupe `d6eade28`, **iOS seulement**, 2026-10-02),
+- **OTA** : la dernière est la **59ᵉ** (groupe `abc349dc`, **iOS seulement**, 2026-10-02),
+  publiée sur le commit `b4b57ab` — `main`, arbre propre, détaché sur `origin/main`.
+  ✅ **Runtime iOS `823c89db…` = le build (22)**, empreinte comparée AVANT publication.
+  Contenu (#372) : **un repas cuisiné n’est plus compté deux fois** dans la liste de
+  courses — après des « Courses terminées », seuls les repas qu’il reste à cuisiner
+  comptent. Aucun changement natif. Export simulé vérifié.
+  *(La précédente :)* la **58ᵉ** (groupe `d6eade28`, **iOS seulement**, 2026-10-02),
   publiée sur le commit `83647bc` — `main`, arbre propre, détaché sur `origin/main`.
   ✅ **Runtime iOS `823c89db…` = le build (22)**, empreinte comparée AVANT publication.
   Contenu (#367, #368, #370) : le **Profil présenté comme l’inscription** et la note sous
