@@ -1680,6 +1680,29 @@ produit en suspens — il ne reste qu'à coder.
 > les deux PR fusionnées, donc les deux chantiers ne se marchent pas dessus (ils
 > touchaient tous les deux `profil.tsx` et `constants/legal.ts`).
 
+- **E75 · LE FORMAT VENDU : la liste dit ce qu'on prend en rayon, la réserve reçoit le paquet** — ✅ mergé (2026-10-02), OTA commune à suivre
+  🔴 **DÉCISION FONDATEUR « Liste + réserve »** (second tour de l'app) : la ligne montre
+  « Beurre d'amande · 1 pot de 250 g · il t'en faut 5 g » ; à « Courses terminées » le paquet
+  ENTIER entre en réserve ; ce qu'il en reste est déduit des listes suivantes (la réserve est
+  toujours soustraite) ; la quantité se corrige dans la Réserve. Ferme **F1 et F2** de
+  `docs/fiabilite-liste-et-reserve.md` (la réserve recevait le BESOIN, jamais l'ACHAT).
+  `lib/formatsVendus.ts` : un format générique par ingrédient (sans enseigne), à la pièce pour
+  les fruits et légumes du rayon frais, conserves comptées égouttées ; le moins de surplus,
+  puis le moins de paquets ; 5 % de tolérance (pas de second paquet pour 5 g) ; jamais moins
+  que le besoin en réserve. Seul `blanc_oeuf` reste sans format (raison écrite). Un ajout
+  manuel garde SA quantité. Garde-fou : `formatsVendus.test.ts` (couverture des 139 refs, vraies
+  listes de 4 régimes, l'écran s'en sert). Vu à l'écran : clôture → réserve à 300 g d'escalope
+  pour 155 demandés, « 6 œufs » pour 1.
+  ⚠️ **F9, trouvée en mesurant, NON corrigée — à trancher** : un repas CUISINÉ est compté deux
+  fois. La liste vaut « besoin de la semaine − réserve », or cuisiner débite la réserve sans
+  retirer le repas du besoin. Après une journée cuisinée, la liste se remplit à nouveau :
+  **16 articles fantômes** avec l'ancien rangement, **4** avec le format vendu (H 90 kg, plan
+  canonique). Corriger touche la règle « la borne ne glisse pas » (`lib/coursesDepuis.ts`,
+  décision du 2026-09-17) : décision fondateur.
+  **Avec, dans la même OTA : les étapes de recettes réécrites (#368)** — 152 étapes à
+  l'infinitif et 25 « + » → 0 (131 recettes, même composition, `ENGINE_VERSION` 64,
+  `etapesRedigees.test.ts`) ; temps annoncé corrigé sur pd23, pd43, rep73.
+
 - **E72 · Le sélecteur de date devient un CARROUSEL** — 🟡 code fait, **reste l'OTA**
   🔴 **DÉCISION FONDATEUR du 2026-09-20**, en deux temps, sur captures. D'abord
   *« j'aimerai changer le sens de cela »* (la rangée partait d'aujourd'hui et remontait

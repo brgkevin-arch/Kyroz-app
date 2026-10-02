@@ -20,6 +20,7 @@ import { useProfile } from '../../hooks/useProfile';
 import { formatQuantity, toBaseUnit } from '../../lib/units';
 import { searchFoods } from '../../lib/foods';
 import { loadPantry, savePantry, addOrMerge, isStaple, nomAffiche } from '../../lib/pantry';
+import { achatPour, besoinLisible, quantiteRangee } from '../../lib/formatsVendus';
 import {
   ShoppingTrip, loadHistory, saveHistory, recordTrip, removeTrip, historySummary,
 } from '../../lib/shoppingHistory';
@@ -297,7 +298,10 @@ export default function CoursesScreen() {
     }
     setClosing(true);
     try {
-      // ① Les achats rejoignent la réserve.
+      // ① Les achats rejoignent la réserve, au FORMAT VENDU (2026-10-02, décision
+      // fondateur) : le paquet entier, pas le besoin. 320 g de riz demandés pour un
+      // paquet de 500 g, ce sont 500 g au placard ; ranger 320 faisait racheter les
+      // 180 qui restent (`lib/formatsVendus.ts`). Un ajout manuel garde SA quantité.
       // ⚠️ `quantity > 0` : un ajout manuel n'a souvent AUCUNE quantité (« café »).
       // Le ranger quand même y poserait une ligne à 0 g — un chiffre inventé, et un
       // stock inventé fait disparaître des articles de la liste suivante.
@@ -305,7 +309,7 @@ export default function CoursesScreen() {
       if (achetes.length) {
         let pantry = await loadPantry();
         for (const it of achetes) {
-          pantry = addOrMerge(pantry, { name: it.name, quantity: it.quantity, unit: it.unit, category: it.category });
+          pantry = addOrMerge(pantry, { name: it.name, quantity: quantiteRangee(it), unit: it.unit, category: it.category });
         }
         await savePantry(pantry);
         pushPantry(pantry);
@@ -683,8 +687,8 @@ export default function CoursesScreen() {
             décrit désormais les DEUX moments du geste, parce que c'est ce que le code
             fait : cocher marque, terminer range. */}
         <Text style={s.hint}>
-          Coche ce que tu prends, puis « Courses terminées » range le tout dans ta réserve.
-          Appui long pour retirer un article.
+          Coche ce que tu prends, puis « Courses terminées » range le tout dans ta réserve,
+          paquets entiers. Appui long pour retirer un article.
         </Text>
     </View>
   );
@@ -704,8 +708,8 @@ export default function CoursesScreen() {
         ListFooterComponent={(
           <Text style={s.footnote}>
             {visibles.some((i) => i.manuel)
-              ? 'Quantités calculées pour tes repas de la semaine, sauf ce que tu as ajouté toi-même.'
-              : 'Quantités calculées pour tes repas de la semaine.'}
+              ? 'Formats courants en magasin, arrondis au-dessus de ce que demandent tes repas de la semaine, sauf ce que tu as ajouté toi-même. Ce qui reste d’un paquet est déduit de tes prochaines listes.'
+              : 'Formats courants en magasin, arrondis au-dessus de ce que demandent tes repas de la semaine. Ce qui reste d’un paquet est déduit de tes prochaines listes.'}
           </Text>
         )}
         {...repli.scrollProps}
@@ -727,6 +731,9 @@ export default function CoursesScreen() {
           // Le tout premier article de la liste entière (1re ligne du 1er rayon),
           // pas le premier de chaque section.
           const premierDeLaListe = first && section.cat === sections[0]?.cat;
+          // Ce qu'on prend en magasin (`lib/formatsVendus.ts`) ; `null` pour un ajout
+          // manuel ou un aliment sans format, qui gardent leur quantité seule.
+          const achat = achatPour(item);
           return (
             <Presse
               style={[
@@ -758,12 +765,21 @@ export default function CoursesScreen() {
               <View style={[s.dot, { borderColor: item.checked ? t.accent : t.lineStrong, backgroundColor: item.checked ? t.accent : 'transparent' }]}>
                 {item.checked && <Ionicons name="checkmark" size={Icone.petite} color={t.onAccent} />}
               </View>
-              <Text style={[s.name, item.checked && { textDecorationLine: 'line-through', color: t.textTertiary }]} numberOfLines={1}>{nomAffiche(item.name)}</Text>
-              {/* Un ajout manuel n'a souvent pas de quantité : `formatQuantity`
-                  rendrait « 0 g », un chiffre faux là où un blanc dit la vérité. */}
-              {item.quantity > SANS_QUANTITE && (
-                <Text style={[s.qty, item.checked && { color: t.textTertiary }]}>{formatQuantity(item.name, item.quantity, item.unit)}</Text>
-              )}
+              <View style={s.texte}>
+                <Text style={[s.name, item.checked && { textDecorationLine: 'line-through', color: t.textTertiary }]} numberOfLines={1}>{nomAffiche(item.name)}</Text>
+                {/* « 1 pot de 250 g · il t'en faut 5 g » : d'abord ce qu'on prend en
+                    rayon, puis, quand il diffère, ce que les repas demandent vraiment.
+                    Un ajout manuel n'a souvent pas de quantité : `formatQuantity`
+                    rendrait « 0 g », un chiffre faux là où un blanc dit la vérité. */}
+                {achat ? (
+                  <Text style={[s.qty, item.checked && { color: t.textTertiary }]} numberOfLines={1}>
+                    {achat.libelle}
+                    {achat.ecartVisible && <Text style={s.besoin}>{` · ${besoinLisible(item)}`}</Text>}
+                  </Text>
+                ) : item.quantity > SANS_QUANTITE && (
+                  <Text style={[s.qty, item.checked && { color: t.textTertiary }]} numberOfLines={1}>{formatQuantity(item.name, item.quantity, item.unit)}</Text>
+                )}
+              </View>
             </Presse>
           );
         }}
@@ -836,7 +852,10 @@ function makeStyles(t: ThemePalette) {
 
     row: { flexDirection: 'row', alignItems: 'center', gap: Spacing.lg, paddingHorizontal: Spacing.lg, paddingVertical: Spacing.lg, backgroundColor: t.card },
     dot: { width: 24, height: 24, borderRadius: 12, borderWidth: Trait.controle, alignItems: 'center', justifyContent: 'center' },
-    name: { ...Type.body, flex: 1, color: t.text },
-    qty: { ...Type.body, color: t.textSecondary },
+    // Le nom, puis ce qu'on prend : un libellé et sa valeur, donc l'écart serré.
+    texte: { flex: 1, gap: Spacing.xs },
+    name: { ...Type.body, color: t.text },
+    qty: { ...Type.bodySmall, color: t.textSecondary },
+    besoin: { color: t.textTertiary },
   });
 }

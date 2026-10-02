@@ -573,6 +573,10 @@ OUTPUT         → Plan + liste de courses + recettes
         prédicat du moteur (`planEngine::recipeAllowed`, exporté pour ça). Avant, 10 g
         de riz déclaraient réalisable une recette qui en demande 200, et l'écran
         proposait du poulet à un végétarien.
+      🔴 **ET ELLE REÇOIT LE PAQUET, PAS LE BESOIN** (2026-10-02, décision fondateur, AGENTS.md
+      E75) : la liste montre le format vendu (`lib/formatsVendus.ts`), la clôture range le
+      paquet entier, le reste est déduit des listes suivantes. ⚠️ F9 reste ouverte : un repas
+      cuisiné est compté deux fois (`docs/fiabilite-liste-et-reserve.md`).
 - [x] **Auto-coche des repas** (2026-08-24, `lib/repasAuto.ts`) — un repas non tranché
       passe en « mangé » **une heure après le début du repas SUIVANT**, et le dernier de
       la journée à **23 h 59** (jamais minuit : `resetTracking` efface le suivi au
