@@ -70,8 +70,12 @@ describe('l’écran Courses s’en sert', () => {
     .replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
 
   it('la liste se construit sur ces jours-là, et l’écran le dit', () => {
-    expect(src).toMatch(/buildShoppingList\(plan, pantry, joursAAcheter\(plan, profile\?\.plan_weekdays\)\)/);
-    expect(src).toMatch(/setDepart\(mentionDepart\(plan, profile\?\.plan_weekdays\)\)/);
+    // Depuis F9 (2026-10-02), la liste passe par `repasACompter`, qui rend la règle du
+    // jour de génération tant qu'aucune clôture n'a eu lieu cette semaine.
+    expect(src).toMatch(/repasACompter\(plan, profile\?\.plan_weekdays, newestFirst\(await loadHistory\(\)\)\[0\]\?\.at\)/);
+    expect(src).toMatch(/buildShoppingList\(\{ \.\.\.plan, meals: perimetre\.meals \}, pantry, perimetre\.jours\)/);
+    expect(src).toMatch(/setDepart\(perimetre\.apresCourses/);
+    expect(src).toMatch(/: mentionDepart\(plan, profile\?\.plan_weekdays\)\)/);
     expect(src).toMatch(/depart !== '' && <Text style=\{s\.depart\}>\{depart\}<\/Text>/);
   });
 });

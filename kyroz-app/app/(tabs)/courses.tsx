@@ -15,14 +15,14 @@ import { ActionSheet } from '../../components/ActionSheet';
 import { PrimaryButton, Chip, Field } from '../../components/ui';
 import { MealPlan, ShoppingItem, ShoppingList } from '../../lib/types';
 import { buildShoppingList } from '../../lib/shoppingList';
-import { joursAAcheter, mentionDepart } from '../../lib/coursesDepuis';
+import { repasACompter, mentionDepart } from '../../lib/coursesDepuis';
 import { useProfile } from '../../hooks/useProfile';
 import { formatQuantity, toBaseUnit } from '../../lib/units';
 import { searchFoods } from '../../lib/foods';
 import { loadPantry, savePantry, addOrMerge, isStaple, nomAffiche } from '../../lib/pantry';
 import { achatPour, besoinLisible, quantiteRangee } from '../../lib/formatsVendus';
 import {
-  ShoppingTrip, loadHistory, saveHistory, recordTrip, removeTrip, historySummary,
+  ShoppingTrip, loadHistory, saveHistory, recordTrip, removeTrip, historySummary, newestFirst,
 } from '../../lib/shoppingHistory';
 import {
   loadEcartes, saveEcartes, viderEcartes, SortDesRestants,
@@ -128,7 +128,14 @@ export default function CoursesScreen() {
     const planRaw = await AsyncStorage.getItem(PLAN_KEY);
     if (!planRaw) return null;
     const plan: MealPlan = JSON.parse(planRaw);
-    setDepart(mentionDepart(plan, profile?.plan_weekdays));
+    // Après des « Courses terminées » cette semaine, seuls comptent les repas qu'il reste
+    // à cuisiner : un repas cuisiné a déjà été retiré de la réserve, le compter aussi dans
+    // le besoin le faisait racheter (F9, décision fondateur du 2026-10-02). Avant les
+    // courses, la règle du 2026-09-17 tient : la liste part du jour de génération.
+    const perimetre = repasACompter(plan, profile?.plan_weekdays, newestFirst(await loadHistory())[0]?.at);
+    setDepart(perimetre.apresCourses
+      ? 'Depuis tes dernières courses : pour les repas qu’il te reste à cuisiner.'
+      : mentionDepart(plan, profile?.plan_weekdays));
     // ── LA RÉSERVE EST TOUJOURS SOUSTRAITE (2026-08-24) ──────────────────────
     //
     // L'interrupteur « Tenir compte du frigo » a été RETIRÉ (décision fondateur).
@@ -140,8 +147,8 @@ export default function CoursesScreen() {
     const pantry = await loadPantry();
     // La liste part du jour où le plan a été généré, jamais des jours déjà passés
     // (décision fondateur du 2026-09-17, `lib/coursesDepuis.ts`). ⚠️ Sans profil encore
-    // chargé, `premierJourAcheter` rend 1 : on achète toute la semaine, c'est le repli SÛR.
-    const l = buildShoppingList(plan, pantry, joursAAcheter(plan, profile?.plan_weekdays));
+    // chargé, on achète toute la semaine, c'est le repli SÛR.
+    const l = buildShoppingList({ ...plan, meals: perimetre.meals }, pantry, perimetre.jours);
     // Ne pas mettre en cache une liste vide (tout couvert) : sinon l'onglet
     // resterait bloqué sur « rien à acheter » même après avoir vidé la réserve.
     // Sans cache, load() la reconstruit à chaque focus et les articles
