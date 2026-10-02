@@ -1,5 +1,18 @@
 # Liste de courses et réserve : comment aller « au gramme près »
 
+> **Mise à jour du 2026-10-02 : F1 et F2 sont FERMÉES** (décision fondateur « Liste +
+> réserve », AGENTS.md E75). La liste montre le format vendu (« 1 pot de 250 g · il t'en
+> faut 5 g ») et « Courses terminées » range le paquet entier (`kyroz-app/lib/formatsVendus.ts`).
+> C'est une version plus simple que M2 tel qu'écrit plus bas : le format est PROPOSÉ et rangé
+> tel quel, sans question à la clôture ; s'il diffère de l'achat réel, on corrige dans la Réserve.
+>
+> 🔴 **F9, trouvée en le mesurant, NON corrigée : un repas cuisiné est compté deux fois.**
+> La liste vaut « besoin de la semaine − réserve » ; cuisiner débite la réserve, mais le repas
+> reste dans le besoin. Après une journée cuisinée, des articles reviennent sur la liste alors
+> que tout a été acheté : **16** avec l'ancien rangement, **4** avec le format vendu (H 90 kg,
+> plan canonique). La corriger touche la règle « la borne ne glisse pas » de
+> `kyroz-app/lib/coursesDepuis.ts` (décision du 2026-09-17) : c'est au fondateur de trancher.
+
 Analyse du 21 septembre 2026. Rien n'est décidé ici.
 
 ## Le constat de départ
