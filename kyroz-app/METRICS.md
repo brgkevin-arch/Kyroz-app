@@ -127,7 +127,12 @@ un détournement de `meal_cooked`.
 🔴 **`meal_cooked` PORTE DÉSORMAIS `auto`, ET LA NORTH STAR DOIT LE LIRE** (2026-08-24).
 Depuis l'auto-coche, un repas dont l'heure est passée se marque « mangé » tout seul et
 émet `meal_cooked` — décision fondateur : c'est le même acte, on ne le mesure pas
-autrement. Mais un jour actif ne veut plus dire la même chose selon la propriété :
+autrement.
+⚠️ **Sauf le jour de l'inscription, pour ce qui précède le plan** (2026-10-01, #365) : un
+repas dont l'heure était déjà passée quand le tout premier plan est arrivé n'est pas
+coché, donc n'émet RIEN. Le premier jour d'une cohorte inscrite le soir compte donc moins
+d'`auto: true` qu'avant — c'est le chiffre d'avant qui était faux (des repas jamais
+proposés comptés comme suivis). Mais un jour actif ne veut plus dire la même chose selon la propriété :
 `auto: false`, quelqu'un a TAPÉ « J'ai cuisiné » ; `auto: true`, l'app a conclu qu'un
 repas planifié avait eu lieu. ⚠️ **Une north star qui les additionne sans les distinguer
 compte des installations, pas des adhésions** — le réglage étant allumé par défaut, tout
