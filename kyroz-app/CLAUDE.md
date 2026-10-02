@@ -909,10 +909,14 @@ ci-dessus, « aucune répartition n'est inventée »). Mesuré sur le moteur, H 
 18 % MG, sèche, NEAT desk : **sans sport, 2042 kcal les sept jours, amplitude 0** ; avec
 3 séances de 60 min, 2042/2303 alternés, **amplitude 261**. Le nombre affiché deux lignes
 plus bas démentait donc la phrase, sur l'écran le plus regardé de l'app.
-➡️ La phrase passe désormais par le même prédicat que la bulle de visite guidée qui parle
-de la même chose (§8, `moduleParVolume` : amplitude ≥ 40 kcal, seuil et calcul partagés
-avec `FirstPlanReveal`). ⚠️ **Un jour de repos reste un jour de repos** — l'en-tête
-« Jour 3 – Repos » le dit (il a remplacé la lune de la rangée de jours le 2026-09-23) :
+➡️ La phrase est d'abord passée par le même prédicat que la bulle de visite guidée qui
+parlait de la même chose (`moduleParVolume` : amplitude ≥ 40 kcal, seuil et calcul partagés
+avec `FirstPlanReveal`) — puis elle a été RETIRÉE de l'écran, et le prédicat avec elle : la
+bulle est partie le 2026-08-25, `FirstPlanReveal` n'a plus qu'une phrase depuis le
+2026-08-27, et `moduleParVolume` a disparu le 2026-09-30 avec la dernière bulle du Plan, qui le
+recevait sans le lire. ⚠️ **Un jour de repos reste un jour de repos** — l'en-tête
+« Jour 3 – Repos » le dit (il a remplacé la lune de la rangée de jours le 2026-09-23, et ne
+s'affiche que si une séance est déclarée depuis le 2026-09-26) :
 c'est une déclaration de l'utilisateur, elle est vraie. Ce
 qui était faux, c'est la promesse CALORIQUE accrochée derrière.
 ➡️ Et c'est la **capture des deux textes côte à côte** qui l'a montré, pas la relecture :
@@ -2647,12 +2651,13 @@ ajouter une sans faire de même — c'est la seule chose qui rende l'affirmation
 re-vérifiable, et aucun test ne peut juger qu'une phrase est vraie.
 
 ⚠️ **Une bulle dont l'énoncé n'est vrai que pour certains profils se CONDITIONNE.**
-Le précédent était déjà dans l'app (`planTour` est une fonction et non une constante,
-parce qu'elle annonçait « 7 jours » en dur). Rejoué ici pour la modulation par volume :
-sans sport déclaré, `dayExpenditures` retombe sur une cible plate, donc parler de
-« jours d'entraînement » mentirait. `moduleParVolume` (même seuil de 40 kcal et même
-calcul que `FirstPlanReveal`, pour que deux écrans ne se contredisent pas sur la même
-question).
+Aujourd'hui : `visiteApp` est une FONCTION, et la ligne du Plan a deux versions selon
+l'auto-coche (« Si tu oublies, Kyroz coche pour toi » n'est servi que réglage allumé).
+*Histoire :* le précédent était `planTour` (une fonction et non une constante, parce
+qu'elle annonçait « 7 jours » en dur), rejoué pour la modulation par volume — sans sport
+déclaré, `dayExpenditures` retombe sur une cible plate, donc parler de « jours
+d'entraînement » mentait. `moduleParVolume` (seuil de 40 kcal) portait cette condition ;
+il est parti le 2026-09-30 avec la dernière bulle qui le recevait.
 
 ⚠️ **Et le même prédicat manquait à l'ÉCRAN**, corrigé dans la foulée : « Jour de repos ·
 un peu moins de calories et de glucides » n'était conditionnée qu'à `isRestDay`. Mesuré
@@ -2821,6 +2826,8 @@ pièges valent au-delà de cet écran :
 1. **Une étape de visite guidée dont la cible n'est pas MONTÉE est écartée en silence.**
    Le tour se joue plus court en ayant l'air complet. Invariant désormais compté
    (`visiteGuidee.test.ts`) : *une cible vit dans l'écran qui LANCE son tour.*
+   ➕ Depuis le 2026-09-30, une étape d'ONGLET échappe à ce filtre : sa cible ne sert qu'à
+   amener un objet au-dessus de la carte, et l'arrêt se joue même sans elle.
 2. **Une ROUTE poussée depuis une modale ouverte naît SOUS elle.** Fermer la feuille
    avant de naviguer (`versRoute`). Même famille que l'empilement de deux feuilles.
 3. **Un hook déplacé dans un composant monté à la demande perd l'effet de bord attaché

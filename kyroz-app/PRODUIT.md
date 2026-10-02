@@ -70,7 +70,8 @@ onglet : Plan, Courses, Réserve, Recettes, Profil. Chaque arrêt amène l'ongle
 dit en une ligne ce qu'on ne voit pas en le regardant (la réserve se vide toute seule quand on
 cuisine, la liste de courses la déduit, une pesée recale le plan). Elle se passe d'un tap, et
 se revoit dans Profil → Réglages → « Revoir la visite ». Les comptes créés avant elle ne la
-reçoivent pas d'office.
+reçoivent pas d'office. Sur iPhone, la proposition d'**un rappel par jour** vient juste après elle —
+plus avant, entre la révélation du plan et la visite.
 
 ---
 
