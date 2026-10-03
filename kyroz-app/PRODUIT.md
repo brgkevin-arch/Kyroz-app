@@ -7,7 +7,7 @@
 >
 > 🔴 **DONC IL DOIT ÊTRE VRAI, ET C'EST SA SEULE EXIGENCE.** Un doc qui ment sur le produit
 > est pire que pas de doc : chaque brief qui en découle hérite de son erreur. Il remplace
-> `docs/2026-08-15-synthese-kyroz-cote-utilisateur.md`, archivé — celui-là était devenu
+> `docs/archive/2026-08-15-synthese-kyroz-cote-utilisateur.md`, archivé — celui-là était devenu
 > faux sur **six** de ses neuf sections en cinq jours, sans que rien ne le signale.
 >
 > ⚠️ **Le nom de fichier n'a plus de date, à dessein.** Une date invite à le lire comme une
