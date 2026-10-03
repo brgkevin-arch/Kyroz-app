@@ -97,6 +97,295 @@
   ➡️ Garde-fou : `lib/__tests__/pagesOnboarding.test.ts` — chaque page nommée doit avoir sa
   condition dans `canProceed` (sinon « Continuer » ne passe JAMAIS) et son rendu.
 
+*Descendues le 2026-10-03 — livrées depuis des semaines, restées dans la liste « à faire » sans statut juste ; chaque statut a été vérifié contre l'historique des OTA (`git merge-base --is-ancestor`) et, pour E70, contre la prod (`check:migrations:prod`).*
+
+- **E72 · Le sélecteur de date devient un CARROUSEL** — ✅ publiée (49ᵉ OTA, 2026-09-21 — arrivée avec #335 ; statut corrigé le 2026-10-03)
+  🔴 **DÉCISION FONDATEUR du 2026-09-20**, en deux temps, sur captures. D'abord
+  *« j'aimerai changer le sens de cela »* (la rangée partait d'aujourd'hui et remontait
+  le temps vers la droite : « Auj. 20 · Sam. 19 · Ven. 18 … »), puis, en voyant le
+  résultat : *« on fait une sorte de carrousel. Le jour du jour au milieu, si tu slides
+  vers la droite tu as les anciennes dates, et quand tu slides à gauche tu as les
+  prochaines dates mais elles sont un peu grisées et elles ramènent au jour du jour. »*
+
+  **AVANT** : aujourd'hui en tête, puis hier, avant-hier… vers la droite. L'ordre se
+  justifiait par le GESTE (« la case qu'on veut est déjà sous le pouce ») et se lisait à
+  l'envers de la courbe posée juste au-dessus, qui va bien du passé vers le futur.
+  **APRÈS** : `[le plus ancien … J-1] · [AUJOURD'HUI, au milieu] · [J+1 … J+7, grisés]`.
+
+  🔴 **LES JOURS À VENIR REVIENNENT — ILS AVAIENT ÉTÉ RETIRÉS LE 2026-08-14 SUR SON
+  PROPRE GRIEF** (*« trois cases grisées et intouchables occupaient la moitié du
+  sélecteur : on ne savait pas où taper »*). Ce n'est pas un retour en arrière, et la
+  différence est exactement ce que ce grief visait : **une case à venir n'est plus
+  morte, elle ramène à aujourd'hui**. Elle donne aussi au carrousel la marge sans
+  laquelle « aujourd'hui au milieu » n'existe pas — il n'y aurait rien à sa droite pour
+  le pousser au centre. ⚠️ On ne PÈSE toujours pas demain.
+
+  ⚠️ **Deux pièges payés en écrivant ce carrousel, tous deux invisibles en lecture :**
+  · **le centrage demande DEUX mesures** — la largeur du contenu (`onContentSizeChange`,
+    qui dit que les cases sont posées) ET la largeur visible (`onLayout`, qui dit où est
+    le milieu). Avec une seule, `scrollTo` part vers une destination qui n'existe pas
+    encore, sans erreur ;
+  · **le garde « une seule fois » vivait dans un `useRef` du parent**, qui survit au
+    démontage de la rangée : la DEUXIÈME ouverture serait repartie tout à gauche, sur
+    une date d'il y a trois mois. Un garde « une seule fois » doit toujours dire *une
+    seule fois par quoi* — il se réarme désormais à chaque ouverture.
+
+  **L'ordre et la profondeur sont sortis du composant** (`lib/weight.ts::joursDeSaisie`,
+  `indexAujourdhui`) : un sens de lecture qui ne vit que dans une boucle de rendu se
+  ré-inverse tout seul à la première refonte. 7 cas de test le figent, dont « l'index se
+  cherche par sa DATE » — le déduire d'un calcul de longueur serait vrai jusqu'au jour où
+  la profondeur change, et faux en silence ce jour-là.
+
+  ⚠️ **Et un test de style a attrapé une phrase, pas un commentaire** : `tiretsInterface`
+  a rougi sur le tiret cadratin du `accessibilityLabel` des cases à venir — c'est-à-dire
+  sur un texte lu par VoiceOver. Corrigé en virgule + deux-points.
+
+  **Vérifié à l'écran** : aujourd'hui centré à l'ouverture ET à la ré-ouverture, passé à
+  gauche, semaine à venir grisée à droite, et un tap sur le 24 septembre (à venir) après
+  avoir choisi le 16 (passé) ramène le champ sur « Ton poids aujourd'hui ».
+
+- **E71 · Le poids servi suivait « la pesée du jour », pas la plus récente** — ✅ publiée (49ᵉ OTA, 2026-09-21, #335 ; statut corrigé le 2026-10-03)
+  🔴 **SIGNALÉ PAR LE FONDATEUR LE 2026-09-20, CAPTURE À L'APPUI**, pendant qu'il
+  regardait comment améliorer la carte visuellement : *« J'ai mis que je pesais 85 kg,
+  sauf que depuis j'ai eu 2 pesées et je suis passé à 83. Visuellement la courbe annonce
+  84 → 83 HORS j'ai commencé à 85. Mais le pire c'est qu'au-dessus il est annoncé que je
+  fais toujours 85 kg. J'ai dû aller dans Informations → me peser et remettre 83 pour que
+  tout le reste se mette à jour. Mes macros étaient fausses avant que je fasse cela. »*
+
+  **LA CAUSE ÉTAIT UNE RÈGLE ÉCRITE EXPRÈS**, dans `useWeightLog::logWeight` : *« SEULE
+  la pesée d'AUJOURD'HUI pilote le profil → macros → plan »*. Son intention est juste —
+  rattraper une pesée du 3 août ne doit pas écraser le poids courant — mais elle confond
+  **« la plus récente »** et **« celle du jour »**. Ses deux pesées étaient rattrapées
+  (12 et 19 septembre, saisies avec le sélecteur de date) : aucune n'était « du jour »,
+  donc le moteur est resté sur 85 kg. Trois conséquences, par ordre de gravité :
+  · **les macros étaient fausses** — cibles calculées sur un poids de trois semaines ;
+  · la carte affichait **deux poids contradictoires** (85 en gros, courbe à 83) ;
+  · **rien ne le disait**, et le remède ne s'obtenait qu'en le devinant.
+
+  ➡️ **Le profil porte désormais le poids du DERNIER point de l'historique** — règle en
+  fonction pure, `lib/weight.ts::recalageDuProfil`, appliquée aux trois chemins par un
+  point d'entrée unique (`appliquerRecalage`) : pesée, **suppression** et **chargement**.
+  · la **suppression** recale aussi : effacer une pesée erronée de 95 kg laissait sinon
+    le moteur servir 95 kg indéfiniment — c'était le même défaut vu par l'autre bout, et
+    le commentaire d'origine l'assumait (*« l'utilisateur re-loggera s'il veut »*) ;
+  · le **chargement** répare les profils DÉJÀ désaccordés, sans rien demander : sans ça
+    le correctif n'aurait valu que pour les pesées à venir, et tous ceux qui sont dans
+    l'état du fondateur y seraient restés.
+
+  ⚠️ **L'invariant n'est tenable que parce que la pesée est la SEULE porte d'entrée du
+  poids** : « Informations » ne le saisit plus depuis le 2026-08-14 (`wN =
+  profile.weight_kg`), et l'onboarding est suivi du semis d'un premier point. Vérifié
+  avant d'écrire la règle, pas supposé.
+
+  🔴 **ET LA PHRASE DE L'ÉCRAN EST DEVENUE FAUSSE DANS L'AUTRE SENS** : la confirmation
+  annonçait *« Le plan ne suit que ta pesée du jour »*. Vraie la veille, elle aurait juré
+  que rien n'avait bougé pendant que les macros changeaient. Elle est sortie du composant
+  (`messageApresPesee`) pour qu'un test la compte, et nomme désormais la pesée suivie :
+  *« Ton plan suit ta pesée la plus récente (19 sept.). »*
+
+  🔴 **LE SYMPTÔME AVAIT DÉJÀ ÉTÉ VU — ET CONTOURNÉ, PAS DIAGNOSTIQUÉ.** La fiche **E69**
+  (captures d'accueil, 2026-09-19) note noir sur blanc : *« l'en-tête disait 82 kg
+  au-dessus d'une courbe finissant à 82,6 »*, réglé en posant explicitement une pesée du
+  jour dans le script de capture. C'était ce bug, à 24 h près, traité comme une bizarrerie
+  d'outillage. ➡️ **Une incohérence trouvée en fabriquant un artefact est un signalement
+  utilisateur qui n'a pas encore trouvé son utilisateur.**
+
+  **Vérifié à l'écran** (worktree, port 8097), les quatre cas :
+  | Scénario | Profil | Cibles |
+  |---|---|---|
+  | État reproduit (85 kg, pesées 84 le 12 et 83 le 19) → chargement | 85 → **83** | 2294 → **2239 kcal** |
+  | Corriger la pesée du **12** (ancienne) à 90 kg | **83, inchangé** | inchangées |
+  | Corriger la pesée du **19** (la plus récente) à 82 kg | 83 → **82** | **2224 kcal** |
+  | Message quand la pesée n'est pas la plus récente | — | *« Ton plan suit ta pesée la plus récente (19 sept.) »* |
+
+  **Tests** : `weight.test.ts` 53 → 66 cas. Mutation jouée (rétablir `date === todayStamp()`) :
+  **4 rouges**. ⚠️ Reste l'OTA (49ᵉ) — aucune migration, le correctif est 100 % JS.
+
+- **E70 · Le jour de la pesée se CHOISIT** — ✅ publiée (49ᵉ OTA, 2026-09-21, #334) · migration `weigh_in_day` JOUÉE (mesurée en prod le 2026-10-03) ; statut corrigé le 2026-10-03
+  🔴 **DEMANDE FONDATEUR du 2026-09-20** : *« j'aimerai que l'user puisse choisir son jour
+  de pesé »*, puis, sur arbitrage : *« de la notif ET de la bannière »*, pour les trois
+  cadences, et *« j'aimerai supprimer la proposition "jour" du rappel de pesée, une fois
+  par semaine minimum c'est ce qu'il faut »*.
+  ⚠️ Cette ligne était déjà triée le 2026-09-02 (`docs/2026-09-02-triage-liste-fondateur.md`
+  §2) sous **« Raffinement réel »** : la cadence existait, le jour n'existait pas.
+
+  **AVANT.** Le jour du rendez-vous venait du HASARD — celui de la première pesée — et il
+  **DÉRIVAIT** : une pesée en retard le samedi faisait passer tous les rendez-vous suivants
+  au samedi, définitivement (`weighInSchedule` prenait le `weekday` de l'échéance, elle-même
+  calculée sur la dernière pesée). Et les deux surfaces se contredisaient : la notification
+  suivait ce jour dérivé, la bannière du Plan comptait « 7 jours depuis la dernière pesée »,
+  donc n'importe quel jour de la semaine.
+
+  **APRÈS.** Réglages → Notifications → « Jour de la pesée » : sept puces (un seul jour,
+  comme des boutons radio). La notification ET la bannière lisent la **même échéance**,
+  ancrée sur ce jour — se peser un mardi ne déplace plus le rendez-vous du dimanche.
+
+  **Ce qui est parti** : la cadence **« Jour »** (`'daily'`), retirée du type, du segment,
+  des intervalles et du planificateur. Plus aucun déclencheur ne peut sonner un jour que
+  personne n'a choisi. Les comptes qui la portaient sont refermés sur « Sem. » à la lecture
+  (`syncGuard::normalizeWeighIn`, branché sur les DEUX chaînes — locale et cloud), jamais
+  laissés sur un segment sans sélection.
+
+  🔴 **DEUX EFFETS QUE JE N'AVAIS PAS PRÉVUS, et qui sont des décisions, pas des détails :**
+  · **la cadence mensuelle vaut 28 jours** (4 semaines) et non 30. Un pas qui n'est pas
+    multiple de 7 fait glisser les occurrences d'une série programmée d'avance — et cette
+    série n'est jamais relue par l'app : « le dimanche » serait devenu mardi, puis jeudi,
+    chez quelqu'un qui n'ouvre plus Kyroz. Le libellé suit (**« 4 sem. »**, « toutes les
+    4 semaines ») : « Chaque mois » aurait été faux de deux jours à chaque échéance ;
+  · **l'arrondi va vers l'ARRIÈRE** — l'échéance est la dernière occurrence du jour choisi
+    qui ne dépasse pas « dernière pesée + cadence ». Les deux autres sens ont été écrits
+    puis jetés parce qu'ils rendaient **10 et 11 jours** sur une cadence hebdomadaire. Vers
+    l'arrière, « chaque semaine, le lundi » veut dire *chaque lundi*, et jamais plus tard
+    que la cadence promise.
+
+  **Sans jour choisi, RIEN ne bouge** : le jour est déduit de la dernière pesée, ce qui est
+  exactement le rendez-vous que l'app servait déjà (`weighInDayOf`). L'écran affiche ce
+  jour-là comme sélectionné — un réglage dont l'écran ne montre aucune sélection est un
+  réglage qu'on ne sait pas corriger (`normalizeVariety` l'a payé une fois).
+
+  **Vérifié à l'écran** (worktree, `EXPO_ROUTER_APP_ROOT=$PWD/app`, port 8097), pas
+  seulement en test : pesée du vendredi 18, rendez-vous **dimanche** → la bannière
+  « C'est le moment de te peser » est là le dimanche 20 ; rendez-vous **vendredi** → elle
+  disparaît le même jour. Le réglage pilote la bannière dans les deux sens.
+
+  **Tests** : `weight.test.ts` 32 → 53 cas, `syncGuard.test.ts` 36 → 43. Cinq mutations
+  passées, quatre rouges. La cinquième — remplacer `weekday: jour + 1` par le jour de
+  l'échéance — est restée VERTE, et ce n'était pas un trou : depuis l'ancrage, les deux
+  sont le même nombre. C'est l'INVARIANT qui est compté à la place (« toute date rendue par
+  `nextWeighInAt` tombe sur le jour choisi, en retard et sans historique compris »).
+
+  ⚠️ **RESTE À FAIRE, et rien ne marche sans le premier :**
+  1. 🧑 **jouer `supabase/migrations/2026-09-20_profiles_weigh_in_day.sql`** (Supabase →
+     SQL Editor → Run). `weigh_in_day` est dans `PROFILE_COLS` : sans la colonne, l'upsert
+     du profil est rejeté ENTIER (PGRST204) et c'est TOUTE la synchro qui meurt en silence.
+     Le filet `PROFILE_COLS_LAST_MIGRATION` limite la casse à cette colonne, il ne la
+     supprime pas. ⚠️ Je n'ai **pas pu mesurer la prod depuis ce worktree** — son `.env`
+     pointe un hôte factice (`fake-worktree-preview…`), donc `npm run check:migrations`
+     n'y tourne pas. À relancer depuis le dépôt principal avant de conclure quoi que ce
+     soit sur l'état réel ;
+  2. 🤖 l'OTA (49ᵉ) — comparer les empreintes AVANT de publier.
+
+- **E69 · La série (streak) est RETIRÉE de l'app** — ✅ publiée (48ᵉ OTA, 2026-09-19, #329 ; `drop_streaks` jouée, #332) ; statut corrigé le 2026-10-03
+  🔴 **DÉCISION FONDATEUR du 2026-09-19** : *« Enlève tout ce qui concerne le streak de
+  Kyroz, je n'aime pas ce qu'on a fait et si un jour j'ai envie d'en refaire une, j'y
+  réfléchirais pour la rendre plus utile »*.
+  **Ce qui part** : la pastille « N j de série » des en-têtes Plan et Profil, la
+  célébration des paliers (3/7/14…), le toast « Série protégée » et son gel d'un jour
+  manqué, `lib/streak.ts`, `hooks/useStreak.ts`, `components/StreakCelebration.tsx`, la
+  synchro (`pushStreak`, la fusion `mergeStreak`, la table `streaks` dans l'effacement
+  RGPD), les événements `streak_milestone` / `streak_frozen`, et le mot « série » des
+  textes servis (Kyroz+, consentement, suppression de compte, politique §2, CGU §3).
+  ⚠️ **La north star n'en dépendait pas** — elle compte les jours avec un repas cuisiné
+  (`meal_cooked`), la série comptait les ouvertures du Plan (METRICS.md §2, réécrit).
+  🔴 **LA SURFACE QU'AUCUN `grep` NE TROUVAIT : LE CARROUSEL D'ACCUEIL.** Ses images
+  (`assets/intro/`, clair + sombre) sont des CAPTURES de l'app — la diapo du Plan et
+  celle du Profil montraient la pastille « 1 j de série ». Vu en vérifiant à l'écran, pas
+  en cherchant dans le code. Les 8 images sont regénérées (`test/intro-captures.mjs`).
+  ⚠️ Trois écarts avec le script du dépôt, faits dans une COPIE locale et non versionnés :
+  une session locale factice au lieu d'une connexion invité (**aucun compte créé en
+  production** — le serveur du worktree pointe vers une URL Supabase factice), une horloge
+  qui démarre un **lundi 9 h 30** (générées un samedi soir, les diapos disaient « Bonsoir »,
+  « Jour 6 » et « ton plan avait déjà commencé »), et la **pesée du jour** posée
+  explicitement (l'app ne la pose plus quand le journal est réécrit après l'inscription :
+  l'en-tête disait 82 kg au-dessus d'une courbe finissant à 82,6).
+  ➡️ Au passage, **`test/_harness.mjs` était cassé depuis le merge de #325** (le régime est
+  devenu obligatoire à l'inscription, le harnais n'en cochait aucun) : il coche « Omnivore ».
+  ⚠️ **Ce que ça ne touche PAS** : la « série de semaines en déficit » de la pause à la
+  maintenance (`safety.ts`, `deficit_weeks`) et la « série datée » des rappels
+  (`reminder.ts::serieQuotidienne`) — même mot, autres objets.
+  ➡️ **Ce qui reste, dans cet ordre** :
+  1. **OTA** (iOS seulement) — c'est elle qui retire la série des téléphones. ⚠️ Les
+     textes légaux sont datés du **19 septembre** (`LEGAL.effectiveDate`) : si l'OTA part
+     un autre jour, bouger la date AVANT de publier (`legal.test.ts` l'explique).
+  2. ✅ **Migration JOUÉE le 2026-09-20** (SQL Editor, après l'OTA) :
+     `streaks` n'existe plus (`404` sur PostgREST), les 5 tables restantes et les 42
+     colonnes du profil répondent `200`, et l'inscription est intacte —
+     `handle_new_user` insère toujours dans `profiles` (`true`), ne vise plus `streaks`
+     (`false`), trigger `on_auth_user_created` posé (`1`).
+     🔴 **Ces trois dernières preuves manquaient à la §VÉRIF du script** : il REMPLACE
+     une fonction de production, donc il fallait vérifier ce qu'il GARDE, pas seulement
+     ce qu'il retire. Détail et tableau : `supabase/JOURNAL-MIGRATIONS.md`.
+  3. ✅ **Page légale publique RÉGÉNÉRÉE le 2026-09-20** (`kyroz-site` #18, commit
+     `7e88e81`) : `kyroz.app/legal.html` est datée du 19 septembre, sans série, et la
+     page SERVIE a été relue (0 occurrence, témoin de contrôle à 1, HTTP 200). Diff de
+     4 lignes, CSP intacte — régénérée depuis `constants/legal.ts`, jamais éditée.
+  4. **À la prochaine soumission App Store** : la description dit encore « Suivi de série
+     pour tenir le rythme » (STORE-RELEASE §3) et les captures du Plan montrent la
+     pastille. Ni l'une ni l'autre ne se modifie hors d'une nouvelle version.
+  ⚠️ Les appareils gardent une clé `@kyroz:streak` orpheline (trois nombres) : plus rien
+  ne la lit, et elle part avec le reste quand l'appareil change de compte ou que le
+  compte est supprimé (`sessionLocale.ts::clesAPurger`, liste blanche : toute clé non
+  listée est purgée).
+
+- **E68 · Cocher son niveau d'activité ne descend pas jusqu'aux séances** — ✅ publiée (26ᵉ OTA, 2026-09-07, #225), puis rendue sans objet par E73 : activité et séances sont deux pages depuis le 2026-09-22 ; statut posé le 2026-10-03
+  🔴 **SIGNALÉ PAR LE FONDATEUR le 2026-09-05**, dans la même répétition que E67 :
+  *« quand tu coches ton activité, il faudrait que la page atterrisse direct après sur
+  tes séances »*.
+
+  **L'étape 4 empile deux blocs** (`app/(auth)/onboarding.tsx`, `{step === 4 && …}`) :
+  « Ton activité » — le `NeatPicker` et ses quatre niveaux, chacun avec son libellé
+  d'ancrage — puis `SectionLabel` **« TES SÉANCES »** et le `SportsEditor`. Le premier
+  est haut : le second est sous le pli. Rien ne conduit de l'un à l'autre, donc on coche
+  son niveau et l'écran ne bouge pas — il faut deviner qu'il reste quelque chose dessous.
+
+  ⚠️ **C'est la même famille qu'E67, mais un cas DISTINCT, et les confondre laisserait
+  l'un des deux ouvert** : E67 est « remonter en haut quand on change d'ÉTAPE », celui-ci
+  est « descendre au bloc suivant après un CHOIX, dans la même étape ». Le premier se
+  corrige par un effet sur `step`, le second par un `onChange` qui vise une position —
+  deux mécanismes, deux endroits.
+
+  ⚠️ **L'ordre des deux blocs, lui, ne se touche pas.** L'en-tête de `NeatPicker`
+  l'explique : le NEAT AVANT les séances est un garde-fou contre le double-comptage
+  sport/journées, pas une mise en page. Ce constat porte sur le DÉFILEMENT, jamais sur
+  l'ordre.
+
+  ✅ **LIVRÉ — re-mesuré sur `main` le 2026-09-16** : `app/(auth)/onboarding.tsx` porte
+  `ySeances` (repère posé par `onLayout`, `:780`) et `versLesSeances()` (`:547`), qui
+  descend au bloc des séances après le choix du niveau. La fiche a dit « non corrigé »
+  pendant dix jours après que ça l'était : *une fiche se RE-MESURE contre le code avant
+  d'être citée* (même défaut que les cases périmées du tableau d'état).
+  ⚠️ La branche `claude/e67-e68-defilement-inscription` (2026-09-06, aucune PR) est donc
+  **périmée** : le correctif est arrivé sur `main` par un autre chemin, pas par elle.
+
+
+- **E67 · L'assistant d'inscription ne remonte pas en haut quand on change d'étape** — ✅ publiée (26ᵉ OTA, 2026-09-07, #225 : `onboarding.tsx` remonte en haut à chaque changement d'étape) ; statut posé le 2026-10-03
+  🔴 **SIGNALÉ PAR LE FONDATEUR le 2026-09-05**, en répétant la navigation pour la vidéo
+  d'achat : *« quand je suis à l'étape 6, on n'est pas en haut de la page par défaut et
+  donc on n'a pas les jours de plans »*.
+
+  **Confirmé dans le code, pas supposé** : un SEUL `ScrollView` enveloppe les sept étapes
+  (`app/(auth)/onboarding.tsx:561`), `setStep(step + 1)` change le contenu (`:425`), et
+  il n'existe **aucun `scrollTo`** ni aucune `ref` sur ce `ScrollView`. La position de
+  défilement survit donc au changement d'étape : qui a fait défiler l'étape 5 atterrit au
+  milieu de l'étape 6, et le haut de l'écran — les jours de plan — reste hors champ.
+
+  ⚠️ **Ça frappe d'autant plus les étapes HAUTES**, celles dont le contenu dépasse
+  l'écran : plus l'étape précédente était longue, plus on arrive bas dans la suivante.
+
+  ⚠️ **Pourquoi aucun test ne l'a vu** : `vitest.config.ts` ne collecte que
+  `lib/__tests__/**`, donc rien de ce qui vit dans `app/` n'est testable (c'est la raison
+  écrite en tête de `withStorePrices`, `lib/premium.ts`). Ce défaut ne pouvait sortir que
+  d'un parcours réel — et il a fallu que quelqu'un traverse l'assistant en entier, ce que
+  personne ne fait en développement, où l'on saute d'écran en écran.
+
+  **Le correctif tient en trois lignes** : une `ref` sur le `ScrollView`, et un effet sur
+  `step` qui appelle `scrollTo({ y: 0, animated: false })`. `animated: false` parce que le
+  contenu a déjà changé — animer le retour montrerait l'étape suivante en train de
+  remonter, ce qui se lit comme un défaut plutôt que comme une transition.
+
+  🟠 **NON CORRIGÉ VOLONTAIREMENT le 2026-09-05, et voici pourquoi** : le build (16) part
+  en revue, et le rebâtir relancerait toute la boucle (build, ingestion Apple, nouvelle
+  prise de vidéo) pour une gêne d'affichage qui n'est pas un motif de rejet. C'est du
+  **JavaScript pur, sans surface native** — donc publiable en **OTA** dès l'app approuvée,
+  sans repasser par Apple. À faire à ce moment-là, pas avant.
+
+  ✅ **LIVRÉ — re-mesuré sur `main` le 2026-09-16** : `app/(auth)/onboarding.tsx:533` porte
+  `useEffect(() => { defilement.current?.scrollTo({ y: 0, animated: false }); }, [step])`,
+  avec la `ref` posée sur le `ScrollView` (`:698`). C'est exactement le correctif décrit
+  ci-dessus, `animated: false` compris. ⚠️ Les lignes « il n'existe aucun `scrollTo` » et
+  le 🟠 sont donc **historiques** : elles décrivaient le code du 2026-09-05. Une fiche
+  laissée au passé se relit comme un état présent — la re-mesurer avant de la citer.
+
 ## Fiches livrées — descendues de la liste unique le 2026-08-30
 
 > **Pourquoi elles sont ici.** La règle en tête de la liste unique dit : *« quand une tâche

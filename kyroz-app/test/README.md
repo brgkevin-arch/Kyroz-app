@@ -10,7 +10,7 @@ Il faut le serveur web en marche (`npm run web`), puis :
 
 ```bash
 npm run qa:full          # 4 personas, onboarding complet, rapport chiffré
-npm run qa:deep          # Frigo + tous les sous-écrans du Profil, captures
+npm run qa:deep          # Réserve + tous les sous-écrans du Profil, captures
 npm run qa:settings      # sous-écrans de réglages seuls (plus rapide)
 npm run qa:walkthrough   # vidéo de parcours
 ```
@@ -19,6 +19,7 @@ npm run qa:walkthrough   # vidéo de parcours
 |---|---|---|
 | `KYROZ_URL` | `http://localhost:8090` | adresse du serveur web |
 | `KYROZ_HEADLESS` | *(non posée)* | `1` = sans fenêtre, plus rapide |
+| `KYROZ_SESSION_LOCALE` | *(non posée)* | `1` = session FACTICE posée sur l'appareil au lieu d'une connexion invité : **aucun compte créé en production** (`poserSessionLocale`, depuis le 2026-09-19, #330). À poser par défaut quand le serveur pointe la vraie base |
 
 Sorties : captures et rapports JSON dans `test/qa/`, vidéos dans `test/video/`.
 Supprimer `test/qa/session.json` pour repartir d'une session vierge.
@@ -35,7 +36,8 @@ dossier les a tous cassés d'un coup, en silence. Ce qui a dû être réparé le
 - port 8081 → 8090, surchargeable par `KYROZ_URL` ;
 - `walkthrough-auth` et `qa-deep` attendaient un **login manuel de 3 minutes** → connexion invité ;
 - l'onboarding est passé de 10 à 7 étapes (l'étape « récap » a sauté le 2026-06-20) ;
-- le **portail de dépistage santé** s'interpose désormais avant l'étape 1 ;
+- le **portail de dépistage santé** s'interpose désormais avant l'étape 1 *(supprimé le
+  2026-08-12 avec son écran, et `passScreening` avec lui : il n'existe plus)* ;
 - la **visite guidée** et la carte de **consentement analytics** interceptent tous les
   clics à l'arrivée sur le plan — les scripts déclaraient chaque écran « introuvable »
   alors qu'ils n'avaient jamais pu quitter l'écran Plan ;
@@ -64,7 +66,8 @@ au portail de dépistage santé** :
 **SECONDE RÈGLE : une séquence périmée doit le DIRE.** Le défaut coûteux n'était pas la
 péremption — c'était le silence. Une étape qui ne passe plus appelle `panne()` (marche
 nommée, texte réellement à l'écran, capture `test/qa/panne-*.png`), chaque « Continuer »
-exige une preuve d'avancement (`etapeCourante`, qui lit « ÉTAPE n / 6 »), et `bilanPannes()`
+exige une preuve d'avancement (`etapeCourante`, qui lit « ÉTAPE n / m » — « / 8 » depuis la
+refonte de l'inscription du 2026-09-23), et `bilanPannes()`
 rend un **code de sortie non nul** en fin de script.
 
 > Ne pas « réparer » un script en enchaînant des clics jusqu'à ce que ça passe : un clic
@@ -101,8 +104,8 @@ côté sans l'autre.
    Réutiliser **un seul** invité pour les quatre ne marcherait pas : un contexte
    neuf n'a pas de profil local, `hydrateFromCloud` fait alors `pull_cloud` et le
    persona suivant hériterait du profil du précédent en sautant l'onboarding.
-3. **L'auth anonyme s'allume et s'éteint depuis le dashboard, hors du dépôt.** Tous les
-   scripts d'ici passent par `guestLogin` : provider coupé = **tout échoue d'un coup**,
+3. **L'auth anonyme s'allume et s'éteint depuis le dashboard, hors du dépôt.** Sans
+   `KYROZ_SESSION_LOCALE=1`, les scripts passent par `guestLogin` : provider coupé = **tout échoue d'un coup**,
    et ça ne ressemble pas au rate-limit du point 2 (aucune session, pas un 429). Ce
    réglage a été mesuré **trois fois en deux jours avec trois réponses différentes**
    (ouvert 07-31, fermé 08-01, ouvert 08-01) — donc **aucune note écrite ne peut être
