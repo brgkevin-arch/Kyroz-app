@@ -2,10 +2,10 @@ import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { RECIPE_INGREDIENTS } from '../recipeData';
-import { isStaple } from '../pantry';
+import { categorize, conservationDe, isStaple } from '../pantry';
 import { buildLocalPlan } from '../planEngine';
 import { buildShoppingList } from '../shoppingList';
-import { FORMATS, SANS_FORMAT, achatPour, quantiteRangee, besoinLisible } from '../formatsVendus';
+import { FORMATS, SANS_FORMAT, UNITES_COMPTEES, achatPour, quantiteRangee, besoinLisible } from '../formatsVendus';
 import { makeProfile } from './helpers';
 import { DietaryRestriction } from '../types';
 
@@ -118,6 +118,53 @@ describe('format vendu : le choix du format', () => {
   });
 });
 
+describe('format vendu : le besoin se lit comme l’achat (2026-10-04)', () => {
+  it('un format qui se compte dit le besoin dans son unité', () => {
+    // « 1 paquet de 4 tranches · il t’en faut 80 g » mélangeait deux unités.
+    expect(achatPour(article('jambon_blanc', 80))?.libelle).toBe('1 paquet de 4 tranches');
+    expect(besoinLisible(article('jambon_blanc', 80))).toBe('il t’en faut 2 tranches');
+    // 2,5 tranches : on en prend 3, comme une pièce (un quart de marge).
+    expect(besoinLisible(article('jambon_blanc', 100))).toBe('il t’en faut 3 tranches');
+    expect(achatPour(article('jambon_blanc', 160))?.ecartVisible).toBe(false);
+    // 150 g, c’est 4 tranches : « 1 paquet de 4 tranches · il t’en faut 4 tranches » se tait.
+    expect(achatPour(article('jambon_blanc', 150))?.ecartVisible).toBe(false);
+  });
+
+  it('la précision se tait quand elle répète l’achat', () => {
+    // 180 g de banane : « 2 bananes · il t’en faut 2 bananes ».
+    expect(achatPour(article('banane', 180))?.libelle).toBe('2 bananes');
+    expect(achatPour(article('banane', 180))?.ecartVisible).toBe(false);
+    // Mais un demi-avocat pour un avocat entier se dit.
+    expect(achatPour(article('avocat', 75))?.ecartVisible).toBe(true);
+    expect(besoinLisible(article('avocat', 75))).toBe('il t’en faut ½ avocat');
+    expect(achatPour(article('oeuf_entier', 330))?.ecartVisible).toBe(false);
+  });
+
+  it('chaque libellé qui compte connaît son unité au singulier', () => {
+    const inconnues = Object.entries(FORMATS).flatMap(([ref, regle]) =>
+      'formats' in regle
+        ? regle.formats.flatMap((f) => {
+          const m = /^\d+ (?!(?:g|kg|ml|cl|L)\b)(.+)$/u.exec(f.libelle ?? '');
+          return m && !UNITES_COMPTEES[m[1]] ? [`${ref} : ${f.libelle}`] : [];
+        })
+        : []);
+    expect(inconnues, 'ajoute le singulier à UNITES_COMPTEES').toEqual([]);
+  });
+
+  it('sur les VRAIES listes, aucune précision ne redit l’achat', () => {
+    const redites: string[] = [];
+    for (const restrictions of [[], ['vegetarian'], ['vegan'], ['pescatarian']] as DietaryRestriction[][]) {
+      for (const seed of [0, 1, 2]) {
+        for (const it of buildShoppingList(buildLocalPlan(makeProfile({ dietary_restrictions: restrictions }), seed)).items) {
+          const a = achatPour(it);
+          if (a?.ecartVisible && (a.libelle === a.besoin || a.libelle.endsWith(` de ${a.besoin}`))) redites.push(`${it.name} : ${a.libelle} · ${a.besoin}`);
+        }
+      }
+    }
+    expect(redites).toEqual([]);
+  });
+});
+
 describe('format vendu : ce qui entre en réserve', () => {
   it('jamais moins que le besoin, quel que soit l’aliment et la quantité', () => {
     const fautes: string[] = [];
@@ -147,5 +194,25 @@ describe('format vendu : l’écran Courses s’en sert', () => {
   it('chaque ligne dit ce qu’on prend en magasin', () => {
     expect(courses).toContain('achatPour(item)');
     expect(courses).toContain('besoinLisible(item)');
+  });
+});
+
+describe('la Réserve range les conserves au sec (2026-10-04)', () => {
+  it('tout ingrédient vendu en boîte finit « Au sec », les œufs mis à part', () => {
+    const auFrais = Object.entries(FORMATS).flatMap(([ref, regle]) => {
+      if (!('formats' in regle) || ref === 'oeuf_entier') return [];
+      if (!regle.formats.every((f) => f.contenant === 'boîte')) return [];
+      const name = RECIPE_INGREDIENTS[ref].name;
+      const ou = conservationDe({ name, quantity: 1, unit: RECIPE_INGREDIENTS[ref].unit, category: categorize(name) });
+      return ou === 'sec' ? [] : [`${ref} (${categorize(name)})`];
+    });
+    expect(auFrais).toEqual([]);
+  });
+
+  it('le classement reste corrigeable : un choix manuel passe devant', () => {
+    const name = RECIPE_INGREDIENTS.thon_naturel.name;
+    expect(conservationDe({ name, quantity: 140, unit: 'g', category: 'viandes', conservation: 'frais' })).toBe('frais');
+    // Et les œufs, eux, restent au frais.
+    expect(conservationDe({ name: RECIPE_INGREDIENTS.oeuf_entier.name, quantity: 330, unit: 'g', category: 'laitiers' })).toBe('frais');
   });
 });

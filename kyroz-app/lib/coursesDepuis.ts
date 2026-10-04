@@ -1,4 +1,9 @@
 import type { MealPlan } from './types';
+import { dateLocale, datesDuPlan, jourDeSemaine, positionSemaine } from './semainePlan';
+
+// Déplacés dans `lib/semainePlan.ts` le 2026-10-04 (la date des jours du plan en a besoin) ;
+// ré-exportés ici pour ne casser aucun import.
+export { jourDeSemaine, positionSemaine };
 
 /**
  * LA LISTE DE COURSES PART DU JOUR OÙ LE PLAN A ÉTÉ GÉNÉRÉ (décision fondateur, 2026-09-17).
@@ -16,24 +21,11 @@ import type { MealPlan } from './types';
  *
  * 🔴 **UN JOUR DE PLAN N'EST PAS SON RANG — et s'y fier aurait retiré un jour À VENIR.**
  * `plan_weekdays` porte des `getDay` (0 = dimanche), donc le dimanche est en TÊTE de liste
- * alors qu'il tombe en FIN de semaine ; et l'écran Plan date chaque jour sur la semaine
- * civile en cours (`startOfWeekMonday` + offset lundi = 0 … dimanche = 6). Trier par rang
- * aurait donc effacé le dimanche des courses d'un plan généré un lundi. C'est la POSITION
- * DANS LA SEMAINE qui tranche, jamais l'ordre du tableau.
+ * alors qu'il tombe en FIN de semaine ; et chaque jour se date par sa position, lundi = 0
+ * … dimanche = 6 (`lib/semainePlan.ts::datesDuPlan`, la même date que l'écran Plan depuis
+ * le 2026-10-04). Trier par rang aurait donc effacé le dimanche des courses d'un plan
+ * généré un lundi. C'est la POSITION DANS LA SEMAINE qui tranche, jamais l'ordre du tableau.
  */
-
-/** Jour de semaine (0 = dimanche) d'une date locale `YYYY-MM-DD`, ou `null` si illisible. */
-export function jourDeSemaine(date: string): number | null {
-  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(date);
-  if (!m) return null;
-  const d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
-  return Number.isNaN(d.getTime()) ? null : d.getDay();
-}
-
-/** Position dans la semaine FRANÇAISE : lundi = 0 … dimanche = 6 (comme l'écran Plan). */
-export function positionSemaine(jourDeSemaine0Dimanche: number): number {
-  return jourDeSemaine0Dimanche === 0 ? 6 : jourDeSemaine0Dimanche - 1;
-}
 
 /**
  * Les jours de plan (numéros 1-based) que la liste de courses doit couvrir.
@@ -44,16 +36,12 @@ export function positionSemaine(jourDeSemaine0Dimanche: number): number {
  */
 export function joursAAcheter(plan: Pick<MealPlan, 'week_start_date' | 'days'>, weekdays: number[] | undefined): number[] {
   const tous = Array.from({ length: plan.days }, (_, i) => i + 1);
-  if (!weekdays || weekdays.length === 0) return tous;
-  const wd = jourDeSemaine(plan.week_start_date);
-  if (wd === null) return tous;
-  const seuil = positionSemaine(wd);
-  const actifs = weekdays.slice(0, plan.days);
-  const gardes = actifs.map((j, i) => ({ pos: positionSemaine(j), jour: i + 1 }))
-    .filter((x) => x.pos >= seuil)
-    .map((x) => x.jour);
-  // Aucun jour restant (plan lundi-mercredi généré un samedi) : on garde tout plutôt que
-  // de servir une liste VIDE, qui se lirait comme « rien à acheter ».
+  const dates = datesDuPlan(plan, weekdays);
+  if (!dates) return tous;
+  // Le plan entier est devant (généré un lundi, ou le week-end pour la semaine qui vient) :
+  // tout, comme avant le 2026-10-04.
+  if (dates.every((d) => d >= plan.week_start_date)) return tous;
+  const gardes = dates.flatMap((d, i) => (d >= plan.week_start_date ? [i + 1] : []));
   return gardes.length > 0 ? gardes : tous;
 }
 
@@ -81,7 +69,7 @@ export function mentionDepart(plan: Pick<MealPlan, 'week_start_date' | 'days'>, 
 //
 // ➡️ La règle du 2026-09-17 (« la borne ne glisse pas ») vaut AVANT les courses : tant que
 // rien n'a été acheté, les ingrédients du jeudi restent sur la liste du vendredi. APRÈS une
-// clôture faite pendant la semaine du plan, la liste ne compte plus que :
+// clôture faite pour ce plan, la liste ne compte plus que :
 //   · les jours qui ne sont pas encore passés ;
 //   · et, aujourd'hui, les repas pas encore tranchés (ni cuisinés, ni sautés).
 // Un jour passé ne se cuisine plus : ses repas ont été cochés, donc retirés de la réserve,
@@ -89,21 +77,15 @@ export function mentionDepart(plan: Pick<MealPlan, 'week_start_date' | 'days'>, 
 // la règle lit la DATE pour les jours passés et le statut pour le jour même.
 //
 // ⚠️ Repli sur la règle d'avant dès qu'on ne sait pas dater : pas de `plan_weekdays`, date
-// illisible, aucune clôture cette semaine, ou un plan d'une autre semaine que celle du jour.
+// illisible, aucune clôture depuis le début de ce plan, ou un plan dont tous les jours sont
+// passés (il se renouvelle, `lib/semainePlan.ts::semaineEcoulee`).
 // ⚠️ Une clôture qui n'a pris que des ajouts manuels compte aussi. Rare, et ce qu'elle retire
 // de la liste, ce sont des jours passés.
-
-/** Lundi 00:00, heure locale, de la semaine civile d'une date `YYYY-MM-DD`. */
-function lundiDe(date: string): Date | null {
-  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(date);
-  if (!m) return null;
-  const d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
-  if (Number.isNaN(d.getTime())) return null;
-  d.setDate(d.getDate() - positionSemaine(d.getDay()));
-  return d;
-}
-
-const SEMAINE_MS = 7 * 24 * 3600 * 1000;
+// ➡️ Amendé le 2026-10-04 : les jours se lisent sur leurs DATES (`datesDuPlan`). La première
+// version prenait pour semaine du plan celle de sa génération : un plan généré le dimanche
+// pour la semaine qui vient sortait de la règle dès le lundi, et les articles achetés le
+// dimanche revenaient le lundi soir. Les courses comptent désormais depuis le lendemain du
+// dernier jour du cycle d'avant : le samedi pour un plan du lundi au vendredi.
 
 type RepasSuivi = { day: number; status?: string };
 
@@ -118,21 +100,26 @@ export function repasACompter<M extends RepasSuivi>(
   maintenant: Date = new Date(),
 ): { meals: M[]; jours: number[]; apresCourses: boolean } {
   const avant = { meals: plan.meals, jours: joursAAcheter(plan, weekdays), apresCourses: false };
-  if (!weekdays || weekdays.length === 0 || !derniereCloture) return avant;
-  const lundi = lundiDe(plan.week_start_date);
+  if (!derniereCloture) return avant;
+  const dates = datesDuPlan(plan, weekdays);
   const cloture = new Date(derniereCloture);
-  if (!lundi || Number.isNaN(cloture.getTime())) return avant;
-  const debut = lundi.getTime();
-  const fin = debut + SEMAINE_MS;
-  // La clôture doit appartenir à la semaine du plan, et aujourd'hui aussi.
-  if (cloture.getTime() < debut || maintenant.getTime() < debut || maintenant.getTime() >= fin) return avant;
+  if (!dates || Number.isNaN(cloture.getTime())) return avant;
+  const auj = dateLocale(maintenant);
+  if (auj > dates.reduce((a, b) => (b > a ? b : a))) return avant;
+  // Les courses de CE plan : depuis le lendemain du dernier jour du cycle d'avant, soit le
+  // samedi précédent pour un plan du lundi au vendredi (les courses du week-end) et le lundi
+  // pour un plan de 7 jours. Une clôture plus ancienne servait l'ancien plan.
+  const jour = (d: string) => new Date(`${d}T00:00:00`);
+  const lundi = jour(dates.reduce((a, b) => (b < a ? b : a)));
+  lundi.setDate(lundi.getDate() - positionSemaine(lundi.getDay()));
+  const derniere = Math.max(...dates.map((d) => positionSemaine(jour(d).getDay())));
+  const debut = new Date(lundi);
+  debut.setDate(lundi.getDate() - 7 + derniere + 1);
+  if (cloture.getTime() < debut.getTime()) return avant;
 
-  const auj = positionSemaine(maintenant.getDay());
-  const position = (jour: number) => positionSemaine(weekdays[jour - 1]);
-  const jours = Array.from({ length: Math.min(plan.days, weekdays.length) }, (_, i) => i + 1)
-    .filter((j) => position(j) >= auj);
+  const jours = dates.flatMap((d, i) => (d >= auj ? [i + 1] : []));
   const tranche = (m: M) => m.status === 'eaten' || m.status === 'skipped';
   const meals = plan.meals.filter((m) =>
-    jours.includes(m.day) && !(position(m.day) === auj && tranche(m)));
+    jours.includes(m.day) && !(dates[m.day - 1] === auj && tranche(m)));
   return { meals, jours, apresCourses: true };
 }

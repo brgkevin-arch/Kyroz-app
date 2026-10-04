@@ -50,8 +50,24 @@ const CONSERVATION_PAR_CATEGORIE: Record<PantryCategory, Conservation> = {
   autres: 'sec',
 };
 
+/**
+ * Les CONSERVES se rangent au sec, quelle que soit leur catégorie (2026-10-04, relevé au
+ * troisième tour de l'app : le thon, les sardines, le maïs, les tomates concassées et la
+ * ratatouille en boîte s'affichaient « Au frais », avec la viande et les légumes du rayon
+ * frais). Les légumineuses en boîte y étaient déjà, par leur catégorie de féculent.
+ * ⚠️ Liste à la main, à côté de la catégorie : `formatsVendus.test.ts` exige que tout
+ * ingrédient vendu en boîte (œufs mis à part) finisse au sec.
+ */
+const CONSERVES = new Set([
+  'thon_naturel', 'sardines', 'tomate_concassee', 'ratatouille', 'mais',
+  'pois_chiches_conserve', 'haricots_rouges_conserve', 'haricots_blancs_conserve', 'haricots_noirs_conserve',
+]);
+
 export function conservationDe(item: PantryItem): Conservation {
-  return item.conservation ?? CONSERVATION_PAR_CATEGORIE[item.category] ?? 'sec';
+  if (item.conservation) return item.conservation;
+  const ref = refDuNom(item.name);
+  if (ref && CONSERVES.has(ref)) return 'sec';
+  return CONSERVATION_PAR_CATEGORIE[item.category] ?? 'sec';
 }
 
 /** Le stock d'un seul rangement, dans l'ordre où il a été saisi. */

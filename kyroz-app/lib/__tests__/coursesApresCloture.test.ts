@@ -46,8 +46,21 @@ describe('repasACompter : la règle', () => {
     expect(r.meals.map((m) => m.id)).toEqual(['3-soir', '4-matin', '4-midi', '4-soir', '5-matin', '5-midi', '5-soir']);
   });
 
-  it('une clôture d’une AUTRE semaine ne compte pas (courses du dimanche, plan du lundi)', () => {
-    const r = repasACompter(plan('2026-09-28', semaine()), LUN, at('2026-09-27', 18).toISOString(), at('2026-09-29', 12));
+  it('une clôture du cycle d’AVANT ne compte pas (le vendredi, pour le plan du lundi suivant)', () => {
+    const r = repasACompter(plan('2026-09-28', semaine()), LUN, at('2026-09-25', 18).toISOString(), at('2026-09-29', 12));
+    expect(r.apresCourses).toBe(false);
+  });
+
+  it('les courses du WEEK-END comptent pour la semaine qui suit (2026-10-04)', () => {
+    // Plan généré le lundi après des courses du samedi (un réglage changé, par exemple).
+    expect(repasACompter(plan('2026-09-28', semaine()), LUN, at('2026-09-26', 11).toISOString(), at('2026-09-29', 12)).apresCourses).toBe(true);
+    // Plan généré le dimanche pour la semaine qui vient, courses le dimanche même.
+    expect(repasACompter(plan('2026-10-04', semaine()), LUN, at('2026-10-04', 11).toISOString(), at('2026-10-06', 12)).jours).toEqual([2, 3, 4, 5]);
+  });
+
+  it('plan de 7 jours : le dimanche d’avant appartient encore à l’ancien plan', () => {
+    const sept: R[] = [1, 2, 3, 4, 5, 6, 7].map((day) => ({ day, id: `j${day}` }));
+    const r = repasACompter(plan('2026-09-28', sept, 7), [1, 2, 3, 4, 5, 6, 0], at('2026-09-27', 18).toISOString(), at('2026-09-29', 12));
     expect(r.apresCourses).toBe(false);
   });
 
@@ -62,10 +75,16 @@ describe('repasACompter : la règle', () => {
     expect(r.meals).toHaveLength(15);
   });
 
-  it('plus aucun jour à venir : la liste est vide, pas la semaine entière', () => {
-    const r = repasACompter(plan('2026-09-28', semaine()), LUN, at('2026-09-28', 10).toISOString(), at('2026-10-03', 12));
+  it('le dernier jour, tout tranché : la liste est vide, pas la semaine entière', () => {
+    const meals = semaine().map((m) => (m.day === 5 ? { ...m, status: 'eaten' } : m));
+    const r = repasACompter(plan('2026-09-28', meals), LUN, at('2026-09-28', 10).toISOString(), at('2026-10-02', 21));
     expect(r.apresCourses).toBe(true);
     expect(r.meals).toEqual([]);
+  });
+
+  it('un plan dont tous les jours sont passés retombe sur la règle d’avant : son renouvellement prend le relais', () => {
+    const r = repasACompter(plan('2026-09-28', semaine()), LUN, at('2026-09-28', 10).toISOString(), at('2026-10-03', 12));
+    expect(r.apresCourses).toBe(false);
   });
 
   it('le dimanche en tête de `plan_weekdays` reste en FIN de semaine', () => {
@@ -77,12 +96,19 @@ describe('repasACompter : la règle', () => {
 });
 
 describe('F9 mesuré sur le moteur : une journée cuisinée ne fait rien racheter', () => {
-  // Plan canonique d’un lundi, courses terminées le lundi matin, le lundi cuisiné.
-  const scenario = (rangement: 'paquet' | 'besoin') => {
+  // Deux semaines types : plan et courses du lundi matin, ou plan et courses du DIMANCHE pour
+  // la semaine qui vient (le cas que la première version ratait : 4 articles revenaient le
+  // lundi soir, mesuré le 2026-10-04). Dans les deux, le premier jour du plan est cuisiné.
+  const CAS = {
+    lundi: { generation: '2026-09-28', courses: at('2026-09-28', 9), soir: at('2026-09-28', 21), lendemain: at('2026-09-29', 8) },
+    dimanche: { generation: '2026-10-04', courses: at('2026-10-04', 11), soir: at('2026-10-05', 21), lendemain: at('2026-10-06', 8) },
+  } as const;
+  const scenario = (rangement: 'paquet' | 'besoin', cas: keyof typeof CAS) => {
+    const c = CAS[cas];
     const profil = makeProfile();
-    const p: MealPlan = { ...buildLocalPlan(profil, 0), week_start_date: '2026-09-28' };
-    const cloture = at('2026-09-28', 9).toISOString();
-    const avant = repasACompter(p, LUN, null, at('2026-09-28', 8));
+    const p: MealPlan = { ...buildLocalPlan(profil, 0), week_start_date: c.generation };
+    const cloture = c.courses.toISOString();
+    const avant = repasACompter(p, LUN, null, c.courses);
     let reserve: PantryItem[] = [];
     for (const it of buildShoppingList({ ...p, meals: avant.meals }, [], avant.jours).items) {
       if (isStaple(it.name)) continue;
@@ -95,7 +121,7 @@ describe('F9 mesuré sur le moteur : une journée cuisinée ne fait rien rachete
       const r = repasACompter(pl, LUN, cloture, maintenant);
       return buildShoppingList({ ...pl, meals: r.meals }, reserve, r.jours).items;
     };
-    // Le lendemain, les statuts sont effacés : c'est la DATE qui doit écarter le lundi.
+    // Le lendemain, les statuts sont effacés : c'est la DATE qui doit écarter le premier jour.
     // ⚠️ Deux lendemains : statuts effacés seuls (la règle F9, isolée), puis le vrai
     // `resetTracking`, qui REÉQUILIBRE aussi les jours à venir. Ce rééquilibrage peut
     // monter un ingrédient de quelques grammes ; le surplus d'un paquet l'absorbe, un
@@ -103,21 +129,23 @@ describe('F9 mesuré sur le moteur : une journée cuisinée ne fait rien rachete
     const sansStatut: MealPlan = { ...cuisine, meals: cuisine.meals.map((m) => ({ ...m, status: undefined })) };
     return {
       ancienCalcul: buildShoppingList(cuisine, reserve, joursAAcheter(cuisine, LUN)).items.length,
-      leSoir: liste(cuisine, at('2026-09-28', 21)),
-      leLendemain: liste(sansStatut, at('2026-09-29', 8)),
-      leLendemainReel: liste(resetTracking(profil, cuisine), at('2026-09-29', 8)),
+      leSoir: liste(cuisine, c.soir),
+      leLendemain: liste(sansStatut, c.lendemain),
+      leLendemainReel: liste(resetTracking(profil, cuisine), c.lendemain),
     };
   };
 
-  for (const rangement of ['paquet', 'besoin'] as const) {
-    it(`rangement au ${rangement} : zéro article fantôme, le soir comme le lendemain`, () => {
-      const s = scenario(rangement);
-      // Le contrôle sait dire OUI : l’ancien calcul fait bien revenir des articles.
-      expect(s.ancienCalcul).toBeGreaterThan(0);
-      expect(s.leSoir.map((i) => `${i.name} ${i.quantity}`)).toEqual([]);
-      expect(s.leLendemain.map((i) => `${i.name} ${i.quantity}`)).toEqual([]);
-      if (rangement === 'paquet') expect(s.leLendemainReel.map((i) => `${i.name} ${i.quantity}`)).toEqual([]);
-    });
+  for (const cas of ['lundi', 'dimanche'] as const) {
+    for (const rangement of ['paquet', 'besoin'] as const) {
+      it(`courses du ${cas}, rangement au ${rangement} : zéro article fantôme, le soir comme le lendemain`, () => {
+        const s = scenario(rangement, cas);
+        // Le contrôle sait dire OUI : l’ancien calcul fait bien revenir des articles.
+        expect(s.ancienCalcul).toBeGreaterThan(0);
+        expect(s.leSoir.map((i) => `${i.name} ${i.quantity}`)).toEqual([]);
+        expect(s.leLendemain.map((i) => `${i.name} ${i.quantity}`)).toEqual([]);
+        if (rangement === 'paquet') expect(s.leLendemainReel.map((i) => `${i.name} ${i.quantity}`)).toEqual([]);
+      });
+    }
   }
 });
 
