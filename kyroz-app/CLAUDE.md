@@ -1697,9 +1697,13 @@ Profil (poids, objectif, régime) = **données de santé** au sens RGPD.
 > ⚠️ **La garde de code est ce qui compte, pas la clé.** `EXPO_PUBLIC_POSTHOG_KEY` est
 > inlinée dans le bundle à la compilation : la retirer d'EAS ne concerne que les builds
 > FUTURS, alors que la garde s'applique aux binaires déjà installés dès la prochaine OTA.
-> ⚠️ **Ce qui RESTE monté** : « Supprimer mes statistiques » dans les Réglages, tant
-> qu'un pseudonyme existe sur l'appareil. Des mesures ont pu partir entre le 2026-08-18
-> et l'extinction ; le droit à l'effacement ne s'arrête pas avec la collecte.
+> ⚠️ **« Supprimer mes statistiques » est parti AUSSI** (même constante,
+> `components/ReglagesSheet.tsx`) : les mesures parties entre le 2026-08-18 et
+> l'extinction ont été effacées chez PostHog, et c'est CE qui a rendu la ligne sans objet —
+> pas l'arrêt de la collecte (un droit d'effacement ne se retire pas tant qu'il a un objet).
+> Une demande reste possible à l'adresse RGPD de « Confidentialité & CGU ».
+> *Cette ligne a dit « ce qui RESTE monté » du 2026-08-26 au 2026-10-04, alors que le code
+> l'avait retirée dans la même PR (#168).*
 > ✅ **LES TROIS POINTS QUI « RESTAIENT À TRANCHER » SONT CLOS — et ils l'étaient déjà
 > quand cette ligne a été relue le 2026-08-27.** Elle listait : la clé dans l'environnement
 > EAS, le sort des données déjà chez PostHog, et les textes légaux qui décriraient encore un
@@ -1721,8 +1725,9 @@ cochée à l'inscription, base légale du produit) et celui aux **statistiques d
 (`lib/analytics.ts`, facultatif). Ce paragraphe ne parle que du second.
 
 Il vivait sur une carte en tête de l'écran Plan. Il vit désormais dans
-`components/AnalyticsConsentStep.tsx`, écran plein posé **après le dépistage santé et
-avant l'étape 1** de l'onboarding. Décision fondateur : *« ça gâche la page principale de
+`components/AnalyticsConsentStep.tsx`, écran plein posé **en tout premier, avant
+l'étape 1** de l'onboarding (le dépistage santé qui le précédait a été supprimé le
+2026-08-12). Décision fondateur : *« ça gâche la page principale de
 l'app »*.
 
 🔴 **LE PLACER PLUS TARD SUPPRIME UNE MESURE, ÇA NE LA DÉGRADE PAS.** `capture()` ne garde
@@ -1756,9 +1761,9 @@ vrai — « au moins un an, sans limite haute fixe », PostHog n'offrant aucune 
 automatique) ont été levés.
 Puis `EXPO_PUBLIC_POSTHOG_KEY` a été posée : secret GitHub Actions (`deploy.yml`) et
 variable EAS sur les trois environnements.
-➡️ **L'analytics est ACTIF, pas dormant** — `capture()` envoie désormais, pour qui a
-consenti (l'écran de consentement reste avant l'assistant, refusable sans conséquence,
-retirable à tout moment). Détail complet et dates : `RGPD-REGISTRE.md`.
+➡️ **L'analytics est devenu ACTIF, pas dormant** (jusqu'à l'extinction du 2026-08-26, en
+tête de section) — `capture()` envoyait, pour qui avait consenti (l'écran de consentement
+restait avant l'assistant, refusable sans conséquence, retirable à tout moment). Détail complet et dates : `RGPD-REGISTRE.md`.
 ✅ **ET L'OTA EST PUBLIÉ DEPUIS LE 2026-08-18** (groupe `f01b56ba`, runtime 1.0.0,
 iOS + Android, commit `1078c94`) : les binaires en circulation reçoivent donc la clé ET les
 nouveaux textes — *ensemble*, comme la règle l'exige. Vérifié sur l'ARTEFACT, les trois
@@ -3408,8 +3413,8 @@ téléphone.
   changement venu de l'EXTÉRIEUR. Deux gardes selon le cas : `focused` (on ne réécrit
   pas tant que le champ a le focus) ou `emitted` (on ignore ce qui nous revient de
   notre propre émission).
-- **Le portail de dépistage santé et la visite guidée interceptent les clics.** Tout script
-  qui pilote l'app doit les neutraliser d'abord, sinon il conclut que les écrans sont
+- **La visite guidée intercepte les clics** (le portail de dépistage santé aussi, jusqu'à
+  sa suppression le 2026-08-12). Tout script qui pilote l'app doit la neutraliser d'abord, sinon il conclut que les écrans sont
   « introuvables » alors qu'il n'a jamais pu quitter le Plan (cf. `test/README.md`).
   ⚠️ **« Écran introuvable » est presque toujours un FAUX diagnostic** : l'écran existe,
   c'est le parcours qui ne l'atteint plus. Les scripts de `test/` ont pourri deux fois

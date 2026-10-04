@@ -291,8 +291,9 @@ supprime depuis l'app.
 🔴 **Aucune statistique d'usage n'est mesurée** (éteint le 2026-08-26, décision fondateur).
 L'app ne demande plus rien à l'inscription et n'envoie plus rien : le moteur de mesure reste
 en place, coupé par une constante (`lib/featureFlags.ts`). Ce qui a pu partir entre le
-2026-08-18 et cette date est chez PostHog, et « Supprimer mes statistiques » reste
-accessible dans les Réglages pour qui a un identifiant sur son téléphone.
+2026-08-18 et cette date a été effacé chez PostHog ; la ligne « Supprimer mes statistiques »
+a donc quitté les Réglages avec le reste (une demande reste possible à l'adresse RGPD de
+« Confidentialité & CGU »).
 
 ---
 
