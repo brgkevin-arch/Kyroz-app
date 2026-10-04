@@ -1068,6 +1068,8 @@ produit en suspens — il ne reste qu'à coder.
      semaine civile (`startOfWeekMonday` + offset). Trier par rang effaçait donc le dimanche
      d'un plan généré un jeudi — un jour à VENIR. C'est la POSITION DANS LA SEMAINE qui
      tranche, et une mutation le garde (`coursesDepuis.test.ts`, 5 mutations).
+     ➡️ Depuis le 2026-10-04 (E76), l'écran et la liste lisent la MÊME date de chaque jour,
+     `semainePlan.ts::datesDuPlan` ; `startOfWeekMonday` ne sert plus que de repli.
      ⚠️ Aucun jour restant (plan lundi-mercredi généré un samedi) → on garde TOUT : une liste
      vide se lirait « rien à acheter ». Pas d'`ENGINE_VERSION` : le plan ne change pas.
      **Mesuré à l'aperçu** : plan généré un jeudi → 43 articles + la mention ; le même plan
@@ -1706,6 +1708,36 @@ produit en suspens — il ne reste qu'à coder.
   **Avec, dans la même OTA : les étapes de recettes réécrites (#368)** — 152 étapes à
   l'infinitif et 25 « + » → 0 (131 recettes, même composition, `ENGINE_VERSION` 64,
   `etapesRedigees.test.ts`) ; temps annoncé corrigé sur pd23, pd43, rep73.
+
+- **E76 · LA SEMAINE DU PLAN EST DATÉE : un plan généré le week-end est celui de la semaine qui vient** — ✅ mergé (2026-10-04)
+  🔴 **TROUVÉ AU TROISIÈME TOUR DE L'APP, dès la première capture** (un dimanche) : un plan du
+  lundi au vendredi généré le dimanche affichait L 28 … V 2, la semaine passée. Vécu au
+  navigateur en avançant l'horloge jusqu'au vendredi : lundi soir, **2 articles déjà achetés**
+  revenaient (F9 ne jouait plus) ; vendredi matin, le plan se régénérait et **ses 4 repas du
+  vendredi changeaient**, après les courses. Au moteur : généré samedi → jeudi et vendredi
+  remplacés ; généré jeudi → l'ancien plan affiché le lundi, hors liste, jusqu'au mardi ; 7 jours
+  généré dimanche → la liste ne couvrait que le dimanche toute la semaine suivante ; plan à trous
+  (lundi, mercredi, vendredi) → renouvelé le jeudi, même généré un lundi.
+  **Cause** : quatre lectures de « la semaine du plan » — le bandeau (semaine en cours),
+  l'ouverture (prochain jour à venir), le renouvellement (N jours après la génération), la liste
+  et F9 (jour de génération). Elles ne s'accordaient que pour un plan généré à son premier jour.
+  **Décision fondateur (« oui go », option A)** : chaque jour du plan a sa vraie date
+  (`lib/semainePlan.ts::datesDuPlan`), lue par les quatre ; généré sans jour restant cette
+  semaine = la semaine qui vient ; renouvelé le lendemain de son dernier jour (lundi→vendredi :
+  le samedi, pour faire ses courses le week-end ; 7 jours : le lundi) ; F9 compte les courses
+  depuis le lendemain du dernier jour du cycle d'avant ; la règle du 2026-09-17 tient (inscrit le
+  jeudi, la liste part du jeudi). Vu à l'écran du dimanche au samedi : bandeau 5 → 9, lundi soir
+  **0** article, vendredi les repas tiennent, samedi un plan neuf daté 12 → 16. Garde-fous :
+  `semainePlan.test.ts`, `coursesApresCloture.test.ts` (les courses du dimanche rejouées sur le
+  moteur), 4 mutations.
+  ⚠️ Effet assumé : inscrit un samedi avec un plan de 7 jours, le premier plan dure 2 jours,
+  puis la vraie semaine arrive le lundi (« le lundi, quand le plan se génère », 2026-09-17).
+  **Avec, dans la même PR, quatre retouches du même tour** : « il t'en faut » se dit dans
+  l'unité du paquet (« 1 paquet de 4 tranches · il t'en faut 2 tranches ») et se tait quand il
+  redit l'achat (« 2 bananes · il t'en faut 2 bananes ») ; les conserves se rangent « Au sec »
+  (thon, sardines, maïs, tomates concassées, ratatouille) ; 10 recettes ne crient plus un mot
+  en capitales (« feu DOUX »), sans `ENGINE_VERSION` : les plans en cours prennent la phrase à
+  leur renouvellement plutôt que de se régénérer tous à l'OTA.
 
 - **E19 · Le brief « fortes masses grasses » accusait les gros gabarits — le plancher
   mord les MAIGRES** 📏 **MESURÉ le 2026-08-07, aucune ligne de moteur touchée.**

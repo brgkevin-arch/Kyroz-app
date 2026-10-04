@@ -530,6 +530,12 @@ OUTPUT         → Plan + liste de courses + recettes
 ### Features autorisées
 - [x] Onboarding (profil + TDEE)
 - [x] Génération plan repas 7 jours (moteur local)
+      🔴 **CHAQUE JOUR DU PLAN A SA VRAIE DATE** (2026-10-04, décision fondateur, AGENTS.md
+      E76) : `lib/semainePlan.ts::datesDuPlan`, lue par le bandeau, le renouvellement, la liste
+      et F9. Généré sans jour restant cette semaine (lundi→vendredi généré le week-end) = la
+      semaine qui vient ; renouvelé le lendemain de son dernier jour (lundi→vendredi : le
+      samedi ; 7 jours : le lundi). ⚠️ Avant, quatre lectures de la semaine : un plan généré le
+      dimanche affichait la semaine passée et se régénérait le vendredi, après les courses.
 - [x] Affichage recettes + macros
 - [x] Liste de courses
 - [x] **Ajout manuel à la liste de courses** (2026-08-26, demande fondateur : « rajouter
@@ -556,7 +562,8 @@ OUTPUT         → Plan + liste de courses + recettes
 - [x] **La RÉSERVE** (ex-« Frigo / garde-manger », renommée le 2026-08-24) — inventaire
       **séparé en frais et en sec**, classé automatiquement d'après la catégorie de
       l'aliment et corrigeable d'une touche (`lib/pantry.ts::conservationDe`, champ
-      optionnel donc rétroactif, aucune migration).
+      optionnel donc rétroactif, aucune migration). Les CONSERVES vont au sec quelle que soit
+      leur catégorie (2026-10-04, `pantry.ts::CONSERVES`).
       🔴 **TROIS RÈGLES ONT CHANGÉ LE MÊME JOUR, et elles se tiennent** (décisions
       fondateur, E59) :
       · elle ne se remplit qu'à **« Courses terminées »**, avec ce qui est coché —
@@ -578,6 +585,8 @@ OUTPUT         → Plan + liste de courses + recettes
       paquet entier, le reste est déduit des listes suivantes. Et après des « Courses
       terminées », la liste ne compte que les repas qu'il reste à cuisiner (F9 :
       `lib/coursesDepuis.ts::repasACompter`) — un repas cuisiné n'est plus compté deux fois.
+      ⚠️ Les courses comptent depuis le lendemain du dernier jour du cycle d'avant (le samedi
+      pour un plan du lundi au vendredi) : celles du week-end valent pour la semaine qui vient.
 - [x] **Auto-coche des repas** (2026-08-24, `lib/repasAuto.ts`) — un repas non tranché
       passe en « mangé » **une heure après le début du repas SUIVANT**, et le dernier de
       la journée à **23 h 59** (jamais minuit : `resetTracking` efface le suivi au

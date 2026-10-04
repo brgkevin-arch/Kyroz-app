@@ -37,7 +37,7 @@ import { usePlanCheckin } from '../../hooks/usePlanCheckin';
 import { useNotificationIntent, consommerNotificationIntent } from '../../hooks/useNotificationIntent';
 import { useReminder } from '../../hooks/useReminder';
 import { useRouter, useFocusEffect } from 'expo-router';
-import { semaineEcoulee } from '../../lib/semainePlan';
+import { datesDuPlan, semaineEcoulee } from '../../lib/semainePlan';
 import { buildLocalPlan, carryTracking, nextPlanSeed, profileSignature, swapMeal, computeDailyTotals, rebalanceDay, resetTracking, adaptDayOptions, AdaptOption, mealIngredients, reAdaptMealRecipe, mealPoolSize, dayTargetKcal, ON_TARGET_TOLERANCE_KCAL } from '../../lib/planEngine';
 import { DISLIKE_THRESHOLD, dislikeCandidates, applyDislikedIngredient } from '../../lib/dislike';
 import { todayStamp, localStamp } from '../../lib/weight';
@@ -329,7 +329,7 @@ export default function PlanScreen() {
   const semaineTentee = React.useRef(false);
   useEffect(() => {
     if (!profile || !plan || generating || semaineTentee.current) return;
-    if (!semaineEcoulee(plan, todayStamp())) return;
+    if (!semaineEcoulee(plan, todayStamp(), profile.plan_weekdays)) return;
     semaineTentee.current = true;
     generate(true, 'semaine_ecoulee');
   }, [profile, plan, generating]);
@@ -866,11 +866,19 @@ export default function PlanScreen() {
 
   const todayLabel = new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
 
-  // Dates du bandeau : toujours ancrées sur la SEMAINE EN COURS (jamais figées
-  // sur la date de génération → plus de dates périmées comme « 5/6/7 » un lundi 8).
+  // Dates du bandeau : la VRAIE date de chaque jour du plan (2026-10-04,
+  // `lib/semainePlan.ts::datesDuPlan`). Elles étaient ancrées sur la semaine EN COURS,
+  // donc un plan généré le dimanche pour la semaine qui vient affichait celle qui finissait.
+  // ⚠️ Repli sur la semaine en cours quand le plan est RÉVOLU (son renouvellement est en
+  // route, ou il a échoué) : c'est ce qui avait fermé les « 5/6/7 » affichés un lundi 8,
+  // du temps où rien ne renouvelait le plan.
+  const datesReelles = plan && !semaineEcoulee(plan, jourCivil, profile?.plan_weekdays)
+    ? datesDuPlan(plan, profile?.plan_weekdays) : null;
   const dayMeta = (i: number) => {
     const today = new Date();
     const wds = profile?.plan_weekdays;
+    const iso = datesReelles?.[i];
+    if (wds && wds.length > i && iso) return { wd: WD[wds[i]], num: Number(iso.slice(8, 10)) };
     if (wds && wds.length > i) {
       const target = wds[i];                          // getDay 0..6
       const monday = startOfWeekMonday(today);
