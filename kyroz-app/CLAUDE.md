@@ -60,13 +60,13 @@ App mobile React Native (Expo Router, **SDK 57** depuis le 2026-08-27) de plans 
 
 | Couche | Choix | État |
 |---|---|---|
-| Mobile | **React Native (Expo Router, SDK 57)**, TypeScript strict | Monté de 56 → **57** le 2026-08-27 (`expo ^57.0.9`, `react-native 0.86.3`) — `expo-doctor` **21/21**, les deux checks en échec du SDK 56 disparaissent. ⚠️ **Aucun binaire de cette surface n'existe encore** : la ligne OTA est coupée jusqu'au build (7) |
+| Mobile | **React Native (Expo Router, SDK 57)**, TypeScript strict | Monté de 56 → **57** le 2026-08-27 (`expo ^57.0.9`, `react-native 0.86.3`) — `expo-doctor` **21/21**, les deux checks en échec du SDK 56 disparaissent. *(Ce jour-là, aucun binaire de cette surface n'existait : la ligne OTA était coupée jusqu'au build (7). Depuis : build (22), en vente depuis le 2026-09-12.)* |
 | Génération repas | **Moteur LOCAL** (`lib/planEngine.ts`) — macro-précis, 0 clé API, **seul chemin** | Moteur unique |
 | Persistance locale | AsyncStorage (clés `@kyroz:*`) | En place |
 | Backend / Auth | **Supabase** (région EU) — création de compte email + suppression de compte (RGPD) | Auth OK |
 | Base nutritionnelle | **Ciqual (ANSES) + table maison** — voir la note ci-dessous | En place |
 | Analytics | PostHog (cloud EU) | **ÉTEINT depuis le 2026-08-26** (allumé le 2026-08-18) — `lib/analytics.ts` reste câblé et gardé, mais la clé n'est dans aucun environnement EAS : rien ne part. Formulaires store alignés (App Privacy republié le 2026-08-28, #198 ; Play n'a jamais déclaré l'analytics) |
-| Achats in-app | **RevenueCat** (`react-native-purchases`) | **Câblé, clé POSÉE** (2026-08-03, variable EAS `production`) — `lib/purchases.ts`. L'encaissement est donc armé ; le verrou, lui, dépend de `PAYWALL_LAUNCH` (`null`) : deux interrupteurs séparés, un seul reste éteint. Entitlement `premium` = **4 produits** (2 paliers × 2 durées) |
+| Achats in-app | **RevenueCat** (`react-native-purchases`) | **Câblé, clé POSÉE** (2026-08-03, variable EAS `production`) — `lib/purchases.ts`. L'encaissement est donc armé ; le verrou, lui, dépend de `PAYWALL_LAUNCH` (`'2026-08-27T00:00:00+02:00'` depuis le 2026-08-27, cf. §1) : deux interrupteurs séparés, **tous deux allumés**. Entitlement `premium` = **4 produits** (2 paliers × 2 durées) |
 | Crash reporting | **AUCUN — décision du 2026-08-27** | Option A du constat `03-05` : pas de quatrième sous-traitant, donc rien à ajouter à la politique, au registre ni aux DPA — et pas de dépendance native de plus dans le build. ⚠️ **Ce qu'on accepte** : un crash chez un testeur n'existe que s'il le raconte ; `ErrorBoundary` est le seul filet. **Rouvrir si** : sortie publique hors TestFlight · un crash rapporté non reproduit · un parc au-delà de quelques dizaines d'appareils. B demandera **un build de plus** |
 | Mises à jour OTA | **`expo-updates`** — correctifs JS sans repasser par la revue des stores | **Actif** (2026-08-01) — voir la note ci-dessous |
 
@@ -372,9 +372,8 @@ App mobile React Native (Expo Router, **SDK 57** depuis le 2026-08-27) de plans 
 ### Tables Supabase — les 5 qui existent réellement
 
 > ⚠️ **`streaks` est partie le 2026-09-19** avec la série (décision fondateur, AGENTS.md
-> **E69**) — migration `2026-09-19_drop_streaks.sql`, à jouer APRÈS l'OTA qui retire la
-> série. Tant qu'elle n'est pas jouée, la table existe encore en production, vide de tout
-> lecteur.
+> **E69**) — migration `2026-09-19_drop_streaks.sql`, **jouée** : la table n'existe plus en
+> production (sondé le 2026-10-06 — même réponse qu'une table inexistante).
 
 ```
 profiles                        ← s'appelle « profiles », PAS « user_profiles »
@@ -1795,7 +1794,7 @@ en AGENTS.md E26.
 - Tout passe par `useTheme()` + `makeStyles(t)` — **aucune couleur en dur**
 
 > **L'accent est PERSONNALISABLE depuis le 2026-08-03 (décision fondateur)** —
-> `lib/accentColor.ts`, réglage « Couleur d'accent » dans Profil → Préférences.
+> `lib/accentColor.ts`, réglage « Couleur d'accent » dans Réglages (roue dentée) → Affichage.
 > Six choix : monochrome (défaut), bleu, vert, orange, rouge, violet. Le monochrome
 > reste la DA de Kyroz : **le fond ne bouge jamais** (noir pur / `#F2F2F7`), seul
 > l'accent change — boutons, jour actif, pilule sélectionnée, onglet actif,
@@ -2158,7 +2157,7 @@ qu'« un peu plus épais qu'un séparateur ».
 
 ➡️ **Garde-fou : `lib/__tests__/finitionsDA.test.ts`**, vérifié par 6 mutations.
 
-⚠️ **Ce qui n'a PAS été fait, et pourquoi** : les 110 `lineHeight` en dur. Le bon
+⚠️ **Ce qui n'a PAS été fait, et pourquoi** : les 110 `lineHeight` en dur *(142 re-comptés le 2026-10-06 — le chantier n'a pas commencé)*. Le bon
 geste serait de les porter dans les tokens `Type` — mais un `lineHeight` posé sur
 `Type.body` s'applique aussi aux textes d'UNE ligne, dont il change la hauteur de
 boîte, donc l'alignement. Le risque ne se voit pas sur les 5 onglets : il se voit
