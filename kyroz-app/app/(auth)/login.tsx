@@ -19,7 +19,7 @@ import { DISCLAIMER } from '../../constants/legal';
 import { isReviewLogin } from '../../lib/reviewAccess';
 import {
   CODE_LONGUEUR, DELAI_RENVOI_S, MDP_LONGUEUR_MIN,
-  codeComplet, normaliseCode, traduitErreurConfirmation,
+  codeComplet, normaliseCode, traduitErreurConfirmation, messageCompteExistant,
 } from '../../lib/emailConfirmation';
 import { useCompteARebours } from '../../hooks/useCompteARebours';
 import MotDePasseOublie from '../../components/MotDePasseOublie';
@@ -133,6 +133,19 @@ export default function LoginScreen() {
     const res = mode === 'signin'
       ? await signIn(email, password)
       : await signUp(email, password, consent);
+    // ── L'adresse a DÉJÀ un compte (signalé le 2026-10-09) ─────────────────────
+    // Qui revient sur cet écran le trouve ouvert sur « Inscription » et y retape ses
+    // identifiants : il veut ENTRER, pas créer. On essaie donc de le connecter avec ce
+    // qu'il vient de taper ; si ça ne passe pas, on bascule sur « Connexion » et on
+    // nomme les deux portes. Jamais la saisie d'un code : aucun e-mail n'est parti.
+    if ('dejaInscrit' in res && res.dejaInscrit) {
+      const essai = await signIn(email, password);
+      setBusy(false);
+      if (!essai.error) { router.replace('/'); return; }
+      setMode('signin');
+      refuser(messageCompteExistant(appleDispo));
+      return;
+    }
     setBusy(false);
     if (res.error) { refuser(translate(res.error)); return; }
     // Inscription sans session = confirmation e-mail à valider. On enchaîne SUR PLACE

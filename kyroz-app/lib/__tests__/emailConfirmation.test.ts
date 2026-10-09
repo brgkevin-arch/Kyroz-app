@@ -5,6 +5,7 @@ import {
   CODE_LONGUEUR, MDP_LONGUEUR_MIN, URL_RETOUR_CONFIRMATION,
   normaliseCode, codeComplet, motDePasseValide,
   traduitErreurConfirmation, traduitErreurReinitialisation,
+  compteDejaExistant, messageCompteExistant,
 } from '../emailConfirmation';
 
 // ── Pourquoi ce test existe ─────────────────────────────────────────────────
@@ -379,5 +380,50 @@ describe('Câblage app — les deux appels qui doivent porter la redirection', (
     const appel = useAuth.match(/resetPasswordForEmail\([\s\S]*?\);/)?.[0] ?? '';
     expect(appel).toBeTruthy();
     expect(appel).not.toContain('redirectTo');
+  });
+});
+
+// ── L'inscription sur une adresse qui a DÉJÀ un compte (2026-10-09) ─────────────
+//
+// Supabase, confirmation e-mail active, rend un compte MAQUILLÉ (`identities: []`),
+// sans session ni e-mail. Lu comme « à confirmer », il envoyait l'utilisateur attendre
+// un code qui ne partait jamais — « ça me recrée un compte à chaque fois ».
+describe('inscription — adresse déjà inscrite', () => {
+  it('reconnaît le compte maquillé, et lui seul', () => {
+    expect(compteDejaExistant({ identities: [] })).toBe(true);
+    expect(compteDejaExistant({ identities: [{ provider: 'email' }] })).toBe(false);
+    // Un champ ABSENT n'est pas la marque : on ne conclut rien de ce qui n'existe pas.
+    expect(compteDejaExistant({})).toBe(false);
+    expect(compteDejaExistant({ identities: null })).toBe(false);
+    expect(compteDejaExistant(null)).toBe(false);
+    expect(compteDejaExistant(undefined)).toBe(false);
+  });
+
+  it('le message nomme les portes, et Apple seulement quand le bouton est là', () => {
+    expect(messageCompteExistant(false)).toContain('Mot de passe oublié');
+    expect(messageCompteExistant(false)).not.toContain('Apple');
+    // Le libellé du bouton natif (type CONTINUE) — nommer un bouton qui n'existe pas
+    // enverrait chercher un geste impossible.
+    expect(messageCompteExistant(true)).toContain('Continuer avec Apple');
+  });
+
+  it("signUp le détecte AVANT de noter un consentement en attente", () => {
+    const src = readFileSync(join(RACINE, 'hooks', 'useAuth.tsx'), 'utf-8');
+    const detection = src.indexOf('compteDejaExistant(data.user)');
+    const attente = src.indexOf('AsyncStorage.setItem(CLE_CONSENTEMENT_EN_ATTENTE');
+    expect(detection).toBeGreaterThan(-1);
+    expect(attente).toBeGreaterThan(-1);
+    // Après, le consentement serait attribué au compte existant à sa prochaine connexion.
+    expect(detection).toBeLessThan(attente);
+  });
+
+  it("l'écran connecte au lieu d'afficher la saisie d'un code", () => {
+    const src = readFileSync(join(RACINE, 'app', '(auth)', 'login.tsx'), 'utf-8');
+    const branche = src.indexOf('res.dejaInscrit');
+    const code = src.indexOf('res.needsConfirmation');
+    expect(branche).toBeGreaterThan(-1);
+    // Traité AVANT la confirmation : sinon le compte maquillé repart vers le code.
+    expect(branche).toBeLessThan(code);
+    expect(src.slice(branche, code)).toContain('signIn(email, password)');
   });
 });

@@ -176,3 +176,41 @@ export function traduitErreurReinitialisation(msg: string): string {
   }
   return msg;
 }
+
+// ── L'inscription sur une adresse qui a DÉJÀ un compte ───────────────────────
+//
+// 🔴 **SUPABASE NE DIT PAS « CE COMPTE EXISTE » — IL FAIT SEMBLANT D'EN CRÉER UN.**
+// Signalé le 2026-10-09 (« je ne peux plus me connecter, ça me recrée un compte à
+// chaque fois »). Avec la confirmation e-mail ACTIVE (`mailer_autoconfirm: false`,
+// le réglage de production), `signUp` sur une adresse déjà inscrite ne rend AUCUNE
+// erreur : il rend un utilisateur MAQUILLÉ, sans session, et **n'envoie aucun
+// e-mail** (doc Supabase, « obfuscated user response with no verification email
+// sent » — protection contre l'énumération des comptes).
+// L'app lisait « pas de session » comme « confirmation à valider », affichait
+// « Un code vient de partir », et ce code n'arrivait jamais. Celui qui revenait sur
+// l'écran d'accueil — ouvert par défaut sur « Inscription » — retapait son adresse,
+// recochait la case, et retombait dans la même impasse, à chaque essai.
+//
+// ⚠️ La seule marque du maquillage est `identities: []` : un vrai compte neuf porte
+// toujours son identité e-mail. `undefined` (champ absent) n'est PAS la marque —
+// on ne conclut rien d'un champ qui n'existe pas (CLAUDE.md §11).
+
+/** L'inscription vient-elle de buter sur un compte qui existe déjà ? */
+export function compteDejaExistant(
+  user: { identities?: readonly unknown[] | null } | null | undefined,
+): boolean {
+  return !!user && Array.isArray(user.identities) && user.identities.length === 0;
+}
+
+/**
+ * Ce que lit celui dont l'adresse a déjà un compte et que le mot de passe saisi
+ * n'ouvre pas. Deux portes nommées, pas un reproche : le mot de passe oublié, et —
+ * seulement si le bouton est à l'écran — Apple, l'autre façon dont ce compte a pu
+ * être ouvert (un compte Apple n'a pas de mot de passe).
+ */
+export function messageCompteExistant(appleDisponible: boolean): string {
+  const base = 'Cette adresse a déjà un compte Kyroz. Connecte-toi avec ton mot de passe, ou touche « Mot de passe oublié ? ».';
+  return appleDisponible
+    ? `${base} Si tu t'étais inscrit avec Apple, utilise « Continuer avec Apple ».`
+    : base;
+}
