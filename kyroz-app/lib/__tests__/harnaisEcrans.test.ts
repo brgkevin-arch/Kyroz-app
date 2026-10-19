@@ -99,6 +99,7 @@ const ANCRES: Ancre[] = [
   { quoi: 'testID du bouton invité', texte: 'guest-login', dans: 'app/(auth)/login.tsx' },
   { quoi: 'champ e-mail (preuve « toujours sur le login »)', texte: 'toi@email.com', dans: 'app/(auth)/login.tsx' },
   { quoi: 'champ mot de passe (QA écran de login)', texte: '6 caractères minimum', dans: 'app/(auth)/login.tsx', script: 'test/qa-full.mjs' },
+  { quoi: "lien vers l'inscription (l'écran s'ouvre sur Connexion)", texte: 'Créer un compte', dans: 'app/(auth)/login.tsx', script: 'test/qa-full.mjs' },
 
   // ── Écran d'avertissement santé : PLUS D'ANCRES, PARCE QU'IL N'Y A PLUS D'ÉCRAN ──
   // Cinq ancres ont vécu ici. Trois sont parties le 2026-08-11 (E39, l'écran cesse de
