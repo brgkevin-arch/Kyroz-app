@@ -79,6 +79,14 @@ describe('format vendu : le choix du format', () => {
     expect(quantiteRangee(article('riz_basmati', 510))).toBe(510);
   });
 
+  it('les 5 % portent sur l’achat entier, pas sur un seul paquet (thon, 2026-10-19)', () => {
+    // 290 g : deux boîtes de 140 g (280 g) couvrent à 3 % près — une troisième serait de trop.
+    expect(achatPour(article('thon_naturel', 290))?.libelle).toBe('2 boîtes de 140 g égouttés');
+    // 300 g : 280 g manqueraient de 7 % — la troisième boîte reste due.
+    expect(achatPour(article('thon_naturel', 300))?.libelle).toBe('3 boîtes de 140 g égouttés');
+    expect(quantiteRangee(article('thon_naturel', 290))).toBe(290);
+  });
+
   it('les œufs se prennent à la boîte, et le besoin se dit en œufs', () => {
     const a = achatPour(article('oeuf_entier', 165));
     expect(a?.libelle).toBe('1 boîte de 6 œufs');

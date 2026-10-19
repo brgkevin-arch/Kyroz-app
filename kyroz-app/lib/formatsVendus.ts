@@ -294,7 +294,9 @@ export function achatPour(article: Article): Achat | null {
   // de paquets (520 g de riz : un paquet de 1 kg plutôt que deux de 500 g).
   let retenu: { format: Format; n: number; total: number } | null = null;
   for (const format of regle.formats) {
-    const n = Math.max(1, Math.ceil((besoin - TOLERANCE_FORMAT * format.taille) / format.taille));
+    // La tolérance porte sur ce qu'on ACHÈTE, pas sur un seul paquet (2026-10-19) : 290 g de
+    // thon, c'est 2 boîtes de 140 g (280 g, 3 % de moins), pas 3. Pour un paquet, rien ne change.
+    const n = Math.max(1, Math.ceil(besoin / (format.taille * (1 + TOLERANCE_FORMAT)) - 1e-9));
     const total = n * format.taille;
     if (!retenu || total < retenu.total || (total === retenu.total && n < retenu.n)) {
       retenu = { format, n, total };
