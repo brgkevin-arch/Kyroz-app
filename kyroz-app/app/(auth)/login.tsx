@@ -11,7 +11,7 @@ import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useTheme, ThemePalette, Spacing, Radius, Type, Fond, Trait, Icone, OPACITE_PRESSION, CIBLE_TACTILE_MIN } from '../../constants/theme';
 import { useLayout } from '../../constants/layout';
-import { Field, PrimaryButton, Segmented } from '../../components/ui';
+import { Field, PrimaryButton } from '../../components/ui';
 import { useAuth } from '../../hooks/useAuth';
 import { appleSignInAvailable } from '../../lib/appleAuth';
 import { AppleSignInButton } from '../../components/AppleSignInButton';
@@ -25,10 +25,11 @@ import { useCompteARebours } from '../../hooks/useCompteARebours';
 import MotDePasseOublie from '../../components/MotDePasseOublie';
 import { IntroCarousel } from '../../components/IntroCarousel';
 import { introDejaVue, marquerIntroVue } from '../../lib/introVu';
+import { modeDArrivee, type ModeConnexion } from '../../lib/modeConnexion';
 import { DUREE, dureeReduite } from '../../lib/motion';
 import { useReduceMotion } from '../../lib/reduceMotion';
 
-type Mode = 'signin' | 'signup';
+type Mode = ModeConnexion;
 
 export default function LoginScreen() {
   const t = useTheme();
@@ -91,7 +92,13 @@ export default function LoginScreen() {
   };
   useEffect(() => {
     let vivant = true;
-    introDejaVue().then((vue) => { if (vivant) setIntroVue(vue); });
+    // Le formulaire d'arrivée se décide ICI, avant le premier rendu (rien ne s'affiche
+    // tant que `introVue` vaut `undefined`) : pas de bascule visible d'un mode à l'autre.
+    introDejaVue().then((vue) => {
+      if (!vivant) return;
+      setMode(modeDArrivee(vue));
+      setIntroVue(vue);
+    });
     return () => { vivant = false; };
   }, []);
 
@@ -134,8 +141,9 @@ export default function LoginScreen() {
       ? await signIn(email, password)
       : await signUp(email, password, consent);
     // ── L'adresse a DÉJÀ un compte (signalé le 2026-10-09) ─────────────────────
-    // Qui revient sur cet écran le trouve ouvert sur « Inscription » et y retape ses
-    // identifiants : il veut ENTRER, pas créer. On essaie donc de le connecter avec ce
+    // Juste après l'accueil, l'écran est sur « Inscription » (`modeDArrivee`) : qui a
+    // réinstallé l'app — ou dont Safari a vidé le stockage du site — revoit l'accueil
+    // et y retape ses identifiants. Il veut ENTRER, pas créer. On essaie donc de le connecter avec ce
     // qu'il vient de taper ; si ça ne passe pas, on bascule sur « Connexion » et on
     // nomme les deux portes. Jamais la saisie d'un code : aucun e-mail n'est parti.
     if ('dejaInscrit' in res && res.dejaInscrit) {
@@ -183,6 +191,8 @@ export default function LoginScreen() {
     setCode('');
     setNotice('Nouvel e-mail envoyé. Utilise le code du dernier reçu, les précédents ne valent plus.');
   };
+
+  const basculer = (m: Mode) => { setMode(m); setError(null); setNotice(null); };
 
   const retourConnexion = () => {
     setAConfirmer(null);
@@ -384,12 +394,10 @@ export default function LoginScreen() {
             </>
           ) : (
           <>
-          <Segmented
-            t={t}
-            options={[{ label: 'Inscription', value: 'signup' }, { label: 'Connexion', value: 'signin' }]}
-            value={mode}
-            onChange={(m) => { setMode(m as Mode); setError(null); setNotice(null); }}
-          />
+          {/* Le titre dit le formulaire ouvert ; l'autre est un lien en bas (2026-10-19,
+              « comme toute app »). Le sélecteur à deux cases mettait les deux au même
+              rang, et l'écran s'ouvrait sur l'inscription pour tout le monde. */}
+          <Text style={s.titreMode}>{mode === 'signup' ? 'Inscription' : 'Connexion'}</Text>
 
           <View style={{ height: 18 }} />
 
@@ -451,6 +459,17 @@ export default function LoginScreen() {
             </>
           )}
 
+          {/* L'autre formulaire, en petit et en bas. Une CIBLE quand même (44 pt). */}
+          <Presse
+            onPress={() => basculer(mode === 'signup' ? 'signin' : 'signup')}
+            disabled={busy} activeOpacity={OPACITE_PRESSION} style={s.bascule}
+          >
+            <Text style={s.basculeTxt}>
+              {mode === 'signup' ? 'Déjà un compte ? ' : 'Pas encore de compte ? '}
+              <Text style={s.basculeLien}>{mode === 'signup' ? 'Se connecter' : 'Créer un compte'}</Text>
+            </Text>
+          </Presse>
+
           {/* Connexion invité : outil de test (manuel + Playwright). Masquée en
               PROD pour fermer le vecteur d'abus (création anonyme de comptes en
               masse — cf. audit sécu). __DEV__ = vrai en dev, faux après
@@ -501,6 +520,10 @@ function makeStyles(t: ThemePalette) {
     check: { width: 24, height: 24, borderRadius: Radius.sm - 4, borderWidth: Trait.controle, alignItems: 'center', justifyContent: 'center', marginTop: Spacing.xs },
     consentTxt: { ...Type.caption, flex: 1, color: t.textTertiary, lineHeight: 19 },
     titreConfirmation: { ...Type.h2, color: t.text, textAlign: 'center' },
+    titreMode: { ...Type.h2, color: t.text, textAlign: 'center' },
+    bascule: { minHeight: CIBLE_TACTILE_MIN, justifyContent: 'center', marginTop: Spacing.xl },
+    basculeTxt: { ...Type.bodySmall, color: t.textTertiary, textAlign: 'center' },
+    basculeLien: { ...Type.bodySmallStrong, color: t.textSecondary },
     texteConfirmation: { ...Type.body, color: t.textSecondary, textAlign: 'center', lineHeight: 22, marginTop: Spacing.md },
     adresse: { ...Type.bodyStrong, color: t.text },
     // Un lien secondaire reste une CIBLE : `minHeight` garantit les 44 pt d'Apple,

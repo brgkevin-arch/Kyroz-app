@@ -188,7 +188,7 @@ export function traduitErreurReinitialisation(msg: string): string {
 // sent » — protection contre l'énumération des comptes).
 // L'app lisait « pas de session » comme « confirmation à valider », affichait
 // « Un code vient de partir », et ce code n'arrivait jamais. Celui qui revenait sur
-// l'écran d'accueil — ouvert par défaut sur « Inscription » — retapait son adresse,
+// l'écran d'accueil — ouvert sur « Inscription » jusqu'au 2026-10-19 — retapait son adresse,
 // recochait la case, et retombait dans la même impasse, à chaque essai.
 //
 // ⚠️ La seule marque du maquillage est `identities: []` : un vrai compte neuf porte
