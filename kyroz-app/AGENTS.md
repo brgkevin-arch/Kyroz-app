@@ -173,10 +173,10 @@ qu'ils étaient périmés.
 3. **La table des formats vendus (E75) — le fondateur l'a RELUE le 2026-10-19** : *« 5 g est
    négligeable, aucun intérêt de faire acheter un pot ; pareil pour 10 g ; il faut estimer la
    proportion pour chaque aliment »*. À concevoir : un seuil PAR ALIMENT (besoin ÷ paquet)
-   sous lequel la liste n'impose pas un paquet ; rien codé. Deux questions posées, sans
-   réponse : sous le seuil, la ligne disparaît-elle (comme le sel) ou reste-t-elle sans paquet
-   (« cacao : 10 g ») ? et faut-il lui préparer le tableau besoin d'une semaine ÷ paquet,
-   aliment par aliment ? Défaut repéré au passage : 3 boîtes de thon proposées pour 290 g
+   sous lequel la liste n'impose pas un paquet. ✅ **Tranché le 2026-10-19** : sous le seuil,
+   **la ligne disparaît** (comme le sel) ; **seuil = 20 % d'une portion habituelle, jamais moins
+   de 10 g** (poulet 30 g, pesto 10 g). Tableau des 129 seuils :
+   `docs/2026-10-19-seuils-par-aliment.md`. ❌ Pas encore codé — à livrer avec #376. Défaut repéré au passage : 3 boîtes de thon proposées pour 290 g
    alors que 2 boîtes font 280 g (la tolérance de 5 % portait sur UN paquet) — ✅ **corrigé
    dans #376 le 2026-10-19** : les 5 % portent sur l'achat entier (`formatsVendus.ts::achatPour`),
    rien ne change pour un seul paquet ; test vérifié par mutation.
