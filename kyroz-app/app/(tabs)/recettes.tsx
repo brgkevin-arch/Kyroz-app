@@ -298,7 +298,8 @@ export default function RecettesScreen() {
         key={`cols-${layout.columns}`}
         numColumns={layout.columns}
         columnWrapperStyle={layout.columns > 1 ? s.gridRow : undefined}
-        contentContainerStyle={[s.list, layout.grid]}
+        style={repli.zone}
+        contentContainerStyle={repli.contenu([s.list, layout.grid])}
         showsVerticalScrollIndicator={false}
         ListHeaderComponent={enTete}
         // Le bouton vit dans le PIED de la liste : posé au-dessus, il serait un

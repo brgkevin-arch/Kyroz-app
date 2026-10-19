@@ -182,9 +182,12 @@ qu'ils étaient périmés.
    OTA »*). **Pas encore publié** : part avec la 61ᵉ OTA ; empreinte iOS re-mesurée sur
    `main` après merge = `823c89db…` (build 22). Reste hors lot : l'icône en couches (Icon
    Composer, nouveau build).
+3 ter. **Le haut de l'app sous la Dynamic Island (E80) — codé le 2026-10-19, PR ouverte, NON
+   mergée** : le contenu défile sous l'heure et s'y fond, comme sur sa capture Instagram.
+   Attend son regard sur les captures ; empreinte iOS inchangée, part avec la 61ᵉ OTA.
 4. **Publier le tout (61ᵉ OTA)** une fois 1 à 3 tranchés : empreinte iOS re-mesurée contre le
    build (22), publication depuis un arbre détaché sur `origin/main`, consignation (ligne
-   « OTA publiées », puce de `STORE-RELEASE.md`, statuts E76/E78/E79, case Tests),
+   « OTA publiées », puce de `STORE-RELEASE.md`, statuts E76/E78/E79/E80, case Tests),
    `npm run check:ota`.
 5. **Option B de la connexion** (questionnaire d'abord, compte à la fin) — **écartée pour
    l'instant**, pas refusée : cf. E77 pour ce qu'elle coûterait. Ne pas la relancer sans
@@ -1818,6 +1821,13 @@ produit en suspens — il ne reste qu'à coder.
   ⚠️ **Non vu** : un vrai iPhone (seulement le simulateur), iOS 27, l'iPad en Split View étroit (règle approximée au seuil de 700 pt), Android (le web, lui, est vérifié). Retouche de la barre dessinée : bas 10 → `Spacing.sm` (exigé par `espacementDA`) — mesuré au navigateur, le libellé était DÉJÀ rogné à 10 (boîte de 11 px pour une police de 11), il l'aurait été plus à 12, il est entier à 8 (13 px).
   ⚠️ **Hors lot** : l'icône de l'app en couches de verre (Icon Composer, modes Sombre/Teinté/Transparent) — natif, donc nouveau build et revue ; il faut l'œil du fondateur.
   Garde-fous : `materiauxDA` (+2 cas), `barreOnglets.test.ts`, `iconesOnglets.test.ts`, sonde de `visiteGuidee` réécrite (les deux barres tirées du même tableau) — **4 mutations, 4 rouges**. Suite : **2 690 verts, 192 fichiers**, `tsc` 0.
+- **E80 · LE HAUT DE L'APP SE FOND SOUS LA DYNAMIC ISLAND** — 🛠️ codé le 2026-10-19, PR ouverte, **non mergée** (demande du fondateur, capture Instagram à l'appui : *« j'aimerais aussi que l'app se fonde en haut du téléphone au niveau de la dynamic island »*).
+  *Avant* : chaque onglet coupait son contenu net à 62 pt (iPhone 17), sous l'heure, et une barre peinte avec un filet portait le titre compact. *Après* : en défilant, le contenu passe sous l'heure et l'îlot et s'y fond ; au repos, rien n'a bougé (titres des cinq onglets mesurés au point près, iPhone ET iPad).
+  🔴 **Défaut de toujours trouvé en chemin** : le titre compact était posé SUR la Dynamic Island (`top: 0`, dans la barre d'état) — caché sur un vrai iPhone, invisible au simulateur, dont les captures ne dessinent pas l'îlot. Il est maintenant sous la barre d'état.
+  🔴 **Deuxième piège, mesuré** : la barre d'onglets native ajoutait la barre d'état au haut de la première liste trouvée (62 pt de trop sur Recettes et Profil, rien sur le Plan) → `disableAutomaticContentInsets` sur les cinq onglets. Le bas reste géré par `Fond.barreOnglets` (bas de Profil vérifié : 39 pt d'air au-dessus de la barre).
+  Fondu réglé au pixel, en trois passes : 14/255 sous le titre à la première (le haut redevenait une bande noire — l'inverse de la demande), puis ≈ 35 % (un nom d'article croisait « Courses »), retenu : le contenu se devine sous l'heure (≈ 25 %) et reste bas derrière le titre (≈ 10–20 %) ; l'heure et le titre à 255. Roue de « tirer pour rafraîchir » (Plan, Courses) décalée sous l'îlot (`progressViewOffset`, vue à 83 pt). Web vérifié (pas d'îlot, rien ne descend).
+  ⚠️ **Non vu** : un vrai iPhone (l'îlot réel), Android (sa barre d'état reçoit le même traitement), iOS 27.
+  Garde-fous : `repliTitre.test.ts` (+6 cas : seuil sous l'îlot, décalage, trois pièces sur les cinq écrans, roue, titre sous la barre) — **3 mutations, 3 rouges** ; `seuilRepli` prend la barre d'état en paramètre OBLIGATOIRE (`tsc` a signalé les 6 appels qui l'oubliaient). Suite : **2 697 verts / 192 fichiers**, `tsc` 0, empreinte iOS `823c89db…` (= build 22).
 - **E19 · Le brief « fortes masses grasses » accusait les gros gabarits — le plancher
   mord les MAIGRES** 📏 **MESURÉ le 2026-08-07, aucune ligne de moteur touchée.**
   Contrôle : `npm run mesure:adiposite`.

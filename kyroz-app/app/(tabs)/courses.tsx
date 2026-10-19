@@ -705,7 +705,8 @@ export default function CoursesScreen() {
       <SectionList<ShoppingItem, CoursesSection>
         sections={sections}
         keyExtractor={(item) => item.name}
-        contentContainerStyle={[s.list, layout.content]}
+        style={repli.zone}
+        contentContainerStyle={repli.contenu([s.list, layout.content])}
         showsVerticalScrollIndicator={false}
         stickySectionHeadersEnabled={false}
         ListHeaderComponent={enTete}
@@ -720,7 +721,7 @@ export default function CoursesScreen() {
           </Text>
         )}
         {...repli.scrollProps}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={t.textTertiary} />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={t.textTertiary} progressViewOffset={repli.haut} />}
         renderSectionHeader={({ section }) => (
           <View style={s.section}>
             <Text style={s.sectionTxt}>{section.title.toUpperCase()}</Text>

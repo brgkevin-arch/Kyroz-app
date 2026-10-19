@@ -2346,7 +2346,7 @@ mois parce qu'elle donnait une raison, et que personne ne l'a re-mesurée contre
 | Barre d'onglets, web/Android | `app/(tabs)/_layout.tsx` | **peinte**, dans le flux — pas de verre hors iOS 26 |
 | Feuille partielle | `ActionSheet` (et donc tous les dialogues, `Dialog.tsx`) | **en verre**, décollée de `Spacing.sm`, rayon concentrique `Spacing.xxl + Radius.button` (2026-10-19) |
 | Feuille pleine hauteur | `Sheet` (94 %) | **peinte** — la règle d'Apple à pleine hauteur |
-| Barre de titre compacte | `CollapsingTitle.tsx` | **peinte** — rien ne passe derrière (mesuré) ; **absente sur iPad**, où la barre d'onglets en haut l'aurait recouverte |
+| Haut des onglets (barre d'état + titre compact) | `CollapsingTitle.tsx` | **fondu**, pas de verre : le contenu défile SOUS l'heure et l'îlot et s'y fond (2026-10-19) — l'effet de bord d'iOS 26 est un flou, pas du Liquid Glass ; **absente sur iPad**, où la barre d'onglets en haut l'aurait recouverte |
 
 **La barre d'onglets native (2026-10-19), ce qu'il faut savoir avant d'y toucher :**
 - **Publiable en OTA** : le composant natif vient de `react-native-screens` (4.26.2,
@@ -2386,6 +2386,21 @@ défile derrière elle (`SafeAreaView edges={['top']}` fait commencer le contenu
 Le verre y rendait le même noir, en supprimant le filet. Chantier annulé sur ce fichier.
 Deux hypothèses plausibles donnaient la même capture noire ; **seule la sonde colorée a
 tranché**.
+
+🔴 **Le haut des onglets a changé le 2026-10-19 (demande du fondateur : « que l'app se fonde
+en haut, au niveau de la Dynamic Island »).** Le contenu défile désormais SOUS la barre
+d'état : la zone défilante remonte (`repli.zone`, marge négative) et son contenu redescend
+d'autant (`repli.contenu`) — au repos, les cinq titres sont au point près où ils étaient
+(mesuré). Un fondu (`FONDU_BARRE_ETAT`, `FONDU_TITRE`, `lib/collapsingTitle.ts`) garde
+l'heure et le titre lisibles en laissant deviner le contenu (≈ 25 % sous l'heure, 10–20 %
+derrière le titre, mesuré au pixel). Le filet a disparu : il expliquait une coupure qui n'existe plus.
+- ⚠️ **Le titre compact était posé SUR la Dynamic Island** (`top: 0`, 52 pt, dans la barre
+  d'état) : caché sur un vrai iPhone, invisible dans les captures du simulateur, qui ne
+  dessinent pas l'îlot. Il est maintenant sous la barre d'état.
+- 🔴 **`disableAutomaticContentInsets` sur chaque onglet natif** : sinon iOS ajoute la barre
+  d'état au haut de la première liste trouvée — 62 pt de trop sur Recettes et Profil, rien
+  sur le Plan. `repliTitre.test.ts` compte les trois pièces sur les cinq écrans.
+- iPad : rien ne remonte (`haut` = 0), l'inset global ne connaît pas la barre d'onglets du haut.
 
 ➡️ **Garde-fous : `lib/__tests__/materiauxDA.test.ts`** (8 mutations en août, 2 de plus le
 2026-10-19 : barre native qui se rétracte, feuille partielle sans verre), plus

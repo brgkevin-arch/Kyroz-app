@@ -501,7 +501,7 @@ export default function ProfilScreen() {
           dépense estimée, le bloc « ce qui suit ton compte ») dans le champ
           visible. En natif, sans cette ref, une cible sous la ligne de flottaison
           se mesure hors écran et son étape s'ouvre sur le vide. */}
-      <ScrollView ref={scrollRef} contentContainerStyle={[s.content, layout.content]} showsVerticalScrollIndicator={false} {...repli.scrollProps}>
+      <ScrollView ref={scrollRef} style={repli.zone} contentContainerStyle={repli.contenu([s.content, layout.content])} showsVerticalScrollIndicator={false} {...repli.scrollProps}>
         {/* En-tête — l'écran n'en avait AUCUN : il démarrait direct sur la carte
             poids. Sur un écran aussi long, arriver sans savoir où on est coûte plus
             cher que les 60 px que ça prend. Le surtitre dit qui tu es, le titre dit
