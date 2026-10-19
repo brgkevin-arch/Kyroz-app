@@ -2392,8 +2392,8 @@ en haut, au niveau de la Dynamic Island »).** Le contenu défile désormais SOU
 d'état : la zone défilante remonte (`repli.zone`, marge négative) et son contenu redescend
 d'autant (`repli.contenu`) — au repos, les cinq titres sont au point près où ils étaient
 (mesuré). Un fondu (`FONDU_BARRE_ETAT`, `FONDU_TITRE`, `lib/collapsingTitle.ts`) garde
-l'heure et le titre lisibles en laissant deviner le contenu (≈ 25 % sous l'heure, 10–20 %
-derrière le titre, mesuré au pixel). Le filet a disparu : il expliquait une coupure qui n'existe plus.
+l'heure et le titre lisibles en laissant voir le contenu — allégé à la demande du fondateur
+(« trop sombre ») : contenu à 85–100/255 sous l'heure, l'heure et le titre à 255 (mesuré). Le filet a disparu : il expliquait une coupure qui n'existe plus.
 - ⚠️ **Le titre compact était posé SUR la Dynamic Island** (`top: 0`, 52 pt, dans la barre
   d'état) : caché sur un vrai iPhone, invisible dans les captures du simulateur, qui ne
   dessinent pas l'îlot. Il est maintenant sous la barre d'état.

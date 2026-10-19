@@ -65,24 +65,26 @@ export function paddingHautDecale(
  * qu'il doit rendre lisible par-dessus des cartes claires.
  */
 export const FONDU_BARRE_ETAT = [
-  { a: 0, opacite: 0.6 },
-  { a: 0.6, opacite: 0.35 },
+  { a: 0, opacite: 0.35 },
+  { a: 0.6, opacite: 0.15 },
   { a: 1, opacite: 0 },
 ] as const;
 
 export const FONDU_TITRE = [
-  { a: 0, opacite: 0.75 },
-  { a: 0.42, opacite: 0.75 },
-  { a: 0.52, opacite: 0.9 },
-  { a: 0.8, opacite: 0.8 },
+  { a: 0, opacite: 0.4 },
+  { a: 0.42, opacite: 0.4 },
+  { a: 0.52, opacite: 0.6 },
+  { a: 0.8, opacite: 0.5 },
   { a: 1, opacite: 0 },
 ] as const;
 
 // ℹ️ Réglé AU PIXEL le 2026-10-19 sur iPhone 17 (bande de l'heure 0–62 pt, bande du
 // titre 62–114, soit a ≈ 0,46 → 0,85 sur 134 pt). Première passe à 1/0,92 : le contenu
 // tombait à 14/255 — le haut redevenait une bande noire, l'inverse de la demande. Passe
-// retenue : le contenu se devine sous l'heure (≈ 25 %), et il est tenu plus bas DERRIÈRE
-// le titre (≈ 10–20 %) — à 35 %, un nom d'article croisait « Courses » en pleine lecture.
+// suivante : le contenu se devinait sous l'heure (≈ 25 %) et restait bas derrière le titre
+// (≈ 10–20 %). 🔴 Le fondateur, sur captures : « trop sombre, réduis ». Allégé de moitié
+// environ : sous l'heure ≈ 65–85 % du contenu, derrière le titre ≈ 40–50 %. Le titre
+// reste dominant par sa graisse et son blanc pur ; un nom de carte peut le croiser.
 
 /** Ce que le fondu déborde sous la bande qu'il couvre, pour que la fin soit douce. */
 export const DEBORD_FONDU = 20;
