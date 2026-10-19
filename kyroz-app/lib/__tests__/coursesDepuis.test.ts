@@ -56,12 +56,12 @@ describe('quels jours la liste couvre', () => {
 
 describe('ce que l’écran annonce', () => {
   it('rien quand la liste couvre tout le plan', () => {
-    expect(mentionDepart(plan('2026-09-14'), SEMAINE)).toBe('');
-    expect(mentionDepart(plan('2026-09-17'), undefined)).toBe('');
+    expect(mentionDepart(plan('2026-09-14'), SEMAINE, null)).toBe('');
+    expect(mentionDepart(plan('2026-09-17'), undefined, null)).toBe('');
   });
 
   it('le jour de départ quand elle ne couvre pas tout', () => {
-    expect(mentionDepart(plan('2026-09-17'), SEMAINE)).toBe('À partir du jeudi : ton plan avait déjà commencé.');
+    expect(mentionDepart(plan('2026-09-17'), SEMAINE, null)).toBe('À partir du jeudi : ton plan avait déjà commencé.');
   });
 });
 
@@ -72,10 +72,12 @@ describe('l’écran Courses s’en sert', () => {
   it('la liste se construit sur ces jours-là, et l’écran le dit', () => {
     // Depuis F9 (2026-10-02), la liste passe par `repasACompter`, qui rend la règle du
     // jour de génération tant qu'aucune clôture n'a eu lieu cette semaine.
-    expect(src).toMatch(/repasACompter\(plan, profile\?\.plan_weekdays, newestFirst\(await loadHistory\(\)\)\[0\]\?\.at\)/);
+    // E78 (2026-10-19) : d'abord les repas depuis le début choisi à l'inscription.
+    expect(src).toMatch(/repasDepuisLeDebut\(plan, profile\?\.plan_weekdays, debut, activeSlots\(profile\)\)/);
+    expect(src).toMatch(/repasACompter\(servi, profile\?\.plan_weekdays, newestFirst\(await loadHistory\(\)\)\[0\]\?\.at\)/);
     expect(src).toMatch(/buildShoppingList\(\{ \.\.\.plan, meals: perimetre\.meals \}, pantry, perimetre\.jours\)/);
     expect(src).toMatch(/setDepart\(perimetre\.apresCourses/);
-    expect(src).toMatch(/: mentionDepart\(plan, profile\?\.plan_weekdays\)\)/);
+    expect(src).toMatch(/: mentionDepart\(plan, profile\?\.plan_weekdays, debut\)\)/);
     expect(src).toMatch(/depart !== '' && <Text style=\{s\.depart\}>\{depart\}<\/Text>/);
   });
 });

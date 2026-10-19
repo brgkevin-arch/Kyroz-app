@@ -51,8 +51,11 @@ import { pushPantry } from '../../lib/sync';
 import { activeSlots } from '../../lib/mealSlots';
 import {
   useRepasAuto, repasEchus, repasEchusVeille, minutesDepuisMinuit, dejaSolde, marquerSolde,
-  lireDebutSuivi, noterDebutSuivi, bornePremierJour,
+  lireDebutSuivi, noterDebutSuivi, fixerDebutSuivi, bornePremierJour, heuresLimites, type DebutDuSuivi,
 } from '../../lib/repasAuto';
+import {
+  optionsDeDebut, semaineDuDebut, avantLeDebut, avantLeJourDuDebut, dateEnLettres, debutEnClair, type OptionDebut,
+} from '../../lib/debutPlan';
 import { useFirstName } from '../../lib/profileName';
 import { salutation } from '../../lib/salutation';
 import { capture, Events } from '../../lib/analytics';
@@ -208,6 +211,26 @@ export default function PlanScreen() {
 
   // ⚠️ Plus de rappel ici : il attend la fin de la visite (`onFin` ci-dessous).
   const fermerReveal = () => setShowReveal(false);
+
+  // ── QUAND COMMENCE LE PLAN ? (E78, décision fondateur du 2026-10-19) ─────────
+  // Demandé une fois, dans la même fenêtre que « C'est prêt » et juste avant elle :
+  // fin de l'inscription → « Quand veux-tu commencer ? » → « C'est prêt » → la visite.
+  // ⚠️ Une seule `Modal` pour les deux pages : iOS refuse d'en présenter une seconde
+  // pendant que la première s'efface (CLAUDE.md §11).
+  // `debut` : le début enregistré (`@kyroz:debutSuivi`) — l'écran n'affiche rien avant lui.
+  const [debut, setDebut] = useState<DebutDuSuivi | null>(null);
+  const [optionsDebut, setOptionsDebut] = useState<OptionDebut[]>([]);
+  useEffect(() => { lireDebutSuivi().then(setDebut); }, []);
+  const choisirDebut = async (o: OptionDebut) => {
+    await fixerDebutSuivi(o.debut);
+    setDebut(o.debut);
+    // Un début À VENIR fait partir la semaine du plan de ce jour-là : la liste, les dates
+    // et le renouvellement suivent sans rien d'autre (lib/debutPlan.ts::semaineDuDebut).
+    if (plan) {
+      const semaine = semaineDuDebut(plan.week_start_date, o.debut);
+      if (semaine !== plan.week_start_date) await persistPlan({ ...plan, week_start_date: semaine }, false);
+    }
+  };
   const [birthdayAge, setBirthdayAge] = useState<number | null>(null); // 🎂 une fois l'an
   const autoTried = React.useRef(false);
   const scrollRef = React.useRef<ScrollView>(null);
@@ -384,6 +407,12 @@ export default function PlanScreen() {
     const wds = profile?.plan_weekdays;
     const todayWd = new Date().getDay();
     if (!wds || wds.length === 0) return 1;          // repli legacy : aujourd'hui = jour 1
+    // E78 : avant le début choisi, on ouvre sur le JOUR DU DÉBUT — par le jour de la
+    // semaine, un mercredi aurait ouvert sur le mercredi d'une semaine pas commencée.
+    if (avantLeJourDuDebut(todayStamp(), debut)) {
+      const i = datesDuPlan(plan, wds)?.findIndex((d) => d >= debut!.jour) ?? -1;
+      if (i >= 0) return i + 1;
+    }
     const active = wds.slice(0, plan.days);
     const exact = active.indexOf(todayWd);
     if (exact >= 0) return exact + 1;                // aujourd'hui EST un jour de plan
@@ -393,7 +422,7 @@ export default function PlanScreen() {
       if (delta < bestDelta) { bestDelta = delta; best = idx + 1; }
     });
     return best;
-  }, [profile, plan, jourCivil]);
+  }, [profile, plan, jourCivil, debut]);
   useEffect(() => { setSelectedDay(todayIdx); }, [todayIdx]);
 
   // Répercute les recettes personnalisées (overrides) sur le plan déjà affiché :
@@ -456,13 +485,15 @@ export default function PlanScreen() {
     await marquerSolde(hier);
     const jour = idxDuJour(new Date(Date.now() - 86400000).getDay());
     if (jour === null || !profile) return;
+    const debutDuPlan = await lireDebutSuivi();
+    if (avantLeJourDuDebut(hier, debutDuPlan)) return;  // E78 : la veille du début, rien n'était dû
     // 🔴 Pas les repas dont l'heure était passée avant le PREMIER plan (inscription du
     // soir) : la veille, ils n'avaient pas été cochés ; ce solde les aurait retirés de la
     // réserve quand même, au premier lancement du lendemain (`lib/repasAuto.ts`).
     const dus = repasEchusVeille(
       p.meals.filter((m) => m.day === jour),
       activeSlots(profile),
-      bornePremierJour(await lireDebutSuivi(), hier),
+      bornePremierJour(debutDuPlan, hier),
     );
     if (dus.length === 0) return;
     let items = await loadPantry();
@@ -532,8 +563,11 @@ export default function PlanScreen() {
       // dans une constante qu'on a choisie nous-mêmes. On ne mesure que ce qu'on ne
       // connaît pas — le temps du moteur sur un vrai téléphone.
       const t0 = Date.now();
-      const p = carryTracking(profile, ancien, buildLocalPlan(profile, seed));
+      const genere = carryTracking(profile, ancien, buildLocalPlan(profile, seed));
       const dureeMoteurMs = Date.now() - t0;
+      // E78 : tant que le début choisi à l'inscription est À VENIR, toute régénération
+      // (un réglage changé entre-temps) garde la semaine qui part de ce jour-là.
+      const p = { ...genere, week_start_date: semaineDuDebut(genere.week_start_date, await lireDebutSuivi()) };
       etape = 'persistance';
       await AsyncStorage.setItem(PLAN_KEY, JSON.stringify(p));
       await AsyncStorage.removeItem(LIST_KEY);
@@ -550,6 +584,9 @@ export default function PlanScreen() {
         // l'heure était déjà passée (lib/repasAuto.ts). Noté AVANT `setPlan`, que la
         // première auto-coche suit de près.
         await noterDebutSuivi(todayStamp(), minutesDepuisMinuit());
+        // E78 : la question du début ouvre la fenêtre, « C'est prêt » suit (FirstPlanReveal).
+        // Le repli ci-dessus (« maintenant ») tient si l'app est tuée avant la réponse.
+        setOptionsDebut(optionsDeDebut(new Date(), activeSlots(profile), profile.plan_weekdays?.slice(0, p.days)));
         setShowReveal(true);
         capture(Events.firstPlanViewed, { duree_generation_ms: dureeMoteurMs });
       }
@@ -644,12 +681,15 @@ export default function PlanScreen() {
     if (!plan || !profile || !repasAuto) return;
     const jour = idxDuJour(new Date().getDay());
     if (jour === null) return;                 // aujourd'hui n'est pas un jour de plan
+    const debutDuPlan = await lireDebutSuivi();
+    // E78 : avant le jour choisi pour commencer, le plan ne tourne pas encore.
+    if (avantLeJourDuDebut(todayStamp(), debutDuPlan)) return;
     const dus = repasEchus(
       plan.meals.filter((m) => m.day === jour),
       activeSlots(profile),
       minutesDepuisMinuit(),
       // Le jour du premier plan, rien de ce qui était échu AVANT lui (lib/repasAuto.ts).
-      bornePremierJour(await lireDebutSuivi(), todayStamp()),
+      bornePremierJour(debutDuPlan, todayStamp()),
     );
     if (dus.length === 0) return;
 
@@ -819,7 +859,33 @@ export default function PlanScreen() {
     setSelectedMeal((m) => (m ? reAdaptMealRecipe(m, r) : m));
   };
 
-  const dayMeals = plan?.meals.filter((m) => m.day === selectedDay) ?? [];
+  // Dates du bandeau : la VRAIE date de chaque jour du plan (2026-10-04,
+  // `lib/semainePlan.ts::datesDuPlan`). Elles étaient ancrées sur la semaine EN COURS,
+  // donc un plan généré le dimanche pour la semaine qui vient affichait celle qui finissait.
+  // ⚠️ Repli sur la semaine en cours quand le plan est RÉVOLU (son renouvellement est en
+  // route, ou il a échoué) : c'est ce qui avait fermé les « 5/6/7 » affichés un lundi 8,
+  // du temps où rien ne renouvelait le plan.
+  const datesReelles = plan && !semaineEcoulee(plan, jourCivil, profile?.plan_weekdays)
+    ? datesDuPlan(plan, profile?.plan_weekdays) : null;
+  // E78 (2026-10-19) : les repas d'avant le début choisi ne s'affichent pas — ni ceux déjà
+  // passés quand on a dit « Ce soir », ni les jours d'avant un début à venir. Même règle
+  // que la liste de courses (`lib/debutPlan.ts`).
+  const limitesRepas = useMemo(() => heuresLimites(activeSlots(profile)), [profile]);
+  const dayMealsPlan = plan?.meals.filter((m) => m.day === selectedDay) ?? [];
+  const dayMeals = dayMealsPlan.filter((m) => !avantLeDebut(m, datesReelles, debut, limitesRepas));
+  // L'aperçu de « C'est prêt » : le PREMIER jour qu'on vivra, tel qu'il sera servi — plus
+  // le jour 1 d'office, qui pouvait être un jour d'avant le début (E78).
+  const premierJour = (debut && datesReelles ? datesReelles.findIndex((d) => d >= debut.jour) : 0) + 1 || 1;
+  const apercuPremierJour = (plan?.meals ?? [])
+    .filter((m) => m.day === premierJour && !avantLeDebut(m, datesReelles, debut, limitesRepas));
+  // La phrase reste vraie après coup : on peut rouvrir ce jour-là la semaine suivante.
+  const avantDebutMention = dayMeals.length === dayMealsPlan.length || !debut
+    ? null
+    : dayMeals.length > 0
+      ? 'Les repas d’avant ton début ne sont pas comptés.'
+      : avantLeJourDuDebut(jourCivil, debut)
+        ? `Ton plan commence ${dateEnLettres(debut.jour)}.`
+        : 'Ce jour-là, ton plan n’avait pas encore commencé.';
   // 🔴 LA CIBLE DE LA VISITE EST REVENUE SUR UNE CARTE DE REPAS (2026-09-30), et pas
   // pour la même raison qu'avant. Elle avait été retirée le 2026-08-25 pour deux
   // défauts : l'anneau désignait UN repas pour une phrase qui parle de tous, et une
@@ -866,14 +932,7 @@ export default function PlanScreen() {
 
   const todayLabel = new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
 
-  // Dates du bandeau : la VRAIE date de chaque jour du plan (2026-10-04,
-  // `lib/semainePlan.ts::datesDuPlan`). Elles étaient ancrées sur la semaine EN COURS,
-  // donc un plan généré le dimanche pour la semaine qui vient affichait celle qui finissait.
-  // ⚠️ Repli sur la semaine en cours quand le plan est RÉVOLU (son renouvellement est en
-  // route, ou il a échoué) : c'est ce qui avait fermé les « 5/6/7 » affichés un lundi 8,
-  // du temps où rien ne renouvelait le plan.
-  const datesReelles = plan && !semaineEcoulee(plan, jourCivil, profile?.plan_weekdays)
-    ? datesDuPlan(plan, profile?.plan_weekdays) : null;
+  // (Dates du bandeau : `datesReelles`, plus haut — la liste des repas du jour en a besoin.)
   const dayMeta = (i: number) => {
     const today = new Date();
     const wds = profile?.plan_weekdays;
@@ -1151,6 +1210,8 @@ export default function PlanScreen() {
                 même nombre sur un écran, c'est une redondance, pas une information —
                 et chaque carte de repas porte déjà ses propres kcal. */}
             <SectionLabel t={t}>Repas du jour</SectionLabel>
+            {/* E78 : dit pourquoi des repas manquent avant le début choisi à l'inscription. */}
+            {avantDebutMention && <Text style={s.mentionDebut}>{avantDebutMention}</Text>}
             <View style={{ gap: Spacing.md }}>
               {dayMeals.map((m, i) => {
                 const reserveNonVide = pantry.length > 0;
@@ -1286,7 +1347,10 @@ export default function PlanScreen() {
           visible={showReveal}
           profile={profile}
           firstName={firstName}
-          previewMeals={plan ? plan.meals.filter((m) => m.day === 1) : []}
+          previewMeals={apercuPremierJour}
+          optionsDebut={optionsDebut}
+          onDebut={choisirDebut}
+          debutLibelle={debut && optionsDebut.length > 0 ? debutEnClair(debut, jourCivil) : null}
           onClose={fermerReveal}
         />
       )}
@@ -1455,6 +1519,7 @@ function makeStyles(t: ThemePalette) {
     actionsRow: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', columnGap: Spacing.xl, marginTop: Spacing.sm },
     actionBtn: { minHeight: 44, justifyContent: 'center' },
     actionTxt: { ...Type.bodySmallStrong, color: t.textSecondary },
+    mentionDebut: { ...Type.bodySmall, color: t.textSecondary, marginBottom: Spacing.md },
     empty: { alignItems: 'center', gap: Spacing.md, paddingVertical: Spacing.xxl },
     emptyIcon: { width: 72, height: 72, borderRadius: 24, alignItems: 'center', justifyContent: 'center', marginBottom: Spacing.sm },
     emptyTitle: { color: t.text, ...Type.h2 },

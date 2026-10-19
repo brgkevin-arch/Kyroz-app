@@ -16,6 +16,9 @@ import { PrimaryButton, Chip, Field } from '../../components/ui';
 import { MealPlan, ShoppingItem, ShoppingList } from '../../lib/types';
 import { buildShoppingList } from '../../lib/shoppingList';
 import { repasACompter, mentionDepart } from '../../lib/coursesDepuis';
+import { repasDepuisLeDebut } from '../../lib/debutPlan';
+import { lireDebutSuivi } from '../../lib/repasAuto';
+import { activeSlots } from '../../lib/mealSlots';
 import { useProfile } from '../../hooks/useProfile';
 import { formatQuantity, toBaseUnit } from '../../lib/units';
 import { searchFoods } from '../../lib/foods';
@@ -132,10 +135,14 @@ export default function CoursesScreen() {
     // à cuisiner : un repas cuisiné a déjà été retiré de la réserve, le compter aussi dans
     // le besoin le faisait racheter (F9, décision fondateur du 2026-10-02). Avant les
     // courses, la règle du 2026-09-17 tient : la liste part du jour de génération.
-    const perimetre = repasACompter(plan, profile?.plan_weekdays, newestFirst(await loadHistory())[0]?.at);
+    // E78 (2026-10-19) : rien d'avant le début choisi à l'inscription — ni les repas
+    // déjà passés quand on a dit « Ce soir », ni les jours d'avant un début à venir.
+    const debut = await lireDebutSuivi();
+    const servi = { ...plan, meals: repasDepuisLeDebut(plan, profile?.plan_weekdays, debut, activeSlots(profile)) };
+    const perimetre = repasACompter(servi, profile?.plan_weekdays, newestFirst(await loadHistory())[0]?.at);
     setDepart(perimetre.apresCourses
       ? 'Depuis tes dernières courses : pour les repas qu’il te reste à cuisiner.'
-      : mentionDepart(plan, profile?.plan_weekdays));
+      : mentionDepart(plan, profile?.plan_weekdays, debut));
     // ── LA RÉSERVE EST TOUJOURS SOUSTRAITE (2026-08-24) ──────────────────────
     //
     // L'interrupteur « Tenir compte du frigo » a été RETIRÉ (décision fondateur).

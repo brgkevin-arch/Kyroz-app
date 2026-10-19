@@ -167,8 +167,8 @@ qu'ils étaient périmés.
    `gh pr merge` à Claude sur cette PR (« Merge Without Review », 2026-10-04) : le fondateur
    fusionne lui-même, ou l'autorise via `/permissions` dans un terminal `claude`.
 2. **L'inscription du soir — angle mort MESURÉ (E78)** : la première liste de courses achète
-   les repas du jour déjà passés (+22 % à +36 %). Le fondateur a des idées pour le régler :
-   **les écouter avant de proposer**. À livrer avec #376.
+   les repas du jour déjà passés (+22 % à +36 %). ✅ **CODÉ dans #376 le 2026-10-19** (idée du
+   fondateur : demander quand on commence) — non publié, part avec la 61ᵉ OTA ; détail en E78.
 3. **La table des formats vendus (E75) — le fondateur l'a RELUE le 2026-10-19** : *« 5 g est
    négligeable, aucun intérêt de faire acheter un pot ; pareil pour 10 g ; il faut estimer la
    proportion pour chaque aliment »*. À concevoir : un seuil PAR ALIMENT (besoin ÷ paquet)
@@ -1835,11 +1835,15 @@ produit en suspens — il ne reste qu'à coder.
   en capitales (« feu DOUX »), sans `ENGINE_VERSION` : les plans en cours prennent la phrase à
   leur renouvellement plutôt que de se régénérer tous à l'OTA.
 
-- **E78 · L'INSCRIPTION DU SOIR : la première liste de courses achète les repas du jour déjà passés** — 📏 MESURÉ le 2026-10-19, ❌ rien codé (question du fondateur : *« si la personne s'est inscrite le soir, la liste contient les plats de la journée alors qu'elle ne va probablement pas les manger ? »*).
+- **E78 · L'INSCRIPTION DU SOIR : la première liste de courses achète les repas du jour déjà passés** — 📏 MESURÉ puis 🟡 **CODÉ le 2026-10-19 dans #376, NON publié** (question du fondateur : *« si la personne s'est inscrite le soir, la liste contient les plats de la journée alors qu'elle ne va probablement pas les manger ? »*).
   Avant des « Courses terminées », la liste part du jour de génération ENTIER (règle du 2026-09-17, `lib/coursesDepuis.ts`) : à 21 h 45, les quatre repas du jour sont passés et pourtant achetés. #365 a réglé le SUIVI (rien n'est coché « mangé » avant le premier plan) ; la LISTE, elle, n'a pas bougé, et ces repas restent « à faire » à l'écran. Mesuré au moteur (profil de test, plan lun → ven, inscription à 21 h 45) :
   · inscrit le **lundi** : 20 repas comptés dont 4 passés → **9,2 kg au lieu de 7,5 (+22 %)**, 5 lignes n'existent que pour ce soir ;
   · inscrit le **mercredi** : 12 repas dont 4 passés (un tiers) → **5,6 kg au lieu de 4,1 (+36 %)**, 11 lignes rien que pour ce soir (filet mignon 205 g, saumon fumé 100 g…).
   ➡️ Le fondateur a ses idées : les recueillir avant de proposer ; à livrer avec #376 (même zone : `coursesDepuis.ts`, `semainePlan.ts`). Tout correctif se mesure sur un lundi ET un milieu de semaine, à plusieurs heures (19 h, 21 h 45).
+  ✅ **Décision fondateur (2026-10-19)** : à la fin de l'inscription, AVANT « C'est prêt », Kyroz demande **« Quand veux-tu commencer ? »** — « Ce soir » / « Aujourd'hui » (s'il reste un repas : la collation et le dîner à 19 h 30), « Demain », « Un autre jour » (les jours du plan des 7 prochains jours). Puis « C'est prêt » (« Tu commences jeudi 22 octobre. », l'aperçu montre le premier jour vécu), puis la visite. Une fois, au premier plan ; les comptes existants ne voient rien changer.
+  **Comment** : le début EST `@kyroz:debutSuivi` (`{ jour, minutes }`, `fixerDebutSuivi`) — un seul objet pour l'auto-coche, la liste et l'écran. Un début à venir fait partir `week_start_date` de ce jour-là (`lib/debutPlan.ts::semaineDuDebut`, y compris aux régénérations d'ici là) : liste, dates du bandeau et renouvellement suivent sans rien d'autre. Les repas d'avant le début (jours antérieurs, ou heure limite passée au moment du « Ce soir ») ne s'affichent pas et ne s'achètent pas (`repasDepuisLeDebut`) ; l'auto-coche et le solde de la veille ne touchent à rien avant le jour du début. Une seule `Modal` pour les deux pages (`FirstPlanReveal`, iOS refuse d'en enchaîner deux).
+  **Mesuré au moteur** (profil de test, lun → ven) : mercredi 21 h 45 « Ce soir » → **5,8 → 4,8 kg, 44 → 36 lignes** ; lundi 21 h 45 → 9,9 → 8,8 kg. Garde-fou : `debutPlan.test.ts` (12 cas, 2 mutations rouges). **Vu à l'écran** (web, 375 pt, lundi 19 h 30) : « Ce soir » → Plan avec collation + dîner et « Les repas d'avant ton début ne sont pas comptés » ; « Jeudi 22 » → Plan ouvert sur le jour 4, lundi affiche « Ton plan commence jeudi 22 octobre. », Courses « À partir de jeudi, le jour où tu commences. ». ⚠️ Non vu au simulateur iOS.
+  ⚠️ **Reste à trancher** : le chiffre du jour (« 0 / 2 314 kcal ») reste celui d'une journée entière sur un jour d'avant le début et le soir du « Ce soir ». Et l'effet du samedi d'E76 (premier plan de 2 jours) n'arrive plus que si l'on choisit « Aujourd'hui » un samedi.
 - **E19 · Le brief « fortes masses grasses » accusait les gros gabarits — le plancher
   mord les MAIGRES** 📏 **MESURÉ le 2026-08-07, aucune ligne de moteur touchée.**
   Contrôle : `npm run mesure:adiposite`.

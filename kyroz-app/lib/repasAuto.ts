@@ -203,6 +203,17 @@ export async function noterDebutSuivi(jour: string, minutes: number): Promise<vo
   } catch {}
 }
 
+/**
+ * Le début CHOISI à la fin de l'inscription (E78, 2026-10-19) — il remplace celui noté à la
+ * génération. Le seul écrivain qui écrase : `noterDebutSuivi` pose le repli « maintenant »
+ * au cas où l'app serait tuée avant la réponse.
+ */
+export async function fixerDebutSuivi(debut: DebutDuSuivi): Promise<void> {
+  try {
+    await AsyncStorage.setItem(DEBUT_SUIVI_KEY, JSON.stringify(debut));
+  } catch {}
+}
+
 /** L'heure limite d'un repas était-elle déjà passée quand le premier plan est arrivé ? */
 function avantLePlan(limite: number, borne: number | null): boolean {
   return borne !== null && limite <= borne;

@@ -51,12 +51,21 @@ export const NOMS_JOURS = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'v
 /**
  * Ce que l'écran Courses annonce quand la liste ne couvre pas tout le plan.
  * Chaîne vide quand elle le couvre : rien à dire, donc rien à afficher.
+ * ⚠️ `debut` OBLIGATOIRE (même `null`, E78 du 2026-10-19) : quand la semaine part du jour
+ * CHOISI à l'inscription, « ton plan avait déjà commencé » serait faux — il n'a pas commencé.
  */
-export function mentionDepart(plan: Pick<MealPlan, 'week_start_date' | 'days'>, weekdays: number[] | undefined): string {
+export function mentionDepart(
+  plan: Pick<MealPlan, 'week_start_date' | 'days'>,
+  weekdays: number[] | undefined,
+  debut: { jour: string } | null,
+): string {
   const jours = joursAAcheter(plan, weekdays);
   if (jours.length >= plan.days) return '';
   const wd = jourDeSemaine(plan.week_start_date);
-  return wd === null ? '' : `À partir du ${NOMS_JOURS[wd]} : ton plan avait déjà commencé.`;
+  if (wd === null) return '';
+  return debut?.jour === plan.week_start_date
+    ? `À partir de ${NOMS_JOURS[wd]}, le jour où tu commences.`
+    : `À partir du ${NOMS_JOURS[wd]} : ton plan avait déjà commencé.`;
 }
 
 // ── APRÈS DES COURSES TERMINÉES : SEULEMENT LES REPAS QU'IL RESTE À CUISINER ──────────

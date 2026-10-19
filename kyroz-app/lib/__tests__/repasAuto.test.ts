@@ -251,8 +251,11 @@ describe('🔴 rien n’est échu AVANT le premier plan (inscription du soir, 20
     const premier = plan.slice(plan.indexOf("if (!reroll && !(await AsyncStorage.getItem(FIRST_PLAN_KEY)))"));
     expect(premier.slice(0, 600)).toContain('await noterDebutSuivi(todayStamp(), minutesDepuisMinuit());');
     expect(premier.indexOf('noterDebutSuivi')).toBeLessThan(premier.indexOf('setPlan(p)'));
-    expect(plan).toMatch(/minutesDepuisMinuit\(\),[\s\S]{0,140}bornePremierJour\(await lireDebutSuivi\(\), todayStamp\(\)\)/);
-    expect(plan).toMatch(/repasEchusVeille\([\s\S]{0,120}bornePremierJour\(await lireDebutSuivi\(\), hier\)/);
+    expect(plan).toMatch(/minutesDepuisMinuit\(\),[\s\S]{0,140}bornePremierJour\(debutDuPlan, todayStamp\(\)\)/);
+    // E78 : le début se lit une fois (`debutDuPlan`), et rien ne se coche avant son jour.
+    expect(plan).toMatch(/const debutDuPlan = await lireDebutSuivi\(\);[\s\S]{0,120}if \(avantLeJourDuDebut\(todayStamp\(\), debutDuPlan\)\) return;/);
+    expect(plan).toMatch(/if \(avantLeJourDuDebut\(hier, debutDuPlan\)\) return;/);
+    expect(plan).toMatch(/repasEchusVeille\([\s\S]{0,120}bornePremierJour\(debutDuPlan, hier\)/);
   });
 });
 
