@@ -684,11 +684,21 @@ describe('Le décompte des bulles ne se recopie pas — il se mesure', () => {
 // réelle, et c'est elle qu'on relit.
 describe('La visite de l’app — un arrêt par onglet, dans l’ordre de la barre', () => {
   const layout = sansCommentaires(readFileSync(join(RACINE, 'app', '(tabs)', '_layout.tsx'), 'utf8'));
-  const barre = [...layout.matchAll(/<Tabs\.Screen name="([\w-]+)"/g)].map((m) => m[1]);
+  // Depuis le 2026-10-19, DEUX barres (celle d'Apple sur iOS, la dessinée ailleurs)
+  // sont tirées d'un même tableau, `ONGLETS_BARRE` : c'est lui qu'on relit.
+  const tableau = /const ONGLETS_BARRE = \[([\s\S]*?)\] as const;/.exec(layout)?.[1] ?? '';
+  const barre = [...tableau.matchAll(/\bname:\s*'([\w-]+)'/g)].map((m) => m[1]);
   const moteur = sansCommentaires(readFileSync(join(RACINE, 'components', 'GuidedTour.tsx'), 'utf8'));
 
   it('la sonde lit bien la barre — sinon tout ce bloc passerait à vide', () => {
-    expect(barre.length, 'aucun `Tabs.Screen` lu dans le layout des onglets').toBeGreaterThanOrEqual(4);
+    expect(barre.length, 'aucun onglet lu dans `ONGLETS_BARRE`').toBeGreaterThanOrEqual(4);
+  });
+
+  it('les deux barres (iOS et dessinée) sont tirées du MÊME tableau — elles ne peuvent pas diverger', () => {
+    // Un onglet écrit en dur dans l'une des deux barres échapperait à la sonde
+    // ci-dessus : la visite pointerait juste sur l'une et à côté sur l'autre.
+    expect(layout.match(/ONGLETS_BARRE\.map\(/g)?.length, 'chaque barre doit mapper `ONGLETS_BARRE`').toBe(2);
+    expect(layout).not.toMatch(/<Tabs\.Screen name=|<NativeTabs\.Trigger name="/);
   });
 
   it('🔴 `ONGLETS` est la barre, dans son ordre — la pointe viserait à côté sinon', () => {

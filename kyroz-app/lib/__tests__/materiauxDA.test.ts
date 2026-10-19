@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync, readdirSync } from 'fs';
 import { join } from 'path';
-import { VERRE, doitServirDuVerre, styleBarre } from '../materiau';
+import { VERRE, doitServirDuVerre } from '../materiau';
 
 // ── Le matériau a un rôle, un token et un test ───────────────────────────────
 //
@@ -59,18 +59,34 @@ describe('Matériau — le verre a trois conditions, et le repli est l’app d�
       .toBe(false);
   });
 
-  it('le repli rend EXACTEMENT la barre d’avant — fond, couleur de trait, épaisseur', () => {
-    const peint = styleBarre(false, '#111111', '#333333', 1);
-    expect(peint).toEqual({ backgroundColor: '#111111', borderTopColor: '#333333', borderTopWidth: 1 });
-    // Et surtout : il ne sort PAS du flux. Une barre peinte occupe sa place.
-    expect('position' in peint).toBe(false);
+  it('🔴 sur iOS, la barre d’onglets est CELLE D’APPLE — et elle ne se rétracte pas', () => {
+    // 2026-10-19 : la barre dessinée recevait un fond de verre ; sur iOS c'est
+    // désormais `UITabBar` lui-même (`NativeTabs`), la capsule d'iOS 26. Le web et
+    // Android gardent la barre dessinée, peinte.
+    const layout = sansCommentaires(readFileSync(join(RACINE, 'app', '(tabs)', '_layout.tsx'), 'utf8'));
+    expect(layout).toMatch(/if \(Platform\.OS === 'ios'\) \{\s*return \(\s*<NativeTabs\b/);
+    // ⚠️ `onScrollDown` a été MESURÉ cassé au simulateur : réduite en bulle, la barre
+    // ne revenait jamais en remontant. Le remettre (ou laisser `automatic` décider)
+    // rendrait le changement d'onglet à deux touchers.
+    expect(layout).toMatch(/<NativeTabs\b[^>]*minimizeBehavior="never"/);
+    // Plus de verre posé à la main sur la barre dessinée.
+    expect(layout).not.toMatch(/tabBarBackground|Materiau/);
   });
 
-  it('la barre en verre sort du flux et n’a plus ni peinture ni filet', () => {
-    const v = styleBarre(true, '#111111', '#333333', 1) as Record<string, unknown>;
-    expect(v.position).toBe('absolute');
-    expect(v.backgroundColor).toBe('transparent');
-    expect(v.borderTopWidth).toBe(0);
+  it('🔴 la feuille PARTIELLE passe au verre, la feuille pleine hauteur reste peinte', () => {
+    // La règle d'Apple (iOS 26) : à mi-hauteur, une feuille est en verre et décollée
+    // des bords ; à pleine hauteur, elle redevient opaque. `ActionSheet` se règle sur
+    // son contenu (partielle), `Sheet` monte à 94 % (pleine).
+    const action = sansCommentaires(readFileSync(join(RACINE, 'components', 'ActionSheet.tsx'), 'utf8'));
+    const pleine = sansCommentaires(readFileSync(join(RACINE, 'components', 'Sheet.tsx'), 'utf8'));
+    expect(action).toMatch(/const verre = useVerre\(\)/);
+    expect(action).toMatch(/\{verre && <Materiau\b/);
+    // Le repli est la feuille d'avant : peinte en `card`, coins du haut seulement.
+    expect(action).toMatch(/verre \? styles\.sheetVerre : \[styles\.sheetPeinte, \{ backgroundColor: t\.card \}\]/);
+    expect(action).toMatch(/sheetPeinte: \{ borderTopLeftRadius: 28, borderTopRightRadius: 28 \}/);
+    // Le rayon est CONCENTRIQUE aux boutons qu'elle porte, pas choisi à l'œil.
+    expect(action).toMatch(/const RAYON_VERRE = Spacing\.xxl \+ Radius\.button;/);
+    expect(pleine).not.toMatch(/useVerre|Materiau/);
   });
 
   it('un seul style de verre, et il porte un nom', () => {

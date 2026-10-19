@@ -39,6 +39,17 @@
       "cwd": "kyroz-app"
     },
     {
+      "//": "Metro pour le SIMULATEUR iOS (build Debug de DerivedData), depuis un worktree.",
+      "//2": "⚠️ Les variables EXPO_PUBLIC_ passées en ligne de commande ne gagnent PAS contre",
+      "//3": "`.env.local` dans le bundle natif : la clé de session suit `.env.local` (factice ici).",
+      "name": "kyroz-ios-worktree",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["expo", "start", "--port", "8098"],
+      "port": 8098,
+      "autoPort": false,
+      "cwd": "kyroz-app"
+    },
+    {
       "name": "mockups",
       "runtimeExecutable": "python3",
       "runtimeArgs": ["-m", "http.server", "3002", "--directory", "mockups"],

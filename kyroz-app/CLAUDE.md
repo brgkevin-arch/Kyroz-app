@@ -2330,16 +2330,36 @@ Kyroz ne connaissait qu'un matériau : **la peinture opaque**. Une barre d'ongle
 cache ce qu'il y a dessous ; celle d'iOS 26 le laisse deviner, et c'est ce flou qui dit à
 l'œil « il y a encore du contenu par là ».
 
-**LA RÈGLE : le verre est réservé à ce qui FLOTTE au-dessus du contenu.** Une barre
-d'onglets, oui. Une feuille modale pleine posée sur un fond assombri, non — elle ne
-recouvre rien d'intéressant, et son texte y perdrait en lisibilité. Apple lui-même n'en
-met pas là.
+**LA RÈGLE : le verre est réservé à ce qui FLOTTE au-dessus du contenu** — la couche de
+navigation et de commande, jamais le contenu lui-même. Une barre d'onglets, oui. Une
+feuille **partielle** (à hauteur de son contenu), oui : c'est la règle d'iOS 26, décollée
+des bords. Une feuille **pleine hauteur**, non : Apple la rend opaque et collée aux bords.
+
+🔴 **CORRIGÉ le 2026-10-19 — cette section affirmait qu'« Apple lui-même » ne met pas de
+verre sur les feuilles.** Faux depuis iOS 26 pour les feuilles partielles (WWDC25, « Build a
+SwiftUI app with the new design ») ; vrai seulement à pleine hauteur. La phrase a tenu deux
+mois parce qu'elle donnait une raison, et que personne ne l'a re-mesurée contre la source.
 
 | | Où | État |
 |---|---|---|
-| Barre d'onglets | `app/(tabs)/_layout.tsx` | **en verre** — le contenu défile au travers |
-| Barre de titre compacte | `CollapsingTitle.tsx` | **peinte** — rien ne passe derrière (mesuré) |
-| Feuilles modales | `Sheet` / `ActionSheet` | **peintes** — fond assombri à 55 %, rien à voir |
+| Barre d'onglets, iOS | `app/(tabs)/_layout.tsx` | **la barre d'Apple** (`NativeTabs` → `UITabBar`) : capsule de Liquid Glass sur iPhone, **en haut** sur iPad ; c'est iOS qui la dessine (2026-10-19) |
+| Barre d'onglets, web/Android | `app/(tabs)/_layout.tsx` | **peinte**, dans le flux — pas de verre hors iOS 26 |
+| Feuille partielle | `ActionSheet` (et donc tous les dialogues, `Dialog.tsx`) | **en verre**, décollée de `Spacing.sm`, rayon concentrique `Spacing.xxl + Radius.button` (2026-10-19) |
+| Feuille pleine hauteur | `Sheet` (94 %) | **peinte** — la règle d'Apple à pleine hauteur |
+| Barre de titre compacte | `CollapsingTitle.tsx` | **peinte** — rien ne passe derrière (mesuré) ; **absente sur iPad**, où la barre d'onglets en haut l'aurait recouverte |
+
+**La barre d'onglets native (2026-10-19), ce qu'il faut savoir avant d'y toucher :**
+- **Publiable en OTA** : le composant natif vient de `react-native-screens` (4.26.2,
+  `ios/tabs`, compilé sans option), déjà dans le build (22). Empreinte iOS mesurée
+  inchangée (`823c89db…`).
+- **Les icônes sont des PNG** (une `UITabBar` n'affiche pas de composant React), générés
+  depuis les tracés de `lib/iconesOnglets.ts` par `npx tsx scripts/gen-icones-onglets.ts`.
+  ⚠️ Pas de raccourci `npm run` : une ligne de `scripts` change l'empreinte et COUPE la ligne
+  OTA. `iconesOnglets.test.ts` compare l'empreinte des tracés à celle des PNG commités.
+- **Elle ne se rétracte pas** (`minimizeBehavior="never"`) : mesuré au simulateur, réduite
+  en bulle elle ne revenait JAMAIS en remontant une `ScrollView` React Native.
+- **La visite guidée la pointe par sa RÈGLE** (`lib/barreOnglets.ts`) : capsule à 21 pt des
+  bords et 8,7 pt de rembourrage, mesurés au pixel sur iPhone 17 ; rien à pointer sur iPad.
 
 **Le module natif était DÉJÀ dans le binaire.** `expo-router` tire `expo-glass-effect`
 (et `expo-symbols`) sans les déclarer dans `package.json`, comme il tire reanimated. Le
@@ -2357,7 +2377,8 @@ autorise l'OTA sans risquer un écran illisible.
 ⚠️ **Une barre en verre FLOTTE, donc le contenu passe dessous.** Sans dégagement de bas,
 la dernière ligne d'une liste finit cachée — un défaut qui ne se voit qu'en fin de
 défilement, jamais sur une capture. Les cinq onglets portent `paddingBottom:
-Fond.barreOnglets`, et `materiauxDA` les **compte**.
+Fond.barreOnglets`, et `materiauxDA` les **compte**. La barre d'Apple flotte aussi : vérifié
+au simulateur le 2026-10-19 en bas du Plan et des Courses, rien n'est caché.
 
 ⚠️ **Ne poser du verre que là où quelque chose passe derrière — et le VÉRIFIER.** La barre
 de titre compacte devait en recevoir : mesuré en la teignant en rouge translucide, rien ne
@@ -2366,7 +2387,9 @@ Le verre y rendait le même noir, en supprimant le filet. Chantier annulé sur c
 Deux hypothèses plausibles donnaient la même capture noire ; **seule la sonde colorée a
 tranché**.
 
-➡️ **Garde-fou : `lib/__tests__/materiauxDA.test.ts`**, vérifié par 8 mutations. Il écarte
+➡️ **Garde-fous : `lib/__tests__/materiauxDA.test.ts`** (8 mutations en août, 2 de plus le
+2026-10-19 : barre native qui se rétracte, feuille partielle sans verre), plus
+`barreOnglets.test.ts` et `iconesOnglets.test.ts` (1 mutation rouge chacun). Il écarte
 les commentaires avant toute recherche de chaîne — les notes de `Materiau.tsx` citent
 `expo-glass-effect`, la chaîne même qu'il interdit ailleurs.
 
