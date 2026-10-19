@@ -140,6 +140,17 @@ qu'ils étaient périmés.
   vide pour « réveiller » (§11). Puis vérifier la PAGE, pas le run : `curl -sSI` et la
   console du navigateur (CLAUDE.md §11, « un déploiement vert ne dit rien »).
 
+**🧭 Le chantier en cours : l'app reprise de A à Z** *(ouvert le 2026-10-19 à 16 h 51, après ce bloc)*
+- Le fondateur : *« je ne suis pas satisfait de la direction prise depuis septembre ; on reprend
+  l'app de A à Z, en suivant le chemin d'un utilisateur, sans énorme chantier d'un coup »*.
+  Découpage en 12 segments, segment 1 (accueil + création du compte) audité : 11 constats,
+  8 propositions P1–P8, **en attente de ses arbitrages**. Tout est dans
+  **`docs/2026-10-19-reprise-parcours-A-a-Z.md`**.
+- ⚠️ Ce document n'avait jamais été commité : il a disparu du worktree à la fermeture de la
+  session, et a été recopié depuis son journal le 2026-10-19 au soir. Un document de chantier
+  se commite le jour où il est écrit.
+- Les points 1 à 4 ci-dessous restent vrais : tout part ensemble dans la 61ᵉ OTA.
+
 **Décisions qui attendent le fondateur — dans cet ordre** *(mises à jour le 2026-10-19 au soir avec ses réponses, données dans une autre session)*
 1. **Recueillir les correctifs que le fondateur a en tête, puis TOUT publier ensemble — #376
    comprise.** Sa réponse du 2026-10-19 : *« on voit les changements qu'on va encore faire et
