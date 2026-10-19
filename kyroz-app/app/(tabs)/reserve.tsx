@@ -181,7 +181,7 @@ export default function ReserveScreen() {
 
   return (
     <SafeAreaView style={s.safe} edges={['top']}>
-      <ScrollView contentContainerStyle={[s.content, layout.content]} showsVerticalScrollIndicator={false} {...repli.scrollProps}>
+      <ScrollView style={repli.zone} contentContainerStyle={repli.contenu([s.content, layout.content])} showsVerticalScrollIndicator={false} {...repli.scrollProps}>
         {/* ⚠️ L'en-tête ET les segments sont DANS le défilement, comme dans la
             maquette : c'est ce qui permet au gros titre de s'effacer au profit de
             la barre compacte. Ils étaient au-dessus du ScrollView, donc le titre

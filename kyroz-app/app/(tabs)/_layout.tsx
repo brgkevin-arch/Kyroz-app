@@ -82,8 +82,15 @@ export default function TabLayout() {
   if (Platform.OS === 'ios') {
     return (
       <NativeTabs tintColor={t.accent} minimizeBehavior="never">
+        {/* 🔴 `disableAutomaticContentInsets` : sans lui, iOS ajoute la barre d'état
+            AU HAUT de la première liste de chaque onglet — par-dessus le décalage que
+            l'écran pose déjà lui-même pour défiler sous l'îlot (`useCollapsingTitle`).
+            Mesuré le 2026-10-19 : Recettes et Profil descendaient de 62 pt pile au
+            repos, le Plan non (la liste n'y était pas trouvée) — deux comportements
+            pour un même réglage. Kyroz gère ses marges lui-même, en haut
+            (`repli.contenu`) comme en bas (`Fond.barreOnglets`). */}
         {ONGLETS_BARRE.map((o) => (
-          <NativeTabs.Trigger key={o.name} name={o.name}>
+          <NativeTabs.Trigger key={o.name} name={o.name} disableAutomaticContentInsets>
             <NativeTabs.Trigger.Label>{o.title}</NativeTabs.Trigger.Label>
             <NativeTabs.Trigger.Icon src={{ default: o.image, selected: o.imageActive }} renderingMode="template" />
           </NativeTabs.Trigger>
