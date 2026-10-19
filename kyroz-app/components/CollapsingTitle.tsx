@@ -7,6 +7,7 @@ import { DUREE, dureeReduite } from '../lib/motion';
 import { reduceMotionActif } from '../lib/reduceMotion';
 import { ThemePalette, Type, Spacing } from '../constants/theme';
 import { COMPACT_BAR_H, SEUIL_PAR_DEFAUT, seuilRepli } from '../lib/collapsingTitle';
+import { useFormeBarre } from '../hooks/useFormeBarre';
 
 // Ré-exportés pour que les écrans n'aient qu'un seul import à faire.
 export { COMPACT_BAR_H, SEUIL_PAR_DEFAUT, seuilRepli };
@@ -117,6 +118,11 @@ export function useCollapsingTitle(): Collapsing {
 export function CompactTitleBar({
   t, title, opacity,
 }: { t: ThemePalette; title: string; opacity: Animated.Value }) {
+  // 🔴 Sur iPad, la barre d'onglets native est EN HAUT (2026-10-19) et cette barre-ci,
+  // collée en `top: 0`, venait se coincer dessous — titre à moitié masqué par la
+  // capsule (vu au simulateur, iPad Air 11"). Elle y est redondante : l'onglet ouvert
+  // est déjà surligné dans la barre du système. On ne la rend pas.
+  if (useFormeBarre() === 'haut') return null;
   return (
     <Animated.View
       accessibilityElementsHidden

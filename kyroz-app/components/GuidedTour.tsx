@@ -11,6 +11,8 @@ import { Cadre, dejaVisible, memeCadre, ESSAIS_MESURE, PAS_MESURE_MS, MARGE_VISI
 import { RESSORT, DUREE, ressortRN, ressortReduit, dureeReduite } from '../lib/motion';
 import { useReduceMotion } from '../lib/reduceMotion';
 import { quandAucuneModale } from '../lib/modalesPresentees';
+import { retraitOnglets, centreOnglet } from '../lib/barreOnglets';
+import { useFormeBarre } from '../hooks/useFormeBarre';
 
 // ── Visite guidée ────────────────────────────────────────────────────────────
 // Deux rendus, choisis par l'étape :
@@ -831,14 +833,20 @@ function CarteVisite({
   const step = steps[index];
 
   // Le centre de chaque onglet. La barre ne se mesure pas depuis une `Modal` : on
-  // applique SA règle — des onglets à parts égales (`flex: 1`), entre deux marges
-  // égales à la plus grande zone sûre latérale (le `BottomTabBar` d'expo-router).
+  // applique SA règle — des onglets à parts égales, entre deux retraits que fixe la
+  // forme de la barre (`lib/barreOnglets.ts`). 🔴 Depuis que l'iPhone sert la barre
+  // d'Apple (2026-10-19), la règle « toute la largeur » visait à côté : la capsule
+  // d'iOS 26 est décollée des bords, et la pointe tombait jusqu'à 24 pt à côté des
+  // onglets d'extrémité. Sur iPad, la barre est EN HAUT : `retrait` vaut `null`, la
+  // carte se centre et ne pointe rien — l'onglet ouvert y est surligné par le système.
   // Le rang vient de `ONGLETS`, que `visiteGuidee.test.ts` tient d'accord avec le layout.
-  const marge = Math.max(insets.left, insets.right);
+  const retrait = retraitOnglets(useFormeBarre(), Math.max(insets.left, insets.right));
   const centre = (o: Onglet | undefined) => {
     const rang = Math.max(0, ONGLETS.indexOf(o ?? ONGLETS[0]));
-    return marge + ((W - 2 * marge) * (rang + 0.5)) / ONGLETS.length;
+    return retrait === null ? W / 2 : centreOnglet(W, retrait, rang, ONGLETS.length);
   };
+  // Ce que la barre occupe en bas — rien quand elle est en haut.
+  const basBarre = retrait === null ? 0 : HAUTEUR_BARRE_ONGLETS;
   // La carte suit son onglet sans sortir de l'écran ; la pointe reste hors des coins
   // arrondis.
   // 🔴 SUR TÉLÉPHONE, LA CARTE NE BOUGE PAS (vu au simulateur, iPhone 17, 402 pt). Elle
@@ -848,7 +856,7 @@ function CarteVisite({
   // seule la pointe voyage ; au-delà (tablette), la carte suit vraiment son onglet.
   const largeur = Math.min(W - 32, BUBBLE_MAX_W);
   const jeu = W - 32 - largeur;
-  const gauches = steps.map((e) => (jeu < JEU_MINIMUM
+  const gauches = steps.map((e) => (retrait === null || jeu < JEU_MINIMUM
     ? (W - largeur) / 2
     : clamp(centre(e.onglet) - largeur / 2, 16, W - 16 - largeur)));
   const pointes = steps.map((e, i) =>
@@ -894,29 +902,33 @@ function CarteVisite({
     <View style={StyleSheet.absoluteFill}>
       {/* Le voile couvre l'ÉCRAN, pas la barre. Il avale les taps : la visite montre,
           elle ne laisse pas cocher un repas par erreur au passage. */}
-      <View style={[s.voile, { bottom: HAUTEUR_BARRE_ONGLETS }]} />
+      <View style={[s.voile, { bottom: basBarre }]} />
 
-      {/* La barre, elle, reste vive ET touchable : un onglet tapé amène son arrêt. */}
-      <View style={[s.barre, { height: HAUTEUR_BARRE_ONGLETS, paddingHorizontal: marge }]}>
-        {ONGLETS.map((o) => {
-          const i = steps.findIndex((e) => e.onglet === o);
-          return (
-            <Pressable
-              key={o}
-              testID={`visite-onglet-${o}`}
-              style={s.onglet}
-              disabled={i < 0}
-              onPress={() => onAller(i)}
-              accessibilityRole="button"
-              accessibilityLabel={i >= 0 ? steps[i].title : undefined}
-            />
-          );
-        })}
-      </View>
+      {/* La barre, elle, reste vive ET touchable : un onglet tapé amène son arrêt.
+          Les zones de toucher reprennent le retrait de la vraie barre, onglet pour
+          onglet. Barre en haut (iPad) : pas de zones — « Suivant » suffit. */}
+      {retrait !== null && (
+        <View style={[s.barre, { height: HAUTEUR_BARRE_ONGLETS, paddingHorizontal: retrait }]}>
+          {ONGLETS.map((o) => {
+            const i = steps.findIndex((e) => e.onglet === o);
+            return (
+              <Pressable
+                key={o}
+                testID={`visite-onglet-${o}`}
+                style={s.onglet}
+                disabled={i < 0}
+                onPress={() => onAller(i)}
+                accessibilityRole="button"
+                accessibilityLabel={i >= 0 ? steps[i].title : undefined}
+              />
+            );
+          })}
+        </View>
+      )}
 
       <Animated.View
         onLayout={(e) => onHauteur(e.nativeEvent.layout.height)}
-        style={[s.carte, { width: largeur, bottom: HAUTEUR_BARRE_ONGLETS + Spacing.lg, transform: [{ translateX: suivre(gauches) }] }]}
+        style={[s.carte, { width: largeur, bottom: (retrait === null ? insets.bottom : basBarre) + Spacing.lg, transform: [{ translateX: suivre(gauches) }] }]}
       >
         <Animated.View style={{ opacity: fondu, transform: [{ translateX: decale }] }}>
           {/* Des points plutôt qu'un « 2 / 5 » : on voit où l'on en est sans rien lire.
@@ -948,11 +960,14 @@ function CarteVisite({
           </View>
         </Animated.View>
         {/* La pointe, APRÈS le contenu : elle recouvre le trait bas de la carte à son
-            endroit, et ses deux côtés tracés le prolongent jusqu'à l'onglet. */}
-        <Animated.View
-          pointerEvents="none"
-          style={[s.pointe, { transform: [{ translateX: suivre(pointes) }, { rotate: '45deg' }] }]}
-        />
+            endroit, et ses deux côtés tracés le prolongent jusqu'à l'onglet. Pas de
+            barre en bas, pas de pointe : elle désignerait le vide. */}
+        {retrait !== null && (
+          <Animated.View
+            pointerEvents="none"
+            style={[s.pointe, { transform: [{ translateX: suivre(pointes) }, { rotate: '45deg' }] }]}
+          />
+        )}
       </Animated.View>
     </View>
   );

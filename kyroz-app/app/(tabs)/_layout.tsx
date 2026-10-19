@@ -1,25 +1,36 @@
 import { Tabs, Redirect } from 'expo-router';
-import { Platform, ColorValue, StyleSheet } from 'react-native';
+import { NativeTabs } from 'expo-router/unstable-native-tabs';
+import { Platform, ColorValue } from 'react-native';
 import { useTheme, Type, Spacing, Trait, HAUTEUR_BARRE_ONGLETS } from '../../constants/theme';
-import Materiau, { useVerre } from '../../components/Materiau';
-import { styleBarre } from '../../lib/materiau';
 import { useAuth } from '../../hooks/useAuth';
 import { useProfile } from '../../hooks/useProfile';
 import Splash from '../../components/Splash';
 import { PlanIcon, CoursesIcon, ReserveIcon, RecettesIcon, ProfilIcon } from '../../components/TabIcons';
 
-// Chaque onglet nomme un OBJET, pas une ambiance. Les icônes viennent de
-// `components/TabIcons.tsx` (tracés de la maquette) — voir la note qui y explique
-// pourquoi elles ne sortent pas d'une librairie.
+// Chaque onglet nomme un OBJET, pas une ambiance. Les tracés viennent de
+// `lib/iconesOnglets.ts` (la maquette) — voir `components/TabIcons.tsx` pour la note
+// qui explique pourquoi elles ne sortent pas d'une librairie.
 type TabIcon = (p: { color: string; focused: boolean }) => React.ReactElement;
 
 const icon = (Cmp: TabIcon) =>
   ({ color, focused }: { color: ColorValue; focused: boolean }) =>
     Cmp({ color: color as string, focused });
 
+// ⚠️ L'ORDRE et les TITRES de ce tableau sont relus par `harnaisEcrans.test.ts` (le
+// harnais web tape les onglets par leur nom) et doivent suivre `ONGLETS` de
+// `lib/tours.ts` (la visite les pointe par leur rang). Une seule liste pour les deux
+// barres : elles ne peuvent pas diverger.
+// Les PNG sont générés depuis les mêmes tracés (`scripts/gen-icones-onglets.ts`).
+const ONGLETS_BARRE = [
+  { name: 'plan', title: 'Plan', Icon: PlanIcon, image: require('../../assets/onglets/plan.png'), imageActive: require('../../assets/onglets/plan-actif.png') },
+  { name: 'courses', title: 'Courses', Icon: CoursesIcon, image: require('../../assets/onglets/courses.png'), imageActive: require('../../assets/onglets/courses-actif.png') },
+  { name: 'reserve', title: 'Réserve', Icon: ReserveIcon, image: require('../../assets/onglets/reserve.png'), imageActive: require('../../assets/onglets/reserve-actif.png') },
+  { name: 'recettes', title: 'Recettes', Icon: RecettesIcon, image: require('../../assets/onglets/recettes.png'), imageActive: require('../../assets/onglets/recettes-actif.png') },
+  { name: 'profil', title: 'Profil', Icon: ProfilIcon, image: require('../../assets/onglets/profil.png'), imageActive: require('../../assets/onglets/profil-actif.png') },
+] as const;
+
 export default function TabLayout() {
   const t = useTheme();
-  const verre = useVerre();
   const { session, ready, hydrating } = useAuth();
   const { profile, loading } = useProfile();
 
@@ -37,36 +48,69 @@ export default function TabLayout() {
   if (!profile && hydrating) return <Splash />;
   if (!profile) return <Redirect href="/(auth)/onboarding" />;
 
+  // ── iOS : LA barre d'Apple, pas une copie (2026-10-19) ──────────────────────
+  // C'est `UITabBar` lui-même : sous iOS 26, la capsule de Liquid Glass qui flotte
+  // au-dessus du contenu, l'onglet actif dans sa bulle ; sous iOS 18, la barre
+  // classique. C'est le système qui la
+  // dessine, donc elle est conforme d'office — aujourd'hui et aux versions qui
+  // viennent — et « Réduire la transparence », le contraste renforcé, les grandes
+  // tailles de texte et VoiceOver y sont gérés par lui, pas par nous.
+  //
+  // ⚠️ SUR IPAD, ELLE MONTE EN HAUT de l'écran, en libellés seuls (norme d'iPadOS 18+).
+  // Les écrans s'y rangent dessous d'eux-mêmes (zone sûre), mais deux pièces de l'app
+  // supposaient une barre en bas : la visite guidée et la barre de titre compacte. Elles
+  // lisent désormais la forme de la barre (`lib/barreOnglets.ts`, `useFormeBarre`).
+  //
+  // 🔴 PUBLIABLE EN OTA, ET SEULEMENT PARCE QUE LE NATIF EST DÉJÀ LÀ. Le composant
+  // natif vient de `react-native-screens` (4.26.2, dossier `ios/tabs`, compilé sans
+  // option), présent dans le build (22) : même empreinte. Une OTA ne peut atterrir
+  // que sur un binaire de même empreinte (`runtimeVersion: fingerprint`).
+  //
+  // ⚠️ Ce que la barre native ne sait pas faire : afficher un composant React. Les
+  // icônes y arrivent en PNG « template » — iOS n'en lit que la forme et les teint.
+  // Seule la teinte de l'onglet actif est imposée (l'accent, convention iOS) ; les
+  // autres prennent la couleur que le verre choisit pour rester lisible sur ce qui
+  // passe derrière — la forcer reviendrait à lutter contre le matériau.
+  //
+  // 🔴 LA BARRE NE SE RÉTRACTE PAS, ET C'EST MESURÉ (simulateur, iOS 26.5, 2026-10-19).
+  // Avec `minimizeBehavior="onScrollDown"`, elle se réduisait bien en bulle en
+  // descendant le Plan… et ne revenait JAMAIS en remontant, pas même tout en haut, au
+  // geste lent comme au geste vif. iOS ne suit pas le défilement d'une `ScrollView`
+  // React Native dans ce sens-là. Changer d'onglet aurait demandé deux touchers (la
+  // bulle, puis l'onglet) — pire que la barre d'avant. `never` est explicite : la
+  // valeur par défaut, `automatic`, laisse le système décider.
+  if (Platform.OS === 'ios') {
+    return (
+      <NativeTabs tintColor={t.accent} minimizeBehavior="never">
+        {ONGLETS_BARRE.map((o) => (
+          <NativeTabs.Trigger key={o.name} name={o.name}>
+            <NativeTabs.Trigger.Label>{o.title}</NativeTabs.Trigger.Label>
+            <NativeTabs.Trigger.Icon src={{ default: o.image, selected: o.imageActive }} renderingMode="template" />
+          </NativeTabs.Trigger>
+        ))}
+      </NativeTabs>
+    );
+  }
+
+  // ── Web et Android : la barre dessinée, peinte, à sa place dans le flux ──────
+  // Pas de verre ici : il n'existe que sous iOS 26. C'est l'apparence de toujours.
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        // 🔴 LA BARRE CHANGE DE MATÉRIAU, PAS DE HAUTEUR. Hauteur, dégagements
-        // et couleurs d'onglet sont ceux d'avant : seuls le fond et le trait
-        // supérieur bougent, et uniquement là où le verre existe (iOS 26+, sans
-        // « Réduire la transparence »). Partout ailleurs, `styleBarre` rend très
-        // exactement les cinq lignes d'avant ce chantier.
-        //
-        // ⚠️ `position: 'absolute'` est la moitié du travail qu'on oublie : le
-        // verre n'a de sens que si l'on voit du contenu AU TRAVERS, donc la barre
-        // doit sortir du flux et laisser le contenu défiler dessous. Les cinq
-        // écrans portaient déjà `paddingBottom: Fond.barreOnglets` (120 pt) —
-        // 88 de barre + 32 d'air — donc rien ne finit caché. Ce n'est pas une
-        // coïncidence heureuse à laisser sans surveillance : `materiauxDA` compte
-        // ces cinq dégagements, parce qu'un sixième onglet qui les oublierait
-        // ferait disparaître sa dernière ligne, tout en bas, là où aucune capture
-        // ne regarde.
         tabBarStyle: {
-          ...styleBarre(verre, t.card, t.line, Trait.fin),
+          backgroundColor: t.card,
+          borderTopColor: t.line,
+          borderTopWidth: Trait.fin,
           height: HAUTEUR_BARRE_ONGLETS,
-          paddingBottom: Platform.OS === 'ios' ? 28 : 10,
+          // 10 avant le 2026-10-19, écrit `ios ? 28 : 10` — une forme que
+          // `espacementDA` ne lisait pas. 🔴 Absorbé au cran INFÉRIEUR, contre la
+          // règle d'égalité de `Spacing` (qui monte), et c'est MESURÉ dans le
+          // navigateur (375 pt) : le libellé (11 px) n'avait que 11 px de boîte à 10,
+          // 9 px à 12 — rogné en bas, et pire au cran du dessus ; 13 px à 8, entier.
+          paddingBottom: Spacing.sm,
           paddingTop: Spacing.sm,
         },
-        // Le verre lui-même. `tabBarBackground` se rend DERRIÈRE les onglets,
-        // c'est le point d'accroche prévu par react-navigation pour un matériau.
-        tabBarBackground: verre
-          ? () => <Materiau style={StyleSheet.absoluteFill} />
-          : undefined,
         // L'onglet actif porte l'ACCENT, pas l'encre : c'est la convention iOS, et
         // c'est ce qu'attend quelqu'un qui vient de choisir une couleur. En
         // monochrome, `accent` vaut déjà l'encre — le rendu ne bouge pas d'un pixel.
@@ -75,11 +119,9 @@ export default function TabLayout() {
         tabBarLabelStyle: { ...Type.microStrong },
       }}
     >
-      <Tabs.Screen name="plan" options={{ title: 'Plan', tabBarIcon: icon(PlanIcon) }} />
-      <Tabs.Screen name="courses" options={{ title: 'Courses', tabBarIcon: icon(CoursesIcon) }} />
-      <Tabs.Screen name="reserve" options={{ title: 'Réserve', tabBarIcon: icon(ReserveIcon) }} />
-      <Tabs.Screen name="recettes" options={{ title: 'Recettes', tabBarIcon: icon(RecettesIcon) }} />
-      <Tabs.Screen name="profil" options={{ title: 'Profil', tabBarIcon: icon(ProfilIcon) }} />
+      {ONGLETS_BARRE.map((o) => (
+        <Tabs.Screen key={o.name} name={o.name} options={{ title: o.title, tabBarIcon: icon(o.Icon) }} />
+      ))}
     </Tabs>
   );
 }

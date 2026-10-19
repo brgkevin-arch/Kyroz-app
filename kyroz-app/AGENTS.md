@@ -177,6 +177,10 @@ qu'ils étaient périmés.
    (« cacao : 10 g ») ? et faut-il lui préparer le tableau besoin d'une semaine ÷ paquet,
    aliment par aliment ? Défaut repéré au passage : 3 boîtes de thon proposées pour 290 g
    alors que 2 boîtes font 280 g (la tolérance de 5 % porte sur UN paquet).
+3 bis. **Liquid Glass (E79) — codé le 2026-10-19 à sa demande (« fais A et B, puis je
+   vérifie »), PR #385, NON mergée** : la barre d'onglets d'Apple sur iOS + les feuilles
+   partielles en verre. **Attend sa vérification** ; empreinte iOS inchangée, donc elle part
+   avec la 61ᵉ OTA. Reste hors lot : l'icône en couches (Icon Composer, nouveau build).
 4. **Publier le tout (61ᵉ OTA)** une fois 1 à 3 tranchés : empreinte iOS re-mesurée contre le
    build (22), publication depuis un arbre détaché sur `origin/main`, consignation (ligne
    « OTA publiées », puce de `STORE-RELEASE.md`, statuts E76/E78, case Tests),
@@ -1806,6 +1810,13 @@ produit en suspens — il ne reste qu'à coder.
   · inscrit le **lundi** : 20 repas comptés dont 4 passés → **9,2 kg au lieu de 7,5 (+22 %)**, 5 lignes n'existent que pour ce soir ;
   · inscrit le **mercredi** : 12 repas dont 4 passés (un tiers) → **5,6 kg au lieu de 4,1 (+36 %)**, 11 lignes rien que pour ce soir (filet mignon 205 g, saumon fumé 100 g…).
   ➡️ Le fondateur a ses idées : les recueillir avant de proposer ; à livrer avec #376 (même zone : `coursesDepuis.ts`, `semainePlan.ts`). Tout correctif se mesure sur un lundi ET un milieu de semaine, à plusieurs heures (19 h, 21 h 45).
+- **E79 · LIQUID GLASS : LA BARRE D'ONGLETS D'APPLE, ET LES FEUILLES PARTIELLES EN VERRE** — 🛠️ codé le 2026-10-19, PR #385, **non mergée : le fondateur vérifie d'abord** (*« mets l'app aux normes liquid glass d'apple »*, puis *« fais A et B, puis je vérifie »*).
+  *Avant* : la barre d'onglets avait la MATIÈRE d'iOS 26 (verre, E36) mais la FORME d'iOS 18 — une bande pleine largeur collée en bas ; toutes les feuilles étaient peintes. *Après* : **A** — sur iOS, la barre est `UITabBar` lui-même (`NativeTabs` d'expo-router) : capsule de verre décollée des bords, onglet actif dans sa bulle ; sur iPad, en haut, en libellés. Web et Android gardent la barre dessinée. **B** — la feuille partielle (`ActionSheet`, donc aussi tous les dialogues de `Dialog.tsx`) passe en verre, décollée de 8 pt, coins concentriques (24 + 14) ; la feuille pleine hauteur (`Sheet`, 94 %) reste opaque — c'est la règle d'Apple, et CLAUDE.md affirmait à tort le contraire depuis août (corrigé).
+  🔴 **Publiable en OTA** : le natif des onglets (`react-native-screens` 4.26.2, `ios/tabs`) est dans le build (22) ; **empreinte iOS mesurée `823c89db…` = build (22)**. Aucune ligne ajoutée à `package.json` (un raccourci `npm run` aurait coupé la ligne OTA — le script des icônes se lance par `npx tsx`).
+  **Mesuré au simulateur (iPhone 17 et iPad Air 11", iOS 26.5)** : les cinq onglets ; le bas du Plan et des Courses n'est pas caché ; la visite guidée pointe juste (règle `lib/barreOnglets.ts`, capsule mesurée au pixel) et le toucher direct sur un onglet y marche ; « Réduire la transparence » rend la feuille d'avant et une barre opaque. Deux défauts trouvés EN VÉRIFIANT, corrigés : la rétractation au défilement (la barre ne revenait jamais → `minimizeBehavior="never"`) et la barre de titre compacte coincée sous la barre du haut sur iPad (masquée là).
+  ⚠️ **Non vu** : un vrai iPhone (seulement le simulateur), iOS 27, l'iPad en Split View étroit (règle approximée au seuil de 700 pt), Android (le web, lui, est vérifié). Retouche de la barre dessinée : bas 10 → `Spacing.sm` (exigé par `espacementDA`) — mesuré au navigateur, le libellé était DÉJÀ rogné à 10 (boîte de 11 px pour une police de 11), il l'aurait été plus à 12, il est entier à 8 (13 px).
+  ⚠️ **Hors lot** : l'icône de l'app en couches de verre (Icon Composer, modes Sombre/Teinté/Transparent) — natif, donc nouveau build et revue ; il faut l'œil du fondateur.
+  Garde-fous : `materiauxDA` (+2 cas), `barreOnglets.test.ts`, `iconesOnglets.test.ts`, sonde de `visiteGuidee` réécrite (les deux barres tirées du même tableau) — **4 mutations, 4 rouges**. Suite : **2 690 verts, 192 fichiers**, `tsc` 0.
 - **E19 · Le brief « fortes masses grasses » accusait les gros gabarits — le plancher
   mord les MAIGRES** 📏 **MESURÉ le 2026-08-07, aucune ligne de moteur touchée.**
   Contrôle : `npm run mesure:adiposite`.
