@@ -7,7 +7,7 @@ import { purgerSessionLocale, CLE_PROPRIETAIRE } from '../lib/sessionLocale';
 import { redemarrerApp } from '../lib/redemarrerApp';
 import { EFFETS_PURGE } from '../lib/effetsPurge';
 import { withBudget, AUTH_BUDGET_MS, HYDRATION_BUDGET_MS } from '../lib/boot';
-import { URL_RETOUR_CONFIRMATION, normaliseCode } from '../lib/emailConfirmation';
+import { URL_RETOUR_CONFIRMATION, normaliseCode, compteDejaExistant } from '../lib/emailConfirmation';
 import { signInWithAppleNative, consentSanteManquant } from '../lib/appleAuth';
 import { getFirstName, saveFirstName } from '../lib/profileName';
 
@@ -51,7 +51,9 @@ interface AuthValue {
   // needsConfirmation : inscription OK mais aucune session ouverte (confirmation
   // email activée côté Supabase) → l'appelant doit afficher « vérifie ta boîte mail »
   // plutôt que de rediriger vers un écran de login vide (l'utilisateur croit que ça a planté).
-  signUp: (email: string, password: string, consent: boolean) => Promise<{ error?: string; needsConfirmation?: boolean }>;
+  // dejaInscrit : l'adresse a DÉJÀ un compte — aucun e-mail n'est parti, il n'y a rien
+  // à confirmer ; l'appelant doit CONNECTER, pas afficher la saisie du code.
+  signUp: (email: string, password: string, consent: boolean) => Promise<{ error?: string; needsConfirmation?: boolean; dejaInscrit?: boolean }>;
   // Confirmation par CODE À 6 CHIFFRES saisi dans l'app (`{{ .Token }}` de l'e-mail).
   // Réussit → une session s'ouvre aussitôt : l'utilisateur n'a pas à se reconnecter,
   // et n'a jamais quitté l'app. Le pourquoi de ce choix : lib/emailConfirmation.ts.
@@ -219,7 +221,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // « Redirect URLs » du projet — cf. lib/emailConfirmation.ts.
       options: { emailRedirectTo: URL_RETOUR_CONFIRMATION },
     });
-    if (error) return { error: error.message };
+    if (error) {
+      // Confirmation e-mail COUPÉE : Supabase le dit en clair. Même suite que le cas
+      // maquillé ci-dessous, pour que le parcours ne dépende pas d'un réglage du dashboard.
+      if (/already registered|already exists/i.test(error.message)) return { dejaInscrit: true };
+      return { error: error.message };
+    }
+    // 🔴 Confirmation e-mail ACTIVE (la production) : une adresse déjà inscrite rend un
+    // compte MAQUILLÉ, sans session et sans e-mail (cf. `compteDejaExistant`). Lu comme
+    // « à confirmer », il envoyait attendre un code qui ne partira jamais.
+    // ⚠️ AVANT le consentement en attente : le noter ici l'attribuerait au compte
+    // existant à sa prochaine connexion, avec une date qui n'est pas la sienne.
+    if (compteDejaExistant(data.user)) return { dejaInscrit: true };
     const id = data.user?.id;
     const at = consent ? new Date().toISOString() : null;
     // Consentement RGPD explicite enregistré dès l'inscription (spec §12).

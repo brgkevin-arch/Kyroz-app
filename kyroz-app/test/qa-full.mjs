@@ -132,6 +132,9 @@ log('\n########## PHASE A : ÉCRAN DE LOGIN ##########');
   await pw.fill('secret123').catch(() => {});
   await sleep(500);
   report.phaseA.push(await snap(page, 'A3-valid-input'));
+  // Le harnais neutralise l'accueil : l'écran s'ouvre donc sur « Connexion »
+  // (lib/modeConnexion.ts). La case de consentement est sur l'autre formulaire.
+  await page.getByText('Créer un compte', { exact: true }).first().click({ timeout: 1500 }).catch(() => {});
   try {
     await page.getByText('données de santé', { exact: false }).first().click({ timeout: 1500 });
     await sleep(400);

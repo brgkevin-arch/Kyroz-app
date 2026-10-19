@@ -7,10 +7,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 // pas à le refaire défiler pour revenir au formulaire.
 //
 // ⚠️ CETTE CLÉ N'EST PAS DANS `CLES_CONSERVEES`, ET C'EST VOULU. La liste blanche de
-// `sessionLocale.ts` est délibérément courte ; une purge de session efface donc ce
-// drapeau, et l'accueil se remontre après une déconnexion. C'est un tap de plus dans
-// un cas rare — préférable à faire grossir une liste dont tout l'intérêt est de ne
-// pas grossir.
+// `sessionLocale.ts` est délibérément courte ; une purge efface donc ce drapeau, et
+// l'accueil se remontre. ⚠️ Depuis le 2026-09-19 une DÉCONNEXION ne purge plus : seul
+// un changement de compte le fait. Après une déconnexion, l'accueil ne revient donc pas
+// et l'écran s'ouvre sur « Connexion » (`lib/modeConnexion.ts`, 2026-10-19).
 //
 // ⚠️ Et le harnais QA la neutralise en amont (`neutralizeFirstRun`), comme le
 // consentement analytics et les tours : sans ça, tous les scripts Playwright
