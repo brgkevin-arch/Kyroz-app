@@ -65,16 +65,16 @@ export function paddingHautDecale(
  * qu'il doit rendre lisible par-dessus des cartes claires.
  */
 export const FONDU_BARRE_ETAT = [
-  { a: 0, opacite: 0.35 },
-  { a: 0.6, opacite: 0.15 },
+  { a: 0, opacite: 0.45 },
+  { a: 0.6, opacite: 0.22 },
   { a: 1, opacite: 0 },
 ] as const;
 
 export const FONDU_TITRE = [
-  { a: 0, opacite: 0.4 },
-  { a: 0.42, opacite: 0.4 },
-  { a: 0.52, opacite: 0.6 },
-  { a: 0.8, opacite: 0.5 },
+  { a: 0, opacite: 0.5 },
+  { a: 0.42, opacite: 0.5 },
+  { a: 0.52, opacite: 0.68 },
+  { a: 0.8, opacite: 0.58 },
   { a: 1, opacite: 0 },
 ] as const;
 
@@ -85,6 +85,7 @@ export const FONDU_TITRE = [
 // (≈ 10–20 %). 🔴 Le fondateur, sur captures : « trop sombre, réduis ». Allégé de moitié
 // environ : sous l'heure ≈ 65–85 % du contenu, derrière le titre ≈ 40–50 %. Le titre
 // reste dominant par sa graisse et son blanc pur ; un nom de carte peut le croiser.
+// Puis « fondre à peine plus » : +0,1 environ sur chaque arrêt — entre les deux passes.
 
 /** Ce que le fondu déborde sous la bande qu'il couvre, pour que la fin soit douce. */
 export const DEBORD_FONDU = 20;

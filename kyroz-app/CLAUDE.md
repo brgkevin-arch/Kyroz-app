@@ -2393,7 +2393,8 @@ d'état : la zone défilante remonte (`repli.zone`, marge négative) et son cont
 d'autant (`repli.contenu`) — au repos, les cinq titres sont au point près où ils étaient
 (mesuré). Un fondu (`FONDU_BARRE_ETAT`, `FONDU_TITRE`, `lib/collapsingTitle.ts`) garde
 l'heure et le titre lisibles en laissant voir le contenu — allégé à la demande du fondateur
-(« trop sombre ») : contenu à 85–100/255 sous l'heure, l'heure et le titre à 255 (mesuré). Le filet a disparu : il expliquait une coupure qui n'existe plus.
+(« trop sombre »), puis resserré d'un cran (« à peine plus ») ; pire cas mesuré — un bouton
+blanc sous l'heure — : contraste de l'heure 6 à 8:1, au-dessus des 4,5:1 recommandés. Le filet a disparu : il expliquait une coupure qui n'existe plus.
 - ⚠️ **Le titre compact était posé SUR la Dynamic Island** (`top: 0`, 52 pt, dans la barre
   d'état) : caché sur un vrai iPhone, invisible dans les captures du simulateur, qui ne
   dessinent pas l'îlot. Il est maintenant sous la barre d'état.
