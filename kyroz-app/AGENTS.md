@@ -176,7 +176,9 @@ qu'ils étaient périmés.
    réponse : sous le seuil, la ligne disparaît-elle (comme le sel) ou reste-t-elle sans paquet
    (« cacao : 10 g ») ? et faut-il lui préparer le tableau besoin d'une semaine ÷ paquet,
    aliment par aliment ? Défaut repéré au passage : 3 boîtes de thon proposées pour 290 g
-   alors que 2 boîtes font 280 g (la tolérance de 5 % porte sur UN paquet).
+   alors que 2 boîtes font 280 g (la tolérance de 5 % portait sur UN paquet) — ✅ **corrigé
+   dans #376 le 2026-10-19** : les 5 % portent sur l'achat entier (`formatsVendus.ts::achatPour`),
+   rien ne change pour un seul paquet ; test vérifié par mutation.
 4. **Publier le tout (61ᵉ OTA)** une fois 1 à 3 tranchés : empreinte iOS re-mesurée contre le
    build (22), publication depuis un arbre détaché sur `origin/main`, consignation (ligne
    « OTA publiées », puce de `STORE-RELEASE.md`, statuts E76/E78, case Tests),
