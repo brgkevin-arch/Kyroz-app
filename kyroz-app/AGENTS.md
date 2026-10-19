@@ -160,9 +160,10 @@ qu'ils étaient périmés.
    week-end est celui de la semaine qui vient, il se renouvelle le lendemain de son dernier
    jour, F9 compte les courses du week-end ; plus quatre retouches (« il t'en faut 2
    tranches », plus de « 2 bananes · il t'en faut 2 bananes », conserves au sec, 10 recettes
-   sans mot en capitales). ⚠️ Effet à faire valider : inscrit un samedi avec un plan de
-   7 jours, le premier plan dure 2 jours, puis la vraie semaine arrive le lundi. ⚠️ Elle a
-   pris du retard sur `main` (#377 à #383, dont des retouches d'`AGENTS.md`) : la remettre à
+   sans mot en capitales). ✅ Effet VALIDÉ par le fondateur (2026-10-19) : inscrit un
+   samedi, s'il choisit « Aujourd'hui » avec un plan de 7 jours, le premier plan dure 2 jours,
+   puis la vraie semaine arrive le lundi (la question d'E78 le rend rare). ✅ Remise à jour
+   avec `main` le 2026-10-19 (#377 à #384) ; elle avait pris du retard : la remettre à
    jour avant tout merge, conflits probables dans les fiches. Le mode automatique a refusé
    `gh pr merge` à Claude sur cette PR (« Merge Without Review », 2026-10-04) : le fondateur
    fusionne lui-même, ou l'autorise via `/permissions` dans un terminal `claude`.
@@ -1826,7 +1827,7 @@ produit en suspens — il ne reste qu'à coder.
   **0** article, vendredi les repas tiennent, samedi un plan neuf daté 12 → 16. Garde-fous :
   `semainePlan.test.ts`, `coursesApresCloture.test.ts` (les courses du dimanche rejouées sur le
   moteur), 4 mutations.
-  ⚠️ Effet assumé : inscrit un samedi avec un plan de 7 jours, le premier plan dure 2 jours,
+  ⚠️ Effet assumé, ✅ validé par le fondateur le 2026-10-19 : inscrit un samedi avec un plan de 7 jours, s'il choisit « Aujourd'hui » (E78), le premier plan dure 2 jours,
   puis la vraie semaine arrive le lundi (« le lundi, quand le plan se génère », 2026-09-17).
   **Avec, dans la même PR, quatre retouches du même tour** : « il t'en faut » se dit dans
   l'unité du paquet (« 1 paquet de 4 tranches · il t'en faut 2 tranches ») et se tait quand il
