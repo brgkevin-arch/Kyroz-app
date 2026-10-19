@@ -118,6 +118,38 @@ qu'ils étaient périmés.
 
 ## 📍 OÙ ON EN EST
 
+### ▶️ Reprise du 2026-10-19 — À LIRE EN PREMIER
+
+> Le fondateur reprend dans une session fraîche, après deux semaines sans toucher à Kyroz :
+> *« je me suis trop éparpillé »*. ➡️ **Une chose à la fois, dans l'ordre ci-dessous** ; ne
+> pas ouvrir de nouveau chantier (ni un nouveau tour de l'app) tant qu'un point attend.
+
+| | |
+|---|---|
+| Chez les utilisateurs | **59ᵉ OTA** (2026-10-02) — rien de publié depuis |
+| En attente | **PR [#376](https://github.com/brgkevin-arch/Kyroz-app/pull/376)**, branche `claude/semaine-datee` : OUVERTE, fusionnable sans conflit au 2026-10-19 |
+
+1. **Recueillir les remarques du fondateur sur #376.** Le 2026-10-05 il a dit avoir « des
+   choses à régler » sur ce travail, sans les détailler. Les demander (capture si c'est un
+   écran), les corriger DANS la PR. Ce qu'elle contient (fiche **E76**, écrite dans la PR) :
+   chaque jour du plan a sa vraie date (`lib/semainePlan.ts::datesDuPlan`) — un plan généré le
+   week-end est celui de la semaine qui vient, il se renouvelle le lendemain de son dernier
+   jour, F9 compte les courses du week-end ; plus quatre retouches (« il t'en faut 2 tranches »,
+   plus de « 2 bananes · il t'en faut 2 bananes », conserves au sec, 10 recettes sans mot en
+   capitales). Vu à l'écran du dimanche au samedi, 2 697 tests verts sur la branche.
+   ⚠️ Effet à faire valider : inscrit un samedi avec un plan de 7 jours, le premier plan dure
+   2 jours, puis la vraie semaine arrive le lundi.
+2. **Fusion, puis 60ᵉ OTA.** Le mode automatique refuse `gh pr merge` à Claude (« Merge Without
+   Review », deux fois le 2026-10-04) : le fondateur fusionne lui-même (« Squash and merge »), ou
+   autorise la commande via `/permissions` dans un terminal `claude`. Ensuite : re-mesurer
+   l'empreinte iOS contre le build 22 (égale le 2026-10-04), publier depuis un arbre détaché sur
+   `origin/main`, consigner (ligne « OTA publiées », puce de `STORE-RELEASE.md`, statut d'E76,
+   case Tests), puis `npm run check:ota`.
+3. **Faire relire la table des formats** (#370, `lib/formatsVendus.ts`), jamais relue par le
+   fondateur : lui présenter une liste COURTE des formats douteux, pas les 139. Exemple : 3 boîtes
+   de thon proposées pour 290 g alors que 2 boîtes font 280 g (la tolérance de 5 % porte sur UN
+   paquet).
+
 ### ▶️ Photo du 2026-08-30 — À LIRE EN PREMIER
 
 > 🔴 **L'APP EST SOUMISE, ET CE FICHIER NE LE SAVAIT PAS.** La soumission est partie le
