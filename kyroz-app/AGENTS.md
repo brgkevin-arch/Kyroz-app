@@ -209,9 +209,12 @@ qu'ils étaient périmés.
    si le store l'accorde (`joursEssai`), frise datée, mention de paiement adaptée ; CGU §3
    révisées (date 20 octobre, à reporter si la livraison glisse). Achat partagé
    (`hooks/useAchatKyrozPlus.ts`). Vu au navigateur, avec et sans essai (sonde retirée).
-   ⚠️ **RESTE À FAIRE, hors code, avec l'accord du fondateur** : poser l'offre d'essai gratuit
-   de 2 semaines sur `kyroz_plus_monthly_early` et `_yearly_early` dans App Store Connect —
-   sans elle, la page vend l'abonnement sans essai. ⚠️ Le site vitrine (`kyroz-site`) porte
+   ✅ **Essai posé dans App Store Connect le 2026-10-20** (accord du fondateur), par l'API :
+   `FREE_TRIAL`, `TWO_WEEKS`, 1 période, sans date de fin, sur `kyroz_plus_monthly_early` et
+   `_yearly_early` — **175 pays sur 175 chacun, relu pays par pays** (350 offres, 0 erreur ;
+   Apple exige une offre PAR territoire). En vigueur dès aujourd'hui, donc AVANT l'OTA : l'écran
+   Kyroz+ actuel (sans mention d'essai) vend déjà un abonnement qui commence par 14 jours
+   gratuits — Apple l'affiche lui-même dans sa feuille d'achat. ⚠️ Le site vitrine (`kyroz-site`) porte
    sa copie des CGU : `KYROZ_SITE=… npm run gen:legal` à la livraison. Non vu sur iPhone.
 2. **Plan généré le week-end (E76)** : chercher d'autres angles morts par des tests (jours de
    génération, plans de 5 et 7 jours, plans à trous, début choisi à l'inscription…).
