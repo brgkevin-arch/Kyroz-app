@@ -11,6 +11,9 @@
 // Ne recopie plus rien à la main. `lib/__tests__/legal.test.ts` fait échouer
 // `npm test` si un fichier généré ne correspond plus — la recopie manuelle avait
 // laissé deux surfaces mentir en production pendant des semaines.
+import { RYTHME_HEBDOMADAIRE_ACTIF } from '../lib/featureFlags';
+import { fonctionsEnPhrase } from '../lib/offreKyrozPlus';
+
 export const DISCLAIMER =
   // ⚠️ « ou D'UN diététicien-nutritionniste » : la même phrase vit dans
 // `lib/methodologie.ts` (avertissement dispositif médical), et les deux seront
@@ -96,7 +99,7 @@ export const LEGAL = {
    * ⚠️ Ce n'est PAS la date du commit : c'est celle à laquelle le texte devient
    * opposable, donc celle de la livraison. Elle s'arbitre, elle ne se déduit pas.
    */
-  effectiveDate: '19 septembre 2026',
+  effectiveDate: '20 octobre 2026',
 } as const;
 
 export interface LegalSection {
@@ -318,7 +321,13 @@ export const TERMS_OF_USE: LegalSection[] = [
   {
     title: '3. Abonnement Kyroz+',
     paragraphs: [
-      "Le cœur du service reste gratuit : plan de la semaine, liste de courses, recettes, réserve, favoris, pesée, réglage du rythme de la semaine et synchronisation. Kyroz+ est un abonnement facultatif qui donne accès à des outils complémentaires : objectif daté et suivi de transformation.",
+      // ⚠️ Les deux listes se LISENT (2026-10-20) : ce que Kyroz+ ajoute vient de
+      // `lib/offreKyrozPlus.ts`, la même source que l'app ; le réglage du rythme de la semaine
+      // suit son interrupteur — il était énuméré ici alors qu'il est éteint depuis le 2026-08-18.
+      `Le cœur du service reste gratuit : plan de la semaine, liste de courses, recettes, réserve, favoris, pesée, ${RYTHME_HEBDOMADAIRE_ACTIF ? 'réglage du rythme de la semaine ' : ''}et synchronisation. Kyroz+ est un abonnement facultatif qui donne accès à des outils complémentaires : ${fonctionsEnPhrase()}.`,
+      // Essai gratuit (décision fondateur du 2026-10-20). Rédigé sans durée en dur : la durée
+      // est celle de l'offre posée sur l'abonnement dans le store, affichée avant l'achat.
+      "Une période d’essai gratuite peut être proposée lors de la première souscription ; sa durée est indiquée avant l’achat. Elle n’est accordée qu’une fois par compte App Store ou Google Play. À la fin de l’essai, l’abonnement commence et le premier paiement est prélevé, sauf résiliation au moins 24 heures avant la fin de l’essai, dans les réglages de votre compte App Store ou Google Play. Une résiliation pendant l’essai ne coûte rien.",
       "L’abonnement est vendu par l’App Store ou Google Play, jamais directement par Kyroz. Le prix affiché au moment de l’achat fait foi. Le paiement, le renouvellement et la résiliation se gèrent dans les réglages de votre compte App Store ou Google Play.",
       "L’abonnement se renouvelle automatiquement à la fin de chaque période, sauf résiliation au moins 24 heures avant l’échéance. Les demandes de remboursement relèvent du store, pas de Kyroz.",
       "Le tarif de votre abonnement est celui affiché au moment où vous souscrivez, et il reste inchangé tant que votre abonnement demeure actif. Une évolution de nos tarifs ne s’applique qu’aux nouvelles souscriptions. En revanche, si vous résiliez puis souscrivez à nouveau plus tard, c’est le tarif en vigueur à cette date qui s’applique.",

@@ -367,6 +367,11 @@ export interface StorePrice {
   montant: number;
   /** Code ISO 4217 réellement facturé (`EUR`, `USD`, `JPY`…). */
   devise: string;
+  /**
+   * Jours d'essai GRATUIT que le store accorde à CETTE personne sur ce produit, s'il y en a
+   * (`lib/offreKyrozPlus.ts::joursEssai`). Absent = pas d'essai à annoncer.
+   */
+  essaiJours?: number;
 }
 
 /** Prix localisés renvoyés par le store, par formule (cf. `lib/purchases.ts`). */

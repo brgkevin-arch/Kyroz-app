@@ -231,6 +231,13 @@ import { STATISTIQUES_USAGE_ACTIVES } from '../featureFlags';
  * que le test affiche. Et régénère les miroirs (`npm run gen:legal`).
  */
 const DERNIERE_REVISION = {
+  // 🔴 **DIXIÈME RÉVISION — L'ESSAI GRATUIT ET UNE LISTE QUI SE LIT** (2026-10-20). Décision
+  // fondateur : un essai de deux semaines à la première souscription (CGU §3, rédigé sans
+  // durée en dur — c'est l'offre du store qui la fixe, affichée avant l'achat). Au passage,
+  // la liste de Kyroz+ se lit dans `lib/offreKyrozPlus.ts` (la même que l'app), et le
+  // « réglage du rythme de la semaine », éteint depuis le 2026-08-18, quitte le cœur gratuit
+  // énuméré au §3 : il y était promis sans exister. ⚠️ Date = celle de la LIVRAISON prévue
+  // (62ᵉ OTA) : à reporter si la publication glisse.
   // 🔴 **NEUVIÈME RÉVISION — LA SÉRIE QUITTE LES DEUX TEXTES** (2026-09-19). Décision
   // fondateur : la série (streak) est retirée de l'app, écrans, logique et synchro. La
   // politique la listait dans les données d'usage (§2), les CGU dans le cœur gratuit
@@ -255,7 +262,7 @@ const DERNIERE_REVISION = {
   // on se trompe. Le prix à payer est une date qui avance pour une virgule ; le prix de
   // l'inverse est un engagement qui passe inaperçu.
   // ➡️ Ce texte-ci est livré le 8 : 31ᵉ OTA + le binaire qui la suit.
-  date: '19 septembre 2026',
+  date: '20 octobre 2026',
   // ⚠️ **SIXIÈME RÉVISION** (2026-08-27, même jour) : le `DISCLAIMER` disait « l'avis d'un
   // médecin ou diététicien-nutritionniste » quand `lib/methodologie.ts` dit « ou D'UN
   // diététicien-nutritionniste ». Deux variantes d'une phrase OBLIGATOIRE (§6, Apple
@@ -328,7 +335,7 @@ const DERNIERE_REVISION = {
   // d'être déclaré le jour où il ne traite plus, données effacées. C'est la même règle
   // dans l'autre sens ; la garder à sens unique ferait décrire un traitement inexistant.
   // ➡️ La date ne bouge pas — même jour de livraison.
-  empreinte: 'ccd8357ce170',
+  empreinte: 'a74e5c50f42a',
 };
 
 /**

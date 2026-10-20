@@ -201,7 +201,18 @@ qu'ils étaient périmés.
 **▶️ À peaufiner AVANT la 62ᵉ OTA — demandé le 2026-10-20, UN PAR UN, chacun validé avant le suivant**
 1. **Une page Kyroz+ dans le parcours d'arrivée**, avec abonnement direct (modèle montré par le
    fondateur : la page d'essai de Wikiloc — logo, « 14 jours offerts », frise « Aujourd'hui → … »,
-   gros bouton, « Restaurer les achats », croix pour fermer). Place dans l'ordre à trancher.
+   gros bouton, « Restaurer les achats », croix pour fermer). ✅ **CODÉ le 2026-10-20 dans #376**
+   (non publié) : `app/offre-kyroz-plus.tsx`, une fois, APRÈS la visite, avant le rappel ; à un
+   compte qui doit payer, jamais sur le web ; croix + « Peut-être plus tard ». Pas de liste
+   « à venir » (avis retenu) : `lib/offreKyrozPlus.ts` porte LA liste vendue, lue aussi par
+   l'écran Kyroz+ et les CGU §3. **Essai de 14 jours** (décision fondateur) : affiché SEULEMENT
+   si le store l'accorde (`joursEssai`), frise datée, mention de paiement adaptée ; CGU §3
+   révisées (date 20 octobre, à reporter si la livraison glisse). Achat partagé
+   (`hooks/useAchatKyrozPlus.ts`). Vu au navigateur, avec et sans essai (sonde retirée).
+   ⚠️ **RESTE À FAIRE, hors code, avec l'accord du fondateur** : poser l'offre d'essai gratuit
+   de 2 semaines sur `kyroz_plus_monthly_early` et `_yearly_early` dans App Store Connect —
+   sans elle, la page vend l'abonnement sans essai. ⚠️ Le site vitrine (`kyroz-site`) porte
+   sa copie des CGU : `KYROZ_SITE=… npm run gen:legal` à la livraison. Non vu sur iPhone.
 2. **Plan généré le week-end (E76)** : chercher d'autres angles morts par des tests (jours de
    génération, plans de 5 et 7 jours, plans à trous, début choisi à l'inscription…).
 3. **Thon (E75)** : d'autres aliments avaient-ils le même défaut d'arrondi de paquet ?

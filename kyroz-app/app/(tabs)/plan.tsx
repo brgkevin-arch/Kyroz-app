@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react'
 import { usePreferencesRevues } from '../../lib/revuePreferences';
 import { Presse } from '../../components/Presse';
 import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, RefreshControl, AppState,
+  View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, RefreshControl, AppState, Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -36,6 +36,7 @@ import { useWeightLog } from '../../hooks/useWeightLog';
 import { usePlanCheckin } from '../../hooks/usePlanCheckin';
 import { useNotificationIntent, consommerNotificationIntent } from '../../hooks/useNotificationIntent';
 import { useReminder } from '../../hooks/useReminder';
+import { usePremium } from '../../hooks/usePremium';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { datesDuPlan, semaineEcoulee } from '../../lib/semainePlan';
 import { buildLocalPlan, carryTracking, nextPlanSeed, profileSignature, swapMeal, computeDailyTotals, rebalanceDay, resetTracking, adaptDayOptions, AdaptOption, mealIngredients, reAdaptMealRecipe, mealPoolSize, dayTargetKcal, ON_TARGET_TOLERANCE_KCAL } from '../../lib/planEngine';
@@ -89,6 +90,8 @@ const FIRST_PLAN_KEY = '@kyroz:firstPlanSeen';
 // ne répète pas). Clé distincte de `FIRST_PLAN_KEY`, qui est backfillé pour les
 // comptes existants : le rappel, lui, doit pouvoir leur être proposé.
 const REMINDER_OFFER_KEY = '@kyroz:reminderOffered';
+/** La page Kyroz+ du parcours d'arrivée ne se montre qu'une fois (2026-10-20). */
+const OFFRE_KYROZ_PLUS_KEY = '@kyroz:offreKyrozPlusVue';
 // Anniversaire déjà fêté — on stocke l'ANNÉE, pas un booléen : un booléen serait à
 // remettre à zéro quelque part, et ce « quelque part » n'existe pas (personne ne
 // tourne un cron dans une app locale). Comparer l'année stockée à l'année courante
@@ -209,6 +212,30 @@ export default function PlanScreen() {
     setShowOffer(true);
   };
 
+  // ── APRÈS LA VISITE : LA PAGE KYROZ+, PUIS LE RAPPEL (décision fondateur, 2026-10-20) ──
+  // « Pourquoi pas après la visite ? La personne a vu ce que l'app avait dans le ventre. »
+  // Une fois, à un compte qui doit payer (`locked`) et sur une app qui peut encaisser (pas le
+  // web) — `app/offre-kyroz-plus.tsx`. C'est une ROUTE, poussée quand la visite a FINI de
+  // disparaître (`onFin`) : pas de modale sur une modale (CLAUDE.md §11). Le rappel quotidien
+  // reste le dernier geste du parcours — il finit sur la fenêtre d'autorisation d'iOS — et
+  // part quand on revient sur le Plan.
+  const { reason: raisonKyrozPlus } = usePremium();
+  const rappelApresOffre = useRef(false);
+  const apresLaVisite = async () => {
+    if (Platform.OS !== 'web' && raisonKyrozPlus === 'locked' && !(await AsyncStorage.getItem(OFFRE_KYROZ_PLUS_KEY))) {
+      await AsyncStorage.setItem(OFFRE_KYROZ_PLUS_KEY, '1');
+      rappelApresOffre.current = true;
+      router.push('/offre-kyroz-plus');
+      return;
+    }
+    proposerLeRappel();
+  };
+  useFocusEffect(useCallback(() => {
+    if (!rappelApresOffre.current) return;
+    rappelApresOffre.current = false;
+    proposerLeRappel();
+  }, [reminderTime]));
+
   // ⚠️ Plus de rappel ici : il attend la fin de la visite (`onFin` ci-dessous).
   const fermerReveal = () => setShowReveal(false);
 
@@ -267,7 +294,7 @@ export default function PlanScreen() {
   useScreenTour(
     'app',
     visiteApp({ repasAuto }),
-    { pret: !loading && !!plan && !showReveal && !showOffer, scrollRef, onFin: proposerLeRappel },
+    { pret: !loading && !!plan && !showReveal && !showOffer, scrollRef, onFin: apresLaVisite },
   );
 
   // ── L'offre du rappel doit aussi atteindre les comptes DÉJÀ créés ──────────

@@ -802,7 +802,10 @@ describe('La visite après relecture — ce qu’elle montre, quand elle cède l
     // Avant : révélation → rappel → visite, trois fenêtres d'affilée.
     const fermer = plan.slice(plan.indexOf('const fermerReveal'), plan.indexOf('const [birthdayAge'));
     expect(fermer, 'la révélation propose encore le rappel').not.toMatch(/proposerLeRappel/);
-    expect(plan).toMatch(/onFin: proposerLeRappel/);
+    // Depuis le 2026-10-20, la page Kyroz+ s'intercale (`apresLaVisite`) : le rappel reste le
+    // dernier geste, directement ou au retour sur le Plan (`offreKyrozPlus.test.ts`).
+    expect(plan).toMatch(/onFin: apresLaVisite/);
+    expect(plan.slice(plan.indexOf('const apresLaVisite'), plan.indexOf('const apresLaVisite') + 600)).toMatch(/proposerLeRappel\(\)/);
     // 🔴 Et pas pendant que la visite s'efface : iOS refuserait la fenêtre du rappel.
     expect(moteur).toMatch(/onDismiss=\{apresFermeture\}/);
     const fin = moteur.slice(moteur.indexOf('const end = useCallback'), moteur.indexOf('const apresFermeture'));
