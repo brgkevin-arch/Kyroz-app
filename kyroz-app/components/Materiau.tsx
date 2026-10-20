@@ -39,6 +39,15 @@ function apiDisponible(): boolean {
 }
 
 /**
+ * L'app tourne-t-elle sous le design Liquid Glass (iOS 26+) ? Indépendant de
+ * « Réduire la transparence » : ce réglage change le MATÉRIAU des barres, pas leur
+ * FORME. Sert à la visite guidée, qui doit savoir où la barre native pose ses onglets.
+ */
+export function designLiquidGlass(): boolean {
+  return apiDisponible();
+}
+
+/**
  * Sert-on du verre ici et maintenant ? Utilisable hors React.
  * ⚠️ La transparence est relue À CHAQUE APPEL et jamais capturée : le réglage
  * bascule pendant que l'app tourne. Même règle que `reduceMotionActif()` dans

@@ -2,7 +2,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import {
   Modal, View, StyleSheet, Animated, PanResponder, Pressable, Easing,
 } from 'react-native';
-import { useTheme, Spacing, Fond } from '../constants/theme';
+import { useTheme, Spacing, Fond, Radius } from '../constants/theme';
+import Materiau, { useVerre } from './Materiau';
 import { useLayout } from '../constants/layout';
 import {
   RESSORT, DUREE, FILET_DEMONTAGE_MS, ressortRN, ressortReduit, dureeReduite,
@@ -38,9 +39,27 @@ const HAUTEUR_NOMINALE = 700;
 // l'autre, donc rendrait le geste imprévisible d'un écran au suivant.
 const SEUIL_HAUTEUR = 160;
 
+// ── La feuille en VERRE (iOS 26, 2026-10-19) ─────────────────────────────────
+// Chez Apple, une feuille à mi-hauteur est en Liquid Glass, DÉCOLLÉE des bords, ses
+// coins concentriques à ceux de l'écran ; elle ne redevient opaque et collée aux
+// bords qu'à pleine hauteur (WWDC25, « Build a SwiftUI app with the new design »).
+// Cette feuille-ci se dimensionne sur son contenu, donc elle est toujours partielle :
+// elle reçoit le verre. `Sheet.tsx`, elle, monte à 94 % — la pleine hauteur d'Apple :
+// opaque, et c'est la règle, pas un oubli.
+//
+// Le RAYON n'est pas choisi à l'œil : il est concentrique à ce que la feuille porte.
+// Ses boutons (`Radius.button`) sont posés à `Spacing.xxl` de son bord ; un coin
+// extérieur de 24 + 14 suit exactement la courbe intérieure. C'est la règle de
+// concentricité d'Apple, appliquée à nos propres tokens.
+const RAYON_VERRE = Spacing.xxl + Radius.button;
+/** Le décollement des bords — l'écart qui fait lire la feuille comme posée au-dessus. */
+const MARGE_VERRE = Spacing.sm;
+
 export function ActionSheet({ visible, onClose, children }: Props) {
   const t = useTheme();
   const layout = useLayout();
+  // Relu à chaque rendu : « Réduire la transparence » bascule pendant que l'app tourne.
+  const verre = useVerre();
   const [render, setRender] = useState(visible);
   // Recensée tant qu'elle est à l'écran : une visite guidée attend qu'elle soit partie (lib/modalesPresentees.ts).
   useModaleRecensee(render);
@@ -214,10 +233,21 @@ export function ActionSheet({ visible, onClose, children }: Props) {
           <Animated.View style={[styles.backdrop, { opacity: backdrop }]} />
         </Pressable>
 
+        {/* ⚠️ Le repli (pas de verre : iOS 18, Android, web, « Réduire la
+            transparence ») est la feuille d'AVANT au pixel près — peinte, collée aux
+            bords, arrondie en haut seulement. C'est ce qui autorise l'OTA. */}
         <Animated.View
           {...pan.panHandlers}
-          style={[styles.sheet, { backgroundColor: t.card, transform: [{ translateY: ty }] }, layout.sheet, layout.isTablet && styles.sheetTablet]}
+          style={[
+            styles.sheet,
+            verre ? styles.sheetVerre : [styles.sheetPeinte, { backgroundColor: t.card }],
+            { transform: [{ translateY: ty }] },
+            layout.sheet,
+            layout.isTablet && (verre ? styles.sheetVerreTablette : styles.sheetTablet),
+          ]}
         >
+          {/* Le verre se rend DERRIÈRE le contenu, à la forme de la feuille. */}
+          {verre && <Materiau pointerEvents="none" style={[StyleSheet.absoluteFill, { borderRadius: RAYON_VERRE }]} />}
           <View style={[styles.handle, { backgroundColor: t.lineStrong }]} />
           {children}
         </Animated.View>
@@ -230,9 +260,17 @@ const styles = StyleSheet.create({
   root: { flex: 1, justifyContent: 'flex-end' },
   backdrop: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)' },
   sheet: {
-    borderTopLeftRadius: 28, borderTopRightRadius: 28,
     paddingHorizontal: Spacing.xxl, paddingTop: Spacing.md, paddingBottom: Fond.feuille, gap: Spacing.lg,
   },
+  sheetPeinte: { borderTopLeftRadius: 28, borderTopRightRadius: 28 },
   sheetTablet: { borderBottomLeftRadius: 28, borderBottomRightRadius: 28, marginBottom: Spacing.xxl },
+  // Le contenu garde la même hauteur au-dessus du menton : ce que la feuille gagne
+  // en décollement, son rembourrage du bas le rend.
+  sheetVerre: {
+    marginHorizontal: MARGE_VERRE, marginBottom: MARGE_VERRE,
+    borderRadius: RAYON_VERRE, borderCurve: 'continuous', overflow: 'hidden',
+    paddingBottom: Fond.feuille - MARGE_VERRE,
+  },
+  sheetVerreTablette: { marginBottom: Spacing.xxl },
   handle: { width: 44, height: 5, borderRadius: 3, alignSelf: 'center', marginBottom: Spacing.sm },
 });

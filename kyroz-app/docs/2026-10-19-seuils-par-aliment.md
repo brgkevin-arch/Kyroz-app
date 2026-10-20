@@ -2,7 +2,7 @@
 
 > Demande du fondateur (E75) : *« 5 g est négligeable, aucun intérêt de faire acheter un pot »*, *« 15 g de crème n'a pas autant d'impact que 15 g de poulet »*, *« personne n'est à 10 g près »*, *« 30 g de pesto, c'est un repas »*. Décisions du 2026-10-19 et du 2026-10-20 : **sous le seuil, la ligne disparaît de la liste, comme le sel** ; **seuil = 20 % d'une portion habituelle, jamais moins de 10 g** ; **au plus 15 g pour ce qui porte la protéine du plat**. La recette n'est **pas** adaptée au manque (au pire ~3 g de protéines sur un repas, sous la tolérance de 100 kcal/jour du moteur).
 >
-> ✅ **Codé le 2026-10-20 dans #376** (non publié, part avec la 61ᵉ OTA). ⚠️ Ce tableau est **généré depuis le code** : les seuils se calculent sur le catalogue (portion = médiane de l'aliment dans les recettes, rôle = `macro_role` le plus fréquent), donc ils suivront une refonte des recettes. Ne pas le corriger à la main : corriger la règle, puis le régénérer.
+> ✅ **Codé le 2026-10-20 dans #376** (non publié, part avec la 62ᵉ OTA). ⚠️ Ce tableau est **généré depuis le code** : les seuils se calculent sur le catalogue (portion = médiane de l'aliment dans les recettes, rôle = `macro_role` le plus fréquent), donc ils suivront une refonte des recettes. Ne pas le corriger à la main : corriger la règle, puis le régénérer.
 
 ## La règle
 

@@ -7195,6 +7195,8 @@
   diffuse le réglage d'accessibilité, miroir exact de `reduceMotion.ts` (store externe +
   `useSyncExternalStore` + abonnement, patron obligatoire de CLAUDE.md §11) ; la barre
   d'onglets passe en `position:'absolute'` avec `tabBarBackground`.
+  ➡️ *2026-10-19 (E79, AGENTS.md)* : sur iOS, cette barre dessinée a laissé place à la
+  barre d'Apple (`NativeTabs`) ; `styleBarre` et `tabBarBackground` sont retirés.
 
   ⚠️ **Trois conditions, pas une, et sauter la première FAIT CRASHER l'app** : l'API
   native doit répondre (`requireNativeModule` LÈVE sur un binaire d'avant, et une OTA

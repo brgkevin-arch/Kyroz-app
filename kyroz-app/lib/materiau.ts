@@ -63,20 +63,9 @@ export function doitServirDuVerre(c: ContexteMateriau): boolean {
   return true;
 }
 
-/**
- * Ce qu'une barre en verre doit à la mise en page : elle FLOTTE, donc elle sort
- * du flux et le contenu passe dessous.
- *
- * 🔴 C'est la moitié du chantier qu'on oublie. Une barre peinte occupe sa place
- * et pousse le contenu ; une barre en verre n'occupe rien, et sans dégagement de
- * bas la dernière ligne d'une liste finit CACHÉE dessous — un bug qui ne se voit
- * que tout en bas d'un défilement, donc jamais sur une capture d'écran.
- * Les 5 onglets portaient déjà `paddingBottom: Fond.barreOnglets` (120 pt) avant
- * ce chantier : le terrain était prêt, mais ça ne se re-vérifie pas tout seul —
- * d'où le garde-fou de `materiauxDA.test.ts`.
- */
-export function styleBarre(verre: boolean, fondOpaque: string, couleurTrait: string, trait: number) {
-  return verre
-    ? { position: 'absolute' as const, backgroundColor: 'transparent', borderTopWidth: 0 }
-    : { backgroundColor: fondOpaque, borderTopColor: couleurTrait, borderTopWidth: trait };
-}
+// ℹ️ `styleBarre` vivait ici jusqu'au 2026-10-19 : la barre d'onglets DESSINÉE
+// sortait du flux et recevait le verre par `tabBarBackground`. Sur iOS, c'est
+// désormais la barre d'Apple (`UITabBar`) qui porte le Liquid Glass ; ailleurs, il
+// n'y a pas de verre. La règle qu'elle portait reste vraie et reste comptée par
+// `materiauxDA` : une barre qui FLOTTE impose un dégagement de bas à chaque onglet
+// (`Fond.barreOnglets`) — la barre d'Apple flotte, elle aussi.

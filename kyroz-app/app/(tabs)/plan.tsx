@@ -976,9 +976,10 @@ export default function PlanScreen() {
     <SafeAreaView style={s.safe} edges={['top']}>
       <ScrollView
         ref={scrollRef}
-        contentContainerStyle={[s.content, layout.content]}
+        style={repli.zone}
+        contentContainerStyle={repli.contenu([s.content, layout.content])}
         showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={t.textTertiary} />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={t.textTertiary} progressViewOffset={repli.haut} />}
         {...repli.scrollProps}
       >
         {/* Header */}
