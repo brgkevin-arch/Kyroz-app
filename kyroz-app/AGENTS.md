@@ -190,6 +190,19 @@ qu'ils étaient périmés.
    l'instant**, pas refusée : cf. E77 pour ce qu'elle coûterait. Ne pas la relancer sans
    demande.
 
+**▶️ À peaufiner AVANT la 61ᵉ OTA — demandé le 2026-10-20, UN PAR UN, chacun validé avant le suivant**
+1. **Une page Kyroz+ dans le parcours d'arrivée**, avec abonnement direct (modèle montré par le
+   fondateur : la page d'essai de Wikiloc — logo, « 14 jours offerts », frise « Aujourd'hui → … »,
+   gros bouton, « Restaurer les achats », croix pour fermer). Place dans l'ordre à trancher.
+2. **Plan généré le week-end (E76)** : chercher d'autres angles morts par des tests (jours de
+   génération, plans de 5 et 7 jours, plans à trous, début choisi à l'inscription…).
+3. **Thon (E75)** : d'autres aliments avaient-ils le même défaut d'arrondi de paquet ?
+4. **« Il t'en faut … »** : la phrase est inutile pour l'utilisateur — la retirer, que l'app
+   tourne en silence ; chercher les autres phrases du même genre.
+5. **Réserve** : vérifier aliment par aliment le rangement frais / sec.
+6. **Bonus « 0 gaspi »** : le début du plan suivant cuisine les restes de la réserve du dimanche.
+➡️ Avancement : tenu ici, ligne par ligne, au fil des validations.
+
 **Décidé le 2026-10-19 — ne pas le relancer à chaque bilan**
 - **Médiateur de la consommation** (obligation L.612-1 dès la première vente, aucune
   adhésion) : *« on verra au moment du premier abonné »*. Le ressortir ce jour-là — rien ne le
