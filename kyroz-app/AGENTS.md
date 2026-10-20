@@ -218,12 +218,44 @@ qu'ils étaient périmés.
    sa copie des CGU : `KYROZ_SITE=… npm run gen:legal` à la livraison. Non vu sur iPhone.
 2. **Plan généré le week-end (E76)** : chercher d'autres angles morts par des tests (jours de
    génération, plans de 5 et 7 jours, plans à trous, début choisi à l'inscription…).
+   📏 **MESURÉ le 2026-10-20** — 42 cas (6 formes de plan × 7 jours de génération, 4 semaines
+   simulées jour par jour) : **aucun trou**, **aucun renouvellement en milieu de semaine**,
+   **aucune course du jour oubliée**. Avance pour faire les courses de la semaine suivante :
+   lun→ven 2 j (samedi), lun-mer-ven 2 j, mar→sam 2 j, lun→jeu 3 j, week-end 5 j — et
+   🔴 **7 jours : 0 j** (la semaine suivante n'apparaît que le lundi matin ; le week-end, la
+   liste ne couvre que la fin de la semaine en cours). Point fragile non observé : le jour du
+   renouvellement, la régénération et l'effacement du suivi de la veille partent ensemble — si
+   la première gagnait, les repas cochés le vendredi réapparaîtraient quelques heures sur le
+   vendredi suivant (`carryTracking` reporte par numéro de jour). À blinder avec le chantier.
+   ✅ **DÉCISION FONDATEUR (2026-10-21)** : **« la liste de courses en attente »** — pour le plan
+   de 7 jours (et, à voir, pour toutes les formes) : le SAMEDI, la liste de la semaine suivante
+   apparaît « en attente » pour faire les courses du week-end ; le LUNDI, le plan apparaît,
+   **calé sur cette liste** (même tirage : ce qu'on a acheté est ce qu'on cuisine) ; la liste
+   **tient compte des restes de la réserve** → ce chantier ABSORBE le point 6 (0 gaspi).
+   ❌ Rien codé. À concevoir d'abord (une proposition au fondateur avant de coder) : le plan
+   préparé d'avance et gardé de côté, l'écran Courses en deux temps (fin de semaine en cours +
+   semaine en attente), le choix des recettes du début de semaine selon les restes, le
+   blindage du renouvellement.
+   💡 **Idée Kyroz+ notée (2026-10-21, pas une fonction à vendre avant d'exister)** : planifier
+   sur plusieurs semaines (2 à 4 semaines visibles, courses groupées). Le fondateur voulait y
+   mettre la préparation du samedi ; avis donné et retenu : la liste du week-end est le cœur
+   GRATUIT (CGU : « rien de tout ça ne passera jamais derrière un abonnement »), seule la
+   planification multi-semaines serait premium.
 3. **Thon (E75)** : d'autres aliments avaient-ils le même défaut d'arrondi de paquet ?
 4. **« Il t'en faut … »** : la phrase est inutile pour l'utilisateur — la retirer, que l'app
    tourne en silence ; chercher les autres phrases du même genre.
 5. **Réserve** : vérifier aliment par aliment le rangement frais / sec.
 6. **Bonus « 0 gaspi »** : le début du plan suivant cuisine les restes de la réserve du dimanche.
-➡️ Avancement : tenu ici, ligne par ligne, au fil des validations.
+   ➡️ **Fusionné dans le point 2** (décision du 2026-10-21) : la liste en attente du samedi et
+   le plan du lundi partent des restes.
+➡️ Avancement : tenu ici, ligne par ligne, au fil des validations. **Au 2026-10-21** : point 1
+   codé + essai posé (ligne 1) ; point 2 mesuré, décision prise, à CONCEVOIR (proposition au
+   fondateur avant de coder) ; points 3, 4, 5 pas commencés ; point 6 fusionné dans le 2.
+   ⚠️ #376 porte TOUT (plan daté, « Quand veux-tu commencer ? », seuils, thon, page Kyroz+,
+   CGU révisées le 20 octobre — date à reporter si la livraison glisse) ; elle est à jour de
+   `main` (61ᵉ OTA = Liquid Glass) et FUSIONNABLE ; la livraison sera la **62ᵉ OTA**, avec le
+   site vitrine (`KYROZ_SITE=… npm run gen:legal`). Le compteur du jour (« 0 / 2 314 kcal » le
+   soir du « Ce soir ») reste à trancher.
 
 **Décidé le 2026-10-19 — ne pas le relancer à chaque bilan**
 - **Médiateur de la consommation** (obligation L.612-1 dès la première vente, aucune
