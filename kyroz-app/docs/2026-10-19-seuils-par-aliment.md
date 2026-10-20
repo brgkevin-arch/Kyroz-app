@@ -1,81 +1,72 @@
-# Seuil par aliment — version validée par le fondateur (2026-10-19)
+# Seuil par aliment — en vigueur (code : `lib/seuilAchat.ts`)
 
-> Demande du fondateur (E75) : *« 5 g est négligeable, aucun intérêt de faire acheter un pot »*, *« 15 g de crème n'a pas autant d'impact que 15 g de poulet »*, *« personne n'est à 10 g près pour la protéine du plat »*, et *« 30 g de pesto, c'est un repas »*. Décisions : **sous le seuil, la ligne disparaît de la liste, comme le sel** (choix A) ; **seuil = 20 % d'une portion habituelle, jamais moins de 10 g** (règle validée le 2026-10-19).
+> Demande du fondateur (E75) : *« 5 g est négligeable, aucun intérêt de faire acheter un pot »*, *« 15 g de crème n'a pas autant d'impact que 15 g de poulet »*, *« personne n'est à 10 g près »*, *« 30 g de pesto, c'est un repas »*. Décisions du 2026-10-19 et du 2026-10-20 : **sous le seuil, la ligne disparaît de la liste, comme le sel** ; **seuil = 20 % d'une portion habituelle, jamais moins de 10 g** ; **au plus 15 g pour ce qui porte la protéine du plat**. La recette n'est **pas** adaptée au manque (au pire ~3 g de protéines sur un repas, sous la tolérance de 100 kcal/jour du moteur).
 >
-> **Rien n'est encore codé.** Ce tableau est la référence du code à venir (`lib/formatsVendus.ts`), livré avec #376 dans la 61ᵉ OTA.
+> ✅ **Codé le 2026-10-20 dans #376** (non publié, part avec la 61ᵉ OTA). ⚠️ Ce tableau est **généré depuis le code** : les seuils se calculent sur le catalogue (portion = médiane de l'aliment dans les recettes, rôle = `macro_role` le plus fréquent), donc ils suivront une refonte des recettes. Ne pas le corriger à la main : corriger la règle, puis le régénérer.
 
 ## La règle
 
-**Une ligne de la liste de courses disparaît quand il reste à acheter au plus 20 % de ce qu'on met habituellement de cet aliment dans une assiette — et jamais moins de 10 g.** À cette proportion, l'assiette ne change pas de façon visible.
-
-- *Portion habituelle* = la quantité médiane de l'aliment dans les recettes du catalogue (`Recette/recettes-kyroz.json`).
-- Le seuil porte sur **ce qui reste à acheter**, réserve déduite — c'est là qu'apparaissent les petits restes d'un paquet.
-- **Jamais caché** : un article ajouté à la main. Les fonds de placard (huile, miel, sel, épices, citron…) restent hors de la liste comme aujourd'hui.
-- Un aliment acheté à la pièce (avocat, tomate…) suit la même règle, sur son poids ; la liste continue de le dire en pièces.
-
-### Ce que la règle a corrigé dans la version précédente
-
-- Garnitures : le seuil valait une portion **entière** — 30 g de pesto, soit le pesto d'un repas entier. Il vaut maintenant 10 g.
-- Ce qui fait le plat : le seuil valait un dixième de portion, 5 g pour les trois quarts des aliments. Le poulet passe à 30 g, le jambon végétal à 20 g.
+- Une ligne de la liste de courses **disparaît** quand il reste à acheter **au plus son seuil**.
+- Seuil = **20 % d'une portion habituelle**, arrondi aux 5 g, **jamais moins de 10 g** ; **au plus 15 g** pour un aliment dont le rôle dominant est la protéine.
+- Le seuil porte sur **ce qui reste à acheter**, réserve déduite. **Jamais caché** : un article ajouté à la main, un aliment hors catalogue. Les fonds de placard restent hors de la liste comme aujourd'hui.
+- Vérifié à l'écran le 2026-10-20 : 215 g de poulet dans le plan, 205 g en réserve → la ligne disparaît ; 185 g en réserve → « il t'en faut 30 g », elle reste.
 
 ## Effet mesuré
 
-6 profils (omnivore 5 et 7 jours, femme 58 kg, végétarien, vegan, pescétarien) :
-- **première liste** (réserve vide), 36 semaines : **85 lignes cachées sur 2030** (4 %) ;
-- **semaines suivantes** (la réserve garde les restes des paquets), 30 semaines : **61 sur 994** (6 %).
+6 profils (omnivore 5 et 7 jours, femme 58 kg, végétarien, vegan, pescétarien) : **première liste** 36 semaines, **85 lignes cachées sur 2030** (4 %) · **semaines suivantes** (restes de paquets en réserve), 30 semaines, **55 sur 994** (6 %).
 
-Colonne *Cachées* : « première liste · semaines suivantes », en nombre de semaines où la ligne aurait disparu, sur celles où l'aliment apparaît.
+*Cachées* : « première liste · semaines suivantes », en semaines où la ligne aurait disparu sur celles où l'aliment apparaît.
 
 ## Les seuils, aliment par aliment
 
-### Protéine (52)
+### Protéine (52) — au plus 15 g
 
 | Aliment | Portion habituelle | **Seuil** | Cachées |
 |---|---|---|---|
-| Fromage blanc 0% | 190 g | **40 g** | 0 / 25 · 0 / 18 |
-| Haricots blancs (conserve, égouttés) | 195 g | **40 g** | 0 / 11 · 1 / 8 |
-| Dos de cabillaud | 180 g | **35 g** | 0 / 16 · 1 / 11 |
-| Lentilles cuites (conserve ou sachet) | 175 g | **35 g** | 0 / 9 · 0 / 7 |
-| Bavette de bœuf | 140 g | **30 g** | 0 / 16 · 0 / 13 |
-| Bœuf haché 5% MG | 150 g | **30 g** | 0 / 17 · 0 / 14 |
-| Filet de poulet | 160 g | **30 g** | 0 / 18 · 0 / 14 |
-| Haricots noirs (conserve, égouttés) | 150 g | **30 g** | 0 / 13 · 0 / 11 |
-| Maquereau | 150 g | **30 g** | 0 / 0 · 0 / 0 |
-| Pavé de saumon | 140 g | **30 g** | 0 / 0 · 0 / 0 |
-| Pois chiches (conserve, égouttés) | 145 g | **30 g** | 0 / 7 · 1 / 7 |
-| Skyr nature | 155 g | **30 g** | 0 / 30 · 2 / 21 |
-| Tofu ferme | 150 g | **30 g** | 0 / 7 · 0 / 7 |
-| Tofu soyeux | 150 g | **30 g** | 0 / 0 · 0 / 0 |
-| Yaourt de soja protéiné | 150 g | **30 g** | 0 / 33 · 0 / 22 |
-| Blanc d'œuf | 120 g | **25 g** | 0 / 28 · 0 / 23 |
-| Burger végétal (blé et soja) | 120 g | **25 g** | 0 / 4 · 0 / 4 |
-| Cottage cheese | 132.5 g | **25 g** | 0 / 25 · 0 / 20 |
-| Crevettes cuites | 125 g | **25 g** | 0 / 17 · 0 / 16 |
-| Edamame | 130 g | **25 g** | 0 / 11 · 0 / 9 |
-| Filet mignon de porc | 120 g | **25 g** | 0 / 10 · 0 / 2 |
-| Tempeh | 135.5 g | **25 g** | 0 / 1 · 0 / 1 |
-| Tofu fumé | 115 g | **25 g** | 0 / 0 · 0 / 0 |
-| Aiguillettes de poulet végétal | 110 g | **20 g** | 0 / 17 · 0 / 14 |
-| Filets de poulet végétal | 100 g | **20 g** | 0 / 13 · 0 / 11 |
-| Haricots rouges (conserve, égouttés) | 105 g | **20 g** | 0 / 7 · 0 / 4 |
-| Jambon végétal | 90 g | **20 g** | 0 / 12 · 2 / 8 |
-| Merguez végétales | 90 g | **20 g** | 0 / 0 · 0 / 0 |
-| Sardines (conserve égouttées) | 92.5 g | **20 g** | 0 / 0 · 0 / 0 |
-| Seitan | 93 g | **20 g** | 0 / 19 · 0 / 16 |
-| Steak haché végétal (soja) | 110 g | **20 g** | 0 / 1 · 0 / 1 |
-| Thon au naturel (conserve) | 100 g | **20 g** | 0 / 21 · 1 / 17 |
-| Émincés de poulet végétal (soja et blé) | 105 g | **20 g** | 0 / 6 · 0 / 4 |
-| Œuf entier | 100 g | **20 g** | 1 / 26 · 1 / 16 |
+| Aiguillettes de poulet végétal | 110 g | **15 g** | 0 / 17 · 0 / 14 |
+| Bavette de bœuf | 140 g | **15 g** | 0 / 16 · 0 / 13 |
+| Blanc d'œuf | 120 g | **15 g** | 0 / 28 · 0 / 23 |
 | Boulettes végétales | 85 g | **15 g** | 0 / 0 · 0 / 0 |
+| Burger végétal (blé et soja) | 120 g | **15 g** | 0 / 4 · 0 / 4 |
+| Bœuf haché 5% MG | 150 g | **15 g** | 0 / 17 · 0 / 14 |
 | Chorizo végétal | 70 g | **15 g** | 0 / 1 · 0 / 1 |
+| Cottage cheese | 132.5 g | **15 g** | 0 / 25 · 0 / 20 |
+| Crevettes cuites | 125 g | **15 g** | 0 / 17 · 0 / 16 |
+| Dos de cabillaud | 180 g | **15 g** | 0 / 16 · 1 / 11 |
+| Edamame | 130 g | **15 g** | 0 / 11 · 0 / 9 |
 | Escalope de dinde | 85 g | **15 g** | 0 / 16 · 2 / 10 |
 | Falafels prêts à consommer | 65 g | **15 g** | 0 / 0 · 0 / 0 |
+| Filet de poulet | 160 g | **15 g** | 0 / 18 · 0 / 14 |
+| Filet mignon de porc | 120 g | **15 g** | 0 / 10 · 0 / 2 |
+| Filets de poulet végétal | 100 g | **15 g** | 0 / 13 · 0 / 11 |
+| Fromage blanc 0% | 190 g | **15 g** | 0 / 25 · 0 / 18 |
+| Haricots blancs (conserve, égouttés) | 195 g | **15 g** | 0 / 11 · 1 / 8 |
+| Haricots noirs (conserve, égouttés) | 150 g | **15 g** | 0 / 13 · 0 / 11 |
+| Haricots rouges (conserve, égouttés) | 105 g | **15 g** | 0 / 7 · 0 / 4 |
 | Jambon blanc | 80 g | **15 g** | 0 / 14 · 0 / 13 |
+| Jambon végétal | 90 g | **15 g** | 0 / 12 · 0 / 8 |
 | Lentilles corail | 75 g | **15 g** | 0 / 7 · 0 / 1 |
+| Lentilles cuites (conserve ou sachet) | 175 g | **15 g** | 0 / 9 · 0 / 7 |
+| Maquereau | 150 g | **15 g** | 0 / 0 · 0 / 0 |
+| Merguez végétales | 90 g | **15 g** | 0 / 0 · 0 / 0 |
+| Pavé de saumon | 140 g | **15 g** | 0 / 0 · 0 / 0 |
 | Pois cassés | 80 g | **15 g** | 0 / 1 · 0 / 1 |
+| Pois chiches (conserve, égouttés) | 145 g | **15 g** | 0 / 7 · 0 / 7 |
+| Sardines (conserve égouttées) | 92.5 g | **15 g** | 0 / 0 · 0 / 0 |
 | Saumon fumé | 70 g | **15 g** | 0 / 11 · 0 / 8 |
+| Seitan | 93 g | **15 g** | 0 / 19 · 0 / 16 |
+| Skyr nature | 155 g | **15 g** | 0 / 30 · 0 / 21 |
+| Steak haché végétal (soja) | 110 g | **15 g** | 0 / 1 · 0 / 1 |
 | Steak végétal (soja) | 70 g | **15 g** | 0 / 0 · 0 / 0 |
+| Tempeh | 135.5 g | **15 g** | 0 / 1 · 0 / 1 |
+| Thon au naturel (conserve) | 100 g | **15 g** | 0 / 21 · 0 / 17 |
 | Thon frais | 85 g | **15 g** | 0 / 11 · 0 / 8 |
+| Tofu ferme | 150 g | **15 g** | 0 / 7 · 0 / 7 |
+| Tofu fumé | 115 g | **15 g** | 0 / 0 · 0 / 0 |
+| Tofu soyeux | 150 g | **15 g** | 0 / 0 · 0 / 0 |
+| Yaourt de soja protéiné | 150 g | **15 g** | 0 / 33 · 0 / 22 |
+| Émincés de poulet végétal (soja et blé) | 105 g | **15 g** | 0 / 6 · 0 / 4 |
+| Œuf entier | 100 g | **15 g** | 1 / 26 · 1 / 16 |
 | Fèves sèches décortiquées | 60 g | **10 g** | 0 / 11 · 0 / 3 |
 | Lardons végétaux | 35 g | **10 g** | 0 / 0 · 0 / 0 |
 | Mozzarella light | 25 g | **10 g** | 0 / 0 · 0 / 0 |
@@ -139,7 +130,7 @@ Colonne *Cachées* : « première liste · semaines suivantes », en nombre de s
 | Roquette | 40 g | **10 g** | 0 / 22 · 0 / 7 |
 | Salade verte | 40 g | **10 g** | 0 / 15 · 0 / 5 |
 
-### Fruit (10)
+### Fruit (11)
 
 | Aliment | Portion habituelle | **Seuil** | Cachées |
 |---|---|---|---|
@@ -153,6 +144,7 @@ Colonne *Cachées* : « première liste · semaines suivantes », en nombre de s
 | Myrtilles | 80 g | **15 g** | 0 / 23 · 1 / 14 |
 | Raisins | 65 g | **15 g** | 0 / 2 · 0 / 2 |
 | Dattes dénoyautées | 35 g | **10 g** | 0 / 25 · 0 / 3 |
+| Sirop d'érable | 12 g | **10 g** | 2 / 4 · 1 / 3 |
 
 ### Laitage (3)
 
@@ -183,17 +175,16 @@ Colonne *Cachées* : « première liste · semaines suivantes », en nombre de s
 | Pesto | 27 g | **10 g** | 0 / 3 · 0 / 0 |
 | Purée de sésame (tahini) | 15 g | **10 g** | 1 / 19 · 0 / 1 |
 
-### Arôme (4)
+### Arôme (3)
 
 | Aliment | Portion habituelle | **Seuil** | Cachées |
 |---|---|---|---|
 | Cacao maigre en poudre | 8 g | **10 g** | 2 / 5 · 1 / 2 |
 | Levure maltée | 8 g | **10 g** | 0 / 4 · 1 / 2 |
 | Sauce soja | 15 ml | **10 ml** | 2 / 6 · 0 / 1 |
-| Sirop d'érable | 12 g | **10 g** | 2 / 4 · 1 / 3 |
 
 ## Fonds de placard (jamais sur la liste)
 
 Huile d'olive, Miel — et le sel, le poivre, les épices, le citron, la moutarde, le vinaigre (`lib/pantry.ts::STAPLES`).
 
-⚠️ Rôle corrigé à la main : **merguez végétales** (classées « matière grasse » par le catalogue, rangées en protéine) et **sirop d'érable** (« fruit » → arôme). Sans effet sur le seuil, qui ne dépend que de la portion.
+⚠️ Rôle corrigé dans le code (`PROTEINE_FORCEE`) : **merguez végétales**, classées « matière grasse » par le catalogue, traitées comme une pièce de protéine.

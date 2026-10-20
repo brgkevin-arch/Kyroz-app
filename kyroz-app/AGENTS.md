@@ -175,8 +175,10 @@ qu'ils étaient périmés.
    proportion pour chaque aliment »*. À concevoir : un seuil PAR ALIMENT (besoin ÷ paquet)
    sous lequel la liste n'impose pas un paquet. ✅ **Tranché le 2026-10-19** : sous le seuil,
    **la ligne disparaît** (comme le sel) ; **seuil = 20 % d'une portion habituelle, jamais moins
-   de 10 g** (poulet 30 g, pesto 10 g). Tableau des 129 seuils :
-   `docs/2026-10-19-seuils-par-aliment.md`. ❌ Pas encore codé — à livrer avec #376. Défaut repéré au passage : 3 boîtes de thon proposées pour 290 g
+   de 10 g**, et (2026-10-20) **au plus 15 g pour ce qui porte la protéine du plat** ; la
+   recette n'est PAS adaptée au manque. ✅ **Codé dans #376 le 2026-10-20** (`lib/seuilAchat.ts`,
+   seuils calculés sur le catalogue, appliqués à l'écran Courses), vu à l'écran, non publié.
+   Tableau généré depuis le code : `docs/2026-10-19-seuils-par-aliment.md`. Défaut repéré au passage : 3 boîtes de thon proposées pour 290 g
    alors que 2 boîtes font 280 g (la tolérance de 5 % portait sur UN paquet) — ✅ **corrigé
    dans #376 le 2026-10-19** : les 5 % portent sur l'achat entier (`formatsVendus.ts::achatPour`),
    rien ne change pour un seul paquet ; test vérifié par mutation.

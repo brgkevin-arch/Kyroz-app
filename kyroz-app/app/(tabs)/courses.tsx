@@ -17,6 +17,7 @@ import { MealPlan, ShoppingItem, ShoppingList } from '../../lib/types';
 import { buildShoppingList } from '../../lib/shoppingList';
 import { repasACompter, mentionDepart } from '../../lib/coursesDepuis';
 import { repasDepuisLeDebut } from '../../lib/debutPlan';
+import { sousLeSeuil } from '../../lib/seuilAchat';
 import { lireDebutSuivi } from '../../lib/repasAuto';
 import { activeSlots } from '../../lib/mealSlots';
 import { useProfile } from '../../hooks/useProfile';
@@ -155,7 +156,11 @@ export default function CoursesScreen() {
     // La liste part du jour où le plan a été généré, jamais des jours déjà passés
     // (décision fondateur du 2026-09-17, `lib/coursesDepuis.ts`). ⚠️ Sans profil encore
     // chargé, on achète toute la semaine, c'est le repli SÛR.
-    const l = buildShoppingList({ ...plan, meals: perimetre.meals }, pantry, perimetre.jours);
+    const brute = buildShoppingList({ ...plan, meals: perimetre.meals }, pantry, perimetre.jours);
+    // E75 (2026-10-20) : un reste sous son seuil ne vaut pas un paquet — la ligne disparaît,
+    // comme le sel (`lib/seuilAchat.ts` : 20 % d'une portion, 10 g au moins, 15 g au plus
+    // pour la protéine du plat).
+    const l = { ...brute, items: brute.items.filter((i) => !sousLeSeuil(i)) };
     // Ne pas mettre en cache une liste vide (tout couvert) : sinon l'onglet
     // resterait bloqué sur « rien à acheter » même après avoir vidé la réserve.
     // Sans cache, load() la reconstruit à chaque focus et les articles
