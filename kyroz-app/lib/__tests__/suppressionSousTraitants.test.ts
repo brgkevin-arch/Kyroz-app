@@ -48,7 +48,7 @@ import { PRIVACY_POLICY } from '../../constants/legal';
 const src = (p: string) => readFileSync(join(__dirname, '..', '..', ...p.split('/')), 'utf8');
 const edge = src('supabase/functions/delete-account/index.ts');
 const sync = src('lib/sync.ts');
-const profil = src('app/(tabs)/profil.tsx');
+const profil = src('app/profil.tsx');
 /** La source, commentaires RETIRÉS — un `//` qui cite une chaîne n'est pas du code. */
 const sansCommentaires = (t: string) =>
   t.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/^\s*\/\/.*$/gm, ' ');

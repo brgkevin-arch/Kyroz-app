@@ -95,10 +95,16 @@ describe('chaque `Modal` se recense, et la visite guidée attend', () => {
   });
 
   it('« Revoir la visite » ferme la feuille Réglages avant de relancer la visite', () => {
-    const src = sansCommentaires(readFileSync(join(RACINE, 'app', '(tabs)', 'profil.tsx'), 'utf8'));
+    const src = sansCommentaires(readFileSync(join(RACINE, 'app', 'profil.tsx'), 'utf8'));
     const corps = src.slice(src.indexOf('const revoirVisite'), src.indexOf('const appVersion'));
     expect(corps.indexOf('setReglages(false)')).toBeGreaterThan(-1);
-    expect(corps.indexOf("relancer('app')")).toBeGreaterThan(-1);
-    expect(corps.indexOf('setReglages(false)')).toBeLessThan(corps.indexOf("relancer('app')"));
+    // 🔴 Depuis le 2026-10-21 (le Profil est poussé sur les onglets), la relance ne part
+    // plus du geste mais de `onClosed` — la feuille est alors DÉMONTÉE, pas seulement
+    // fermée. C'est plus strict que « fermer avant de relancer » : vu au simulateur,
+    // retirer le Profil sous une feuille encore en sortie figeait l'app.
+    expect(corps, 'la relance repart du geste, avant que la feuille soit démontée').not.toMatch(/relancer\('app'\)/);
+    const quitter = src.slice(src.indexOf('const quitterPourLaVisite'), src.indexOf('const revoirVisite'));
+    expect(quitter).toMatch(/relancer\('app'\)/);
+    expect(src).toMatch(/onClosed=\{\(\) => \{[\s\S]{0,200}?quitterPourLaVisite\(\)/);
   });
 });

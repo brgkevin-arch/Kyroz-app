@@ -77,7 +77,7 @@ export type FormeCible =
  * liste aux `Tabs.Screen` du layout — un onglet ajouté, retiré ou déplacé la fait
  * rougir, au lieu de laisser la visite pointer à côté.
  */
-export const ONGLETS = ['plan', 'courses', 'reserve', 'recettes', 'profil'] as const;
+export const ONGLETS = ['plan', 'courses', 'reserve', 'recettes', 'poids'] as const;
 export type Onglet = typeof ONGLETS[number];
 
 export interface TourStep {
@@ -190,8 +190,10 @@ export function visiteApp({ repasAuto }: VisiteContext): TourStep[] {
       text: 'Et dans « Réalisable », celles que ta réserve permet de cuisiner.',
     },
     {
-      onglet: 'profil',
-      title: 'Ton poids, tes réglages',
+      // 🔴 L'arrêt du PROFIL est devenu celui de l'onglet POIDS le 2026-10-21 : la ligne
+      // parlait déjà de la pesée. Les réglages, eux, sont derrière la bulle du Plan.
+      onglet: 'poids',
+      title: 'Ton poids',
       // Prouvé par : hooks/useWeightLog.ts — une pesée repasse le profil par
       // `recalcProfile` ; ses cibles entrent dans `profileSignature` (lib/planEngine.ts),
       // et plan.tsx régénère le plan dès que la signature change (`profil_modifie`).

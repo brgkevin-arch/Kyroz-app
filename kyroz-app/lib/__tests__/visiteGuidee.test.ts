@@ -639,7 +639,7 @@ describe('Le décompte des bulles ne se recopie pas — il se mesure', () => {
   // UNE visite, comptée par ARRÊT et par onglet. La sonde suit la phrase, le principe
   // reste : c'est la spec qu'on compare au code, jamais un total figé.
   const LIGNE = SPEC.match(
-    /(\d+) arrêts au total \(plan (\d+) · courses (\d+) · réserve (\d+) · recettes (\d+) · profil (\d+)\)/,
+    /(\d+) arrêts au total \(plan (\d+) · courses (\d+) · réserve (\d+) · recettes (\d+) · poids (\d+)\)/,
   );
 
   it('la sonde trouve bien la phrase de CLAUDE.md — sinon elle passerait à vide', () => {
@@ -649,7 +649,7 @@ describe('Le décompte des bulles ne se recopie pas — il se mesure', () => {
   });
 
   it('🔴 la spec annonce EXACTEMENT ce que le code sert', () => {
-    const [, total, plan, courses, reserve, recettes, profil] = LIGNE!.map(Number);
+    const [, total, plan, courses, reserve, recettes, poids] = LIGNE!.map(Number);
     // Contexte COMPLET : c'est le décompte maximal, celui que la spec décrit.
     // ⚠️ Courses, Recettes et Réserve avaient quitté cette liste le 2026-08-25 avec
     // leurs tours ; elles y reviennent le 2026-09-30, un arrêt chacune, dans la visite
@@ -657,9 +657,9 @@ describe('Le décompte des bulles ne se recopie pas — il se mesure', () => {
     // que chaque changement rend la spec fausse tout de suite au lieu de la laisser dériver.
     const etapes = TOUS_LES_TOURS.flatMap((t) => t.steps);
     const par = (o: string) => etapes.filter((e) => e.onglet === o).length;
-    const reel = { plan: par('plan'), courses: par('courses'), reserve: par('reserve'), recettes: par('recettes'), profil: par('profil') };
+    const reel = { plan: par('plan'), courses: par('courses'), reserve: par('reserve'), recettes: par('recettes'), poids: par('poids') };
     expect({ ...reel, total: etapes.length })
-      .toEqual({ plan, courses, reserve, recettes, profil, total });
+      .toEqual({ plan, courses, reserve, recettes, poids, total });
   });
 
   it('aucun commentaire ne recite un nombre de bulles — il périmerait en silence', () => {
@@ -817,9 +817,16 @@ describe('La visite après relecture — ce qu’elle montre, quand elle cède l
     expect((carte.match(/translateX: suivre\(/g) ?? []).length, 'carte, pointe et trait glissent par translateX').toBe(3);
   });
 
-  it('« Revoir la visite » relance celle du Plan, et l’y emmène s’il n’est pas monté', () => {
-    const profil = sansCommentaires(readFileSync(join(RACINE, 'app', '(tabs)', 'profil.tsx'), 'utf8'));
-    expect(profil).toMatch(/if \(!relancer\('app'\)\) router\.navigate\('\/\(tabs\)\/plan'\)/);
+  it('« Revoir la visite » quitte le Profil (poussé sur les onglets) puis relance celle du Plan', () => {
+    // Depuis le 2026-10-21, le Profil n'est plus un onglet : il est POUSSÉ par-dessus.
+    // La visite se joue sur les onglets — sans le retour, elle partait DERRIÈRE lui.
+    const profil = sansCommentaires(readFileSync(join(RACINE, 'app', 'profil.tsx'), 'utf8'));
+    expect(profil).toMatch(/if \(router\.canGoBack\(\)\) router\.back\(\); else router\.replace\('\/\(tabs\)\/plan'\);\s*relancer\('app'\)/);
+    // 🔴 Et pas avant que la feuille Réglages soit DÉMONTÉE : retirer le Profil sous elle
+    // figeait l'app (simulateur, 2026-10-21). Le retour part de `onClosed`, jamais du geste.
+    const geste = profil.slice(profil.indexOf('const revoirVisite'), profil.indexOf('const revoirVisite') + 400);
+    expect(geste, 'le Profil se retire dans le même lot que la fermeture de la feuille').not.toMatch(/router\.back|relancer\(/);
+    expect(profil).toMatch(/onClosed=\{\(\) => \{[\s\S]{0,200}?apresReglages === 'visite'\) quitterPourLaVisite\(\)/);
     expect(profil, 'le Profil reconstruit la visite au lieu de relancer celle du Plan').not.toMatch(/startTour\('app'/);
   });
 });

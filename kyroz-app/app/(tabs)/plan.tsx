@@ -6,7 +6,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useTheme, ThemePalette, Radius, Spacing, Type, Trait, Icone, OPACITE_PRESSION , Fond } from '../../constants/theme';
+import { useTheme, ThemePalette, Radius, Spacing, Type, Trait, Icone, OPACITE_PRESSION , Fond, CIBLE_TACTILE_MIN } from '../../constants/theme';
 import { useCollapsingTitle, CompactTitleBar } from '../../components/CollapsingTitle';
 import { useLayout } from '../../constants/layout';
 import { DISCLAIMER } from '../../constants/legal';
@@ -16,7 +16,7 @@ import { MealCard } from '../../components/MealCard';
 import { RecipeDetail } from '../../components/RecipeDetail';
 import { RecipeEditor } from '../../components/RecipeEditor';
 import { Sheet } from '../../components/Sheet';
-import { PeseeIcon, RepasIcon } from '../../components/Icons';
+import { PeseeIcon, RepasIcon, ProfilIcon } from '../../components/Icons';
 import { BirthdayCelebration } from '../../components/BirthdayCelebration';
 import { FirstPlanReveal } from '../../components/FirstPlanReveal';
 import { ReminderOffer, offrirLeRappel } from '../../components/ReminderOffer';
@@ -898,7 +898,7 @@ export default function PlanScreen() {
   const checkinSatisfied = () => { snoozeCheckin(); setCheckinOpen(false); toast('Parfait, on continue'); };
   const checkinMoreVariety = () => { if (profile) saveProfile({ ...profile, variety: 'max' }); snoozeCheckin(); setCheckinOpen(false); toast('Variété au max, nouveau plan en route'); };
   const checkinNewPlan = () => { snoozeCheckin(); setCheckinOpen(false); generate(true); };
-  const checkinAdjustProfile = () => { snoozeCheckin(); setCheckinOpen(false); router.push('/(tabs)/profil'); };
+  const checkinAdjustProfile = () => { snoozeCheckin(); setCheckinOpen(false); router.push('/profil'); };
   const checkinOptOut = () => { optOutCheckin(); setCheckinOpen(false); toast('Ok. Réactivable dans Profil.'); };
 
   if (loading) {
@@ -947,6 +947,20 @@ export default function PlanScreen() {
               fondateur : la série est retirée de l'app, écrans, logique et synchro).
               Si une série revient un jour, elle sera repensée pour être utile — pas
               remise telle quelle. */}
+          {/* 🔴 LA BULLE DU PROFIL (2026-10-21, décision fondateur : « le profil se met
+              sur la page du plan, dans une bulle en haut à droite avec l'icône du
+              profil »). L'onglet Profil est devenu l'onglet Poids : c'est d'ici, l'écran
+              qu'on ouvre chaque matin, que l'on atteint désormais ses réglages. L'icône
+              est celle de l'ancien onglet (`Icons.tsx::ProfilIcon`), pour qu'on la reconnaisse. */}
+          <Presse
+            onPress={() => router.push('/profil')}
+            activeOpacity={OPACITE_PRESSION}
+            accessibilityRole="button"
+            accessibilityLabel="Profil"
+            style={s.bulleProfil}
+          >
+            <ProfilIcon color={t.text} size={Icone.action} />
+          </Presse>
         </View>
 
         {/* ⚠️ La carte de consentement analytics a été RETIRÉE d'ici le 2026-08-10
@@ -987,7 +1001,7 @@ export default function PlanScreen() {
         {profile && !preferencesRevues && (
           <Presse
             style={s.weighBanner} activeOpacity={OPACITE_PRESSION}
-            onPress={async () => { await AsyncStorage.setItem('@kyroz:openEditor', 'prefs'); router.push('/(tabs)/profil'); }}
+            onPress={async () => { await AsyncStorage.setItem('@kyroz:openEditor', 'prefs'); router.push('/profil'); }}
           >
             <RepasIcon color={t.text} size={Icone.action} />
             <View style={{ flex: 1 }}>
@@ -1111,7 +1125,7 @@ export default function PlanScreen() {
                   {/* Découvrabilité de la perso macros (le fork a été retiré de l'onboarding) :
                       deep-link vers l'éditeur « Calories & macros » du Profil. */}
                   <Presse
-                    onPress={async () => { await AsyncStorage.setItem('@kyroz:openEditor', 'macros'); router.push('/(tabs)/profil'); }}
+                    onPress={async () => { await AsyncStorage.setItem('@kyroz:openEditor', 'macros'); router.push('/profil'); }}
                     activeOpacity={OPACITE_PRESSION}
                     style={s.actionBtn}
                   >
@@ -1427,6 +1441,10 @@ function makeStyles(t: ThemePalette) {
     header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: Spacing.md },
     date: { color: t.textSecondary, lineHeight: 19 },
     h1: { color: t.text, ...Type.display, marginTop: Spacing.xs },
+    bulleProfil: {
+      width: CIBLE_TACTILE_MIN, height: CIBLE_TACTILE_MIN, borderRadius: Radius.pill,
+      backgroundColor: t.card, alignItems: 'center', justifyContent: 'center', marginTop: Spacing.xs,
+    },
     banner: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: Spacing.md, backgroundColor: t.fill, borderRadius: Radius.card, padding: Spacing.lg },
     weighBanner: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md, backgroundColor: t.card, borderRadius: Radius.card, padding: Spacing.lg },
     weighTitle: { ...Type.bodyStrong, color: t.text },

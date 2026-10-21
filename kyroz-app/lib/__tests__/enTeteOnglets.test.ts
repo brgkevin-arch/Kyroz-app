@@ -29,7 +29,7 @@ const sansCommentaires = (src: string) =>
   src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\{\/\*[\s\S]*?\*\/\}/g, '')
     .split('\n').map((l) => l.replace(/(?<!:)\/\/.*$/, '')).join('\n');
 
-const ONGLETS = ['plan', 'courses', 'reserve', 'recettes', 'profil'];
+const ONGLETS = ['plan', 'courses', 'reserve', 'recettes', 'poids'];
 
 /** Le bloc d'en-tête d'un écran : de `style={s.header}` à la BALISE du grand titre.
  *  ⚠️ On coupe au `<Text` qui PORTE le titre, pas à `s.h1` : sinon la balise du titre

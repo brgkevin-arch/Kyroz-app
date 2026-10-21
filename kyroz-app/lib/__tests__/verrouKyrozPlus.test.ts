@@ -175,14 +175,22 @@ describe('chaque feature de PREMIUM_FEATURES est réellement interrogée', () =>
     // verrouillent jamais*. C'est la surface qui porte le verrou qui a bougé, et un
     // test qui nomme une surface doit suivre la surface — sinon il fige un câblage au
     // lieu de tenir une règle.
-    expect(src, 'la courbe de poids doit rester inconditionnelle').toMatch(/<WeightChart\b/);
+    // 🔴 ET LA COURBE A QUITTÉ LA FEUILLE le 2026-10-21 : elle vit dans l'onglet Poids
+    // (`app/(tabs)/poids.tsx`), avec le verdict. Même règle, autre surface — le test
+    // suit la surface, pas le câblage d'avant.
+    const onglet = sansCommentaires(readFileSync(join(RACINE, 'app', '(tabs)', 'poids.tsx'), 'utf8'));
+    expect(onglet, 'la courbe de poids doit rester inconditionnelle').toMatch(/<CourbePoids\b/);
     expect(
-      src.match(/<WeightChart[\s\S]{0,160}?\/>/)?.[0] ?? '',
+      onglet.match(/<CourbePoids[\s\S]{0,160}?\/>/)?.[0] ?? '',
       'la courbe ne doit dépendre d\'AUCUN verrou : elle est gratuite, entièrement',
     ).not.toMatch(/transfoOk|suiviAffiche|premium/);
     expect(
-      src,
+      onglet,
       'le verdict de trajectoire, lui, reste réservé à Kyroz+ (`suiviAffiche`)',
     ).toMatch(/<TrackVerdict[\s\S]{0,160}?goalTarget=\{suiviAffiche\}/);
+    // L'historique (et la suppression d'une pesée) ne passe par aucun verrou non plus.
+    const hist = onglet.slice(onglet.indexOf('>Historique<'));
+    expect(hist.length, 'l’historique des pesées a disparu de l’onglet').toBeGreaterThan(20);
+    expect(hist.slice(0, 1500), 'l’historique ne doit dépendre d’aucun verrou').not.toMatch(/transfoOk|premium/);
   });
 });

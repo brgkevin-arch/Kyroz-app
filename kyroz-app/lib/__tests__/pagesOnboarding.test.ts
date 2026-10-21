@@ -58,7 +58,7 @@ describe('la dernière page renvoie vers un réglage qui EXISTE', () => {
   // « Tu pourras le régler dans Profil → Paramètres des repas » est une affirmation sur
   // le code (CLAUDE.md §10) : la section « Repas que tu gères toi-même » doit vivre dans
   // l'éditeur que la ligne « Paramètres des repas » du Profil ouvre.
-  const profil = sansCommentaires(readFileSync(join(RACINE, 'app/(tabs)/profil.tsx'), 'utf8'));
+  const profil = sansCommentaires(readFileSync(join(RACINE, 'app/profil.tsx'), 'utf8'));
 
   it('la phrase est servie à la première DÉCOCHE, et une seule fois', () => {
     // Elle vivait en bas de la page, pour tout le monde et en permanence ; c'est une

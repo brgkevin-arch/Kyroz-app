@@ -39,7 +39,7 @@ describe('les courses gardent le nom du catalogue', () => {
 });
 
 describe('le Profil ne propose pas de réglage qui ne pilote rien', () => {
-  const profil = sansCommentaires(lire('app/(tabs)/profil.tsx'));
+  const profil = sansCommentaires(lire('app/profil.tsx'));
 
   it('les jours de repos n’apparaissent qu’avec au moins une séance', () => {
     expect(profil).toMatch(/\{trainingDaysEq > 0 && \(\s*<RestDaysPicker/);

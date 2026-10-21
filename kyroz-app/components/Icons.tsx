@@ -150,6 +150,21 @@ export function DureeIcon({ color, size = D, focused }: Props) {
 }
 
 /** Pesée — bandeau « c'est le moment de te peser ». */
+/**
+ * Profil — une personne. C'était l'icône de l'onglet Profil ; depuis le 2026-10-21
+ * (l'onglet est devenu « Poids »), c'est celle de la BULLE du Plan qui ouvre le Profil.
+ * Même tracé qu'avant, pour qu'on la reconnaisse.
+ */
+export function ProfilIcon({ color, size = D, focused }: Props) {
+  const w = stroke(focused);
+  return (
+    <Frame size={size}>
+      <Circle cx={13.5} cy={10} r={4.1} stroke={color} strokeWidth={w} />
+      <Path d="M5.8 22.4c1.5-3.9 4.3-5.9 7.7-5.9s6.2 2 7.7 5.9" stroke={color} strokeWidth={w} strokeLinecap="round" />
+    </Frame>
+  );
+}
+
 export function PeseeIcon({ color, size = D, focused }: Props) {
   const w = stroke(focused);
   return (

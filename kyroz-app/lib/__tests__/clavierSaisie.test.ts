@@ -83,7 +83,7 @@ describe('toute surface qui défile ET qui saisit gère le clavier', () => {
   // Le cas SIGNALÉ, nommé pour lui-même : c'est l'enveloppe des six éditeurs du
   // Profil, donc celle du champ « masse grasse » de la capture du 2026-08-25.
   it("EditorShell (Profil) porte les deux propriétés, pas une seule", () => {
-    const src = lire('app/(tabs)/profil.tsx');
+    const src = lire('app/profil.tsx');
     expect(src).toContain('{...clavierScrollProps}');
     const ui = lire('components/ui.tsx');
     expect(ui).toContain('automaticallyAdjustKeyboardInsets: true');

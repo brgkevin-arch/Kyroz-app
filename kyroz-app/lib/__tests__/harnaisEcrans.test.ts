@@ -177,15 +177,17 @@ const ANCRES: Ancre[] = [
   // SECTION, donc dans l'écran et non plus dans le composant. `dans` suit la surface.
   // ⚠️ `exact` côté script : en non-exact, « poids » matche aussi « Ton poids
   // aujourd'hui » dans la feuille, donc le clic partirait sur le mauvais élément.
-  { quoi: 'carte de poids', texte: 'Suivi du poids', dans: 'app/(tabs)/profil.tsx', script: 'test/qa-deep.mjs' },
-  { quoi: 'enregistrement d\'une pesée', texte: 'Enregistrer', dans: 'app/(tabs)/profil.tsx', script: 'test/qa-deep.mjs' },
-  { quoi: 'sous-écran Informations', texte: 'Informations', dans: 'app/(tabs)/profil.tsx', script: 'test/qa-deep.mjs' },
-  { quoi: 'sous-écran Sport & activité', texte: 'Sport & activité', dans: 'app/(tabs)/profil.tsx', script: 'test/qa-settings.mjs' },
-  { quoi: 'sous-écran Objectif', texte: 'Objectif', dans: 'app/(tabs)/profil.tsx', script: 'test/qa-settings.mjs' },
-  { quoi: 'sous-écran Objectif daté', texte: 'Objectif daté', dans: 'app/(tabs)/profil.tsx', script: 'test/qa-deep.mjs' },
-  { quoi: 'sous-écran Calories & macros', texte: 'Calories & macros', dans: 'app/(tabs)/profil.tsx', script: 'test/qa-settings.mjs' },
-  { quoi: 'sous-écran Préférences alimentaires', texte: 'Préférences alimentaires', dans: 'app/(tabs)/profil.tsx', script: 'test/qa-settings.mjs' },
-  { quoi: 'sous-écran Paramètres des repas', texte: 'Paramètres des repas', dans: 'app/(tabs)/profil.tsx', script: 'test/qa-settings.mjs' },
+  // Le poids est un ONGLET depuis le 2026-10-21 : la pesée part de son bouton, et
+  // « Enregistrer » vit dans la feuille de saisie, pas dans le Profil.
+  { quoi: 'geste de pesée', texte: 'Ajouter une pesée', dans: 'app/(tabs)/poids.tsx', script: 'test/qa-deep.mjs' },
+  { quoi: 'enregistrement d\'une pesée', texte: 'Enregistrer', dans: 'components/WeightCheckin.tsx', script: 'test/qa-deep.mjs' },
+  { quoi: 'sous-écran Informations', texte: 'Informations', dans: 'app/profil.tsx', script: 'test/qa-deep.mjs' },
+  { quoi: 'sous-écran Sport & activité', texte: 'Sport & activité', dans: 'app/profil.tsx', script: 'test/qa-settings.mjs' },
+  { quoi: 'sous-écran Objectif', texte: 'Objectif', dans: 'app/profil.tsx', script: 'test/qa-settings.mjs' },
+  { quoi: 'sous-écran Objectif daté', texte: 'Objectif daté', dans: 'app/profil.tsx', script: 'test/qa-deep.mjs' },
+  { quoi: 'sous-écran Calories & macros', texte: 'Calories & macros', dans: 'app/profil.tsx', script: 'test/qa-settings.mjs' },
+  { quoi: 'sous-écran Préférences alimentaires', texte: 'Préférences alimentaires', dans: 'app/profil.tsx', script: 'test/qa-settings.mjs' },
+  { quoi: 'sous-écran Paramètres des repas', texte: 'Paramètres des repas', dans: 'app/profil.tsx', script: 'test/qa-settings.mjs' },
 ];
 
 /**

@@ -1,18 +1,13 @@
 import React, { useMemo, useState, useRef } from 'react';
-import { View, Text, StyleSheet, ScrollView, useWindowDimensions, Image, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity } from 'react-native';
 import { Presse } from './Presse';
-import { ConfirmationEnLigne } from './ConfirmationEnLigne';
 import { Ionicons } from '@expo/vector-icons';
 import { ThemePalette, Radius, Spacing, Type, Fond, Trait, Icone, CIBLE_TACTILE_MIN, OPACITE_PRESSION } from '../constants/theme';
-import { SHEET_MAX_WIDTH } from '../constants/layout';
 import { Field, PrimaryButton, SectionLabel, clavierScrollProps } from './ui';
-import { WeightChart } from './WeightChart';
-import { TrackVerdict, PhotoCompare } from './Transformation';
-import { planFlags, trackingTarget } from '../lib/tdee';
 import { useWeightLog } from '../hooks/useWeightLog';
 import { useProfile } from '../hooks/useProfile';
 import { pickProgressPhoto, cameraAvailable, PhotoSource, PHOTOS_NOTICE_LOCALE } from '../lib/photos';
-import { todayStamp, localStamp, historiquePesees, HISTORIQUE_MAX, messageApresPesee, joursDeSaisie, indexAujourdhui } from '../lib/weight';
+import { todayStamp, localStamp, messageApresPesee, joursDeSaisie, indexAujourdhui } from '../lib/weight';
 import { LocalIcon } from './Icons';
 import { useRouter } from 'expo-router';
 import { usePremium } from '../hooks/usePremium';
@@ -74,9 +69,7 @@ export function WeightCheckin({ t, onClose, dragHandlers, sheetScrollProps }: Pr
   // le fait qu'une modale ouverte depuis une modale ne tient nulle part sur iOS —
   // une route poussée sous une feuille encore montée est la même famille de panne.
   const ouvrirKyrozPlus = () => { onClose?.(); router.push('/kyroz-plus'); };
-  const { entries, photos, last, logWeight, removeWeight, setPhoto } = useWeightLog();
-  // Quelle pesée attend sa confirmation (par sa DATE, qui est sa clé).
-  const [aConfirmer, setAConfirmer] = useState<string | null>(null);
+  const { entries, last, logWeight, setPhoto } = useWeightLog();
   // Le choix de la source de photo, posé DANS la feuille pour la même raison.
   const [choixPhoto, setChoixPhoto] = useState(false);
   /** La rangée de dates est repliée : on pèse aujourd'hui, sauf exception. */
@@ -96,11 +89,6 @@ export function WeightCheckin({ t, onClose, dragHandlers, sheetScrollProps }: Pr
   // pas en regardant l'écran : `choosePhoto` ouvrait un `choose()`, donc une
   // troisième modale, depuis la même feuille. « Ajouter une photo de progression »
   // ne répondait donc pas non plus sur iPhone. C'est le compteur qui l'a désigné.
-  const supprimerPesee = (d: string) => {
-    setAConfirmer(null);
-    removeWeight(d);
-    setSaved(null);
-  };
   const { profile, saveProfile } = useProfile();
   // ⚠️ `freq` / `setFreq` ont été RETIRÉS d'ici le 2026-09-20. Ils étaient MORTS depuis
   // le 2026-08-14, jour où le réglage de cadence a déménagé dans la roue dentée : plus
@@ -114,20 +102,6 @@ export function WeightCheckin({ t, onClose, dragHandlers, sheetScrollProps }: Pr
   const [pendingPhoto, setPendingPhoto] = useState<string | null>(null);
   // Confirmation structurée après enregistrement.
   const [saved, setSaved] = useState<{ updated: boolean; label: string; delta: number | null; date: string } | null>(null);
-
-  // Objectif de SUIVI : la date que le moteur tiendra, pas celle qui a été saisie.
-  // Coûte une simulation, d'où le mémo — elle ne bouge que si le profil bouge.
-  // ⚠️ `suiviAffiche` (plus bas) et non `suiviTarget` dans le rendu : la TRAJECTOIRE
-  // est vendue avec Kyroz+, la COURBE ne l'est jamais. Aujourd'hui le cas ne se
-  // produit qu'après une résiliation — un compte verrouillé ne peut pas créer
-  // d'objectif daté, donc `suiviTarget` y est déjà vide. C'est justement le cas
-  // résiduel qu'un verrou branché sur le seul éditeur laissait passer.
-  const suiviTarget = useMemo(
-    () => (profile ? trackingTarget(profile, todayStamp()) : undefined),
-    [profile?.goal_target?.target_date, profile?.goal_target?.target_weight_kg, profile?.weight_kg, profile?.target_kcal], // eslint-disable-line react-hooks/exhaustive-deps
-  );
-  /** La trajectoire réellement AFFICHÉE : rien sans Kyroz+. La courbe, elle, reste. */
-  const suiviAffiche = transfoOk ? suiviTarget : undefined;
 
   // Message honnête : explique si (et pourquoi) le plan a été ajusté.
   //
@@ -228,12 +202,6 @@ export function WeightCheckin({ t, onClose, dragHandlers, sheetScrollProps }: Pr
   };
   const choisirSource = (src: PhotoSource) => { setChoixPhoto(false); pick(src); };
 
-  // ⚠️ La largeur du graphe est celle de la FEUILLE, pas de l'écran : sur iPad
-  // la feuille est bornée à SHEET_MAX_WIDTH, et lire l'écran (1024) faisait
-  // déborder la courbe hors de son cadre. `useWindowDimensions` et non
-  // `Dimensions.get` pour suivre la rotation.
-  const { width: winW } = useWindowDimensions();
-  const width = Math.min(winW, SHEET_MAX_WIDTH) - Spacing.xxl * 2;
   const wN = parseFloat(val.replace(',', '.'));
   const valid = wN >= 40 && wN <= 250;
 
@@ -261,16 +229,10 @@ export function WeightCheckin({ t, onClose, dragHandlers, sheetScrollProps }: Pr
     setPendingPhoto(null);
   };
 
-  // Les `HISTORIQUE_MAX` dernières pesées, écart compris. ⚠️ Le calcul de l'écart
-  // est dans `lib/weight.ts`, PAS ici : tant qu'il vivait dans la boucle ci-dessous,
-  // il lisait le voisin dans la liste déjà coupée et la dernière ligne montrait « — »
-  // comme s'il n'y avait rien avant elle. Cf. `historiquePesees`.
-  const reversed = historiquePesees(entries, HISTORIQUE_MAX);
-
   return (
     <View style={{ flex: 1, backgroundColor: t.bg }}>
       <View style={s.header} {...(dragHandlers ?? {})}>
-        <Text style={s.title}>Suivi du poids</Text>
+        <Text style={s.title}>Nouvelle pesée</Text>
         {/* ⚠️ TROIS LIGNES D'EXPLICATION SONT DEVENUES UNE (2026-08-14). Elles
             poussaient la saisie ET la courbe vers le bas — deux des trois griefs
             du fondateur sur cette feuille. Ce qui a sauté n'est pas faux, c'est
@@ -358,27 +320,6 @@ export function WeightCheckin({ t, onClose, dragHandlers, sheetScrollProps }: Pr
           </View>
         )}
 
-        <SectionLabel t={t}>Évolution</SectionLabel>
-        {/* ⚠️ `trackingTarget`, PAS `profile.goal_target` : le couloir vise la date que
-            le moteur tiendra, pas celle qui a été saisie. Sans ça, on affiche « en
-            retard » à quelqu'un qui suit le plan à la lettre — mesuré, dès J+7. */}
-        {/* ⚠️ Plus de trajectoire SUR la courbe depuis le 2026-09-20 : la zone est
-            partie (décision fondateur), et avec elle l'étirement de l'axe du temps
-            jusqu'à la date cible. Ce qui reste de l'objectif daté est le VERDICT,
-            juste en dessous — et lui est toujours réservé à Kyroz+. */}
-        <WeightChart t={t} entries={entries} width={width} />
-        {profile && suiviAffiche && (
-          // `paused` vient du PRODUCTEUR UNIQUE : quand le moteur a cessé de piloter
-          // la trajectoire (insuffisance pondérale, poids cible à contresens), la
-          // ligne idéale continue de descendre alors que le plan est au maintien —
-          // sans ce drapeau on affichait « en retard » à quelqu'un à qui l'app venait
-          // d'interdire tout déficit.
-          <TrackVerdict
-            t={t} goalTarget={suiviAffiche} currentWeightKg={profile.weight_kg}
-            paused={planFlags(profile).some((f) => f === 'UNDERWEIGHT_NO_DEFICIT' || f === 'GOAL_DIRECTION_MISMATCH')}
-          />
-        )}
-
         {/* ── LE FACULTATIF, REPLIÉ ────────────────────────────────────────
             Note et photo séparaient le poids de son bouton et poussaient la courbe
             hors de l'écran — deux des trois griefs du fondateur. Elles ne
@@ -446,25 +387,6 @@ export function WeightCheckin({ t, onClose, dragHandlers, sheetScrollProps }: Pr
           </>
         )}
 
-        {/* Transformation : la preuve visuelle (photos LOCAL-ONLY, cf. lib/photos.ts) */}
-        {Object.keys(photos).filter((d) => photos[d]).length >= 2 && (
-          <>
-            <SectionLabel t={t}>Transformation</SectionLabel>
-            {transfoOk ? (
-              <PhotoCompare t={t} photos={photos} entries={entries} />
-            ) : (
-              // Cas de l'ancien abonné : ses photos sont toujours sur son téléphone et
-              // toujours visibles une par une dans l'historique. Seule la COMPARAISON
-              // s'en va. On le DIT, plutôt que de faire disparaître un bloc sans un mot.
-              <Presse onPress={ouvrirKyrozPlus} style={s.photoBtn} activeOpacity={OPACITE_PRESSION} accessibilityRole="button">
-                <Text style={[s.photoBtnTxt, { color: t.textSecondary, flex: 1, textAlign: 'center' }]}>
-                  Tes photos sont toujours sur ton téléphone. La comparaison avant/après fait partie de Kyroz+.
-                </Text>
-              </Presse>
-            )}
-          </>
-        )}
-
         {/* 🔴 « RAPPEL DE PESÉE » EST PARTI DANS LA ROUE DENTÉE le 2026-08-14
             (décision fondateur). C'est un réglage de NOTIFICATION : il vivait au
             milieu d'une saisie, entre une courbe et un historique, et le fondateur
@@ -473,43 +395,6 @@ export function WeightCheckin({ t, onClose, dragHandlers, sheetScrollProps }: Pr
             Kyroz me SERT ?* Non — il change quand Kyroz me PARLE. Il rejoint donc
             les notifications, avec le rappel quotidien. */}
 
-        {reversed.length > 0 && (
-          <>
-            <SectionLabel t={t}>Historique</SectionLabel>
-            <View style={s.histCard}>
-              {reversed.map((e, i) => {
-                const d = e.delta;
-                return (
-                  <View key={e.date} style={[s.histItem, i < reversed.length - 1 && s.histDivider]}>
-                    <View style={s.histRow}>
-                      <Text style={s.histDate}>{frDate(e.date)}</Text>
-                      <Text style={s.histW}>{frnum(e.weight_kg)} kg</Text>
-                      <Text style={[s.histD, { color: d == null ? t.textTertiary : d <= 0 ? t.success : t.warning }]}>
-                        {d == null ? '—' : `${d > 0 ? '+' : ''}${frnum(d)}`}
-                      </Text>
-                      <Presse onPress={() => setAConfirmer(e.date)} hitSlop={8} style={s.histDel}>
-                        <Ionicons name="close" size={Icone.petite} color={t.textTertiary} />
-                      </Presse>
-                    </View>
-                    {aConfirmer === e.date && (
-                      <ConfirmationEnLigne
-                        t={t}
-                        question={`Supprimer cette pesée ? ${frDate(e.date)} · ${frnum(e.weight_kg)} kg. Tes cibles se recalculent sur les pesées restantes.`}
-                        confirmLabel="Supprimer"
-                        onCancel={() => setAConfirmer(null)}
-                        onConfirm={() => supprimerPesee(e.date)}
-                      />
-                    )}
-                    {e.note ? <Text style={s.histNote}>{e.note}</Text> : null}
-                    {photos[e.date] ? (
-                      <Image source={{ uri: photos[e.date] }} style={s.histPhoto} />
-                    ) : null}
-                  </View>
-                );
-              })}
-            </View>
-          </>
-        )}
       </ScrollView>
     </View>
   );
@@ -537,16 +422,6 @@ function makeStyles(t: ThemePalette) {
     confirm: { backgroundColor: t.fill, borderRadius: Radius.card, padding: Spacing.lg, gap: Spacing.xs },
     confirmTitle: { ...Type.bodyStrong, color: t.text },
     confirmSub: { ...Type.caption, color: t.textSecondary },
-    histCard: { backgroundColor: t.card, borderRadius: Radius.card, borderWidth: Trait.fin, borderColor: t.line, paddingHorizontal: Spacing.lg },
-    histItem: { paddingVertical: Spacing.md },
-    histRow: { flexDirection: 'row', alignItems: 'center' },
-    histDivider: { borderBottomWidth: Trait.fin, borderBottomColor: t.line },
-    histDate: { ...Type.bodySmall, flex: 1, color: t.textSecondary },
-    histW: { ...Type.bodyStrong, color: t.text, width: 80, textAlign: 'right' },
-    histD: { ...Type.bodySmallStrong, width: 56, textAlign: 'right' },
-    histDel: { marginLeft: Spacing.md, padding: Spacing.xs },
-    histNote: { ...Type.caption, color: t.textSecondary, lineHeight: 18, marginTop: Spacing.xs, fontStyle: 'italic' },
-    histPhoto: { width: 64, height: 84, borderRadius: Radius.sm, marginTop: Spacing.sm, backgroundColor: t.fill },
     photoBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.sm, paddingVertical: Spacing.lg, borderRadius: Radius.button, borderWidth: Trait.fin, borderColor: t.line, borderStyle: 'dashed' },
     photoBtnTxt: { ...Type.bodyStrong, color: t.text },
     photoPreview: { alignSelf: 'flex-start' },

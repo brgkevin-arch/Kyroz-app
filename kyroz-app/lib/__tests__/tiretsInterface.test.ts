@@ -31,7 +31,9 @@ const TOLERE: Record<string, { combien: number; pourquoi: string }> = {
   'lib/planEngine.ts': { combien: 3, pourquoi: 'le changelog d’`ENGINE_VERSION`, lu par nous seuls' },
   'lib/recipeFoodMap.ts': { combien: 2, pourquoi: 'commentaires en fin de ligne, pas des textes' },
   'lib/foods.ts': { combien: 1, pourquoi: 'commentaire d’attribution Ciqual' },
-  'components/WeightCheckin.tsx': {
+  // L'historique des pesées a quitté la feuille de saisie pour l'onglet Poids le
+  // 2026-10-21 : l'exception l'a suivi, elle ne s'est pas élargie.
+  'app/(tabs)/poids.tsx': {
     combien: 1,
     pourquoi: 'le tiret SEUL de la colonne « écart » : il ne remplace pas une conjonction, il dit « pas de valeur »',
   },

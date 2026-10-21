@@ -43,4 +43,4 @@ export const PlanIcon = (p: Props) => <Icone nom="plan" {...p} />;
 export const CoursesIcon = (p: Props) => <Icone nom="courses" {...p} />;
 export const ReserveIcon = (p: Props) => <Icone nom="reserve" {...p} />;
 export const RecettesIcon = (p: Props) => <Icone nom="recettes" {...p} />;
-export const ProfilIcon = (p: Props) => <Icone nom="profil" {...p} />;
+export const PoidsIcon = (p: Props) => <Icone nom="poids" {...p} />;

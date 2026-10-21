@@ -11,7 +11,7 @@ const lire = (rel: string) => readFileSync(join(RACINE, rel), 'utf8');
 const sansCommentaires = (src: string) =>
   src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\{\/\*[\s\S]*?\*\/\}/g, '').replace(/^\s*\/\/.*$/gm, '');
 
-const profil = sansCommentaires(lire('app/(tabs)/profil.tsx'));
+const profil = sansCommentaires(lire('app/profil.tsx'));
 const inscription = sansCommentaires(lire('app/(auth)/onboarding.tsx'));
 const reglages = sansCommentaires(lire('components/ReglagesSheet.tsx'));
 

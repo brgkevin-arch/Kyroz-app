@@ -118,7 +118,7 @@ describe('le câblage', () => {
     // Le constat dit que le comportement est déjà juste : c'est l'information qui
     // manquait. Une bannière d'état réseau serait la mauvaise réponse à la bonne
     // question, et ce test empêche une future session de « compléter » 05-05 ainsi.
-    for (const f of [['components', 'ReglagesSheet.tsx'], ['app', '(tabs)', 'profil.tsx'], ['app', '(tabs)', 'plan.tsx']]) {
+    for (const f of [['components', 'ReglagesSheet.tsx'], ['app', 'profil.tsx'], ['app', '(tabs)', 'plan.tsx']]) {
       expect(sansCommentaires(src(...f)), `${f.join('/')} annonce un état réseau`)
         .not.toMatch(/hors ligne|connexion perdue|pas de r[ée]seau/i);
     }

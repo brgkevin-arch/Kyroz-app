@@ -58,10 +58,14 @@ export const TRACES = {
     { type: 'path', d: 'M4.4 12.4h18.2a9.1 9.1 0 0 1-18.2 0Z' },
     { type: 'path', d: 'M8 8.4h11', arrondi: true },
   ],
-  /** Profil — une personne. La flamme appartient à la SÉRIE, pas à la personne. */
-  profil: [
-    { type: 'circle', cx: 13.5, cy: 10, r: 4.1 },
-    { type: 'path', d: 'M5.8 22.4c1.5-3.9 4.3-5.9 7.7-5.9s6.2 2 7.7 5.9', arrondi: true },
+  /**
+   * Poids — un cadran de pesée (2026-10-21 : l'onglet Poids remplace l'onglet Profil).
+   * Le même tracé que `PeseeIcon` (components/Icons.tsx), qui annonce déjà la pesée sur
+   * le Plan : une seule image pour un seul geste.
+   */
+  poids: [
+    { type: 'path', d: 'M7 21A9.4 9.4 0 1 1 20 21', arrondi: true },
+    { type: 'path', d: 'M13.5 14.2 18.3 9.4', arrondi: true },
   ],
 } as const satisfies Record<string, readonly Forme[]>;
 

@@ -102,7 +102,7 @@ describe('D36 — les règles de la case, et la fin de « sans porc »', () => {
   });
 
   it('les deux écrans proposent « Omnivore » et ne proposent plus « Sans porc »', () => {
-    for (const ecran of ['app/(auth)/onboarding.tsx', 'app/(tabs)/profil.tsx']) {
+    for (const ecran of ['app/(auth)/onboarding.tsx', 'app/profil.tsx']) {
       const src = readFileSync(join(__dirname, '..', '..', ecran), 'utf8');
       expect(src, ecran).toContain("{ label: 'Omnivore', value: 'omnivore' }");
       expect(src, ecran).not.toContain("{ label: 'Sans porc', value: 'no_pork' }");

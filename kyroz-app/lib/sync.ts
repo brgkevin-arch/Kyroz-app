@@ -604,7 +604,7 @@ export async function deleteAccount(): Promise<{ error?: string }> {
 // auth.users). Utile si l'Edge Function n'est pas déployée.
 // ⚠️ Aucun des six effacements n'était vérifié, et le `catch {}` avalait tout : un
 // échec au 3e laissait les 3 derniers NON TENTÉS et la fonction renvoyait normalement.
-// Or l'appelant (`app/(tabs)/profil.tsx`) s'en sert comme REPLI du droit à l'effacement
+// Or l'appelant (`app/profil.tsx`) s'en sert comme REPLI du droit à l'effacement
 // RGPD : il croyait l'effacement fait alors que des données de SANTÉ restaient au
 // serveur. On ne change ni le flux, ni la valeur de retour, ni l'ordre — on cesse de
 // l'effacer en silence. (Afficher quoi que ce soit à l'utilisateur est hors périmètre.)

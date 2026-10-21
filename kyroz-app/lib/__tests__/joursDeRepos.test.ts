@@ -40,7 +40,7 @@ import { UserProfile } from '../types';
 const RACINE = join(__dirname, '..', '..');
 const lire = (rel: string) => readFileSync(join(RACINE, rel), 'utf8');
 
-const PROFIL = 'app/(tabs)/profil.tsx';
+const PROFIL = 'app/profil.tsx';
 const ONBOARDING = 'app/(auth)/onboarding.tsx';
 
 /**
