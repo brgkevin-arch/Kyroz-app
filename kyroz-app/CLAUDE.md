@@ -2578,7 +2578,7 @@ et l'écran ne sert qu'à juger le rendu (opacité forcée à 1). Procédure :
 🔴 **UNE SEULE VISITE, D'ONGLET EN ONGLET** (2026-09-30, décision fondateur : « une seule
 visite qui montre toute l'app, pas de visite pour les trucs inutiles, bien fluide, sans trop
 d'excès de texte »). Elle remplace les tours d'onglet :
-**5 arrêts au total (plan 1 · courses 1 · réserve 1 · recettes 1 · profil 1)**, un par
+**5 arrêts au total (plan 1 · courses 1 · réserve 1 · recettes 1 · poids 1)**, un par
 onglet, dans l'ordre de la barre.
 - **Quand** : une fois, sur le Plan, juste après la révélation du premier plan — jamais
   « pendant que ton plan se génère » : le moteur rend une semaine en quelques millisecondes,
@@ -2814,6 +2814,14 @@ porte les 8 qui ne se déduisent d'aucune palette. Une règle absente du miroir 
 enfreinte par la prochaine maquette.
 
 ### Le Profil ne porte que TOI et TON PLAN (2026-08-10)
+
+> 🔴 **LE PROFIL N'EST PLUS UN ONGLET depuis le 2026-10-21** (décision fondateur, AGENTS.md
+> **E81**) : l'onglet est devenu **« Poids »** (`app/(tabs)/poids.tsx`), et le Profil
+> (`app/profil.tsx`) s'ouvre par une **bulle en haut à droite du Plan**, poussé par-dessus
+> les onglets. Ce qui suit sur son contenu reste vrai, sauf la carte du poids, partie dans
+> l'onglet. ⚠️ Deux conséquences à connaître : il n'est plus sous la garde d'entrée des
+> onglets (il renvoie à l'index sans profil) ; et un geste qui doit le QUITTER depuis une de
+> ses feuilles attend `onClosed` — le retirer sous une feuille en sortie fige l'app.
 
 Décision fondateur. L'écran empilait poids, série, cartes de sécurité, cibles, TDEE,
 **11 lignes de menu**, **6 interrupteurs système**, **5 lignes de bas de page**,
