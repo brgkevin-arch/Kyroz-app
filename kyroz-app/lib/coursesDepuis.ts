@@ -103,7 +103,7 @@ type RepasSuivi = { day: number; status?: string };
  * `derniereCloture` : l'heure ISO des dernières « Courses terminées » (historique).
  */
 export function repasACompter<M extends RepasSuivi>(
-  plan: Pick<MealPlan, 'week_start_date' | 'days'> & { meals: M[] },
+  plan: Pick<MealPlan, 'week_start_date' | 'days' | 'prepare_le'> & { meals: M[] },
   weekdays: number[] | undefined,
   derniereCloture: string | null | undefined,
   maintenant: Date = new Date(),
@@ -124,7 +124,11 @@ export function repasACompter<M extends RepasSuivi>(
   const derniere = Math.max(...dates.map((d) => positionSemaine(jour(d).getDay())));
   const debut = new Date(lundi);
   debut.setDate(lundi.getDate() - 7 + derniere + 1);
-  if (cloture.getTime() < debut.getTime()) return avant;
+  // Un plan préparé d'avance (la semaine suivante, 2026-10-21) compte ses courses depuis le
+  // moment où il a été préparé : sa liste est apparue là, et c'est elle qu'on a faite.
+  const prepare = plan.prepare_le ? new Date(plan.prepare_le) : null;
+  const borne = prepare && !Number.isNaN(prepare.getTime()) && prepare.getTime() < debut.getTime() ? prepare : debut;
+  if (cloture.getTime() < borne.getTime()) return avant;
 
   const jours = dates.flatMap((d, i) => (d >= auj ? [i + 1] : []));
   const tranche = (m: M) => m.status === 'eaten' || m.status === 'skipped';

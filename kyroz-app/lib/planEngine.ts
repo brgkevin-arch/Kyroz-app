@@ -1,4 +1,4 @@
-import { AdaptFlag, DietaryRestriction, FixedMeal, Ingredient, Macros, Meal, MEAL_ORDER, MealEmphasis, MealPlan, MealSlot, MealStatus, MealType, Recipe, RecipeObjective, RecipeSport, UserProfile, VarietyPreference } from './types';
+import { AdaptFlag, DayExtra, DietaryRestriction, FixedMeal, Ingredient, Macros, Meal, MEAL_ORDER, MealEmphasis, MealPlan, MealSlot, MealStatus, MealType, Recipe, RecipeObjective, RecipeSport, UserProfile, VarietyPreference } from './types';
 import { getEffectiveRecipes } from './recipes';
 import { recipeFiberPerPortion, isFiberFocusGoal } from './fiber';
 import { remainingMeals, mealLabelFor } from './mealtime';
@@ -14,6 +14,7 @@ import { bankedDailyTargets, offsetsForPlan, BankResult } from './calorieBank';
 import { RYTHME_HEBDOMADAIRE_ACTIF } from './featureFlags';
 import { dailyBudgets } from './dailyBudget';
 import { recipeContainsFood } from './avoidance';
+import { datesDuPlan } from './semainePlan';
 
 // ── Moteur de génération de plan local ──────────────────────────────────────
 // Respecte : nombre de jours, repas/jour, variété, préférences alimentaires.
@@ -1658,7 +1659,16 @@ function fixedMealToMeal(fm: FixedMeal, day: number, slot: MealSlot, isRest: boo
   };
 }
 
-export function buildLocalPlan(profile: UserProfile, seed: number = 0): MealPlan {
+/**
+ * `imposes` (2026-10-21) : les repas d'un plan DÉJÀ SERVI, par id (`${jour}-${créneau}`).
+ * Un créneau présent garde SA recette ; seules ses portions sont recalculées, par le même
+ * chemin qu'un plan neuf (cible du repas, resserrage du jour, lissage de la semaine).
+ * Sert quand seules les CIBLES bougent — une pesée — pour que ce qui a été acheté reste ce
+ * qu'on cuisine (`lib/semaineSuivante.ts::ciblesSeulement`).
+ * ⚠️ Pas `rebalanceDay` : mesuré sur 36 semaines, il recale sans resserrer ni lisser —
+ * écart de calories 0,56 → 0,89 % et drapeaux 30 → 63, dès une pesée de −0,5 kg.
+ */
+export function buildLocalPlan(profile: UserProfile, seed: number = 0, imposes?: ReadonlyMap<string, Meal>): MealPlan {
   const days = Math.min(Math.max(profile.plan_days, 1), 7);
 
   // Créneaux retenus par l'utilisateur, dans l'ordre CHRONOLOGIQUE. `activeSlots`
@@ -1902,7 +1912,22 @@ export function buildLocalPlan(profile: UserProfile, seed: number = 0): MealPlan
         ? [...meals].reverse().find((m) => m.day === d - 1 && !m.fixed && slotOrFallback(slots, m.meal_type).pool === 'meal')
         : undefined;
       let memePlat: AdaptedChoice | null = null;
-      if (veille && !exclusions.some((ex) => ex(veille.recipe))) {
+      // Recette IMPOSÉE (une pesée) : le plat reste, la portion suit la nouvelle cible.
+      // La mention « même plat » suit le repas d'origine, elle ne se re-décide pas.
+      const impose = imposes?.get(`${d}-${mealType}`);
+      let recetteImposee: AdaptedChoice | null = null;
+      if (impose) {
+        const a = adaptRecipe(impose.recipe, target);
+        recetteImposee = {
+          recipe: impose.recipe, ingredients: a.ingredients, macros: a.macros, gap: a.gap, flags: a.flags,
+          score: 0, fiber: 0, preferred: false, need: 0,
+        };
+        if (impose.same_dish_yesterday) {
+          memePlat = recetteImposee;
+          if (veille) veille.same_dish_tomorrow = true;
+        }
+      }
+      if (!impose && veille && !exclusions.some((ex) => ex(veille.recipe))) {
         const a = adaptRecipe(veille.recipe, target);
         if (!a.flags.some((f) => FLAG_AUDIENCE[f] === 'user')) {
           memePlat = {
@@ -1917,7 +1942,7 @@ export function buildLocalPlan(profile: UserProfile, seed: number = 0): MealPlan
       // « même plat » : le dîner d'hier revient tel quel et compte pour ses propres sortes.
       const cibleProteine = principal && partsVisees ? sorteAViser(partsVisees, servisParSorte, principauxFaits) : null;
       const couchesPart = cibleProteine ? couchesDeParts(regimePart, cibleProteine) : [];
-      const choice = memePlat ?? selectMealAdapted(
+      const choice = memePlat ?? recetteImposee ?? selectMealAdapted(
         pools[mealType], target, usage, familyUsage, families,
         registreUsage, slot.pool === 'breakfast' && rotationRegistre ? registres : SANS_REGISTRE,
         variety, preferredIds, enRetraitIds, maxUsageRepetitif, goutMatch, goutImpose, exclusions,
@@ -2487,22 +2512,41 @@ export function resetTracking(profile: UserProfile, plan: MealPlan): MealPlan {
  */
 export function carryTracking(profile: UserProfile, ancien: MealPlan | null | undefined, nouveau: MealPlan): MealPlan {
   if (!ancien?.tracking_date) return nouveau;
-  // Les ids de repas sont `${jour}-${créneau}` : stables d'une génération à l'autre.
+  // 🔴 LE JOUR SE RETROUVE PAR SA DATE, PAS PAR SON NUMÉRO (2026-10-21). Les ids de repas
+  // sont `${jour}-${créneau}` : stables d'une génération à l'autre DANS la même semaine, mais
+  // le jour 5 d'un plan renouvelé n'est plus le vendredi d'avant. Le jour du renouvellement,
+  // la régénération reportait donc les repas cochés la veille sur le vendredi SUIVANT
+  // (relevé le 2026-10-20). Les deux plans datés, on apparie les jours par leur date, et un
+  // jour sans équivalent n'hérite de rien. Sans dates (comptes d'avant les jours choisis),
+  // repli sur le numéro, comme avant.
+  const datesAncien = datesDuPlan(ancien, profile.plan_weekdays);
+  const datesNouveau = datesDuPlan(nouveau, profile.plan_weekdays);
+  const jourAncien = (jourNouveau: number): number | null => {
+    if (!datesAncien || !datesNouveau) return jourNouveau;
+    const i = datesAncien.indexOf(datesNouveau[jourNouveau - 1]);
+    return i < 0 ? null : i + 1;
+  };
   const parId = new Map(ancien.meals.map((m) => [m.id, m]));
   const joursTouches = new Set<number>();
   // Un repas mangé revient ENTIER, mention « même plat » comprise (D30) : si le plan neuf ne
   // ressert plus ce plat de l'autre côté de la paire, `accorderMemePlat` fait tomber les deux.
   const meals = accorderMemePlat(nouveau.meals.map((m) => {
-    const av = parId.get(m.id);
+    const ja = jourAncien(m.day);
+    const av = ja === null ? undefined : parId.get(`${ja}-${m.meal_type}`);
     if (!av?.status) return m;
     joursTouches.add(m.day);
-    return av.status === 'eaten' ? av : { ...m, status: av.status };
+    return av.status === 'eaten' ? { ...av, id: m.id, day: m.day } : { ...m, status: av.status };
   }));
-  for (const d of Object.keys(ancien.day_extras ?? {})) joursTouches.add(Number(d));
+  const extras: Record<number, DayExtra> = {};
+  for (let d = 1; d <= nouveau.days; d++) {
+    const ja = jourAncien(d);
+    const ex = ja === null ? undefined : ancien.day_extras?.[ja];
+    if (ex) { extras[d] = ex; joursTouches.add(d); }
+  }
   if (joursTouches.size === 0) return nouveau;
   let next: MealPlan = {
     ...nouveau, meals,
-    day_extras: ancien.day_extras,
+    day_extras: Object.keys(extras).length ? extras : undefined,
     tracking_date: ancien.tracking_date,
   };
   for (const d of joursTouches) if (d >= 1 && d <= next.days) next = rebalanceDay(profile, next, d);

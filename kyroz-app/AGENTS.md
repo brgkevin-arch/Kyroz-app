@@ -232,10 +232,37 @@ qu'ils étaient périmés.
    apparaît « en attente » pour faire les courses du week-end ; le LUNDI, le plan apparaît,
    **calé sur cette liste** (même tirage : ce qu'on a acheté est ce qu'on cuisine) ; la liste
    **tient compte des restes de la réserve** → ce chantier ABSORBE le point 6 (0 gaspi).
-   ❌ Rien codé. À concevoir d'abord (une proposition au fondateur avant de coder) : le plan
-   préparé d'avance et gardé de côté, l'écran Courses en deux temps (fin de semaine en cours +
-   semaine en attente), le choix des recettes du début de semaine selon les restes, le
-   blindage du renouvellement.
+   🔁 **REDÉFINIE PAR LE FONDATEUR LE MÊME JOUR, puis CODÉE** (non publiée, sur #376) :
+   *« peu importe le plan, une fois une liste de courses validée, une nouvelle apparaît pour le
+   plan de la semaine d'après, faite en fonction de ce qu'il doit rester à la fin du plan
+   actuel »* — déclencheur = « Courses terminées », plus le samedi. Quatre règles validées :
+   (1) « ce qu'il doit rester » se recalcule à chaque lecture (UNE liste = besoin restant de la
+   semaine + semaine suivante − réserve ; deux listes compteraient deux fois le même stock) ;
+   (2) une seule semaine d'avance ; (3) ce qui manque encore cette semaine en tête (« Encore
+   pour cette semaine ») ; (4) sans clôture, rien ne change. Le jour du renouvellement, la
+   semaine préparée devient le plan SANS nouveau tirage ; ses courses faites d'avance comptent
+   pour elle (F9, `prepare_le`) et la semaine d'après se prépare aussitôt.
+   `lib/semaineSuivante.ts` (décisions, pur) · `lib/planSuivant.ts` (clé `@kyroz:planSuivant`,
+   locale) · Courses (`assurerLaSuivante`, bloc en tête, « Pour ta semaine du lundi 26
+   octobre. ») · Plan (bascule). Le suivi se reporte désormais **par DATE** (`carryTracking`) :
+   le point fragile du renouvellement est fermé.
+   🔴 **ET LA PESÉE (« on a oublié la pesée », fondateur)** — mesuré : une pesée re-tirait la
+   semaine, −0,3 kg (5 kcal/j) changeait **64 %** des recettes, −1 kg 72 %, 20 semaines sur 20 :
+   les courses du lundi ne servaient plus le mercredi. Désormais, quand seules les cibles
+   bougent (< 100 kcal/j, `ciblesSeulement`), mêmes recettes et portions recalculées par le
+   chemin de la génération (`buildLocalPlan(…, imposes)`), pour le plan ET la semaine en
+   attente. Coût mesuré (36 semaines, 1 008 repas) : 0 recette changée, écart du jour
+   0,56 → 0,64 % (−1 kg), et 1,7 à 4,6 % des repas portent la note « un peu au-dessus de ta
+   cible » (contre 0 à 0,3 % en re-tirant). `rebalanceDay` écarté : 0,89 % et deux fois plus
+   de drapeaux. Un changement d'objectif dépasse le seuil et re-tire, comme avant.
+   ✅ Tests `semaineSuivante.test.ts` (27 cas, **9 mutations, 9 rouges**), suite 2 783 / 196,
+   `tsc` 0. **Vu au navigateur, par les vrais gestes** : « Courses terminées » → semaine du 26
+   préparée, 28 articles ; un article manquant → « Encore pour cette semaine » ; pesée de
+   79 kg → 0 recette changée sur 20, au plan comme en attente ; bascule simulée → plan adopté
+   tel quel (tirage 1), suivante préparée aussitôt (tirage 2). Non vu sur iPhone.
+   ⏭️ **Reste du point 2** : le « niveau 2 » des restes (le plan CHOISIT ses premières recettes
+   avec les restes de paquets) = chantier moteur mesuré, APRÈS la 62ᵉ OTA (décision du
+   2026-10-21).
    💡 **Idée Kyroz+ notée (2026-10-21, pas une fonction à vendre avant d'exister)** : planifier
    sur plusieurs semaines (2 à 4 semaines visibles, courses groupées). Le fondateur voulait y
    mettre la préparation du samedi ; avis donné et retenu : la liste du week-end est le cœur
@@ -249,8 +276,9 @@ qu'ils étaient périmés.
    ➡️ **Fusionné dans le point 2** (décision du 2026-10-21) : la liste en attente du samedi et
    le plan du lundi partent des restes.
 ➡️ Avancement : tenu ici, ligne par ligne, au fil des validations. **Au 2026-10-21** : point 1
-   codé + essai posé (ligne 1) ; point 2 mesuré, décision prise, à CONCEVOIR (proposition au
-   fondateur avant de coder) ; points 3, 4, 5 pas commencés ; point 6 fusionné dans le 2.
+   codé + essai posé (ligne 1) ; **point 2 codé et vu au navigateur le 2026-10-22** (semaine
+   suivante + pesée, niveau 2 des restes après l'OTA) ; points 3, 4, 5 pas commencés ; point 6
+   fusionné dans le 2.
    ⚠️ #376 porte TOUT (plan daté, « Quand veux-tu commencer ? », seuils, thon, page Kyroz+,
    CGU révisées le 20 octobre — date à reporter si la livraison glisse) ; elle est à jour de
    `main` (61ᵉ OTA = Liquid Glass) et FUSIONNABLE ; la livraison sera la **62ᵉ OTA**, avec le

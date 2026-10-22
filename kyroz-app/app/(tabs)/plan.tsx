@@ -39,6 +39,9 @@ import { useReminder } from '../../hooks/useReminder';
 import { usePremium } from '../../hooks/usePremium';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { datesDuPlan, semaineEcoulee } from '../../lib/semainePlan';
+import { aAdopter, aligner, ciblesSeulement, memesRecettes } from '../../lib/semaineSuivante';
+import { CLE_GRAINE_DU_PLAN, assurerLaSuivante, ecrireLaSuivante, lireLaSuivante } from '../../lib/planSuivant';
+import { loadHistory, newestFirst } from '../../lib/shoppingHistory';
 import { buildLocalPlan, carryTracking, nextPlanSeed, profileSignature, swapMeal, computeDailyTotals, rebalanceDay, resetTracking, adaptDayOptions, AdaptOption, mealIngredients, reAdaptMealRecipe, mealPoolSize, dayTargetKcal, ON_TARGET_TOLERANCE_KCAL } from '../../lib/planEngine';
 import { DISLIKE_THRESHOLD, dislikeCandidates, applyDislikedIngredient } from '../../lib/dislike';
 import { todayStamp, localStamp } from '../../lib/weight';
@@ -64,7 +67,7 @@ import { DayExtra, Macros, Meal, MealPlan, MealStatus, Recipe } from '../../lib/
 
 const PLAN_KEY = '@kyroz:plan';
 const LIST_KEY = '@kyroz:shopping';
-const SEED_KEY = '@kyroz:planSeed';
+const SEED_KEY = CLE_GRAINE_DU_PLAN;
 
 /**
  * Ce qui a DÉCLENCHÉ une régénération (propriété de `plan_regenerated`, D4).
@@ -78,7 +81,7 @@ const SEED_KEY = '@kyroz:planSeed';
  * aurait créé une valeur qui ne sort jamais — donc un zéro qu'on aurait fini par
  * lire comme « personne ne recale », alors que `off_plan_logged` le mesure déjà.
  */
-type PlanOrigine = 'profil_modifie' | 'manuel' | 'semaine_ecoulee';
+type PlanOrigine = 'profil_modifie' | 'manuel' | 'semaine_ecoulee' | 'semaine_suivante';
 // Drapeau posé par Profil (« Régénérer mon plan ») → l'écran Plan rejoue une
 // génération « reroll » au prochain focus. Découple les deux écrans sans prop.
 const REROLL_KEY = '@kyroz:planReroll';
@@ -362,7 +365,20 @@ export default function PlanScreen() {
     if (!profile || !plan || generating) return;
     const sig = profileSignature(profile);
     if (plan.profile_sig === sig || syncedSig.current === sig) return;
+    // Une semaine vécue se renouvelle (effet suivant), avec le profil du moment : la recaler
+    // ici en même temps réécrirait l'ancienne semaine par-dessus la neuve.
+    if (semaineEcoulee(plan, todayStamp(), profile.plan_weekdays)) return;
     syncedSig.current = sig;
+    // 🔴 UNE PESÉE NE RE-TIRE PLUS LA SEMAINE (2026-10-21, `lib/semaineSuivante.ts`). Seules
+    // les cibles ont bougé : mêmes recettes, portions recalculées — ce qui a été acheté reste
+    // ce qu'on cuisine. Mesuré avant : −0,3 kg changeait 64 % des recettes de la semaine.
+    if (ciblesSeulement(plan.profile_sig, sig)) {
+      (async () => {
+        const seed = nextPlanSeed(await AsyncStorage.getItem(SEED_KEY), false);
+        await persistPlan(carryTracking(profile, plan, memesRecettes(profile, plan, seed)), false);
+      })();
+      return;
+    }
     generate(false, 'profil_modifie');
   }, [profile, plan, generating]);
 
@@ -381,7 +397,21 @@ export default function PlanScreen() {
     if (!profile || !plan || generating || semaineTentee.current) return;
     if (!semaineEcoulee(plan, todayStamp(), profile.plan_weekdays)) return;
     semaineTentee.current = true;
-    generate(true, 'semaine_ecoulee');
+    (async () => {
+      // La semaine préparée à la clôture des courses devient le plan, SANS nouveau tirage :
+      // c'est elle qu'on a achetée (`lib/semaineSuivante.ts`). Sinon, renouvellement ordinaire.
+      const suivante = await lireLaSuivante();
+      const aujourdHui = todayStamp();
+      const prete = suivante && aAdopter(plan, suivante, aujourdHui, profile.plan_weekdays)
+        ? aligner(profile, plan, suivante, aujourdHui) : null;
+      if (!prete) { await ecrireLaSuivante(null); generate(true, 'semaine_ecoulee'); return; }
+      await AsyncStorage.setItem(SEED_KEY, String(prete.seed));
+      await ecrireLaSuivante(null);
+      await persistPlan(prete.plan, false);
+      if (prete.plan.id !== plan.id) capture(Events.planRegenerated, { origine: 'semaine_suivante' satisfies PlanOrigine });
+      // Ses courses déjà faites (avant son premier jour) : la semaine d'après se prépare aussitôt.
+      await assurerLaSuivante(profile, prete.plan, newestFirst(await loadHistory())[0]?.at);
+    })();
   }, [profile, plan, generating]);
 
   // Le jour de plan qui correspond EXACTEMENT à un jour de la semaine (0 = dimanche),

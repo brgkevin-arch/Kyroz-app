@@ -48,7 +48,8 @@ describe('seuil d’achat (E75) — la règle validée par le fondateur', () => 
 describe('seuil d’achat — l’écran Courses s’en sert', () => {
   it('la liste générée passe par `sousLeSeuil` avant d’être affichée et mise en cache', () => {
     const src = readFileSync(join(__dirname, '../../app/(tabs)/courses.tsx'), 'utf8');
-    expect(src).toMatch(/const l = \{ \.\.\.brute, items: brute\.items\.filter\(\(i\) => !sousLeSeuil\(i\)\) \};/);
+    expect(src).toMatch(/const items = brute\.items\.filter\(\(i\) => !sousLeSeuil\(i\)\);/);
+    expect(src).toMatch(/const l: ShoppingList = \{\s*\.\.\.brute, items,/);
     expect(src.indexOf('!sousLeSeuil(i)')).toBeLessThan(src.indexOf('AsyncStorage.setItem(LIST_KEY, JSON.stringify(l))'));
   });
 });

@@ -16,7 +16,9 @@ import { PrimaryButton, Chip, Field } from '../../components/ui';
 import { MealPlan, ShoppingItem, ShoppingList } from '../../lib/types';
 import { buildShoppingList } from '../../lib/shoppingList';
 import { repasACompter, mentionDepart } from '../../lib/coursesDepuis';
-import { repasDepuisLeDebut } from '../../lib/debutPlan';
+import { dateEnLettres, repasDepuisLeDebut } from '../../lib/debutPlan';
+import { assurerLaSuivante } from '../../lib/planSuivant';
+import { premierJour } from '../../lib/semaineSuivante';
 import { sousLeSeuil } from '../../lib/seuilAchat';
 import { lireDebutSuivi } from '../../lib/repasAuto';
 import { activeSlots } from '../../lib/mealSlots';
@@ -55,7 +57,8 @@ const CATEGORY_LABELS: Record<ShoppingItem['category'], string> = {
 const CATEGORY_ORDER: ShoppingItem['category'][] = ['viandes', 'légumes', 'féculents', 'laitiers', 'autres'];
 
 type CoursesSection = {
-  cat: ShoppingItem['category'];
+  // `cette_semaine` : ce qui manque encore pour la semaine en cours quand la suivante attend.
+  cat: ShoppingItem['category'] | 'cette_semaine';
   title: string;
   left: number;
   data: ShoppingItem[];
@@ -103,7 +106,9 @@ export default function CoursesScreen() {
   // rien est pire que pas de bouton. Le tour est retiré de `TOURS`, donc il ne
   // figure plus dans « Revoir les tutos » — c'est la même source (`lib/tours.ts`).
 
-  useFocusEffect(useCallback(() => { load(); }, []));
+  // ⚠️ `profile` en dépendance : la semaine suivante se prépare avec le profil du moment
+  // (`assurerLaSuivante`), jamais avec celui du premier rendu.
+  useFocusEffect(useCallback(() => { load(); }, [profile]));
 
   const load = async () => {
     setHistory(await loadHistory());
@@ -140,10 +145,19 @@ export default function CoursesScreen() {
     // déjà passés quand on a dit « Ce soir », ni les jours d'avant un début à venir.
     const debut = await lireDebutSuivi();
     const servi = { ...plan, meals: repasDepuisLeDebut(plan, profile?.plan_weekdays, debut, activeSlots(profile)) };
-    const perimetre = repasACompter(servi, profile?.plan_weekdays, newestFirst(await loadHistory())[0]?.at);
-    setDepart(perimetre.apresCourses
-      ? 'Depuis tes dernières courses : pour les repas qu’il te reste à cuisiner.'
-      : mentionDepart(plan, profile?.plan_weekdays, debut));
+    const cloture = newestFirst(await loadHistory())[0]?.at;
+    const perimetre = repasACompter(servi, profile?.plan_weekdays, cloture);
+    // La SEMAINE SUIVANTE (2026-10-21, `lib/semaineSuivante.ts`) : préparée dès que les courses
+    // de la semaine en cours sont closes, remise d'accord avec le profil (une pesée) à chaque
+    // lecture. Sa liste part de « ce qu'il doit rester » : la réserve d'aujourd'hui moins les
+    // repas qu'il reste à cuisiner cette semaine.
+    const suivante = profile ? await assurerLaSuivante(profile, plan, cloture) : null;
+    const debutSuivante = suivante ? premierJour(suivante.plan, profile?.plan_weekdays) : null;
+    setDepart(debutSuivante
+      ? `Pour ta semaine du ${dateEnLettres(debutSuivante)}.`
+      : perimetre.apresCourses
+        ? 'Depuis tes dernières courses : pour les repas qu’il te reste à cuisiner.'
+        : mentionDepart(plan, profile?.plan_weekdays, debut));
     // ── LA RÉSERVE EST TOUJOURS SOUSTRAITE (2026-08-24) ──────────────────────
     //
     // L'interrupteur « Tenir compte du frigo » a été RETIRÉ (décision fondateur).
@@ -156,11 +170,29 @@ export default function CoursesScreen() {
     // La liste part du jour où le plan a été généré, jamais des jours déjà passés
     // (décision fondateur du 2026-09-17, `lib/coursesDepuis.ts`). ⚠️ Sans profil encore
     // chargé, on achète toute la semaine, c'est le repli SÛR.
-    const brute = buildShoppingList({ ...plan, meals: perimetre.meals }, pantry, perimetre.jours);
+    const restantes = perimetre.meals.filter((m) => perimetre.jours.includes(m.day));
+    // Avec une semaine suivante, UNE liste pour les deux : le besoin total moins la réserve.
+    // Deux listes séparées compteraient deux fois le même stock — le poulet de dimanche soir
+    // servirait aussi lundi. Ce qui manque encore pour CETTE semaine est repéré à part
+    // (`pour_cette_semaine`) et rangé en tête.
+    const brute = suivante
+      ? buildShoppingList({ ...plan, meals: [...restantes, ...suivante.plan.meals] }, pantry)
+      : buildShoppingList({ ...plan, meals: perimetre.meals }, pantry, perimetre.jours);
     // E75 (2026-10-20) : un reste sous son seuil ne vaut pas un paquet — la ligne disparaît,
     // comme le sel (`lib/seuilAchat.ts` : 20 % d'une portion, 10 g au moins, 15 g au plus
     // pour la protéine du plat).
-    const l = { ...brute, items: brute.items.filter((i) => !sousLeSeuil(i)) };
+    const items = brute.items.filter((i) => !sousLeSeuil(i));
+    const encore = suivante
+      ? new Set(buildShoppingList({ ...plan, meals: restantes }, pantry).items
+        .filter((i) => !sousLeSeuil(i)).map((i) => i.name.toLowerCase()))
+      : null;
+    const l: ShoppingList = {
+      ...brute, items,
+      ...(encore && debutSuivante ? {
+        pour_cette_semaine: items.filter((i) => encore.has(i.name.toLowerCase())).map((i) => i.name),
+        semaine_suivante: debutSuivante,
+      } : {}),
+    };
     // Ne pas mettre en cache une liste vide (tout couvert) : sinon l'onglet
     // resterait bloqué sur « rien à acheter » même après avoir vidé la réserve.
     // Sans cache, load() la reconstruit à chaque focus et les articles
@@ -585,15 +617,25 @@ export default function CoursesScreen() {
   const pct = total ? (checked / total) * 100 : 0;
 
   // Tri : non cochés d'abord, cochés en bas. Option « masquer cochés ».
-  const sections: CoursesSection[] = CATEGORY_ORDER
+  // Ce qui manque encore pour la semaine EN COURS passe en tête, quand la suivante attend
+  // (règle 3 du 2026-10-21) : sinon la semaine d'après masquerait ce qu'il faut pour demain.
+  const pourCetteSemaine = new Set((list?.pour_cette_semaine ?? []).map((n) => n.toLowerCase()));
+  const deCetteSemaine = (i: ShoppingItem) => !i.manuel && pourCetteSemaine.has(i.name.toLowerCase());
+  const trier = (data: ShoppingItem[]) => [...(hideChecked ? data.filter((i) => !i.checked) : data)]
+    .sort((a, b) => Number(a.checked) - Number(b.checked) || a.name.localeCompare(b.name));
+  const enTeteSemaine: CoursesSection[] = pourCetteSemaine.size === 0 ? [] : ([{
+    cat: 'cette_semaine',
+    title: 'Encore pour cette semaine',
+    left: visibles.filter((i) => deCetteSemaine(i) && !i.checked).length,
+    data: trier(visibles.filter(deCetteSemaine)),
+  }] satisfies CoursesSection[]).filter((sec) => sec.data.length > 0);
+  const sections: CoursesSection[] = [...enTeteSemaine, ...CATEGORY_ORDER
     .map((cat) => {
-      let data = visibles.filter((i) => i.category === cat);
-      if (hideChecked) data = data.filter((i) => !i.checked);
-      data = [...data].sort((a, b) => Number(a.checked) - Number(b.checked) || a.name.localeCompare(b.name));
-      const left = visibles.filter((i) => i.category === cat && !i.checked).length;
-      return { cat, title: CATEGORY_LABELS[cat], left, data };
+      const duRayon = visibles.filter((i) => i.category === cat && !deCetteSemaine(i));
+      const left = duRayon.filter((i) => !i.checked).length;
+      return { cat, title: CATEGORY_LABELS[cat], left, data: trier(duRayon) };
     })
-    .filter((sec) => sec.data.length > 0);
+    .filter((sec) => sec.data.length > 0)];
 
   // ⚠️ En-tête, progression, commandes et note vivent DANS la liste
   // (`ListHeaderComponent`) : c'est ce qui permet au grand titre de s'effacer au

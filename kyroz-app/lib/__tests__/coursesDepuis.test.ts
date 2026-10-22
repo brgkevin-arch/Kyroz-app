@@ -74,9 +74,11 @@ describe('l’écran Courses s’en sert', () => {
     // jour de génération tant qu'aucune clôture n'a eu lieu cette semaine.
     // E78 (2026-10-19) : d'abord les repas depuis le début choisi à l'inscription.
     expect(src).toMatch(/repasDepuisLeDebut\(plan, profile\?\.plan_weekdays, debut, activeSlots\(profile\)\)/);
-    expect(src).toMatch(/repasACompter\(servi, profile\?\.plan_weekdays, newestFirst\(await loadHistory\(\)\)\[0\]\?\.at\)/);
-    expect(src).toMatch(/buildShoppingList\(\{ \.\.\.plan, meals: perimetre\.meals \}, pantry, perimetre\.jours\)/);
-    expect(src).toMatch(/setDepart\(perimetre\.apresCourses/);
+    expect(src).toMatch(/const cloture = newestFirst\(await loadHistory\(\)\)\[0\]\?\.at;/);
+    expect(src).toMatch(/repasACompter\(servi, profile\?\.plan_weekdays, cloture\)/);
+    // Sans semaine suivante (2026-10-21), la liste reste celle des jours à acheter.
+    expect(src).toMatch(/: buildShoppingList\(\{ \.\.\.plan, meals: perimetre\.meals \}, pantry, perimetre\.jours\)/);
+    expect(src).toMatch(/: perimetre\.apresCourses/);
     expect(src).toMatch(/: mentionDepart\(plan, profile\?\.plan_weekdays, debut\)\)/);
     expect(src).toMatch(/depart !== '' && <Text style=\{s\.depart\}>\{depart\}<\/Text>/);
   });
