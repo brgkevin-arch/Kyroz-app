@@ -115,12 +115,14 @@ describe('UN SEUL moment écrit dans la réserve : la clôture', () => {
 });
 
 describe('aucune phrase ne promet ce que le code ne fait plus', () => {
-  it('la ligne d’aide des Courses décrit les DEUX temps du geste', () => {
+  it('la ligne d’aide des Courses ne dit que le geste invisible (point 4, 2026-10-22)', () => {
     // 🔴 CETTE PHRASE A DÉJÀ MENTI DEUX FOIS : « il part direct dans ton frigo »,
     // vraie jusqu'au jour où le suivi est devenu optionnel, puis conditionnée à un
     // réglage qui n'existe plus. Une phrase d'aide est une affirmation sur le code.
+    // Depuis le point 4 (« l’app tourne en silence »), elle ne raconte plus la clôture.
     const bloc = courses.slice(courses.indexOf('style={s.hint}'));
-    expect(bloc.slice(0, 400)).toContain('« Courses terminées » range le tout dans ta réserve');
+    expect(bloc.slice(0, 120)).toContain('Appui long pour retirer un article.');
+    expect(courses).not.toContain('range le tout dans ta réserve');
     expect(courses).not.toContain('part direct dans ton frigo');
   });
 

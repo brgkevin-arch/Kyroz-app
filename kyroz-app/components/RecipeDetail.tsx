@@ -48,24 +48,14 @@ export function RecipeDetail({ recipe, portions = 1, adaptedIngredients, adapted
   const fav = isFavorite(recipe.id);
   const f = portions;
 
-  // Avertissements : seulement les flags « user » (les 'selection'/'dev' ne s'affichent
-  // pas), protéines en priorité avec l'écart en grammes (« ~Xg sous ta cible »).
-  const userFlags = (adaptFlags ?? []).filter((fl) => FLAG_AUDIENCE[fl] === 'user');
-  const orderedFlags = [
-    ...userFlags.filter((fl) => fl === 'protein_below_target'),
-    ...userFlags.filter((fl) => fl !== 'protein_below_target'),
-  ];
-  const flagMsg = (fl: AdaptFlag): string => {
-    if (fl === 'protein_below_target') {
-      const miss = adaptGap ? Math.max(0, -Math.round(adaptGap.protein_g)) : 0;
-      return miss > 0
-        ? `~${miss} g de protéines sous ta cible : ajoute un side protéiné.`
-        : 'Repas un peu pauvre en protéines.';
-    }
-    if (fl === 'under_target_kcal') return 'Repas un peu en dessous de ta cible.';
-    if (fl === 'over_target_kcal') return 'Repas un peu au-dessus de ta cible.';
-    return '';
-  };
+  // Une seule note de précision reste, celle qui demande un GESTE : « ~X g de protéines
+  // sous ta cible : ajoute un side protéiné ». « Repas un peu au-dessus / en dessous de ta
+  // cible » et « Repas un peu pauvre en protéines » sont RETIRÉES le 2026-10-22 (fondateur,
+  // point 4 avant la 62ᵉ OTA : « l'app tourne en silence ») — rien à faire pour la personne.
+  const manqueProteines = (adaptFlags ?? []).includes('protein_below_target')
+    && FLAG_AUDIENCE.protein_below_target === 'user' && adaptGap
+    ? Math.max(0, -Math.round(adaptGap.protein_g))
+    : 0;
 
   // Valeurs adaptées (scaling par ingrédient) si fournies, sinon recette × portions.
   const macros = adaptedMacros ?? {
@@ -141,7 +131,7 @@ export function RecipeDetail({ recipe, portions = 1, adaptedIngredients, adapted
             <Text style={[s.warn, { flex: 1 }]}>Aucune recette adaptée à ton régime pour ce repas — option standard.</Text>
           </View>
         )}
-        {orderedFlags.map((fl) => <Text key={fl} style={s.warn}>{flagMsg(fl)}</Text>)}
+        {manqueProteines > 0 && <Text style={s.warn}>{`~${manqueProteines} g de protéines sous ta cible : ajoute un side protéiné.`}</Text>}
 
         {/* MÊME PLAT (D30) : un conseil, et les quantités restent celles de CE repas
             (décision fondateur du 2026-09-14). Les étapes restent affichées au déjeuner :
@@ -206,7 +196,7 @@ export function RecipeDetail({ recipe, portions = 1, adaptedIngredients, adapted
             <Text style={s.statusTxt}>
               {/* Mêmes signes retirés qu'en `MealCard` (2026-08-20) : deux états de
                   suivi, deux faits, aucune médaille et aucun panneau d'interdiction. */}
-              {status === 'eaten' ? 'Marqué comme mangé' : 'Repas sauté, journée recalée'}
+              {status === 'eaten' ? 'Marqué comme mangé' : 'Repas sauté'}
             </Text>
           </View>
         )}

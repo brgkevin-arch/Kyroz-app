@@ -149,10 +149,13 @@ describe('F9 mesuré sur le moteur : une journée cuisinée ne fait rien rachete
   }
 });
 
-describe('l’écran Courses le dit', () => {
-  const src = readFileSync(join(__dirname, '..', '..', 'app', '(tabs)', 'courses.tsx'), 'utf8');
-  it('après des courses, la ligne de départ annonce les repas qu’il reste', () => {
-    expect(src).toContain('perimetre.apresCourses');
-    expect(src).toContain('Depuis tes dernières courses : pour les repas qu’il te reste à cuisiner.');
+describe('l’écran Courses le fait en silence (point 4, 2026-10-22)', () => {
+  const src = readFileSync(join(__dirname, '..', '..', 'app', '(tabs)', 'courses.tsx'), 'utf8')
+    .replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
+  it('après des courses, la liste compte les repas qu’il reste, sans phrase pour le dire', () => {
+    // « Depuis tes dernières courses : pour les repas qu’il te reste à cuisiner » est retiré
+    // (fondateur : « l’app tourne en silence ») ; le calcul, lui, est vérifié plus haut.
+    expect(src).toMatch(/perimetre\.apresCourses\s*\?\s*''/);
+    expect(src).not.toContain('Depuis tes dernières courses');
   });
 });

@@ -716,7 +716,8 @@ export default function PlanScreen() {
     // se trompe un jour.
     capture(Events.mealCooked, { meal_type: meal.meal_type, auto: false });
     setSelectedMeal(null);
-    toast('✓ Mangé, journée recalée');
+    // Plus de bandeau « ✓ Mangé, journée recalée » (2026-10-22, fondateur, point 4 : « l'app
+    // tourne en silence ») : la carte qui se replie dit « c'est fait ».
   };
 
   // ── L'AUTO-COCHE : un repas dont l'heure est passée est réputé mangé ────────
@@ -763,13 +764,11 @@ export default function PlanScreen() {
     );
     await persistPlan(rebalanceDay(profile, { ...plan, meals, tracking_date: todayStamp() }, jour));
     for (const m of dus) capture(Events.mealCooked, { meal_type: m.meal_type, auto: true });
-    // On le DIT. Un statut qui change tout seul sans un mot se lit comme un bug.
-    // ⚠️ La phrase ne dit PLUS comment le défaire, et ce n'est pas un oubli : depuis le
-    // retrait du bouton « Annuler » (2026-08-25), il n'y a plus rien à proposer. Un
-    // bandeau qui suggérerait un retour arrière décrirait une app qui n'existe pas.
-    toast(dus.length > 1
-      ? `${dus.length} repas cochés, leur heure était passée`
-      : 'Repas coché, son heure était passée');
+    // 🔴 EN SILENCE depuis le 2026-10-22 (fondateur, point 4 : « l'app tourne en silence »).
+    // La règle d'avant disait l'inverse — « un statut qui change tout seul sans un mot se lit
+    // comme un bug » — et le bandeau « Repas coché, son heure était passée » est parti avec
+    // elle. Ce qui l'annonce désormais : la visite guidée (« Si tu oublies, Kyroz coche pour
+    // toi », `lib/tours.ts`) et le réglage « repas cochés automatiquement » du Profil.
   }, [plan, profile, repasAuto, idxDuJour]);
 
   // Au montage, à chaque retour sur l'onglet, et au réveil de l'app : les trois
@@ -791,7 +790,6 @@ export default function PlanScreen() {
   const skipMeal = async (meal: Meal) => {
     animerMiseEnPage();
     await setMealStatus(meal, 'skipped');
-    toast('Repas sauté, journée recalée');
   };
 
   // 🔴 `resetMealStatus` A ÉTÉ RETIRÉ LE 2026-08-25 (décision fondateur : « enlève le
@@ -841,12 +839,10 @@ export default function PlanScreen() {
     // donnée de santé ») — le libellé de l'écart encore moins.
     capture(Events.offPlanLogged, { recale: true });
     setAdaptPrompt(null);
-    toast('Journée réadaptée');
   };
   // « Non, je garde mon plan » : on ne touche à rien, l'écart reste compté à part.
   const declineAdapt = async () => {
     setAdaptPrompt(null);
-    toast('Ok, on garde ton plan');
     capture(Events.offPlanLogged, { recale: false });
     await resolveOffPlan(selectedDay, 0); // 0 = journée gardée telle quelle
   };
@@ -890,15 +886,13 @@ export default function PlanScreen() {
     const r = await dislikeMealCore(selectedMeal);
     if (r === 'elicit') { setSelectedMeal(null); return; }
     setSelectedMeal(r);
-    toast('C\'est noté, on te change ça');
   };
 
   // ── Actions directement sur la CARTE (fiche fermée → on ne touche pas selectedMeal) ──
-  const reloadMealOnCard = async (meal: Meal) => { await swapMealCore(meal); toast('Recette changée'); };
-  const dislikeMealOnCard = async (meal: Meal) => {
-    const r = await dislikeMealCore(meal);
-    if (r !== 'elicit') toast('C\'est noté, on te change ça');
-  };
+  // Sans bandeau (« Recette changée », « C'est noté, on te change ça ») depuis le
+  // 2026-10-22 (fondateur, point 4) : la carte qui change de recette le dit déjà.
+  const reloadMealOnCard = async (meal: Meal) => { await swapMealCore(meal); };
+  const dislikeMealOnCard = async (meal: Meal) => { await dislikeMealCore(meal); };
 
   // L'utilisateur a nommé l'ingrédient gênant : on l'évite partout (disliked_foods,
   // → régénère le plan via la signature) et on ré-affiche les plats masqués sans cet
@@ -907,7 +901,6 @@ export default function PlanScreen() {
     if (!profile) return;
     await saveProfile(applyDislikedIngredient(profile, kw));
     setDislikeElicit(null);
-    toast('Compris, on évite ça et on te ramène le reste');
   };
 
   // Met la fiche ouverte à jour après personnalisation (le plan, lui, est
@@ -938,8 +931,10 @@ export default function PlanScreen() {
   // La phrase reste vraie après coup : on peut rouvrir ce jour-là la semaine suivante.
   const avantDebutMention = dayMeals.length === dayMealsPlan.length || !debut
     ? null
+    // Un jour COMMENCÉ en cours de route ne dit plus rien (« Les repas d'avant ton début ne
+    // sont pas comptés » est retiré le 2026-10-22, fondateur, point 4).
     : dayMeals.length > 0
-      ? 'Les repas d’avant ton début ne sont pas comptés.'
+      ? null
       : avantLeJourDuDebut(jourCivil, debut)
         ? `Ton plan commence ${dateEnLettres(debut.jour)}.`
         : 'Ce jour-là, ton plan n’avait pas encore commencé.';
@@ -1019,8 +1014,8 @@ export default function PlanScreen() {
   // seul via l'effet d'auto-refresh. L'option « recettes trop longues » a disparu avec
   // le filtre de temps le 2026-07-29 : elle abaissait le curseur d'un cran sans le
   // moindre garde-fou et pouvait, en un clic, faire tomber le pool de repas à 0.
-  const checkinSatisfied = () => { snoozeCheckin(); setCheckinOpen(false); toast('Parfait, on continue'); };
-  const checkinMoreVariety = () => { if (profile) saveProfile({ ...profile, variety: 'max' }); snoozeCheckin(); setCheckinOpen(false); toast('Variété au max, nouveau plan en route'); };
+  const checkinSatisfied = () => { snoozeCheckin(); setCheckinOpen(false); };
+  const checkinMoreVariety = () => { if (profile) saveProfile({ ...profile, variety: 'max' }); snoozeCheckin(); setCheckinOpen(false); };
   const checkinNewPlan = () => { snoozeCheckin(); setCheckinOpen(false); generate(true); };
   const checkinAdjustProfile = () => { snoozeCheckin(); setCheckinOpen(false); router.push('/(tabs)/profil'); };
   const checkinOptOut = () => { optOutCheckin(); setCheckinOpen(false); toast('Ok. Réactivable dans Profil.'); };
@@ -1087,7 +1082,6 @@ export default function PlanScreen() {
             <PeseeIcon color={t.text} size={Icone.action} />
             <View style={{ flex: 1 }}>
               <Text style={s.weighTitle}>C'est le moment de te peser</Text>
-              <Text style={s.weighSub}>Mets à jour ton poids — on réajuste tes macros et ton plan.</Text>
             </View>
             <Text style={s.bannerCta}>→</Text>
           </Presse>
@@ -1116,7 +1110,7 @@ export default function PlanScreen() {
             <RepasIcon color={t.text} size={Icone.action} />
             <View style={{ flex: 1 }}>
               <Text style={s.weighTitle}>Revois tes protéines préférées</Text>
-              <Text style={s.weighSub}>Elles suivent maintenant ton régime, et celles que tu coches reviennent plus souvent.</Text>
+              <Text style={s.weighSub}>Celles que tu coches reviennent plus souvent.</Text>
             </View>
             <Text style={s.bannerCta}>→</Text>
           </Presse>

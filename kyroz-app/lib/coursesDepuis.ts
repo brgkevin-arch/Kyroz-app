@@ -49,23 +49,21 @@ export function joursAAcheter(plan: Pick<MealPlan, 'week_start_date' | 'days'>, 
 export const NOMS_JOURS = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'];
 
 /**
- * Ce que l'écran Courses annonce quand la liste ne couvre pas tout le plan.
- * Chaîne vide quand elle le couvre : rien à dire, donc rien à afficher.
- * ⚠️ `debut` OBLIGATOIRE (même `null`, E78 du 2026-10-19) : quand la semaine part du jour
- * CHOISI à l'inscription, « ton plan avait déjà commencé » serait faux — il n'a pas commencé.
+ * Ce que l'écran Courses annonce quand la liste ne couvre pas tout le plan : le jour d'où
+ * elle part, sans la raison. Chaîne vide quand elle le couvre : rien à dire, donc rien à
+ * afficher. La raison (« le jour où tu commences », « ton plan avait déjà commencé ») est
+ * retirée le 2026-10-22 (fondateur, point 4 : « l'app tourne en silence ») — et avec elle
+ * le paramètre `debut`, qui ne servait qu'à la choisir.
  */
 export function mentionDepart(
   plan: Pick<MealPlan, 'week_start_date' | 'days'>,
   weekdays: number[] | undefined,
-  debut: { jour: string } | null,
 ): string {
   const jours = joursAAcheter(plan, weekdays);
   if (jours.length >= plan.days) return '';
   const wd = jourDeSemaine(plan.week_start_date);
   if (wd === null) return '';
-  return debut?.jour === plan.week_start_date
-    ? `À partir de ${NOMS_JOURS[wd]}, le jour où tu commences.`
-    : `À partir du ${NOMS_JOURS[wd]} : ton plan avait déjà commencé.`;
+  return `À partir de ${NOMS_JOURS[wd]}.`;
 }
 
 // ── APRÈS DES COURSES TERMINÉES : SEULEMENT LES REPAS QU'IL RESTE À CUISINER ──────────

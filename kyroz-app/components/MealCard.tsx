@@ -116,7 +116,7 @@ export function MealCard({
         {meal.recipe.name_fr}
       </Text>
       {isFixed && (
-        <Text style={[styles.fixedNote, { color: t.textTertiary }]}>Tu gères ce repas — compté dans ton total</Text>
+        <Text style={[styles.fixedNote, { color: t.textTertiary }]}>Tu gères ce repas</Text>
       )}
       {/* MÊME PLAT (D30) : un CONSEIL, pas une consigne. Chaque repas garde ses propres
           quantités (décision fondateur du 2026-09-14) ; on dit seulement que les deux

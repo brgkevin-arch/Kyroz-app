@@ -153,11 +153,14 @@ export default function CoursesScreen() {
     // repas qu'il reste à cuisiner cette semaine.
     const suivante = profile ? await assurerLaSuivante(profile, plan, cloture) : null;
     const debutSuivante = suivante ? premierJour(suivante.plan, profile?.plan_weekdays) : null;
+    // Après des courses terminées, la liste ne compte que les repas qu'il reste à cuisiner
+    // (F9) et ne le dit plus : « Depuis tes dernières courses : pour les repas qu'il te reste
+    // à cuisiner » est retiré le 2026-10-22 (fondateur, point 4 : « l'app tourne en silence »).
     setDepart(debutSuivante
       ? `Pour ta semaine du ${dateEnLettres(debutSuivante)}.`
       : perimetre.apresCourses
-        ? 'Depuis tes dernières courses : pour les repas qu’il te reste à cuisiner.'
-        : mentionDepart(plan, profile?.plan_weekdays, debut));
+        ? ''
+        : mentionDepart(plan, profile?.plan_weekdays));
     // ── LA RÉSERVE EST TOUJOURS SOUSTRAITE (2026-08-24) ──────────────────────
     //
     // L'interrupteur « Tenir compte du frigo » a été RETIRÉ (décision fondateur).
@@ -516,11 +519,11 @@ export default function CoursesScreen() {
       <View style={s.unitRow}>
         {UNITES_AJOUT.map((u) => <Chip key={u} t={t} label={u} selected={unite === u} onPress={() => setUnite(u)} />)}
       </View>
-      {/* Une phrase d'aide est une AFFIRMATION SUR LE CODE : sans quantité,
-          `terminer` n'a rien à ranger en réserve, et il ne range rien. */}
-      <Text style={s.sheetNote}>
-        {note ?? "Sans quantité, l'article ne rejoindra pas ta réserve une fois acheté."}
-      </Text>
+      {/* Seul ce qui répond à la saisie se dit ici (« … est déjà dans ta liste »). La note
+          « Sans quantité, l'article ne rejoindra pas ta réserve une fois acheté » est
+          retirée le 2026-10-22 (fondateur, point 4) ; le code, lui, ne range toujours rien
+          en réserve sans quantité. */}
+      {note && <Text style={s.sheetNote}>{note}</Text>}
       <PrimaryButton t={t} label="Ajouter" onPress={ajouterArticle} disabled={!nom.trim()} />
       <Presse onPress={fermerAjout} style={s.cancel}><Text style={s.cancelTxt}>Annuler</Text></Presse>
     </ActionSheet>
@@ -564,9 +567,9 @@ export default function CoursesScreen() {
         <Text style={s.emptyT}>{toutEcarte ? 'Liste vidée' : covered ? 'Rien à acheter' : 'Aucune liste'}</Text>
         <Text style={s.emptyS}>
           {toutEcarte
-            ? `Tu as retiré ${nbEcartes > 1 ? 'tous les articles' : "le dernier article"} de ta liste. Ton plan de repas, lui, n'a pas changé.`
+            ? `Tu as retiré ${nbEcartes > 1 ? 'tous les articles' : "le dernier article"} de ta liste.`
             : covered
-            ? 'Ta réserve couvre déjà tout le plan de la semaine. La liste réapparaîtra dès qu\'il te manquera quelque chose.'
+            ? 'Ta réserve couvre déjà tout le plan de la semaine.'
             : 'Génère un plan repas et ta liste de courses apparaît ici, triée par rayon.'}
         </Text>
 
@@ -637,7 +640,7 @@ export default function CoursesScreen() {
     })
     .filter((sec) => sec.data.length > 0)];
 
-  // ⚠️ En-tête, progression, commandes et note vivent DANS la liste
+  // ⚠️ En-tête, progression, commandes et aide vivent DANS la liste
   // (`ListHeaderComponent`) : c'est ce qui permet au grand titre de s'effacer au
   // profit de la barre compacte, comme dans la maquette. Ils étaient au-dessus de
   // la SectionList, donc « Courses » en 34 restait planté en haut pour toujours.
@@ -744,13 +747,12 @@ export default function CoursesScreen() {
 
         {/* 🔴 UNE PHRASE D'AIDE EST UNE AFFIRMATION SUR LE CODE. Celle-ci a déjà été
             fausse deux fois — « il part direct dans ton frigo » quand le cochage a
-            cessé de remplir le stock, puis quand ce suivi est devenu optionnel. Elle
-            décrit désormais les DEUX moments du geste, parce que c'est ce que le code
-            fait : cocher marque, terminer range. */}
-        <Text style={s.hint}>
-          Coche ce que tu prends, puis « Courses terminées » range le tout dans ta réserve,
-          paquets entiers. Appui long pour retirer un article.
-        </Text>
+            cessé de remplir le stock, puis quand ce suivi est devenu optionnel.
+            Depuis le 2026-10-22 (fondateur, point 4 : « l'app tourne en silence »), elle
+            ne dit plus que le seul geste qui ne se voit pas ; « Coche ce que tu prends,
+            puis « Courses terminées » range le tout dans ta réserve, paquets entiers »
+            est retiré. */}
+        <Text style={s.hint}>Appui long pour retirer un article.</Text>
     </View>
   );
 
@@ -764,16 +766,9 @@ export default function CoursesScreen() {
         showsVerticalScrollIndicator={false}
         stickySectionHeadersEnabled={false}
         ListHeaderComponent={enTete}
-        // ⚠️ La note de pied AFFIRME d'où sortent les quantités. Dès qu'un article
-        // a été tapé à la main, elle ne vaut plus pour toute la liste — et une
-        // phrase d'aide fausse est pire que pas de phrase du tout.
-        ListFooterComponent={(
-          <Text style={s.footnote}>
-            {visibles.some((i) => i.manuel)
-              ? 'Formats courants en magasin, arrondis au-dessus de ce que demandent tes repas de la semaine, sauf ce que tu as ajouté toi-même. Ce qui reste d’un paquet est déduit de tes prochaines listes.'
-              : 'Formats courants en magasin, arrondis au-dessus de ce que demandent tes repas de la semaine. Ce qui reste d’un paquet est déduit de tes prochaines listes.'}
-          </Text>
-        )}
+        // La note de pied (« Formats courants en magasin, arrondis au-dessus de ce que
+        // demandent tes repas… ») est RETIRÉE le 2026-10-22 (fondateur, point 4 : « l'app
+        // tourne en silence ») : elle racontait le calcul, la ligne dit déjà quoi prendre.
         {...repli.scrollProps}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={t.textTertiary} progressViewOffset={repli.haut} />}
         renderSectionHeader={({ section }) => (
@@ -893,7 +888,6 @@ function makeStyles(t: ThemePalette) {
     hint: { ...Type.caption, color: t.textTertiary, lineHeight: 18, paddingTop: Spacing.md },
     // Note de pied présente dans la maquette et absente de l'app : elle dit d'où
     // sortent les quantités, ce qu'aucun autre élément de l'écran n'explique.
-    footnote: { ...Type.caption, color: t.textTertiary, lineHeight: 17, paddingTop: Spacing.xl },
 
     list: { paddingHorizontal: Spacing.xl, paddingBottom: Fond.barreOnglets, paddingTop: Spacing.xs },
     section: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', marginTop: Spacing.xxl, marginBottom: Spacing.sm },

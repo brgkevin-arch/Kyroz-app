@@ -85,7 +85,7 @@ describe('E78 — la première liste ne compte que ce qui sera mangé', () => {
     expect(semaineEcoulee(plan, '2026-10-24', SEMAINE)).toBe(true);
     // Et l'écran n'affiche rien avant jeudi.
     expect(repasDepuisLeDebut(plan, SEMAINE, debut, BUILTIN_SLOTS).every((m) => m.day >= 4)).toBe(true);
-    expect(mentionDepart(plan, SEMAINE, debut)).toBe('À partir de jeudi, le jour où tu commences.');
+    expect(mentionDepart(plan, SEMAINE)).toBe('À partir de jeudi.');
   });
 
   it('« Lundi 26 » choisi un mercredi : toute la semaine qui vient, rien de cette semaine', () => {
@@ -93,7 +93,7 @@ describe('E78 — la première liste ne compte que ce qui sera mangé', () => {
     const plan = { ...genere, week_start_date: semaineDuDebut(LUN_DU_MER, debut) };
     expect(datesDuPlan(plan, SEMAINE)).toEqual(['2026-10-26', '2026-10-27', '2026-10-28', '2026-10-29', '2026-10-30']);
     expect(repasACompter(plan, SEMAINE, null, MER_21H45).jours).toEqual([1, 2, 3, 4, 5]);
-    expect(mentionDepart(plan, SEMAINE, debut)).toBe('');
+    expect(mentionDepart(plan, SEMAINE)).toBe('');
   });
 
   it('un début passé ou du jour ne déplace pas la semaine', () => {

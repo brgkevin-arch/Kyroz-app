@@ -56,12 +56,12 @@ describe('quels jours la liste couvre', () => {
 
 describe('ce que l’écran annonce', () => {
   it('rien quand la liste couvre tout le plan', () => {
-    expect(mentionDepart(plan('2026-09-14'), SEMAINE, null)).toBe('');
-    expect(mentionDepart(plan('2026-09-17'), undefined, null)).toBe('');
+    expect(mentionDepart(plan('2026-09-14'), SEMAINE)).toBe('');
+    expect(mentionDepart(plan('2026-09-17'), undefined)).toBe('');
   });
 
-  it('le jour de départ quand elle ne couvre pas tout', () => {
-    expect(mentionDepart(plan('2026-09-17'), SEMAINE, null)).toBe('À partir du jeudi : ton plan avait déjà commencé.');
+  it('le jour de départ quand elle ne couvre pas tout, sans la raison (point 4, 2026-10-22)', () => {
+    expect(mentionDepart(plan('2026-09-17'), SEMAINE)).toBe('À partir de jeudi.');
   });
 });
 
@@ -79,7 +79,7 @@ describe('l’écran Courses s’en sert', () => {
     // Sans semaine suivante (2026-10-21), la liste reste celle des jours à acheter.
     expect(src).toMatch(/: buildShoppingList\(\{ \.\.\.plan, meals: perimetre\.meals \}, pantry, perimetre\.jours\)/);
     expect(src).toMatch(/: perimetre\.apresCourses/);
-    expect(src).toMatch(/: mentionDepart\(plan, profile\?\.plan_weekdays, debut\)\)/);
+    expect(src).toMatch(/: mentionDepart\(plan, profile\?\.plan_weekdays\)\)/);
     expect(src).toMatch(/depart !== '' && <Text style=\{s\.depart\}>\{depart\}<\/Text>/);
   });
 });

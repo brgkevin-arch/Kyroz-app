@@ -244,17 +244,13 @@ export default function ReserveScreen() {
               // sélecteur juste au-dessus dit où est le reste.
               <View style={[s.note, { backgroundColor: t.fill }]}>
                 <Text style={s.noteTxt}>
-                  {/* ⚠️ LES DEUX PHRASES SONT JUMELLES, DONC ELLES SE CONSTRUISENT PAREIL.
-                      Une seule portait « rangé » (relecture des textes, 2026-08-26) : à
-                      l'usage on bascule d'un côté à l'autre en un tap, donc les deux se
-                      lisent à quelques secondes d'intervalle, et l'écart de construction
-                      s'entend. Elles ne sont pas assemblées par gabarit pour autant —
-                      « au frais » et « au sec » ne sont pas deux valeurs d'une même
-                      variable, ce sont deux mots que le français décline différemment
-                      selon la phrase. Les écrire en entier, c'est pouvoir les corriger. */}
-                  {vue === 'frais'
-                    ? 'Rien au frais pour l\'instant. Tout ce que tu as est rangé au sec.'
-                    : 'Rien au sec pour l\'instant. Tout ce que tu as est rangé au frais.'}
+                  {/* ⚠️ LES DEUX PHRASES SONT JUMELLES, DONC ELLES SE CONSTRUISENT PAREIL :
+                      on bascule d'un côté à l'autre en un tap, l'écart de construction
+                      s'entendrait (relecture des textes, 2026-08-26). Écrites en entier,
+                      pas par gabarit — « au frais » et « au sec » ne se déclinent pas pareil.
+                      Leur seconde moitié (« Tout ce que tu as est rangé au sec. ») est
+                      retirée le 2026-10-22 (fondateur, point 4) : le sélecteur le dit déjà. */}
+                  {vue === 'frais' ? 'Rien au frais pour l\'instant.' : 'Rien au sec pour l\'instant.'}
                 </Text>
               </View>
             ) : (
