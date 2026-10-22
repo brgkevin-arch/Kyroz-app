@@ -288,16 +288,26 @@ qu'ils étaient périmés.
    de paquets pour le même poids (« 3 barquettes de 300 g » au lieu de 600 + 300), 2 où il
    ferait quelques grammes de moins, 1 tomate de trop à la pièce (marge d'un quart de pièce),
    sur 11 628 lignes : du cosmétique, pas de l'argent jeté.
+   ✅ **VALIDÉ par le fondateur le 2026-10-22**, sans le mélange de formats (avis retenu).
 4. **« Il t'en faut … »** : la phrase est inutile pour l'utilisateur — la retirer, que l'app
    tourne en silence ; chercher les autres phrases du même genre.
+   ✅ **« il t'en faut » RETIRÉ dans #376 le 2026-10-22** : « 1 pot de 250 g · il t'en faut
+   5 g » → « 1 pot de 250 g ». Le calcul est parti avec la phrase (`Achat.besoin`,
+   `ecartVisible`, `besoinLisible`, `UNITES_COMPTEES`) ; garde-fou dans
+   `formatsVendus.test.ts`, vu rougir. Non vu à l'écran.
+   ⏳ **Les phrases voisines : inventaire fait, EN ATTENTE DE L'ARBITRAGE du fondateur** —
+   `docs/2026-10-22-point-4-phrases.md` : 16 propositions numérotées (Courses, Réserve, Plan,
+   fiches), ce qui reste et pourquoi, et ce qui est hors #376 (feuille de pesée et carte du
+   poids → #390). Rien n'est touché avant sa réponse.
 5. **Réserve** : vérifier aliment par aliment le rangement frais / sec.
 6. **Bonus « 0 gaspi »** : le début du plan suivant cuisine les restes de la réserve du dimanche.
    ➡️ **Fusionné dans le point 2** (décision du 2026-10-21) : la liste en attente du samedi et
    le plan du lundi partent des restes.
 ➡️ Avancement : tenu ici, ligne par ligne, au fil des validations. **Au 2026-10-21** : point 1
    codé + essai posé (ligne 1) ; **point 2 codé et vu au navigateur le 2026-10-22** (semaine
-   suivante + pesée, niveau 2 des restes après l'OTA) ; **point 3 mesuré et fermé le
-   2026-10-22** ; points 4, 5 pas commencés ; point 6 fusionné dans le 2.
+   suivante + pesée, niveau 2 des restes après l'OTA) ; **point 3 mesuré, fermé et validé le
+   2026-10-22** ; **point 4 : « il t'en faut » retiré, les phrases voisines attendent son
+   arbitrage** (2026-10-22, session cloud) ; point 5 pas commencé ; point 6 fusionné dans le 2.
    ⚠️ #376 porte TOUT (plan daté, « Quand veux-tu commencer ? », seuils, thon, page Kyroz+,
    CGU révisées le 20 octobre — date à reporter si la livraison glisse) ; elle est à jour de
    `main` (61ᵉ OTA = Liquid Glass) et FUSIONNABLE ; la livraison sera la **62ᵉ OTA**, avec le
