@@ -26,7 +26,7 @@ import { useProfile } from '../../hooks/useProfile';
 import { formatQuantity, toBaseUnit } from '../../lib/units';
 import { searchFoods } from '../../lib/foods';
 import { loadPantry, savePantry, addOrMerge, isStaple, nomAffiche } from '../../lib/pantry';
-import { achatPour, besoinLisible, quantiteRangee } from '../../lib/formatsVendus';
+import { achatPour, quantiteRangee } from '../../lib/formatsVendus';
 import {
   ShoppingTrip, loadHistory, saveHistory, recordTrip, removeTrip, historySummary, newestFirst,
 } from '../../lib/shoppingHistory';
@@ -829,14 +829,14 @@ export default function CoursesScreen() {
               </View>
               <View style={s.texte}>
                 <Text style={[s.name, item.checked && { textDecorationLine: 'line-through', color: t.textTertiary }]} numberOfLines={1}>{nomAffiche(item.name)}</Text>
-                {/* « 1 pot de 250 g · il t'en faut 5 g » : d'abord ce qu'on prend en
-                    rayon, puis, quand il diffère, ce que les repas demandent vraiment.
-                    Un ajout manuel n'a souvent pas de quantité : `formatQuantity`
-                    rendrait « 0 g », un chiffre faux là où un blanc dit la vérité. */}
+                {/* « 1 pot de 250 g » : ce qu'on prend en rayon, rien d'autre. Le besoin
+                    des repas (« · il t'en faut 5 g ») est retiré le 2026-10-22 : inutile à
+                    qui fait ses courses (fondateur, point 4). Un ajout manuel n'a souvent pas
+                    de quantité : `formatQuantity` rendrait « 0 g », un chiffre faux là où un
+                    blanc dit la vérité. */}
                 {achat ? (
                   <Text style={[s.qty, item.checked && { color: t.textTertiary }]} numberOfLines={1}>
                     {achat.libelle}
-                    {achat.ecartVisible && <Text style={s.besoin}>{` · ${besoinLisible(item)}`}</Text>}
                   </Text>
                 ) : item.quantity > SANS_QUANTITE && (
                   <Text style={[s.qty, item.checked && { color: t.textTertiary }]} numberOfLines={1}>{formatQuantity(item.name, item.quantity, item.unit)}</Text>
@@ -918,6 +918,5 @@ function makeStyles(t: ThemePalette) {
     texte: { flex: 1, gap: Spacing.xs },
     name: { ...Type.body, color: t.text },
     qty: { ...Type.bodySmall, color: t.textSecondary },
-    besoin: { color: t.textTertiary },
   });
 }

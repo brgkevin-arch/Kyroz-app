@@ -5,7 +5,7 @@ import { RECIPE_INGREDIENTS } from '../recipeData';
 import { categorize, conservationDe, isStaple } from '../pantry';
 import { buildLocalPlan } from '../planEngine';
 import { buildShoppingList } from '../shoppingList';
-import { FORMATS, SANS_FORMAT, UNITES_COMPTEES, achatPour, quantiteRangee, besoinLisible } from '../formatsVendus';
+import { FORMATS, SANS_FORMAT, achatPour, quantiteRangee } from '../formatsVendus';
 import { makeProfile } from './helpers';
 import { DietaryRestriction } from '../types';
 
@@ -59,8 +59,6 @@ describe('format vendu : le choix du format', () => {
     const a = achatPour(article('beurre_amande', 5));
     expect(a?.libelle).toBe('1 pot de 250 g');
     expect(a?.total).toBe(250);
-    expect(a?.ecartVisible).toBe(true);
-    expect(besoinLisible(article('beurre_amande', 5))).toBe('il t’en faut 5 g');
   });
 
   it('le moins de surplus, puis le moins de paquets', () => {
@@ -74,7 +72,6 @@ describe('format vendu : le choix du format', () => {
   it('à 5 % près, un paquet suffit : pas de second paquet pour quelques grammes', () => {
     const a = achatPour(article('riz_basmati', 510));
     expect(a?.libelle).toBe('1 paquet de 500 g');
-    expect(a?.ecartVisible).toBe(false);
     // Et la réserve reçoit le besoin, pas moins : sinon 10 g reviendraient sur la liste.
     expect(quantiteRangee(article('riz_basmati', 510))).toBe(510);
   });
@@ -109,10 +106,9 @@ describe('format vendu : le choix du format', () => {
     expect(fautes).toEqual([]);
   });
 
-  it('les œufs se prennent à la boîte, et le besoin se dit en œufs', () => {
+  it('les œufs se prennent à la boîte', () => {
     const a = achatPour(article('oeuf_entier', 165));
     expect(a?.libelle).toBe('1 boîte de 6 œufs');
-    expect(besoinLisible(article('oeuf_entier', 165))).toBe('il t’en faut 3 œufs');
     expect(achatPour(article('oeuf_entier', 385))?.libelle).toBe('1 boîte de 12 œufs');
   });
 
@@ -120,8 +116,6 @@ describe('format vendu : le choix du format', () => {
     expect(achatPour(article('courgette', 350))?.libelle).toBe('2 courgettes');
     expect(achatPour(article('courgette', 210))?.libelle).toBe('1 courgette');
     expect(achatPour(article('chou_fleur', 900))?.libelle).toBe('2 choux-fleurs');
-    // Une banane pour 100 g de banane : rien à préciser.
-    expect(achatPour(article('banane', 100))?.ecartVisible).toBe(false);
   });
 
   it('les liquides se disent en litres', () => {
@@ -145,53 +139,6 @@ describe('format vendu : le choix du format', () => {
         expect(a.libelle, ref).toMatch(/^1 \S|^\d+ \S+s\b|^\d+ (bocaux|ananas|patates douces|choux-fleurs)/);
       }
     }
-  });
-});
-
-describe('format vendu : le besoin se lit comme l’achat (2026-10-04)', () => {
-  it('un format qui se compte dit le besoin dans son unité', () => {
-    // « 1 paquet de 4 tranches · il t’en faut 80 g » mélangeait deux unités.
-    expect(achatPour(article('jambon_blanc', 80))?.libelle).toBe('1 paquet de 4 tranches');
-    expect(besoinLisible(article('jambon_blanc', 80))).toBe('il t’en faut 2 tranches');
-    // 2,5 tranches : on en prend 3, comme une pièce (un quart de marge).
-    expect(besoinLisible(article('jambon_blanc', 100))).toBe('il t’en faut 3 tranches');
-    expect(achatPour(article('jambon_blanc', 160))?.ecartVisible).toBe(false);
-    // 150 g, c’est 4 tranches : « 1 paquet de 4 tranches · il t’en faut 4 tranches » se tait.
-    expect(achatPour(article('jambon_blanc', 150))?.ecartVisible).toBe(false);
-  });
-
-  it('la précision se tait quand elle répète l’achat', () => {
-    // 180 g de banane : « 2 bananes · il t’en faut 2 bananes ».
-    expect(achatPour(article('banane', 180))?.libelle).toBe('2 bananes');
-    expect(achatPour(article('banane', 180))?.ecartVisible).toBe(false);
-    // Mais un demi-avocat pour un avocat entier se dit.
-    expect(achatPour(article('avocat', 75))?.ecartVisible).toBe(true);
-    expect(besoinLisible(article('avocat', 75))).toBe('il t’en faut ½ avocat');
-    expect(achatPour(article('oeuf_entier', 330))?.ecartVisible).toBe(false);
-  });
-
-  it('chaque libellé qui compte connaît son unité au singulier', () => {
-    const inconnues = Object.entries(FORMATS).flatMap(([ref, regle]) =>
-      'formats' in regle
-        ? regle.formats.flatMap((f) => {
-          const m = /^\d+ (?!(?:g|kg|ml|cl|L)\b)(.+)$/u.exec(f.libelle ?? '');
-          return m && !UNITES_COMPTEES[m[1]] ? [`${ref} : ${f.libelle}`] : [];
-        })
-        : []);
-    expect(inconnues, 'ajoute le singulier à UNITES_COMPTEES').toEqual([]);
-  });
-
-  it('sur les VRAIES listes, aucune précision ne redit l’achat', () => {
-    const redites: string[] = [];
-    for (const restrictions of [[], ['vegetarian'], ['vegan'], ['pescatarian']] as DietaryRestriction[][]) {
-      for (const seed of [0, 1, 2]) {
-        for (const it of buildShoppingList(buildLocalPlan(makeProfile({ dietary_restrictions: restrictions }), seed)).items) {
-          const a = achatPour(it);
-          if (a?.ecartVisible && (a.libelle === a.besoin || a.libelle.endsWith(` de ${a.besoin}`))) redites.push(`${it.name} : ${a.libelle} · ${a.besoin}`);
-        }
-      }
-    }
-    expect(redites).toEqual([]);
   });
 });
 
@@ -221,9 +168,14 @@ describe('format vendu : l’écran Courses s’en sert', () => {
     expect(bloc).toMatch(/addOrMerge\(pantry, \{ name: it\.name, quantity: quantiteRangee\(it\)/);
   });
 
-  it('chaque ligne dit ce qu’on prend en magasin', () => {
+  it('chaque ligne dit ce qu’on prend en magasin, et rien d’autre (point 4, 2026-10-22)', () => {
+    // « 1 pot de 250 g · il t’en faut 5 g » : la seconde moitié est retirée, « l’app tourne en
+    // silence » (fondateur). L’achat ne porte plus que ce qu’on prend et ce qui entre en réserve,
+    // et la ligne de l’écran se ferme juste après le libellé.
     expect(courses).toContain('achatPour(item)');
-    expect(courses).toContain('besoinLisible(item)');
+    expect(courses).toMatch(/\{achat\.libelle\}\s*<\/Text>/);
+    expect(Object.keys(achatPour(article('beurre_amande', 5)) ?? {}).sort()).toEqual(['libelle', 'total']);
+    expect(Object.keys(achatPour(article('avocat', 75)) ?? {}).sort()).toEqual(['libelle', 'total']);
   });
 });
 

@@ -1,10 +1,13 @@
 // ── Le FORMAT VENDU : ce qu'on prend vraiment en magasin (2026-10-02) ─────────
 //
 // Décision fondateur (« Liste + réserve ») : la liste de courses montre ce qu'on
-// achète vraiment, « Beurre d'amande · 1 pot de 250 g · il t'en faut 5 g » ; à
-// « Courses terminées », le paquet ENTIER entre en réserve ; ce qu'il en reste est
-// déduit des listes suivantes (la réserve est toujours soustraite de la liste) ; et
-// les quantités restent corrigeables dans la Réserve.
+// achète vraiment, « Beurre d'amande · 1 pot de 250 g » ; à « Courses terminées », le
+// paquet ENTIER entre en réserve ; ce qu'il en reste est déduit des listes suivantes
+// (la réserve est toujours soustraite de la liste) ; et les quantités restent
+// corrigeables dans la Réserve.
+// La ligne disait aussi « · il t'en faut 5 g » : RETIRÉ le 2026-10-22 (fondateur, point 4
+// avant la 62ᵉ OTA : « la phrase est inutile pour un user… l'app tourne en silence »).
+// La ligne dit ce qu'on prend en rayon, rien d'autre.
 //
 // 🔴 LE DÉFAUT QUE ÇA FERME (docs/fiabilite-liste-et-reserve.md, F1 et F2) : la
 // réserve recevait le BESOIN, jamais l'ACHAT. 320 g de riz demandés, un paquet de
@@ -21,7 +24,7 @@
 
 import { RECIPE_INGREDIENTS } from './recipeData';
 import { refDuNom } from './pantry';
-import { formatQuantity, frnum, poidsUnitaire } from './units';
+import { frnum } from './units';
 
 type Contenant =
   | 'paquet' | 'pot' | 'boîte' | 'brique' | 'bouteille' | 'sachet' | 'barquette'
@@ -229,29 +232,6 @@ export interface Achat {
   libelle: string;
   /** Ce qui entre en réserve à la clôture, dans l'unité de l'article. */
   total: number;
-  /** Le besoin, dans l'unité de l'achat quand il se compte : « 5 g », « 2 tranches ». */
-  besoin: string;
-  /** Faut-il dire « il t'en faut … » ? Non quand l'achat et le besoin se confondent. */
-  ecartVisible: boolean;
-}
-
-/**
- * Les formats qui se COMPTENT (« 4 tranches », « 2 pavés ») : le besoin se dit dans la même
- * unité que l'achat (2026-10-04, relevé au troisième tour de l'app : « 1 paquet de 4 tranches
- * · il t'en faut 80 g » mélangeait deux unités sur une ligne). Pluriel du libellé → singulier.
- * ⚠️ Un libellé qui compte une unité absente d'ici garde le besoin en grammes, et
- * `formatsVendus.test.ts` le signale.
- */
-export const UNITES_COMPTEES: Record<string, string> = {
-  tranches: 'tranche', pavés: 'pavé', œufs: 'œuf', 'pains pita': 'pain pita', wraps: 'wrap',
-  pots: 'pot', dos: 'dos', steaks: 'steak', galettes: 'galette', filets: 'filet',
-  escalopes: 'escalope', tortillas: 'tortilla',
-};
-
-function compteDuFormat(format: Format): { n: number; un: string; plusieurs: string } | null {
-  const m = /^(\d+) (.+)$/.exec(format.libelle ?? '');
-  const un = m ? UNITES_COMPTEES[m[2]] : undefined;
-  return m && un ? { n: Number(m[1]), un, plusieurs: m[2] } : null;
 }
 
 const compter = (k: number, un: string, plusieurs: string) => `${k} ${k > 1 ? plusieurs : un}`;
@@ -277,17 +257,7 @@ export function achatPour(article: Article): Achat | null {
 
   if ('piece' in regle) {
     const n = Math.max(1, Math.ceil((besoin - TOLERANCE_PIECE * regle.piece) / regle.piece));
-    const total = n * regle.piece;
-    const libelle = compter(n, regle.nom, regle.pluriel);
-    const dit = formatQuantity(article.name, besoin, article.unit);
-    return {
-      libelle,
-      total,
-      besoin: dit,
-      // « 2 bananes · il t'en faut 2 bananes » répétait l'achat : on ne dit l'écart que s'il
-      // se lit autrement que la ligne.
-      ecartVisible: Math.abs(total - besoin) > TOLERANCE_PIECE * regle.piece && dit !== libelle,
-    };
+    return { libelle: compter(n, regle.nom, regle.pluriel), total: n * regle.piece };
   }
 
   // Le format qui couvre le besoin avec le moins de surplus ; à surplus égal, le moins
@@ -304,24 +274,9 @@ export function achatPour(article: Article): Achat | null {
   }
   if (!retenu) return null;
   const { format, n, total } = retenu;
-  // Un format qui se compte dit le besoin dans son unité, arrondi comme un achat à la pièce
-  // (un quart d'unité de marge) ; les œufs et les tortillas gardent le compte des fiches
-  // recette (`units.ts::poidsUnitaire`), pour qu'un même aliment se dise partout pareil.
-  const compte = compteDuFormat(format);
-  let dit = formatQuantity(article.name, besoin, article.unit);
-  let dejaDit = false;
-  if (compte) {
-    if (!poidsUnitaire(article.name)) {
-      const k = Math.max(1, Math.ceil(besoin / (format.taille / compte.n) - TOLERANCE_PIECE));
-      dit = compter(k, compte.un, compte.plusieurs);
-    }
-    dejaDit = dit === compter(n * compte.n, compte.un, compte.plusieurs);
-  }
   return {
     libelle: `${n} ${n > 1 ? PLURIEL[format.contenant] : format.contenant} de ${format.libelle ?? taille(format.taille, article.unit)}`,
     total,
-    besoin: dit,
-    ecartVisible: Math.abs(total - besoin) > TOLERANCE_FORMAT * total && !dejaDit,
   };
 }
 
@@ -333,9 +288,4 @@ export function achatPour(article: Article): Achat | null {
 export function quantiteRangee(article: Article): number {
   const achat = achatPour(article);
   return achat ? Math.max(achat.total, article.quantity) : article.quantity;
-}
-
-/** « il t'en faut 5 g », dans l'unité de l'achat quand il se compte (« 3 œufs », « 2 tranches »). */
-export function besoinLisible(article: Article): string {
-  return `il t’en faut ${achatPour(article)?.besoin ?? formatQuantity(article.name, article.quantity, article.unit)}`;
 }
