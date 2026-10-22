@@ -184,8 +184,10 @@ qu'ils étaient périmés.
 3 ter. **Le haut de l'app sous la Dynamic Island (E80) — ✅ PUBLIÉ dans la 61ᵉ OTA le
    2026-10-20** (#387). ⚠️ Jamais vu sur un vrai iPhone : à regarder sur son téléphone (l'îlot
    réel, que le simulateur ne dessine pas).
-3 quater. **L'onglet Poids (E81) — 🟡 codé, à valider au simulateur par le fondateur** (branche
-   `claude/weight-tracking-profile-redesign-443a9b`). Puis la refonte du Profil, qu'il a placée juste après.
+3 quater. **L'onglet Poids (E81) — 🟡 codé, à valider au simulateur par le fondateur** (PR #390,
+   branche `claude/weight-tracking-profile-redesign-443a9b`). Puis la refonte du Profil, qu'il a placée
+   juste après. ➡️ **Passation complète (2026-10-22, relais vers une session cloud) :
+   `docs/2026-10-22-passation-onglet-poids.md`** — à lire en premier pour reprendre ce chantier.
 4. **Publier le reste (62ᵉ OTA)** une fois 1 à 3 tranchés : empreinte iOS re-mesurée contre le
    build (22), `npm ci` puis `.env.local` factice ÉCARTÉ (worktree), publication depuis un
    arbre détaché sur `origin/main`, consignation (ligne « OTA publiées », puce de
