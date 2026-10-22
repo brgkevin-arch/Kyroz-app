@@ -269,6 +269,18 @@ qu'ils étaient périmés.
    GRATUIT (CGU : « rien de tout ça ne passera jamais derrière un abonnement »), seule la
    planification multi-semaines serait premium.
 3. **Thon (E75)** : d'autres aliments avaient-ils le même défaut d'arrondi de paquet ?
+   ✅ **MESURÉ ET FERMÉ le 2026-10-22.** Oui, 8 autres. Le correctif du thon était déjà commun
+   (la tolérance de 5 % porte sur l'achat entier, `achatPour`). Mesuré sur 240 listes réelles
+   (4 gabarits × 5 régimes × 3 formes de plan × 4 tirages, 9 352 lignes en paquet) :
+   l'ancienne règle faisait prendre UN paquet de trop à **19 lignes (0,2 %)** et **9 aliments**,
+   soit épinards frais (7 cas), poulet végétal (3), jambon végétal (2), thon (2), seitan,
+   myrtilles, maïs, pois chiches, nouilles de riz. Avec la règle actuelle, il en reste 0, et
+   aucun achat ne tombe sous 95 % du besoin. Balayage ajouté à `formatsVendus.test.ts` (chaque
+   aliment, chaque format, 1 à 6 paquets), vérifié par mutation (l'ancienne formule le fait
+   rougir). Vus au passage et laissés (avis) : 26 lignes où un MÉLANGE de tailles ferait moins
+   de paquets pour le même poids (« 3 barquettes de 300 g » au lieu de 600 + 300), 2 où il
+   ferait quelques grammes de moins, 1 tomate de trop à la pièce (marge d'un quart de pièce),
+   sur 11 628 lignes : du cosmétique, pas de l'argent jeté.
 4. **« Il t'en faut … »** : la phrase est inutile pour l'utilisateur — la retirer, que l'app
    tourne en silence ; chercher les autres phrases du même genre.
 5. **Réserve** : vérifier aliment par aliment le rangement frais / sec.
@@ -277,8 +289,8 @@ qu'ils étaient périmés.
    le plan du lundi partent des restes.
 ➡️ Avancement : tenu ici, ligne par ligne, au fil des validations. **Au 2026-10-21** : point 1
    codé + essai posé (ligne 1) ; **point 2 codé et vu au navigateur le 2026-10-22** (semaine
-   suivante + pesée, niveau 2 des restes après l'OTA) ; points 3, 4, 5 pas commencés ; point 6
-   fusionné dans le 2.
+   suivante + pesée, niveau 2 des restes après l'OTA) ; **point 3 mesuré et fermé le
+   2026-10-22** ; points 4, 5 pas commencés ; point 6 fusionné dans le 2.
    ⚠️ #376 porte TOUT (plan daté, « Quand veux-tu commencer ? », seuils, thon, page Kyroz+,
    CGU révisées le 20 octobre — date à reporter si la livraison glisse) ; elle est à jour de
    `main` (61ᵉ OTA = Liquid Glass) et FUSIONNABLE ; la livraison sera la **62ᵉ OTA**, avec le

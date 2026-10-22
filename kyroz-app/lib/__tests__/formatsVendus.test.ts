@@ -87,6 +87,28 @@ describe('format vendu : le choix du format', () => {
     expect(quantiteRangee(article('thon_naturel', 290))).toBe(290);
   });
 
+  it('… et pour TOUS les aliments vendus en paquet, pas seulement le thon (point 3, 2026-10-22)', () => {
+    // Mesuré sur 240 listes réelles (9 352 lignes en paquet) : l’ancienne règle faisait prendre
+    // un paquet de trop à 19 lignes et 9 aliments — épinards (7), poulet végétal (3), jambon
+    // végétal (2), thon (2), seitan, myrtilles, maïs, pois chiches, nouilles de riz. Le
+    // correctif était commun ; ce balayage le fige pour chacun : un besoin à 4 % au-dessus de
+    // k paquets n’en fait jamais prendre davantage, et l’achat ne descend jamais sous 95 %.
+    const fautes: string[] = [];
+    for (const [ref, regle] of Object.entries(FORMATS)) {
+      if (!('formats' in regle) || !RECIPE_INGREDIENTS[ref]) continue;
+      for (const f of regle.formats) {
+        for (let k = 1; k <= 6; k++) {
+          const besoin = Math.round(k * f.taille * 1.04);
+          const achat = achatPour(article(ref, besoin));
+          if (!achat) { fautes.push(`${ref} : aucun achat pour ${besoin}`); continue; }
+          if (achat.total > k * f.taille) fautes.push(`${ref} ${besoin} → ${achat.libelle} (${k} × ${f.taille} suffisaient)`);
+          if (achat.total < besoin * 0.95 - 1e-6) fautes.push(`${ref} ${besoin} → ${achat.total}, sous 95 %`);
+        }
+      }
+    }
+    expect(fautes).toEqual([]);
+  });
+
   it('les œufs se prennent à la boîte, et le besoin se dit en œufs', () => {
     const a = achatPour(article('oeuf_entier', 165));
     expect(a?.libelle).toBe('1 boîte de 6 œufs');
