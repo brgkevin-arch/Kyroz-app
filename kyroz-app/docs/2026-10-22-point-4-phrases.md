@@ -12,7 +12,18 @@
 > `UNITES_COMPTEES`) ; garde-fou : `formatsVendus.test.ts`, « chaque ligne dit ce qu'on prend
 > en magasin, et rien d'autre », vu rougir en remettant la phrase.
 >
-> ⏳ **Le reste ci-dessous attend l'arbitrage du fondateur. Rien n'est touché avant.**
+> ✅ **Les 16 propositions ont été VALIDÉES par le fondateur le 2026-10-22** (« je valide les
+> 16 ») et **15 sont appliquées** (#376). ⚠️ **Le n° 8 ne l'est PAS** : son motif était faux.
+> « Descends à 0 pour retirer cet aliment » est le SEUL chemin de suppression d'un aliment
+> de la Réserve (`reserve.tsx`, « tomber à zéro retire l'aliment »), et le bouton
+> « Retirer de ma réserve » n'apparaît qu'une fois à zéro — il n'est donc pas « juste
+> dessous ». La phrase reste, en attendant que le fondateur tranche à nouveau.
+> ➕ Appliqué par cohérence avec le n° 10 : la fiche d'un repas sauté dit « Repas sauté »,
+> plus « Repas sauté, journée recalée » (même phrase, autre écran).
+> Garde-fou : `lib/__tests__/silence.test.ts` (les phrases retirées ne reviennent pas ; le
+> seul bandeau du Plan est « Ok. Réactivable dans Profil. »), vu rougir par 3 mutations.
+> Vu au navigateur (session factice) : la liste, l'aide, « À partir de jeudi. », et « J'ai
+> cuisiné » sans bandeau. Non vu sur iPhone.
 
 ## Comment l'inventaire a été fait
 
@@ -29,7 +40,7 @@ La règle appliquée pour l'avis :
   AVANT qu'elle le fasse (confirmations) ; un geste invisible autrement (appui long) ; un
   état vide ; un titre ; une obligation (sécurité, santé, RGPD, paiement).
 
-## À retirer ou raccourcir (avis : oui pour tous)
+## À retirer ou raccourcir (validé le 2026-10-22, appliqué sauf le n° 8)
 
 | # | Écran | Phrase aujourd'hui | Proposition |
 |---|---|---|---|
@@ -40,7 +51,7 @@ La règle appliquée pour l'avis :
 | 5 | Courses, ajout d'un article | « Sans quantité, l'article ne rejoindra pas ta réserve une fois acheté. » | Retirer |
 | 6 | Courses, liste vide | « Ta réserve couvre déjà tout le plan de la semaine. La liste réapparaîtra dès qu'il te manquera quelque chose. » et « Tu as retiré tous les articles de ta liste. Ton plan de repas, lui, n'a pas changé. » | Garder la 1ʳᵉ phrase de chacune |
 | 7 | Réserve, une section vide | « Rien au frais pour l'instant. Tout ce que tu as est rangé au sec. » (et l'inverse) | Garder la 1ʳᵉ phrase |
-| 8 | Réserve, fiche d'un aliment | « Descends à 0 pour retirer cet aliment de ta réserve. » | Retirer (le bouton « Retirer de ma réserve » est juste dessous) |
+| 8 | Réserve, fiche d'un aliment | « Descends à 0 pour retirer cet aliment de ta réserve. » | ~~Retirer~~ **NON appliqué** : c'est le seul chemin de suppression, et le bouton « Retirer » n'apparaît qu'à zéro (motif d'origine faux) |
 | 9 | Plan, toast | « Repas coché, son heure était passée » / « 3 repas cochés, leur heure était passée » | Retirer : le repas apparaît coché, en silence |
 | 10 | Plan, toasts | « ✓ Mangé, journée recalée », « Repas sauté, journée recalée », « Journée réadaptée » | Retirer : la carte et le compteur du jour le montrent |
 | 11 | Plan, toasts | « Ok, on garde ton plan », « C'est noté, on te change ça » (×2), « Compris, on évite ça et on te ramène le reste », « Parfait, on continue », « Variété au max, nouveau plan en route », « Recette changée » | Retirer : le changement se voit |

@@ -295,10 +295,15 @@ qu'ils étaient périmés.
    5 g » → « 1 pot de 250 g ». Le calcul est parti avec la phrase (`Achat.besoin`,
    `ecartVisible`, `besoinLisible`, `UNITES_COMPTEES`) ; garde-fou dans
    `formatsVendus.test.ts`, vu rougir. Non vu à l'écran.
-   ⏳ **Les phrases voisines : inventaire fait, EN ATTENTE DE L'ARBITRAGE du fondateur** —
-   `docs/2026-10-22-point-4-phrases.md` : 16 propositions numérotées (Courses, Réserve, Plan,
-   fiches), ce qui reste et pourquoi, et ce qui est hors #376 (feuille de pesée et carte du
-   poids → #390). Rien n'est touché avant sa réponse.
+   ✅ **Les phrases voisines : 16 propositions VALIDÉES le 2026-10-22, 15 APPLIQUÉES** dans
+   #376 (`docs/2026-10-22-point-4-phrases.md`) : note de pied et mentions des Courses, aide
+   réduite à « Appui long pour retirer un article. », toasts du Plan (il ne reste que « Ok.
+   Réactivable dans Profil. »), auto-coche EN SILENCE (la règle « on le DIT » est renversée),
+   notes de précision de la fiche recette (reste « ajoute un side protéiné »), etc.
+   ⚠️ **Le n° 8 n'est PAS appliqué** (« Descends à 0 pour retirer cet aliment ») : mon motif
+   était faux, c'est le seul chemin de suppression de la Réserve — à re-trancher avec lui.
+   Garde-fou `silence.test.ts` (3 mutations, 3 rouges). Vu au navigateur, pas sur iPhone.
+   Hors #376 : « Chaque pesée recale ton plan » (feuille de pesée) → avec #390.
 5. **Réserve** : vérifier aliment par aliment le rangement frais / sec.
 6. **Bonus « 0 gaspi »** : le début du plan suivant cuisine les restes de la réserve du dimanche.
    ➡️ **Fusionné dans le point 2** (décision du 2026-10-21) : la liste en attente du samedi et
@@ -306,8 +311,8 @@ qu'ils étaient périmés.
 ➡️ Avancement : tenu ici, ligne par ligne, au fil des validations. **Au 2026-10-21** : point 1
    codé + essai posé (ligne 1) ; **point 2 codé et vu au navigateur le 2026-10-22** (semaine
    suivante + pesée, niveau 2 des restes après l'OTA) ; **point 3 mesuré, fermé et validé le
-   2026-10-22** ; **point 4 : « il t'en faut » retiré, les phrases voisines attendent son
-   arbitrage** (2026-10-22, session cloud) ; point 5 pas commencé ; point 6 fusionné dans le 2.
+   2026-10-22** ; **point 4 : codé, 15 des 16 phrases retirées, le n° 8 à re-trancher**
+   (2026-10-22, session cloud) ; point 5 pas commencé ; point 6 fusionné dans le 2.
    ⚠️ #376 porte TOUT (plan daté, « Quand veux-tu commencer ? », seuils, thon, page Kyroz+,
    CGU révisées le 20 octobre — date à reporter si la livraison glisse) ; elle est à jour de
    `main` (61ᵉ OTA = Liquid Glass) et FUSIONNABLE ; la livraison sera la **62ᵉ OTA**, avec le
