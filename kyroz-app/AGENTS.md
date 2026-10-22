@@ -120,6 +120,12 @@ qu'ils étaient périmés.
 
 ### ▶️ Reprise du 2026-10-19 — À LIRE EN PREMIER
 
+> 🛰️ **PASSATION DU 2026-10-22 VERS UNE SESSION CLOUD** (le fondateur a atteint sa limite
+> hebdomadaire) : lire d'abord **`docs/2026-10-22-passation-session-cloud.md`** — reprise en
+> cinq gestes sur la branche `claude/semaine-datee` (#376), état des 6 points, point 3 à faire
+> valider, départ des points 4 et 5, livraison de la 62ᵉ OTA (Mac seulement, « go » du
+> fondateur), conflit attendu avec #390, et les règles de la mémoire locale recopiées.
+
 > Le fondateur reprend après dix jours et repart d'une **session fraîche** (« je me suis
 > trop éparpillé »). Ce bloc dit ce qui est EN LIGNE, ce qui ATTEND, et par où reprendre.
 > ➡️ **Une chose à la fois** : proposer le point 1, attendre la réponse, puis le suivant.
@@ -199,6 +205,7 @@ qu'ils étaient périmés.
    demande.
 
 **▶️ À peaufiner AVANT la 62ᵉ OTA — demandé le 2026-10-20, UN PAR UN, chacun validé avant le suivant**
+*(Passation cloud du 2026-10-22 : `docs/2026-10-22-passation-session-cloud.md`. Point 3 livré, **pas encore validé** par le fondateur.)*
 1. **Une page Kyroz+ dans le parcours d'arrivée**, avec abonnement direct (modèle montré par le
    fondateur : la page d'essai de Wikiloc — logo, « 14 jours offerts », frise « Aujourd'hui → … »,
    gros bouton, « Restaurer les achats », croix pour fermer). ✅ **CODÉ le 2026-10-20 dans #376**
