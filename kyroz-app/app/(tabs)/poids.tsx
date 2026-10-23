@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Image } from 'react-native';
+import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -11,19 +11,22 @@ import {
 } from '../../constants/theme';
 import { useCollapsingTitle, CompactTitleBar } from '../../components/CollapsingTitle';
 import { useLayout } from '../../constants/layout';
-import { Segmented, SectionLabel } from '../../components/ui';
+import { SectionLabel } from '../../components/ui';
 import { Sheet } from '../../components/Sheet';
+import { useDialog } from '../../components/Dialog';
 import { WeightCheckin } from '../../components/WeightCheckin';
 import { CourbePoids } from '../../components/CourbePoids';
-import { ConfirmationEnLigne } from '../../components/ConfirmationEnLigne';
-import { TrackVerdict, PhotoCompare } from '../../components/Transformation';
+import { HistoriquePesees } from '../../components/HistoriquePesees';
+import { ObjectifIcon } from '../../components/Icons';
+import { PhotoCompare } from '../../components/Transformation';
 import { BlocObjectif } from '../../components/DatedGoalCard';
+import { ApercuObjectif } from '../../components/ApercuObjectif';
 import { useProfile } from '../../hooks/useProfile';
 import { useWeightLog } from '../../hooks/useWeightLog';
 import { usePremium } from '../../hooks/usePremium';
-import { courbe, libelleFenetre, peutReculer, PERIODES, Periode } from '../../lib/courbePoids';
-import { todayStamp, frequencyDays, historiquePesees, HISTORIQUE_MAX } from '../../lib/weight';
-import { planFlags, trackingTarget } from '../../lib/tdee';
+import { courbe, libelleFenetre, peutReculer, PERIODES, PERIODE_PAR_DEFAUT, Periode } from '../../lib/courbePoids';
+import { todayStamp, frequencyDays } from '../../lib/weight';
+import { FONCTIONS_KYROZ_PLUS } from '../../lib/offreKyrozPlus';
 import { frnum } from '../../lib/units';
 
 // ── L'onglet Poids (2026-10-21, décision fondateur) ──────────────────────────
@@ -37,8 +40,9 @@ import { frnum } from '../../lib/units';
 //  1. le poids que le moteur utilise (celui du profil) et la date de la dernière pesée ;
 //  2. la courbe, par période, avec l'écart vécu sur la période ;
 //  3. le geste « Me peser » — la feuille de saisie, la même que celle du Plan ;
-//  4. ce que Kyroz+ ajoute (verdict de trajectoire, objectif daté, avant/après) ;
-//  5. l'historique des pesées, d'où l'on supprime un point.
+//  4. ce que Kyroz+ ajoute (objectif daté, avant/après).
+// L'historique des pesées, d'où l'on supprime un point, s'ouvre par le bouton rond en
+// haut à droite (2026-10-23, décision fondateur) : `components/HistoriquePesees.tsx`.
 //
 // ⚠️ Poids SEUL pour l'instant (décision fondateur : « plus tard on mettra tous les
 // détails »). La courbe est construite pour accueillir d'autres séries — chacune
@@ -46,8 +50,9 @@ import { frnum } from '../../lib/units';
 
 const frDate = (iso: string) =>
   new Date(iso + 'T00:00:00').toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
-const frDateCourte = (iso: string) =>
-  new Date(iso + 'T00:00:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+
+/** Le texte de vente de l'objectif daté — LA liste vendue (`lib/offreKyrozPlus.ts`), pas une copie. */
+const OBJECTIF_DATE = FONCTIONS_KYROZ_PLUS.find((f) => f.feature === 'dated_goal')!;
 
 export default function PoidsScreen() {
   const t = useTheme();
@@ -55,16 +60,17 @@ export default function PoidsScreen() {
   const layout = useLayout();
   const repli = useCollapsingTitle();
   const router = useRouter();
+  const { confirm } = useDialog();
   const { profile } = useProfile();
   const { entries, photos, last, due, removeWeight } = useWeightLog();
   const premium = usePremium();
   const transfoOk = premium.can('transformation');
   const objectifOk = premium.can('dated_goal');
 
-  const [periode, setPeriode] = useState<Periode>('trimestre');
+  const [periode, setPeriode] = useState<Periode>(PERIODE_PAR_DEFAUT);
   const [decalage, setDecalage] = useState(0);
   const [peser, setPeser] = useState(false);
-  const [aConfirmer, setAConfirmer] = useState<string | null>(null);
+  const [historiqueOuvert, setHistoriqueOuvert] = useState(false);
 
   const aujourdhui = todayStamp();
   const cadence = frequencyDays(profile?.weigh_in_frequency);
@@ -74,14 +80,6 @@ export default function PoidsScreen() {
   );
   const reculer = peutReculer(periode, c.fenetre.debut, entries);
 
-  // ⚠️ `trackingTarget`, PAS `profile.goal_target` : le verdict vise la date que le
-  // moteur TIENDRA, pas celle qui a été saisie — sinon il annonce « en retard » à
-  // quelqu'un qui suit le plan à la lettre (CLAUDE.md §10). Réservé à Kyroz+.
-  const suiviTarget = useMemo(
-    () => (profile ? trackingTarget(profile, aujourdhui) : undefined),
-    [profile?.goal_target?.target_date, profile?.goal_target?.target_weight_kg, profile?.weight_kg, profile?.target_kcal, aujourdhui], // eslint-disable-line react-hooks/exhaustive-deps
-  );
-  const suiviAffiche = transfoOk ? suiviTarget : undefined;
 
   // L'objectif daté se règle dans le Profil, où vivent tous les éditeurs : on y va
   // avec le drapeau que le Profil consomme à son arrivée (même chemin que les cartes
@@ -91,8 +89,16 @@ export default function PoidsScreen() {
     router.push('/profil');
   };
 
+  // Sans Kyroz+ : le tap sur l'aperçu flouté ouvre la popup de vente.
+  const decouvrirObjectif = async () => {
+    const ok = await confirm({
+      title: OBJECTIF_DATE.titre, message: OBJECTIF_DATE.corps,
+      confirmLabel: 'Découvrir Kyroz+', cancelLabel: 'Plus tard',
+    });
+    if (ok) router.push('/kyroz-plus');
+  };
+
   const choisirPeriode = (p: Periode) => { setPeriode(p); setDecalage(0); };
-  const historique = historiquePesees(entries, HISTORIQUE_MAX);
   const nbPhotos = Object.keys(photos).filter((d) => photos[d]).length;
 
   if (!profile) return null;
@@ -107,6 +113,19 @@ export default function PoidsScreen() {
       >
         <View style={s.header} onLayout={repli.onHeaderLayout}>
           <Text style={s.h1}>Poids</Text>
+          {/* L'HISTORIQUE, EN HAUT À DROITE (2026-10-23, décision fondateur) — même bouton
+              rond que la bulle du Profil sur le Plan. Rien à lister sans pesée. */}
+          {entries.length > 0 && (
+            <Presse
+              onPress={() => setHistoriqueOuvert(true)}
+              activeOpacity={OPACITE_PRESSION}
+              accessibilityRole="button"
+              accessibilityLabel="Historique des pesées"
+              style={s.bulle}
+            >
+              <Ionicons name="list" size={Icone.action} color={t.text} />
+            </Presse>
+          )}
         </View>
 
         {/* Le chiffre que le MOTEUR utilise — celui du profil, recalé sur la dernière
@@ -123,7 +142,27 @@ export default function PoidsScreen() {
 
         {entries.length >= 2 ? (
           <>
-            <Segmented t={t} options={[...PERIODES]} value={periode} onChange={choisirPeriode} />
+            {/* LA RANGÉE DE PÉRIODES DÉFILE AU DOIGT (2026-10-23, vidéo de référence du
+                fondateur) : des mots sans cadre, la période choisie dans une pastille à
+                l'accent. Six choix ne tiennent plus en cases égales. À fond perdu, comme
+                les filtres de Recettes : elle doit toucher les bords en défilant. */}
+            <ScrollView
+              horizontal showsHorizontalScrollIndicator={false}
+              style={s.periodesWrap} contentContainerStyle={s.periodes}
+            >
+              {PERIODES.map((o) => {
+                const on = o.value === periode;
+                return (
+                  <Presse
+                    key={o.value} onPress={() => choisirPeriode(o.value)} activeOpacity={OPACITE_PRESSION}
+                    accessibilityRole="button" accessibilityState={{ selected: on }}
+                    style={[s.periode, on && { backgroundColor: t.accent }]}
+                  >
+                    <Text style={{ ...(on ? Type.bodyStrong : Type.body), color: on ? t.onAccent : t.text }}>{o.label}</Text>
+                  </Presse>
+                );
+              })}
+            </ScrollView>
 
             {/* ‹ période › — « Tout » n'a rien à faire défiler. */}
             {periode !== 'tout' && (
@@ -193,18 +232,45 @@ export default function PoidsScreen() {
           <Text style={s.ctaTxt}>{due || entries.length === 0 ? 'Me peser' : 'Ajouter une pesée'}</Text>
         </Presse>
 
-        {/* Kyroz+ — le verdict de trajectoire. La courbe, elle, ne se verrouille jamais. */}
-        {suiviAffiche && (
-          <TrackVerdict
-            t={t} goalTarget={suiviAffiche} currentWeightKg={profile.weight_kg}
-            paused={planFlags(profile).some((f) => f === 'UNDERWEIGHT_NO_DEFICIT' || f === 'GOAL_DIRECTION_MISMATCH')}
-          />
-        )}
-
-        {profile.goal_target && objectifOk && (
+        {/* 🔴 LE VERDICT DE TRAJECTOIRE (« Dans ta zone », « En avance sur ton objectif »…)
+            EST PARTI LE 2026-10-23 (décision fondateur : « enlève dans ta zone »). La carte
+            de l'objectif, juste en dessous, dit déjà où l'on en est. */}
+        {/* L'OBJECTIF DATÉ, À LA PLACE DE L'HISTORIQUE (2026-10-23, décision fondateur :
+            « on peut personnaliser l'objectif daté pour les users Kyroz+, et la même chose
+            avec un petit cadenas pour les users Free »). Posé : sa carte de suivi. Pas
+            encore posé : de quoi le fixer. Sans Kyroz+ : l'aperçu flouté, un cadenas, et le tap
+            ouvre la page Kyroz+ — le verrou de l'ÉDITEUR reste dans le Profil (`openEditor`). */}
+        {objectifOk && profile.goal_target ? (
           <View style={s.carte}>
             <BlocObjectif t={t} profile={profile} onPress={ouvrirObjectif} />
           </View>
+        ) : objectifOk ? (
+          <Presse
+            onPress={ouvrirObjectif} activeOpacity={OPACITE_PRESSION} accessibilityRole="button"
+            accessibilityLabel="Fixer mon objectif daté" style={s.carte}
+          >
+            <View style={s.carteTete}>
+              <ObjectifIcon color={t.text} size={Icone.action} />
+              <Text style={[s.serie, { flex: 1 }]}>{OBJECTIF_DATE.titre}</Text>
+              <Ionicons name="chevron-forward" size={Icone.standard} color={t.textTertiary} />
+            </View>
+            <Text style={s.vide}>{OBJECTIF_DATE.corps}</Text>
+            <Text style={s.note}>Choisis ton poids cible et ta date.</Text>
+          </Presse>
+        ) : (
+          // Sans Kyroz+ : le VRAI aperçu, flouté, un cadenas (fondateur, 2026-10-23). Le texte
+          // vient dans une POPUP au tap, avec « Découvrir Kyroz+ » (« je veux que ce soit un
+          // pop-up, avec le Découvrir Kyroz+ ») — la boîte de dialogue de l'app (`confirm`).
+          <Presse
+            onPress={decouvrirObjectif} activeOpacity={OPACITE_PRESSION} accessibilityRole="button"
+            accessibilityLabel="Objectif daté, inclus dans Kyroz+" style={s.carte}
+          >
+            <View style={s.carteTete}>
+              <ObjectifIcon color={t.text} size={Icone.action} />
+              <Text style={[s.serie, { flex: 1 }]}>{OBJECTIF_DATE.titre}</Text>
+            </View>
+            <ApercuObjectif t={t} profile={profile} />
+          </Presse>
         )}
 
         {nbPhotos >= 2 && (
@@ -222,47 +288,16 @@ export default function PoidsScreen() {
           </>
         )}
 
-        {historique.length > 0 && (
-          <>
-            <SectionLabel t={t}>Historique</SectionLabel>
-            <View style={s.histCard}>
-              {historique.map((e, i) => {
-                const d = e.delta;
-                return (
-                  <View key={e.date} style={[s.histItem, i < historique.length - 1 && s.histDivider]}>
-                    <View style={s.histRow}>
-                      <Text style={s.histDate}>{frDateCourte(e.date)}</Text>
-                      <Text style={s.histW}>{frnum(e.weight_kg)} kg</Text>
-                      <Text style={[s.histD, { color: d == null ? t.textTertiary : d <= 0 ? t.success : t.warning }]}>
-                        {d == null ? '—' : `${d > 0 ? '+' : ''}${frnum(d)}`}
-                      </Text>
-                      <Presse onPress={() => setAConfirmer(e.date)} hitSlop={8} style={s.histDel} accessibilityLabel="Supprimer cette pesée">
-                        <Ionicons name="close" size={Icone.petite} color={t.textTertiary} />
-                      </Presse>
-                    </View>
-                    {aConfirmer === e.date && (
-                      <ConfirmationEnLigne
-                        t={t}
-                        question={`Supprimer cette pesée ? ${frDateCourte(e.date)} · ${frnum(e.weight_kg)} kg. Tes cibles se recalculent sur les pesées restantes.`}
-                        confirmLabel="Supprimer"
-                        onCancel={() => setAConfirmer(null)}
-                        onConfirm={() => { setAConfirmer(null); removeWeight(e.date); }}
-                      />
-                    )}
-                    {e.note ? <Text style={s.histNote}>{e.note}</Text> : null}
-                    {photos[e.date] ? <Image source={{ uri: photos[e.date] }} style={s.histPhoto} /> : null}
-                  </View>
-                );
-              })}
-            </View>
-          </>
-        )}
       </ScrollView>
 
       <CompactTitleBar t={t} title="Poids" opacity={repli.opacity} />
 
       <Sheet visible={peser} onClose={() => setPeser(false)}>
         <WeightCheckin t={t} onClose={() => setPeser(false)} />
+      </Sheet>
+
+      <Sheet visible={historiqueOuvert} onClose={() => setHistoriqueOuvert(false)}>
+        <HistoriquePesees t={t} entries={entries} photos={photos} onRemove={removeWeight} />
       </Sheet>
     </SafeAreaView>
   );
@@ -272,7 +307,14 @@ function makeStyles(t: ThemePalette) {
   return StyleSheet.create({
     safe: { flex: 1, backgroundColor: t.bg },
     content: { padding: Spacing.xl, gap: Spacing.lg, paddingBottom: Fond.barreOnglets },
-    header: { flexDirection: 'row', alignItems: 'flex-end', marginBottom: Spacing.xs },
+    header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: Spacing.md, marginBottom: Spacing.xs },
+    bulle: {
+      width: CIBLE_TACTILE_MIN, height: CIBLE_TACTILE_MIN, borderRadius: Radius.pill,
+      backgroundColor: t.card, alignItems: 'center', justifyContent: 'center', marginTop: Spacing.xs,
+    },
+    periodesWrap: { marginHorizontal: -Spacing.xl },
+    periodes: { paddingHorizontal: Spacing.xl, gap: Spacing.xs },
+    periode: { paddingHorizontal: Spacing.lg, paddingVertical: Spacing.md, borderRadius: Radius.pill },
     h1: { color: t.text, ...Type.display, marginTop: Spacing.xs },
     hero: { gap: Spacing.xs },
     valueRow: { flexDirection: 'row', alignItems: 'baseline', gap: Spacing.sm },
@@ -308,15 +350,5 @@ function makeStyles(t: ThemePalette) {
       minHeight: CIBLE_TACTILE_MIN,
     },
     photoBtnTxt: { ...Type.bodyStrong, color: t.textSecondary, textAlign: 'center' },
-    histCard: { backgroundColor: t.card, borderRadius: Radius.card, borderWidth: Trait.fin, borderColor: t.line, paddingHorizontal: Spacing.lg },
-    histItem: { paddingVertical: Spacing.md },
-    histRow: { flexDirection: 'row', alignItems: 'center' },
-    histDivider: { borderBottomWidth: Trait.fin, borderBottomColor: t.line },
-    histDate: { ...Type.bodySmall, flex: 1, color: t.textSecondary },
-    histW: { ...Type.bodyStrong, color: t.text, width: 80, textAlign: 'right' },
-    histD: { ...Type.bodySmallStrong, width: 56, textAlign: 'right' },
-    histDel: { marginLeft: Spacing.md, padding: Spacing.xs },
-    histNote: { ...Type.caption, color: t.textSecondary, lineHeight: 18, marginTop: Spacing.xs, fontStyle: 'italic' },
-    histPhoto: { width: 64, height: 84, borderRadius: Radius.sm, marginTop: Spacing.sm, backgroundColor: t.fill },
   });
 }

@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, LayoutChangeEvent } from 'react-native';
 import Svg, { Line, Circle } from 'react-native-svg';
-import { ThemePalette, Radius, Spacing, Type, Trait } from '../constants/theme';
+import { ThemePalette, Spacing, Type, Trait } from '../constants/theme';
 import { Courbe } from '../lib/courbePoids';
 import { frnum } from '../lib/units';
 
@@ -10,8 +10,9 @@ import { frnum } from '../lib/units';
 // Ce composant DESSINE, il ne décide rien : quels points, quels traits en
 // pointillés, quelles graduations — tout vient de `lib/courbePoids.ts`, qui est pur
 // et testé. Inspiré de la capture d'une app de composition corporelle choisie par le
-// fondateur : l'axe des poids à DROITE, en pastilles ; des repères verticaux
-// pointillés ; des points creux.
+// fondateur : l'axe des poids à DROITE ; des repères verticaux pointillés ; des points
+// creux. Les chiffres de l'axe sont NUS depuis le 2026-10-23 (fondateur : « enlève les
+// petites bulles autour des chiffres ») — la capture les mettait en pastilles.
 //
 // ⚠️ La largeur est MESURÉE (`onLayout`), jamais lue sur l'écran : la courbe vit dans
 // une carte, et sur iPad dans une colonne centrée (CLAUDE.md §11, `Dimensions` ment).
@@ -95,11 +96,11 @@ export function CourbePoids({ t, courbe: c, hauteur = 180, fond }: Props) {
                 ) : null,
               )}
             </Svg>
-            {/* L'axe des poids, à droite, en pastilles. */}
+            {/* L'axe des poids, à droite : le chiffre seul, centré sur sa ligne. */}
             <View style={{ width: AXE_L }}>
               {c.graduations.map((g) => (
-                <View key={`a${g}`} style={[styles.pastille, { top: yPix(g) - 9, backgroundColor: t.fill }]}>
-                  <Text style={[styles.pastilleTxt, { color: t.textSecondary }]}>{frnum(g)}</Text>
+                <View key={`a${g}`} style={[styles.graduation, { top: yPix(g) - 9 }]}>
+                  <Text style={[styles.graduationTxt, { color: t.textTertiary }]}>{frnum(g)}</Text>
                 </View>
               ))}
             </View>
@@ -129,11 +130,7 @@ export function CourbePoids({ t, courbe: c, hauteur = 180, fond }: Props) {
 }
 
 const styles = StyleSheet.create({
-  pastille: {
-    position: 'absolute', right: 0, height: 18, minWidth: 34,
-    borderRadius: Radius.pill, paddingHorizontal: Spacing.xs,
-    alignItems: 'center', justifyContent: 'center',
-  },
-  pastilleTxt: { ...Type.microStrong },
+  graduation: { position: 'absolute', right: 0, left: 0, height: 18, alignItems: 'flex-end', justifyContent: 'center' },
+  graduationTxt: { ...Type.micro },
   repere: { ...Type.micro, position: 'absolute', top: 0, width: REPERE_L, textAlign: 'center' },
 });

@@ -2,8 +2,9 @@
 //
 // Décision fondateur du 2026-10-21, sur la capture d'une app de composition
 // corporelle : le suivi du poids devient un ONGLET à lui (il remplace « Profil »),
-// avec une courbe qu'on lit par période — Mois · 3 mois · 6 mois · Année · Tout —
-// et des flèches pour remonter dans le temps.
+// avec une courbe qu'on lit par période — Semaine · Mois · 3 mois · 6 mois · Année ·
+// Tout — et des flèches pour remonter dans le temps. (« Semaine » ajoutée le 2026-10-23,
+// demande du fondateur : « rajoute le suivi à la semaine ».)
 //
 // 🔴 CE FICHIER N'IMPORTE RIEN, ET C'EST LA CONDITION DE SON EXISTENCE. Même procédé
 // que `lib/revelation.ts` ou `lib/collapsingTitle.ts` : tout ce qui DÉCIDE (quelle
@@ -30,14 +31,16 @@
 /** Une pesée, telle que `lib/weight.ts` la stocke — recopiée pour ne rien importer. */
 export interface Pesee { date: string; weight_kg: number }
 
-export type Periode = 'mois' | 'trimestre' | 'semestre' | 'annee' | 'tout';
+export type Periode = 'semaine' | 'mois' | 'trimestre' | 'semestre' | 'annee' | 'tout';
 
 /**
  * Les libellés du sélecteur. « 3 mois » / « 6 mois » plutôt que « Trimestre » /
- * « Semestre » (ceux de la capture) : cinq cases tiennent dans un iPhone, et le
- * nombre se lit sans traduire un mot.
+ * « Semestre » (ceux de la capture) : le nombre se lit sans traduire un mot (choix
+ * validé par le fondateur le 2026-10-23). Six choix ne tiennent plus en cases égales :
+ * le sélecteur est une rangée qui défile au doigt, comme sur sa vidéo de référence.
  */
 export const PERIODES: readonly { value: Periode; label: string }[] = [
+  { value: 'semaine', label: 'Semaine' },
   { value: 'mois', label: 'Mois' },
   { value: 'trimestre', label: '3 mois' },
   { value: 'semestre', label: '6 mois' },
@@ -45,8 +48,17 @@ export const PERIODES: readonly { value: Periode; label: string }[] = [
   { value: 'tout', label: 'Tout' },
 ];
 
-/** Durée de chaque période glissante, en mois. « Tout » n'en a pas. */
-export const MOIS_PAR_PERIODE: Record<Exclude<Periode, 'tout'>, number> = {
+/**
+ * La période ouverte par défaut (décision fondateur, 2026-10-23). Pas « Semaine » : au
+ * rythme de pesée par défaut (une fois par semaine), elle ne montre qu'UN point.
+ */
+export const PERIODE_PAR_DEFAUT: Periode = 'mois';
+
+/** Durée de la semaine glissante, en jours (aujourd'hui compris). */
+export const JOURS_SEMAINE = 7;
+
+/** Durée de chaque période glissante, en mois. « Semaine » se compte en jours, « Tout » n'a pas de durée. */
+export const MOIS_PAR_PERIODE: Record<Exclude<Periode, 'tout' | 'semaine'>, number> = {
   mois: 1, trimestre: 3, semestre: 6, annee: 12,
 };
 
@@ -68,6 +80,8 @@ export const TROU_MIN_JOURS = 14;
 const MS_JOUR = 86_400_000;
 const MOIS_COURTS = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
 const INITIALES = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'];
+/** Indexé comme `getUTCDay()` : 0 = dimanche. Trois lettres, comme la vidéo de référence. */
+const JOURS_COURTS = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
 
 const deux = (n: number) => String(n).padStart(2, '0');
 function parse(s: string): [number, number, number] {
@@ -113,6 +127,7 @@ export interface Fenetre { debut: string; fin: string }
 /**
  * La fenêtre affichée. `decalage` = combien de fois on a reculé (0 = la plus récente).
  *
+ * · Semaine : les 7 derniers jours, aujourd'hui compris ; reculer d'un cran recule de 7 jours.
  * · Mois, 3 mois, 6 mois : GLISSANTES, elles finissent aujourd'hui. Une fenêtre calée
  *   sur le calendrier montrerait trois jours le 3 du mois.
  * · Année : calée sur les MOIS (du 1er d'il y a onze mois à aujourd'hui), parce que ses
@@ -126,6 +141,10 @@ export function fenetre(periode: Periode, decalage: number, aujourdhui: string, 
     // Au-delà du seuil, les points sont mensuels : même raison que l'année.
     const agrege = versJour(aujourdhui) - versJour(debut) > SEUIL_AGREGATION_JOURS;
     return { debut: agrege ? debutDuMois(debut) : debut, fin: aujourdhui };
+  }
+  if (periode === 'semaine') {
+    const fin = versJour(aujourdhui) - JOURS_SEMAINE * decalage;
+    return { debut: versStamp(fin - (JOURS_SEMAINE - 1)), fin: versStamp(fin) };
   }
   const n = MOIS_PAR_PERIODE[periode];
   if (periode === 'annee') {
@@ -236,6 +255,11 @@ function reperesPour(f: Fenetre): Repere[] {
   const duree = Math.max(1, j1 - j0);
   const x = (j: number) => (j - j0) / duree;
   const out: Repere[] = [];
+  if (duree < JOURS_SEMAINE) {
+    // Une semaine : un repère par JOUR, nommé (« Jeu », « Ven »…).
+    for (let j = j0; j <= j1; j++) out.push({ x: x(j), libelle: JOURS_COURTS[new Date(j * MS_JOUR).getUTCDay()] });
+    return out;
+  }
   if (duree <= 40) {
     // Une semaine par repère, en partant d'AUJOURD'HUI (le bord droit) vers le passé.
     for (let j = j1; j >= j0; j -= 7) out.unshift({ x: x(j), libelle: jourMois(versStamp(j)) });
