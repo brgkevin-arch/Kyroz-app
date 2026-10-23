@@ -24,6 +24,14 @@ import { frnum } from '../lib/units';
 
 const HAUTEUR = 92;
 const FLOU = 4;
+/**
+ * 🔴 LE FLOU DÉBORDE, IL NE S'ARRÊTE PAS NET (fondateur, 2026-10-23 : « les côtés du flou
+ * ne s'arrêtent pas net, fluidifie »). Un flou gaussien s'étale sur ~3 écarts-types : posé
+ * au ras du dessin, il était COUPÉ par le bord du SVG. Le dessin est donc posé à cette
+ * marge des quatre bords, et la vue la reprend en marges négatives : le texte reste aligné
+ * sur la carte, le flou s'estompe dans la marge.
+ */
+const MARGE = 3 * FLOU;
 
 const ajouterJours = (stamp: string, n: number) => {
   const d = new Date(stamp + 'T00:00:00Z');
@@ -45,29 +53,31 @@ export function ApercuObjectif({ t, profile }: { t: ThemePalette; profile: UserP
 
   return (
     <View
-      onLayout={onLayout} style={{ height: HAUTEUR }}
+      onLayout={onLayout} style={{ height: HAUTEUR + 2 * MARGE, margin: -MARGE }}
       accessible accessibilityLabel="Aperçu de l'objectif daté, réservé à Kyroz+"
     >
       {largeur > 0 && (
-        <Svg width={largeur} height={HAUTEUR}>
+        <Svg width={largeur} height={HAUTEUR + 2 * MARGE}>
           <Defs>
-            <Filter id="flouObjectif" x="-10%" y="-20%" width="120%" height="140%">
+            {/* La région du filtre couvre TOUT le SVG, marges comprises : le flou a la place
+                de s'estomper avant le bord. */}
+            <Filter id="flouObjectif" filterUnits="userSpaceOnUse" x={0} y={0} width={largeur} height={HAUTEUR + 2 * MARGE}>
               <FeGaussianBlur stdDeviation={FLOU} />
             </Filter>
           </Defs>
           <G filter="url(#flouObjectif)">
-            <SvgText x={0} y={20} fill={t.textSecondary} fontSize={Type.body.fontSize} fontWeight={Type.body.fontWeight}>
+            <SvgText x={MARGE} y={MARGE + 20} fill={t.textSecondary} fontSize={Type.body.fontSize} fontWeight={Type.body.fontWeight}>
               {`Cible ${frnum(cible)} kg`}
             </SvgText>
-            <SvgText x={largeur} y={20} textAnchor="end" fill={t.text} fontSize={Type.bodyStrong.fontSize} fontWeight={Type.bodyStrong.fontWeight}>
+            <SvgText x={largeur - MARGE} y={MARGE + 20} textAnchor="end" fill={t.text} fontSize={Type.bodyStrong.fontSize} fontWeight={Type.bodyStrong.fontWeight}>
               {`reste ${frnum(total - 1.2)} kg`}
             </SvgText>
-            <Rect x={0} y={32} width={largeur} height={8} rx={4} fill={t.line} />
-            <Rect x={0} y={32} width={largeur * 0.3} height={8} rx={4} fill={t.accent} />
-            <SvgText x={0} y={62} fill={t.textTertiary} fontSize={Type.caption.fontSize}>
+            <Rect x={MARGE} y={MARGE + 32} width={largeur - 2 * MARGE} height={8} rx={4} fill={t.line} />
+            <Rect x={MARGE} y={MARGE + 32} width={(largeur - 2 * MARGE) * 0.3} height={8} rx={4} fill={t.accent} />
+            <SvgText x={MARGE} y={MARGE + 62} fill={t.textTertiary} fontSize={Type.caption.fontSize}>
               {`1,2 kg depuis le ${formatFR(ajouterJours(aujourdhui, -28))}, sur ${total} kg`}
             </SvgText>
-            <SvgText x={0} y={84} fill={t.textSecondary} fontSize={Type.caption.fontSize}>
+            <SvgText x={MARGE} y={MARGE + 84} fill={t.textSecondary} fontSize={Type.caption.fontSize}>
               {`Cible le ${formatFR(ajouterJours(aujourdhui, 84))} · 0,3 kg/sem`}
             </SvgText>
           </G>

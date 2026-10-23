@@ -48,14 +48,16 @@ describe('L’onglet Poids (2026-10-23)', () => {
     expect(bloc, 'la carte de l’objectif daté a disparu').not.toBe('');
     const [, kyrozPlus, gratuit] = bloc.split(/\) : (?:objectifOk \? )?\(/);
     expect(kyrozPlus, 'Kyroz+ sans objectif : la carte ouvre l’éditeur').toMatch(/onPress=\{ouvrirObjectif\}/);
-    expect(gratuit, 'sans Kyroz+ : la page Kyroz+, jamais l’éditeur').toMatch(/router\.push\('\/kyroz-plus'\)/);
-    expect(gratuit).not.toMatch(/ouvrirObjectif/);
+    expect(gratuit, 'sans Kyroz+ : jamais l’éditeur').not.toMatch(/\bouvrirObjectif\b/);
     expect(gratuit, 'sans Kyroz+ : le vrai aperçu, flouté').toMatch(/<ApercuObjectif\b/);
-    // Le texte n'apparaît qu'au tap sur l'aperçu (fondateur, 2026-10-23), avec le lien Kyroz+.
-    expect(gratuit, 'le tap sur l’aperçu ouvre le texte').toMatch(/onPress=\{\(\) => setOffreOuverte\(\(o\) => !o\)\}[\s\S]*?<ApercuObjectif\b/);
-    const ouvert = gratuit.match(/\{offreOuverte && \([\s\S]*?\n            \)\}/)?.[0] ?? '';
-    expect(ouvert, 'le texte et le lien n’apparaissent qu’une fois l’aperçu touché').toMatch(/OBJECTIF_DATE\.corps[\s\S]*?router\.push\('\/kyroz-plus'\)/);
-    expect(gratuit.replace(ouvert, ''), 'le texte ne s’affiche pas d’entrée').not.toMatch(/OBJECTIF_DATE\.corps|kyroz-plus/);
+    // Le texte vient dans une POPUP au tap, avec « Découvrir Kyroz+ » (fondateur, 2026-10-23) :
+    // rien de vendu n'est écrit sur la carte elle-même.
+    expect(gratuit, 'le tap sur l’aperçu ouvre la popup').toMatch(/onPress=\{decouvrirObjectif\}/);
+    expect(gratuit, 'le texte ne s’affiche pas sur la carte').not.toMatch(/OBJECTIF_DATE\.corps/);
+    const popup = ONGLET.match(/const decouvrirObjectif = async \(\) => \{[\s\S]*?\n  \};/)?.[0] ?? '';
+    expect(popup, 'la popup de l’objectif daté a disparu').toMatch(/await confirm\(\{[\s\S]*?message: OBJECTIF_DATE\.corps/);
+    expect(popup).toMatch(/confirmLabel: 'Découvrir Kyroz\+'/);
+    expect(popup, 'sans Kyroz+ : la page Kyroz+, jamais l’éditeur').toMatch(/if \(ok\) router\.push\('\/kyroz-plus'\)/);
     // Le texte vendu vient de LA liste vendue, pas d'une copie.
     expect(ONGLET).toMatch(/FONCTIONS_KYROZ_PLUS\.find\(\(f\) => f\.feature === 'dated_goal'\)/);
   });
@@ -67,6 +69,12 @@ describe('L’onglet Poids (2026-10-23)', () => {
     expect(APERCU).toMatch(/const FLOU = [1-9]/);
     expect(APERCU).toMatch(/name="lock-closed"/);
     expect(APERCU).not.toMatch(/expo-blur/);
+    // Le flou s'estompe, il ne s'arrête pas net : une marge de 3 écarts-types autour du
+    // dessin, reprise en marges négatives, et un filtre qui couvre tout le SVG.
+    expect(APERCU).toMatch(/const MARGE = 3 \* FLOU;/);
+    expect(APERCU).toMatch(/margin: -MARGE/);
+    expect(APERCU).toMatch(/filterUnits="userSpaceOnUse" x=\{0\} y=\{0\} width=\{largeur\}/);
+    expect(APERCU).not.toMatch(/<SvgText x=\{0\}/);
   });
 
   it('les chiffres de l’axe sont nus : plus de pastille derrière', () => {
