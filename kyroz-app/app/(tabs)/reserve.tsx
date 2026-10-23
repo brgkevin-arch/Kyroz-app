@@ -12,6 +12,7 @@ import { useLayout } from '../../constants/layout';
 import { PrimaryButton, Chip, Field, Segmented } from '../../components/ui';
 import { animerMiseEnPage } from '../../components/Mouvement';
 import { ActionSheet } from '../../components/ActionSheet';
+import { LigneGlissable } from '../../components/LigneGlissable';
 import { formatQuantity, toBaseUnit } from '../../lib/units';
 import { pushPantry } from '../../lib/sync';
 import { searchFoods } from '../../lib/foods';
@@ -73,6 +74,11 @@ export default function ReserveScreen() {
     setRayonsFermes((prev) => (prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat]));
   };
 
+  // Glisser vers la gauche pour supprimer (2026-10-23) : une seule ligne ouverte à la
+  // fois, comme chez Apple, et le défilement coupé le temps d'un glissement.
+  const [ligneOuverte, setLigneOuverte] = useState<string | null>(null);
+  const [glisseEnCours, setGlisseEnCours] = useState(false);
+
   // Formulaire d'ajout
   const [name, setName] = useState('');
   const [qty, setQty] = useState('');
@@ -116,13 +122,21 @@ export default function ReserveScreen() {
     setEditConservation(conservationDe(it));
   };
 
-  // Tomber à ZÉRO retire l'aliment : c'est le seul chemin de suppression depuis que
-  // les lignes n'ont plus de croix. La quantité et la présence en réserve sont la
-  // même information — « je n'en ai plus » et « retire-le » sont le même geste.
+  // Tomber à ZÉRO retire l'aliment, comme glisser la ligne vers la gauche (2026-10-23) :
+  // la quantité et la présence en réserve sont la même information — « je n'en ai
+  // plus » et « retire-le » sont le même geste.
   //
   // ⚠️ Le rangement (frais / sec) est REPOSÉ à l'enregistrement : `removeItem` puis
   // `addOrMerge` reconstruit la ligne, donc une correction faite ici serait perdue
   // si on ne la passait pas explicitement.
+  // Le glissement vers la gauche (bouton « Supprimer » ou glissement long). La ligne qui
+  // part laisse les suivantes remonter en douceur au lieu de sauter.
+  const supprimerAliment = async (it: PantryItem) => {
+    animerMiseEnPage();
+    setLigneOuverte(null);
+    await persist(removeItem(items, it.name, it.unit));
+  };
+
   const saveEdit = async () => {
     if (!editItem) return;
     const q = parseFloat(editQty);
@@ -181,7 +195,11 @@ export default function ReserveScreen() {
 
   return (
     <SafeAreaView style={s.safe} edges={['top']}>
-      <ScrollView style={repli.zone} contentContainerStyle={repli.contenu([s.content, layout.content])} showsVerticalScrollIndicator={false} {...repli.scrollProps}>
+      <ScrollView
+        style={repli.zone} contentContainerStyle={repli.contenu([s.content, layout.content])} showsVerticalScrollIndicator={false} {...repli.scrollProps}
+        scrollEnabled={!glisseEnCours}
+        onScrollBeginDrag={() => setLigneOuverte(null)}
+      >
         {/* ⚠️ L'en-tête ET les segments sont DANS le défilement, comme dans la
             maquette : c'est ce qui permet au gros titre de s'effacer au profit de
             la barre compacte. Ils étaient au-dessus du ScrollView, donc le titre
@@ -285,21 +303,33 @@ export default function ReserveScreen() {
                     </Presse>
                     {!ferme && (
                       <View style={[s.invCard, cardShadow(t)]}>
-                        {/* Plus de croix de suppression par ligne : toucher la quantité
-                            ouvre le pas-à-pas, et tomber à zéro retire l'aliment. Une
-                            croix sur chaque ligne, c'est une invitation à la faute de
-                            frappe sur un geste irréversible. */}
-                        {g.list.map((it, i) => (
-                          <Presse
-                            key={it.name + it.unit}
-                            style={[s.invRow, i < g.list.length - 1 && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.line }]}
-                            onPress={() => openEdit(it)}
-                            activeOpacity={OPACITE_PRESSION}
-                          >
-                            <Text style={s.invName} numberOfLines={1}>{nomAffiche(it.name)}</Text>
-                            <Text style={s.invQty}>{formatQuantity(it.name, it.quantity, it.unit)}</Text>
-                          </Presse>
-                        ))}
+                        {/* Plus de croix de suppression par ligne : une croix sur chaque
+                            ligne, c'est une invitation à la faute de frappe sur un geste
+                            irréversible. On supprime en GLISSANT la ligne vers la gauche
+                            (2026-10-23, le geste d'Apple) — un geste qu'on ne fait pas
+                            par mégarde — ou en descendant la quantité à zéro. Toucher la
+                            ligne ouvre le pas-à-pas ; si une ligne est ouverte, toucher
+                            la referme d'abord. */}
+                        {g.list.map((it, i) => {
+                          const cle = it.name + it.unit;
+                          return (
+                            <LigneGlissable
+                              key={cle}
+                              ouverte={ligneOuverte === cle}
+                              onOuvrir={() => setLigneOuverte(cle)}
+                              onFermer={() => setLigneOuverte((o) => (o === cle ? null : o))}
+                              onGlisse={setGlisseEnCours}
+                              onSupprimer={() => supprimerAliment(it)}
+                              premiere={i === 0}
+                              derniere={i === g.list.length - 1}
+                              styleLigne={[s.invRow, i < g.list.length - 1 && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.line }]}
+                              onTouche={() => (ligneOuverte ? setLigneOuverte(null) : openEdit(it))}
+                            >
+                              <Text style={s.invName} numberOfLines={1}>{nomAffiche(it.name)}</Text>
+                              <Text style={s.invQty}>{formatQuantity(it.name, it.quantity, it.unit)}</Text>
+                            </LigneGlissable>
+                          );
+                        })}
                       </View>
                     )}
                   </View>
@@ -376,7 +406,6 @@ export default function ReserveScreen() {
             <Chip key={c.value} t={t} label={c.label} selected={editConservation === c.value} onPress={() => setEditConservation(c.value)} />
           ))}
         </View>
-        <Text style={s.stepHint}>Descends à 0 pour retirer cet aliment de ta réserve.</Text>
         <View style={{ height: 4 }} />
         <PrimaryButton
           t={t}
@@ -441,13 +470,15 @@ function makeStyles(t: ThemePalette) {
     },
     catLabel: { ...Type.overline, color: t.textTertiary, flex: 1 },
     catCount: { ...Type.caption, color: t.textTertiary },
-    invCard: { backgroundColor: t.card, borderRadius: Radius.card, paddingHorizontal: Spacing.lg },
-    invRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: Spacing.md, paddingVertical: Spacing.lg },
+    // ⚠️ La marge latérale est passée de la carte à la LIGNE (2026-10-23) : une ligne qui
+    // glisse doit aller d'un bord à l'autre de la carte, sinon le rouge s'arrête à 16 pt du
+    // bord. En MARGE et non en rembourrage, pour que le filet reste en retrait, comme avant.
+    invCard: { backgroundColor: t.card, borderRadius: Radius.card },
+    invRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: Spacing.md, paddingVertical: Spacing.lg, marginHorizontal: Spacing.lg },
     invName: { ...Type.body, flex: 1, color: t.text },
     invQty: { ...Type.body, color: t.textSecondary },
     stepRow: { flexDirection: 'row', alignItems: 'flex-end', gap: Spacing.md },
     stepBtn: { width: 48, height: 48, borderRadius: Radius.button, backgroundColor: t.fill, alignItems: 'center', justifyContent: 'center' },
-    stepHint: { ...Type.caption, color: t.textTertiary, lineHeight: 18 },
 
     // 🔴 `Fond.barreOnglets` ET NON 28. La barre d'onglets FLOTTE au-dessus du
     // contenu depuis la passe matériaux (§8) : à 28 pt du bas, ce bandeau était

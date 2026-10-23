@@ -29,6 +29,8 @@ const RETIREES: [string[], string][] = [
   [['lib', 'coursesDepuis.ts'], 'le jour où tu commences'],
   [['lib', 'coursesDepuis.ts'], 'ton plan avait déjà commencé'],
   [['app', '(tabs)', 'reserve.tsx'], 'Tout ce que tu as est rangé'],
+  // n° 8, parti avec le glissement pour supprimer (2026-10-23).
+  [['app', '(tabs)', 'reserve.tsx'], 'Descends à 0'],
   [['app', '(tabs)', 'plan.tsx'], 'son heure était passée'],
   [['app', '(tabs)', 'plan.tsx'], 'leur heure était passée'],
   [['app', '(tabs)', 'plan.tsx'], 'journée recalée'],
