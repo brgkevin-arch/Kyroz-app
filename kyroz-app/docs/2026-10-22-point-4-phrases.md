@@ -17,7 +17,8 @@
 > « Descends à 0 pour retirer cet aliment » est le SEUL chemin de suppression d'un aliment
 > de la Réserve (`reserve.tsx`, « tomber à zéro retire l'aliment »), et le bouton
 > « Retirer de ma réserve » n'apparaît qu'une fois à zéro — il n'est donc pas « juste
-> dessous ». La phrase reste, en attendant que le fondateur tranche à nouveau.
+> dessous ». ✅ **Tranché le 2026-10-23** : la phrase est partie AVEC le glissement vers la
+> gauche pour supprimer (`components/LigneGlissable.tsx`, point 7 d'`AGENTS.md`).
 > ➕ Appliqué par cohérence avec le n° 10 : la fiche d'un repas sauté dit « Repas sauté »,
 > plus « Repas sauté, journée recalée » (même phrase, autre écran).
 > Garde-fou : `lib/__tests__/silence.test.ts` (les phrases retirées ne reviennent pas ; le

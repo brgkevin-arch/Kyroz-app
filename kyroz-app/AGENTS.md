@@ -332,17 +332,34 @@ qu'ils étaient périmés.
    le plan du lundi partent des restes.
 7. **Réserve : glisser un aliment vers la gauche pour le supprimer** (demande du fondateur,
    2026-10-23, « comme chez Apple ») : un bouton « Supprimer » apparaît, un glissement long
-   supprime d'un coup (déclic haptique au seuil). **À coder APRÈS les points 1 à 6** ; la
-   phrase « Descends à 0 pour retirer cet aliment » (n° 8 du point 4) part avec. Sans
-   dépendance native (PanResponder, comme les feuilles) → publiable en OTA. ⚠️ Un geste ne
-   se vérifie pas sur le web (CLAUDE.md §5) : validation au simulateur par le fondateur.
+   supprime d'un coup (déclic haptique au seuil).
+   🟡 **CODÉ le 2026-10-23 dans #376, À VALIDER AU SIMULATEUR par le fondateur** —
+   `components/LigneGlissable.tsx` (PanResponder + Animated, aucune dépendance native →
+   publiable en OTA) et `lib/motion.ts::decisionGlissement` (pur). Règles : au-delà de la
+   MOITIÉ de la ligne, relâcher supprime ; sous ce seuil, la projection décide d'ouvrir ou
+   de refermer le bouton (88 pt) ; **l'élan ne supprime jamais** ; déclic au franchissement ;
+   une seule ligne ouverte à la fois, toucher ailleurs ou défiler la referme ; défilement
+   coupé pendant un glissement ; action « Supprimer » pour VoiceOver ; descendre à 0 marche
+   toujours. La phrase n° 8 du point 4 est partie avec (`silence.test.ts`).
+   🔴 **Trouvé au navigateur, corrigé** : (1) relâcher après un glissement déclenchait AUSSI
+   le tap de la ligne (un `click` suit le `mouseup`) — la ligne s'ouvrait puis se refermait ;
+   le tap vit désormais dans le composant, ignoré une fois après un glissement, la marque
+   tombe au contact suivant ; (2) la suppression longue partait > 1 s après la sortie de la
+   ligne (ressort au repos à un millième de point) — seuil de repos à 1 pt pour la sortie ;
+   (3) liseré rouge aux coins arrondis au repos — le rouge n'existe que si la ligne s'écarte.
+   ⚠️ La marge latérale des lignes est passée de la carte à la ligne (en marge, filet en
+   retrait inchangé). Garde-fous `glisserPourSupprimer.test.ts` (4 mutations, 4 rouges).
+   Vu au navigateur (souris) : glissement court → bouton ; tap → supprimé ; glissement long
+   → supprimé ; trop court → rien ; tap après → referme, puis ouvre la fiche. **Non vu au
+   doigt** : conflit avec le défilement vertical, ressenti du ressort, déclic — au simulateur.
    Ensuite, même geste dans Courses (aujourd'hui l'appui long) — à trancher avec lui.
 ➡️ Avancement : tenu ici, ligne par ligne, au fil des validations. **Au 2026-10-21** : point 1
    codé + essai posé (ligne 1) ; **point 2 codé et vu au navigateur le 2026-10-22** (semaine
    suivante + pesée, niveau 2 des restes après l'OTA) ; **point 3 mesuré, fermé et validé le
    2026-10-22** ; **point 4 : codé, 15 des 16 phrases retirées, le n° 8 à re-trancher**
    (2026-10-22, session cloud) ; **point 5 : validé et codé**
-   (2026-10-23) ; point 6 fusionné dans le 2 ; point 7 (glisser pour supprimer) après.
+   (2026-10-23) ; point 6 fusionné dans le 2 ; **point 7 (glisser pour supprimer) codé le
+   2026-10-23, à valider au simulateur**.
    ⚠️ #376 porte TOUT (plan daté, « Quand veux-tu commencer ? », seuils, thon, page Kyroz+,
    CGU révisées le 20 octobre — date à reporter si la livraison glisse) ; elle est à jour de
    `main` (61ᵉ OTA = Liquid Glass) et FUSIONNABLE ; la livraison sera la **62ᵉ OTA**, avec le
