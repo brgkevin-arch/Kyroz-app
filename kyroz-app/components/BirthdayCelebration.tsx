@@ -135,7 +135,7 @@ export function BirthdayCelebration({ age, firstName, onClose }: Props) {
         >
           <AnniversaireIcon color={t.text} size={Icone.fete} />
           <Text style={[styles.title, { color: t.text }]}>
-            {firstName ? `Joyeux anniversaire, ${firstName} !` : 'Joyeux anniversaire !'}
+            {firstName ? `Joyeux anniversaire, ${firstName}\u00A0!` : 'Joyeux anniversaire\u00A0!'}
           </Text>
           <Text style={[styles.body, { color: t.textSecondary }]}>
             {age} ans aujourd'hui. Kyroz a mis ton âge à jour tout seul — ton plan

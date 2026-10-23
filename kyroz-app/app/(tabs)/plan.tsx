@@ -1111,7 +1111,7 @@ export default function PlanScreen() {
           <Presse style={s.weighBanner} onPress={() => setCheckinOpen(true)} activeOpacity={OPACITE_PRESSION}>
             <RepasIcon color={t.text} size={Icone.action} />
             <View style={{ flex: 1 }}>
-              <Text style={s.weighTitle}>Ton plan te convient toujours ?</Text>
+              <Text style={s.weighTitle}>Ton plan te convient toujours ?</Text>
               <Text style={s.weighSub}>Dis-nous ce qui coince — on ajuste en un tap.</Text>
             </View>
             <Text style={s.bannerCta}>→</Text>
@@ -1323,7 +1323,7 @@ export default function PlanScreen() {
             <View style={[s.emptyIcon, { backgroundColor: t.fill }]}>
               <RepasIcon color={t.textTertiary} size={Icone.vide} />
             </View>
-            <Text style={s.emptyTitle}>Prêt à démarrer ?</Text>
+            <Text style={s.emptyTitle}>Prêt à démarrer ?</Text>
             <Text style={s.emptySub}>Kyroz génère ton plan repas, les recettes et la liste de courses en un instant.</Text>
             <View style={{ height: 8 }} />
             <PrimaryButton t={t} label="Générer mon plan" onPress={() => generate()} loading={generating} />
@@ -1470,8 +1470,8 @@ export default function PlanScreen() {
             <>
               <Text style={{ ...Type.bodySmall, color: t.textSecondary, lineHeight: 20 }}>
                 {rentreDansLaCible
-                  ? 'Comment tu veux rentrer dans ta cible ? Tes protéines restent pleines dans tous les cas.'
-                  : 'Une seule journée ne peut pas tout reprendre : tes repas restants ont une taille minimale. Voilà ce qu\'on peut faire aujourd\'hui ; le reste ne se rattrape pas, et une journée ne fait pas ta semaine. Tes protéines restent pleines dans tous les cas.'}
+                  ? 'Comment tu veux rentrer dans ta cible\u00A0? Tes protéines restent pleines dans tous les cas.'
+                  : 'Une seule journée ne peut pas tout reprendre\u00A0: tes repas restants ont une taille minimale. Voilà ce qu\'on peut faire aujourd\'hui\u00A0; le reste ne se rattrape pas, et une journée ne fait pas ta semaine. Tes protéines restent pleines dans tous les cas.'}
               </Text>
               {opts.map((o) => (
                 <Presse
@@ -1550,7 +1550,7 @@ function SousCibleNote({ t, manque, repasAVenir }: { t: ThemePalette; manque: nu
     : 'tes repas du jour sont passés, il n\'y a plus rien à ajuster.';
   return (
     <Text style={{ ...Type.caption, color: t.textTertiary, lineHeight: 17, marginTop: Spacing.sm }}>
-      Ta journée s'arrête {Math.round(manque).toLocaleString('fr-FR')} kcal sous ta cible : {cause} Une journée sous
+      Ta journée s'arrête {Math.round(manque).toLocaleString('fr-FR')} kcal sous ta cible : {cause} Une journée sous
       la cible ne compromet rien.
     </Text>
   );

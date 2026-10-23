@@ -32,7 +32,7 @@ export const DISCLAIMER =
 // ➡️ « Discret » veut dire petit et gris, JAMAIS derrière un lien ou un dépliant.
 // Garde-fou : lib/__tests__/avertissementMedical.test.ts.
 export const AVERTISSEMENT_MEDICAL =
-  "Enceinte, allaitante, ou suivie pour une pathologie chronique ? Parles-en à un médecin avant de suivre un plan.";
+  "Enceinte, allaitante, ou suivie pour une pathologie chronique\u00A0? Parles-en à un médecin avant de suivre un plan.";
 
 // ── Identité du responsable de traitement ───────────────────────────────────
 // Identité du responsable de traitement (RGPD art. 13 / mentions légales). Tout
@@ -113,24 +113,24 @@ export const PRIVACY_POLICY: LegalSection[] = [
     title: '1. Responsable de traitement',
     paragraphs: [
       `Le responsable du traitement de vos données est ${LEGAL.controllerName}, ${LEGAL.controllerStatus}, SIREN ${LEGAL.siren}, ${LEGAL.address}.`,
-      `Pour toute question relative à vos données ou pour exercer vos droits : ${LEGAL.dpoEmail}.`,
+      `Pour toute question relative à vos données ou pour exercer vos droits\u00A0: ${LEGAL.dpoEmail}.`,
     ],
   },
   {
     title: '2. Données collectées',
     paragraphs: [
-      "Données de compte : adresse email (lors d’une inscription par email).",
-      "Données de santé : sexe, âge, poids, taille, taux de masse grasse, niveau d’activité et sport pratiqué, objectif, restrictions et préférences alimentaires. Ces informations sont des données de santé au sens de l’article 9 du RGPD.",
-      "Données d’usage de l’app : plans générés, suivi du poids, favoris, réserve alimentaire.",
-      "Photos de progression (facultatives) : elles restent stockées UNIQUEMENT sur votre appareil et ne sont jamais transmises à nos serveurs.",
-      "Données d’abonnement, uniquement si vous souscrivez à Kyroz+ : l’identifiant technique de votre compte et l’état de votre abonnement. Aucune coordonnée bancaire ne transite par Kyroz.",
-      "Aucune statistique d’usage n’est collectée : l’application ne mesure pas comment vous vous en servez.",
+      "Données de compte\u00A0: adresse email (lors d’une inscription par email).",
+      "Données de santé\u00A0: sexe, âge, poids, taille, taux de masse grasse, niveau d’activité et sport pratiqué, objectif, restrictions et préférences alimentaires. Ces informations sont des données de santé au sens de l’article 9 du RGPD.",
+      "Données d’usage de l’app\u00A0: plans générés, suivi du poids, favoris, réserve alimentaire.",
+      "Photos de progression (facultatives)\u00A0: elles restent stockées UNIQUEMENT sur votre appareil et ne sont jamais transmises à nos serveurs.",
+      "Données d’abonnement, uniquement si vous souscrivez à Kyroz+\u00A0: l’identifiant technique de votre compte et l’état de votre abonnement. Aucune coordonnée bancaire ne transite par Kyroz.",
+      "Aucune statistique d’usage n’est collectée\u00A0: l’application ne mesure pas comment vous vous en servez.",
     ],
   },
   {
     title: '3. Finalités',
     paragraphs: [
-      "Vos données de compte et de santé servent exclusivement à : calculer vos besoins nutritionnels (calories, macros), générer vos plans repas, votre liste de courses et le suivi associé.",
+      "Vos données de compte et de santé servent exclusivement à\u00A0: calculer vos besoins nutritionnels (calories, macros), générer vos plans repas, votre liste de courses et le suivi associé.",
       "Aucune donnée n’est utilisée à des fins publicitaires.",
     ],
   },
@@ -212,7 +212,7 @@ export const PRIVACY_POLICY: LegalSection[] = [
       `Vos données synchronisées sont hébergées par ${LEGAL.host}, sur des serveurs situés en ${LEGAL.hostRegion}.`,
       `L’envoi des e-mails de service (confirmation d’inscription, réinitialisation de mot de passe) est assuré par ${LEGAL.emailProvider} (${LEGAL.emailProviderLegalName}). Seules votre adresse e-mail et le contenu de ces messages lui sont transmis, à l’exclusion de toute donnée de santé.`,
       `Ces e-mails, ainsi que les journaux d’envoi correspondants, sont stockés par ${LEGAL.emailProvider} ${LEGAL.emailProviderStorage}. Ce transfert hors de l’Union européenne est encadré par les clauses contractuelles types de la Commission européenne et par l’adhésion de ce prestataire au cadre de protection des données UE–États-Unis (EU-U.S. Data Privacy Framework).`,
-      `La gestion technique des abonnements Kyroz+ est confiée à ${LEGAL.subscriptionProvider} (${LEGAL.subscriptionProviderCountry}). Dès que vous êtes connecté, que vous soyez abonné ou non, l’identifiant technique de votre compte lui est transmis pour vérifier si un abonnement est actif ; s’y ajoutent, le cas échéant, l’état de votre abonnement et le reçu d’achat émis par l’App Store ou Google Play. Ne lui sont transmis ni votre adresse email, ni vos données de santé, ni aucune coordonnée bancaire.`,
+      `La gestion technique des abonnements Kyroz+ est confiée à ${LEGAL.subscriptionProvider} (${LEGAL.subscriptionProviderCountry}). Dès que vous êtes connecté, que vous soyez abonné ou non, l’identifiant technique de votre compte lui est transmis pour vérifier si un abonnement est actif\u00A0; s’y ajoutent, le cas échéant, l’état de votre abonnement et le reçu d’achat émis par l’App Store ou Google Play. Ne lui sont transmis ni votre adresse email, ni vos données de santé, ni aucune coordonnée bancaire.`,
       `Ces données sont stockées ${LEGAL.subscriptionProviderStorage}. Ce transfert hors de l’Union européenne est encadré par les clauses contractuelles types de la Commission européenne.`,
       "Le paiement lui-même est traité par l’App Store (Apple) ou Google Play. Kyroz ne voit ni ne conserve aucune coordonnée bancaire.",
       "Nous ne vendons, ne louons et ne partageons vos données avec aucun tiers à des fins commerciales. Aucun traceur publicitaire n’est utilisé, et aucun suivi ne vous relie à d’autres applications ou sites.",
@@ -249,21 +249,21 @@ export const PRIVACY_POLICY: LegalSection[] = [
       //    pas des promesses contractuelles. Si `allowBackup` bougeait, ou si
       //    AsyncStorage changeait son défaut, cette phrase redeviendrait fausse — d'où
       //    le compteur de `legal.test.ts`, qui lit les deux sources.
-      `Une exception, décrite au point 5 : les e-mails de service sont stockés ${LEGAL.emailProviderStorage}. Vos données de santé ne sont transmises à aucun destinataire hors de l’Union européenne, et les sauvegardes automatiques de votre téléphone ne les emportent pas : sur Android l’application est exclue de la sauvegarde Google, et sur iPhone son stockage local est exclu de la sauvegarde iCloud.`,
+      `Une exception, décrite au point 5\u00A0: les e-mails de service sont stockés ${LEGAL.emailProviderStorage}. Vos données de santé ne sont transmises à aucun destinataire hors de l’Union européenne, et les sauvegardes automatiques de votre téléphone ne les emportent pas\u00A0: sur Android l’application est exclue de la sauvegarde Google, et sur iPhone son stockage local est exclu de la sauvegarde iCloud.`,
     ],
   },
   {
     title: '7. Durée de conservation',
     paragraphs: [
       "Vos données sont conservées tant que votre compte est actif. Elles sont supprimées (serveur + appareil) lorsque vous supprimez votre compte.",
-      "Une exception : si vous avez souscrit un abonnement, l’historique de facturation correspondant est conservé par le store concerné (Apple, Google) et par le prestataire mentionné au point 5, pour la durée qu’imposent leurs obligations légales et comptables. Cet historique ne contient aucune donnée de santé.",
+      "Une exception\u00A0: si vous avez souscrit un abonnement, l’historique de facturation correspondant est conservé par le store concerné (Apple, Google) et par le prestataire mentionné au point 5, pour la durée qu’imposent leurs obligations légales et comptables. Cet historique ne contient aucune donnée de santé.",
     ],
   },
   {
     title: '8. Sécurité',
     paragraphs: [
-      "Les échanges avec nos serveurs sont chiffrés en transit (HTTPS). L’accès aux données est cloisonné par utilisateur : un utilisateur ne peut accéder qu’à ses propres données.",
-      "Les données stockées localement sur votre appareil ne sont pas chiffrées : protégez l’accès à votre appareil, en particulier sur un ordinateur partagé.",
+      "Les échanges avec nos serveurs sont chiffrés en transit (HTTPS). L’accès aux données est cloisonné par utilisateur\u00A0: un utilisateur ne peut accéder qu’à ses propres données.",
+      "Les données stockées localement sur votre appareil ne sont pas chiffrées\u00A0: protégez l’accès à votre appareil, en particulier sur un ordinateur partagé.",
     ],
   },
   {
@@ -278,14 +278,14 @@ export const PRIVACY_POLICY: LegalSection[] = [
     title: '10. Mineurs',
     paragraphs: [
       "Kyroz est réservé aux personnes âgées de 18 ans et plus.",
-      "Votre date de naissance vous est demandée dès la configuration de votre profil, avant tout calcul : en deçà de 18 ans, aucun plan n’est établi et le service ne peut pas être utilisé. La création du compte, elle, ne demande qu’une adresse email et un mot de passe : elle ne vérifie donc pas votre âge.",
-      `Si un compte a été créé par une personne mineure, écrivez à ${LEGAL.dpoEmail} : il sera supprimé, ainsi que les données associées.`,
+      "Votre date de naissance vous est demandée dès la configuration de votre profil, avant tout calcul\u00A0: en deçà de 18 ans, aucun plan n’est établi et le service ne peut pas être utilisé. La création du compte, elle, ne demande qu’une adresse email et un mot de passe\u00A0: elle ne vérifie donc pas votre âge.",
+      `Si un compte a été créé par une personne mineure, écrivez à ${LEGAL.dpoEmail}\u00A0: il sera supprimé, ainsi que les données associées.`,
     ],
   },
   {
     title: '11. Modifications',
     paragraphs: [
-      `La présente politique peut évoluer. Date de dernière mise à jour : ${LEGAL.effectiveDate}.`,
+      `La présente politique peut évoluer. Date de dernière mise à jour\u00A0: ${LEGAL.effectiveDate}.`,
     ],
   },
 ];
@@ -324,10 +324,10 @@ export const TERMS_OF_USE: LegalSection[] = [
       // ⚠️ Les deux listes se LISENT (2026-10-20) : ce que Kyroz+ ajoute vient de
       // `lib/offreKyrozPlus.ts`, la même source que l'app ; le réglage du rythme de la semaine
       // suit son interrupteur — il était énuméré ici alors qu'il est éteint depuis le 2026-08-18.
-      `Le cœur du service reste gratuit : plan de la semaine, liste de courses, recettes, réserve, favoris, pesée, ${RYTHME_HEBDOMADAIRE_ACTIF ? 'réglage du rythme de la semaine ' : ''}et synchronisation. Kyroz+ est un abonnement facultatif qui donne accès à des outils complémentaires : ${fonctionsEnPhrase()}.`,
+      `Le cœur du service reste gratuit\u00A0: plan de la semaine, liste de courses, recettes, réserve, favoris, pesée, ${RYTHME_HEBDOMADAIRE_ACTIF ? 'réglage du rythme de la semaine ' : ''}et synchronisation. Kyroz+ est un abonnement facultatif qui donne accès à des outils complémentaires\u00A0: ${fonctionsEnPhrase()}.`,
       // Essai gratuit (décision fondateur du 2026-10-20). Rédigé sans durée en dur : la durée
       // est celle de l'offre posée sur l'abonnement dans le store, affichée avant l'achat.
-      "Une période d’essai gratuite peut être proposée lors de la première souscription ; sa durée est indiquée avant l’achat. Elle n’est accordée qu’une fois par compte App Store ou Google Play. À la fin de l’essai, l’abonnement commence et le premier paiement est prélevé, sauf résiliation au moins 24 heures avant la fin de l’essai, dans les réglages de votre compte App Store ou Google Play. Une résiliation pendant l’essai ne coûte rien.",
+      "Une période d’essai gratuite peut être proposée lors de la première souscription\u00A0; sa durée est indiquée avant l’achat. Elle n’est accordée qu’une fois par compte App Store ou Google Play. À la fin de l’essai, l’abonnement commence et le premier paiement est prélevé, sauf résiliation au moins 24 heures avant la fin de l’essai, dans les réglages de votre compte App Store ou Google Play. Une résiliation pendant l’essai ne coûte rien.",
       "L’abonnement est vendu par l’App Store ou Google Play, jamais directement par Kyroz. Le prix affiché au moment de l’achat fait foi. Le paiement, le renouvellement et la résiliation se gèrent dans les réglages de votre compte App Store ou Google Play.",
       "L’abonnement se renouvelle automatiquement à la fin de chaque période, sauf résiliation au moins 24 heures avant l’échéance. Les demandes de remboursement relèvent du store, pas de Kyroz.",
       "Le tarif de votre abonnement est celui affiché au moment où vous souscrivez, et il reste inchangé tant que votre abonnement demeure actif. Une évolution de nos tarifs ne s’applique qu’aux nouvelles souscriptions. En revanche, si vous résiliez puis souscrivez à nouveau plus tard, c’est le tarif en vigueur à cette date qui s’applique.",
@@ -365,7 +365,7 @@ export const TERMS_OF_USE: LegalSection[] = [
       "Vous pouvez supprimer votre compte à tout moment depuis l’app (Profil → Supprimer mon compte), ce qui efface vos données.",
       // E22 : le ⚠️ est parti et la phrase tient sans lui — l'emphase était déjà
       // portée par le « PAS » en capitales, pas par le pictogramme.
-      "Supprimer votre compte Kyroz n’annule PAS un abonnement en cours : celui-ci continue d’être facturé tant qu’il n’est pas résilié dans les réglages de votre compte App Store ou Google Play.",
+      "Supprimer votre compte Kyroz n’annule PAS un abonnement en cours\u00A0: celui-ci continue d’être facturé tant qu’il n’est pas résilié dans les réglages de votre compte App Store ou Google Play.",
     ],
   },
   {
@@ -396,7 +396,7 @@ export const TERMS_OF_USE: LegalSection[] = [
       // écrit comme tel dans `../docs/procedures/PROCEDURE-2026-08-25-mise-en-vente-kyroz-plus.md` et dans
       // `lib/premium.ts`. Ne pas le laisser vivre en commentaire seulement : une inconnue
       // consignée n'est pas une inconnue traitée.
-      `Les présentes conditions sont soumises au droit français. Contact : ${LEGAL.supportEmail}. Pour toute question relative à vos données, vous pouvez saisir la CNIL.`,
+      `Les présentes conditions sont soumises au droit français. Contact\u00A0: ${LEGAL.supportEmail}. Pour toute question relative à vos données, vous pouvez saisir la CNIL.`,
     ],
   },
 ];

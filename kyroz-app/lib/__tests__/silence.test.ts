@@ -64,7 +64,7 @@ describe('l’app tourne en silence (point 4, 2026-10-22)', () => {
 
   it('la fiche recette garde la seule note qui demande un geste', () => {
     const fiche = lire('components', 'RecipeDetail.tsx');
-    expect(fiche).toContain('de protéines sous ta cible : ajoute un side protéiné.');
+    expect(fiche).toContain('de protéines sous ta cible\\u00A0: ajoute un side protéiné.');
   });
 
   it('la sonde sait dire OUI : une phrase retirée remise dans le code est trouvée', () => {

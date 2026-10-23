@@ -184,7 +184,7 @@ export default function RecettesScreen() {
     await savePantry(next);
     pushPantry(next);
     setSelected(null);
-    setToast(`${recipe.name_fr} : ingrédients retirés de ta réserve`);
+    setToast(`${recipe.name_fr}\u00A0: ingrédients retirés de ta réserve`);
     setTimeout(() => setToast(null), 2400);
   };
 
@@ -333,12 +333,12 @@ export default function RecettesScreen() {
                   il y en a, hors des préférences. */}
               {autres.length > 0 && !voirAutres
                 ? q
-                  ? `Aucune recette dans tes préférences pour « ${query.trim()} ».`
+                  ? `Aucune recette dans tes préférences pour «\u00A0${query.trim()}\u00A0».`
                   : tag === 'fav'
                   ? 'Aucun de tes favoris ne correspond à tes préférences.'
                   : 'Aucune recette de ce type dans tes préférences.'
                 : q
-                ? `Aucune recette pour « ${query.trim()} ».`
+                ? `Aucune recette pour «\u00A0${query.trim()}\u00A0».`
                 : surReserve
                 ? reserve.length === 0
                   ? "Ta réserve est vide. Remplis-la depuis l'onglet Réserve, ou termine une sortie de courses."
@@ -389,7 +389,7 @@ export default function RecettesScreen() {
                   <Text style={s.rPrete} numberOfLines={1}>Tu as tout ce qu'il faut</Text>
                 ) : (
                   <Text style={s.rManque} numberOfLines={1}>
-                    Il te manque : {c.missing.map((m) => `${m.name} (${formatQuantity(m.name, m.quantity_g, m.unit)})`).join(', ')}
+                    Il te manque : {c.missing.map((m) => `${m.name} (${formatQuantity(m.name, m.quantity_g, m.unit)})`).join(', ')}
                   </Text>
                 );
               })()}

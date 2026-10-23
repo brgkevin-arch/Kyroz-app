@@ -37,7 +37,7 @@ export function PlanCheckin({
   return (
     <View style={{ flex: 1, backgroundColor: t.bg }}>
       <View style={s.header} {...(dragHandlers ?? {})}>
-        <Text style={s.title}>Ton plan te convient ?</Text>
+        <Text style={s.title}>Ton plan te convient ?</Text>
         {/* 🔴 « Dis-nous ce qui coince — on ajuste tout de suite. » RETIRÉ le
             2026-08-26. Cette feuille n'a qu'une porte d'entrée : la carte de l'écran
             Plan (`plan.tsx`, `checkinDue`), qui vient de dire « Dis-nous ce qui

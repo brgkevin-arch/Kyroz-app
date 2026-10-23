@@ -5,7 +5,7 @@ import { Presse } from './Presse';
 import { ConfirmationEnLigne } from './ConfirmationEnLigne';
 import { ThemePalette, Radius, Spacing, Type, Trait, Icone } from '../constants/theme';
 import { historiquePesees, WeightEntry } from '../lib/weight';
-import { frnum } from '../lib/units';
+import { frnum, frsigne } from '../lib/units';
 
 // ── L'historique des pesées, dans sa feuille (2026-10-23) ─────────────────────
 //
@@ -61,7 +61,7 @@ export function HistoriquePesees({ t, entries, photos, onRemove, dragHandlers, s
                     <Text style={[s.date, { color: t.textSecondary }]}>{frDateCourte(e.date)}</Text>
                     <Text style={[s.poids, { color: t.text }]}>{frnum(e.weight_kg)} kg</Text>
                     <Text style={[s.ecart, { color: d == null ? t.textTertiary : t.textSecondary }]}>
-                      {d == null ? '—' : `${d > 0 ? '+' : ''}${frnum(d)}`}
+                      {d == null ? '—' : frsigne(d)}
                     </Text>
                     <Presse onPress={() => setAConfirmer(e.date)} hitSlop={8} style={s.suppr} accessibilityLabel="Supprimer cette pesée">
                       <Ionicons name="close" size={Icone.petite} color={t.textTertiary} />
@@ -70,7 +70,7 @@ export function HistoriquePesees({ t, entries, photos, onRemove, dragHandlers, s
                   {aConfirmer === e.date && (
                     <ConfirmationEnLigne
                       t={t}
-                      question={`Supprimer cette pesée ? ${frDateCourte(e.date)} · ${frnum(e.weight_kg)} kg. Tes cibles se recalculent sur les pesées restantes.`}
+                      question={`Supprimer cette pesée\u00A0? ${frDateCourte(e.date)} · ${frnum(e.weight_kg)} kg. Tes cibles se recalculent sur les pesées restantes.`}
                       confirmLabel="Supprimer"
                       onCancel={() => setAConfirmer(null)}
                       onConfirm={() => { setAConfirmer(null); onRemove(e.date); }}

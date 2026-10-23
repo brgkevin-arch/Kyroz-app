@@ -27,9 +27,9 @@ export function DislikeSheet({
   return (
     <View style={s.wrap}>
       <View {...(dragHandlers ?? {})}>
-        <Text style={s.title}>C'est quoi qui te gêne ?</Text>
+        <Text style={s.title}>C'est quoi qui te gêne ?</Text>
         <Text style={s.sub}>
-          Tu as écarté pas mal de plats. Dis-nous l'ingrédient que tu n'aimes pas : on l'évite
+          Tu as écarté pas mal de plats. Dis-nous l'ingrédient que tu n'aimes pas : on l'évite
           partout et on te ramène les plats qui ne le contiennent pas.
         </Text>
       </View>
@@ -55,7 +55,7 @@ export function DislikeSheet({
       )}
 
       <View style={s.customRow}>
-        <Text style={s.customLabel}>{candidates.length > 0 ? 'Ou un autre ingrédient' : 'Quel ingrédient ?'}</Text>
+        <Text style={s.customLabel}>{candidates.length > 0 ? 'Ou un autre ingrédient' : 'Quel ingrédient\u00A0?'}</Text>
         <View style={[s.inputBox, { borderColor: t.line }]}>
           <TextInput
             value={custom} onChangeText={(v) => { setCustom(v); setSel(null); }}
@@ -67,7 +67,7 @@ export function DislikeSheet({
 
       <PrimaryButton
         t={t}
-        label={chosen ? `Éviter « ${chosen} »` : 'Choisis un ingrédient'}
+        label={chosen ? `Éviter «\u00A0${chosen}\u00A0»` : 'Choisis un ingrédient'}
         onPress={() => { if (chosen) { onPick(chosen); onClose(); } }}
       />
       <Presse onPress={onClose} hitSlop={8} style={{ alignSelf: 'center' }}>

@@ -89,7 +89,8 @@ describe('la page « préférences » se dévoile question par question (2026-09
 
   it('titre seul, et plus d’explication sous « Protéines préférées »', () => {
     expect(onboarding).not.toContain('Pour des recettes qui te ressemblent vraiment.');
-    expect(onboarding).not.toContain('Tu préfères la routine ou la diversité ?');
+    // Quelle que soit l'espace devant « ? » (insécables depuis le 2026-10-23).
+    expect(onboarding).not.toMatch(/Tu préfères la routine ou la diversité(?: |\\u00A0|\u00A0)\?/);
     expect(onboarding).toMatch(/<ProteinesParRegime[^>]*intitule="phrase"/);
     expect(onboarding).toMatch(/<DislikedFoodsField[^>]*intitule="phrase"/);
   });

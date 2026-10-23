@@ -86,7 +86,7 @@ import { baseDayTargets, deducedRestWeekdays, emphasisIds } from '../lib/planEng
 import { getRecipeById } from '../lib/recipes';
 import SportsEditor from '../components/SportsEditor';
 import { FixedMealSheet } from '../components/FixedMealSheet';
-import { frnum } from '../lib/units';
+import { frnum, frsigne } from '../lib/units';
 
 // ── Options ──────────────────────────────────────────────────────────────────
 // `cut_aggressive` retiré le 2026-07-29 (cf. lib/syncGuard.ts::normalizeGoal) : il
@@ -331,7 +331,7 @@ export default function ProfilScreen() {
   // rien du tout, sans erreur ni trace (cf. components/Dialog.tsx).
   const regenPlan = async () => {
     const ok = await confirm({
-      title: 'Régénérer tout ton plan ?',
+      title: 'Régénérer tout ton plan\u00A0?',
       message: 'Kyroz reconstruit une semaine complète de repas (tes goûts et tes préférences sont gardés).',
       confirmLabel: 'Régénérer',
       destructive: true,
@@ -549,7 +549,7 @@ export default function ProfilScreen() {
           <Presse activeOpacity={OPACITE_PRESSION} onPress={() => setEditor('goal')}>
             <Card t={t}>
               <Text style={{ ...Type.caption, color: t.text, lineHeight: 19 }}>
-                Ton poids est descendu sous la plage de référence pour ta taille. Kyroz a ramené ton plan à ta maintenance : plus de déficit tant que tu es dans cette zone. Tu n'as rien à faire dans l'immédiat, touche ici quand tu veux choisir un autre objectif.
+                Ton poids est descendu sous la plage de référence pour ta taille. Kyroz a ramené ton plan à ta maintenance : plus de déficit tant que tu es dans cette zone. Tu n'as rien à faire dans l'immédiat, touche ici quand tu veux choisir un autre objectif.
               </Text>
             </Card>
           </Presse>
@@ -570,7 +570,7 @@ export default function ProfilScreen() {
         {dietBreakWeek && (
           <Card t={t}>
             <Text style={{ ...Type.caption, color: t.text, lineHeight: 19 }}>
-              Cette semaine, tu manges à ta maintenance. C'est prévu : après huit semaines de déficit d'affilée, Kyroz en intercale une à l'équilibre. Ton déficit reprend tout seul la semaine prochaine, et ta date d'objectif en tient déjà compte.
+              Cette semaine, tu manges à ta maintenance. C'est prévu : après huit semaines de déficit d'affilée, Kyroz en intercale une à l'équilibre. Ton déficit reprend tout seul la semaine prochaine, et ta date d'objectif en tient déjà compte.
             </Text>
           </Card>
         )}
@@ -808,7 +808,7 @@ export default function ProfilScreen() {
 
       {/* Confirmation suppression de compte (RGPD) */}
       <ActionSheet visible={confirmDelete} onClose={() => setConfirmDelete(false)}>
-        <Text style={{ color: t.text, ...Type.h2 }}>Supprimer mon compte ?</Text>
+        <Text style={{ color: t.text, ...Type.h2 }}>Supprimer mon compte ?</Text>
         {/* 🔴 CETTE PHRASE DISAIT « TOUTES TES DONNÉES », ET C'ÉTAIT FAUX (constat 01-03).
             Deux défauts opposés dans la même phrase, ce qui explique qu'aucune relecture
             ne l'ait attrapée :
@@ -826,7 +826,7 @@ export default function ProfilScreen() {
             Google si un abonnement a été souscrit — vit au §7 de la politique. Sa place
             n'est pas dans un dialogue de confirmation : ici on dit ce qui PART. */}
         <Text style={{ ...Type.body, color: t.textSecondary, lineHeight: 21 }}>
-          Ton compte et ses données seront définitivement supprimés du serveur. Sur cet appareil, tout ce que Kyroz a enregistré sera effacé : profil, plans, pesées, photos, favoris, réserve.
+          Ton compte et ses données seront définitivement supprimés du serveur. Sur cet appareil, tout ce que Kyroz a enregistré sera effacé : profil, plans, pesées, photos, favoris, réserve.
         </Text>
         {/* 🔴 SUPPRIMER SON COMPTE N'ANNULE PAS L'ABONNEMENT, et rien ne le disait
             (constat `01-05`, ajouté le 2026-08-27). Le prélèvement continue : quelqu'un
@@ -846,7 +846,7 @@ export default function ProfilScreen() {
             ⚠️ Le nom du store se lit sur la PLATEFORME, jamais écrit en dur : un texte
             iOS servi sur Android enverrait chercher un réglage qui n'existe pas. */}
         <Text style={{ ...Type.body, color: t.textSecondary, lineHeight: 21 }}>
-          Un abonnement Kyroz+ n’est pas annulé par cette suppression : il se résilie depuis les réglages de ton compte {Platform.OS === 'android' ? 'Google Play' : 'App Store'}.
+          Un abonnement Kyroz+ n’est pas annulé par cette suppression : il se résilie depuis les réglages de ton compte {Platform.OS === 'android' ? 'Google Play' : 'App Store'}.
         </Text>
         {preuve === 'mot_de_passe' && (
           <>
@@ -1014,7 +1014,7 @@ function InfoEditor({ t, profile, onSave, onWeighIn, dragHandlers, sheetScrollPr
       {warnMsg && (
         <Card t={t}>
           <Text style={{ ...Type.caption, color: t.warning, lineHeight: 19 }}>
-            {warnMsg} Tu peux le changer dans « Objectif ».
+            {warnMsg} Tu peux le changer dans « Objectif ».
           </Text>
         </Card>
       )}
@@ -1038,7 +1038,7 @@ function InfoEditor({ t, profile, onSave, onWeighIn, dragHandlers, sheetScrollPr
         <Ionicons name="chevron-forward" size={Icone.standard} color={t.textTertiary} />
       </Presse>
       <Text style={{ ...Type.caption, color: t.textTertiary, lineHeight: 17, marginTop: -Spacing.sm }}>
-        Ton poids se met à jour en te pesant : c'est ce qui garde ta courbe et ton suivi justes.
+        Ton poids se met à jour en te pesant : c'est ce qui garde ta courbe et ton suivi justes.
       </Text>
       {/* À la roulette, comme à l'inscription (2026-09-30) : le même chiffre ne se saisit
           pas au clavier ici et à la molette là-bas. */}
@@ -1088,7 +1088,7 @@ function LowEaRiseCard({ t, rise, onPress }: {
           </Text>
         ) : (
           <Text style={{ ...Type.caption, color: t.text, lineHeight: 19 }}>
-            Après un long déficit, Kyroz t'a ramenée à un niveau qui protège ton énergie : tes calories ne baisseront plus tant que tu restes ici. Tu n'as rien à faire dans l'immédiat, touche ici quand tu veux choisir un autre objectif.
+            Après un long déficit, Kyroz t'a ramenée à un niveau qui protège ton énergie : tes calories ne baisseront plus tant que tu restes ici. Tu n'as rien à faire dans l'immédiat, touche ici quand tu veux choisir un autre objectif.
           </Text>
         )}
       </Card>
@@ -1128,13 +1128,13 @@ function EngineNoticeCard({ t, notice, onAdjust, onDismiss }: {
     // le déficit demandé (0,30 kg/semaine maximum, quel que soit le corps). Le texte le
     // dit sans jargon (« énergie disponible », « masse maigre ») et surtout SANS
     // reproche : ce n'est pas la personne qui allait trop lentement, c'est le moteur.
-    ? 'Kyroz te retenait : sa limite de sécurité était calculée pour des gabarits secs, et elle t\'empêchait de creuser un vrai déficit. Elle ne s\'applique plus à toi : ton budget baisse, et ta perte de poids va enfin suivre le rythme que tu as demandé.'
+    ? 'Kyroz te retenait\u00A0: sa limite de sécurité était calculée pour des gabarits secs, et elle t\'empêchait de creuser un vrai déficit. Elle ne s\'applique plus à toi\u00A0: ton budget baisse, et ta perte de poids va enfin suivre le rythme que tu as demandé.'
     : notice.cause === 'goal_merged'
     // rev 7 (2026-08-10) — `bulk` refermé sur `lean_bulk`. Ne JAMAIS présenter ça comme
     // une perte d'option : ce qui a disparu est un cran de vitesse, et la vitesse se
     // règle maintenant par la date. La hausse de protéines est dite, parce que c'est le
     // gain réel et qu'elle explique pourquoi le plan reste bon avec moins de calories.
-      ? 'Kyroz n\'a plus qu\'une prise de masse, et elle vise le muscle : un surplus plus mesuré, avec plus de protéines. Pour prendre plus vite, donne-toi un poids à atteindre et une date : c\'est elle qui règle le rythme désormais.'
+      ? 'Kyroz n\'a plus qu\'une prise de masse, et elle vise le muscle\u00A0: un surplus plus mesuré, avec plus de protéines. Pour prendre plus vite, donne-toi un poids à atteindre et une date\u00A0: c\'est elle qui règle le rythme désormais.'
       : notice.cause === 'measured_bmr'
     // rev 10 (2026-08-27, constat 02-01) — le chemin « %MG MESURÉ » cesse de servir
     // Katch-McArdle là où Katch rend moins que Mifflin. Sur ce trajet la cible ne peut
@@ -1154,7 +1154,7 @@ function EngineNoticeCard({ t, notice, onAdjust, onDismiss }: {
     // donc le texte peut prendre parti sur le signe. Aucun jargon (« Katch », « BMR »),
     // aucun reproche — c'est le moteur qui sous-estimait, pas la personne qui a mal
     // choisi sa silhouette.
-      ? 'Ta silhouette indique plus de muscle que la moyenne des gabarits comme le tien, et Kyroz en tient maintenant compte : ta dépense était sous-estimée, ton budget remonte d\'autant.'
+      ? 'Ta silhouette indique plus de muscle que la moyenne des gabarits comme le tien, et Kyroz en tient maintenant compte\u00A0: ta dépense était sous-estimée, ton budget remonte d\'autant.'
       : notice.rev >= 6 && depuis >= 5
     // rev 6 (2026-08-06) — Katch-McArdle exige désormais un %MG MESURÉ. La cible peut
     // monter ou baisser selon le sens de l'erreur d'estimation, donc le texte ne prend
@@ -1168,21 +1168,21 @@ function EngineNoticeCard({ t, notice, onAdjust, onDismiss }: {
     // tenait pas et Kyroz servait quand même le rythme « juste requis », donc il
     // freinait sans le dire. Le ton reste celui de la §10 : on annonce un moteur qui
     // porte la charge, pas un retard à rattraper.
-    ? 'Ta date n\'était pas tenable au rythme que Kyroz servait : il avance maintenant au maximum de ce qui reste sûr, et la date qu\'il t\'annonce est celle qu\'il tiendra.'
+    ? 'Ta date n\'était pas tenable au rythme que Kyroz servait\u00A0: il avance maintenant au maximum de ce qui reste sûr, et la date qu\'il t\'annonce est celle qu\'il tiendra.'
     : notice.rev >= 3 && depuis >= 2 && monte
-      ? 'Kyroz sous-estimait la dépense d\'une journée plutôt assise : ton budget part maintenant d\'une estimation plus juste.'
+      ? 'Kyroz sous-estimait la dépense d\'une journée plutôt assise\u00A0: ton budget part maintenant d\'une estimation plus juste.'
       : monte
-        ? 'Kyroz a revu sa façon d\'estimer ta dépense : ton budget part maintenant d\'une base plus juste.'
-        : 'Kyroz a corrigé deux choses : tes séances étaient comptées en double avec ta dépense de repos, et le niveau d\'activité de tes journées était supposé au lieu d\'être demandé.';
+        ? 'Kyroz a revu sa façon d\'estimer ta dépense\u00A0: ton budget part maintenant d\'une base plus juste.'
+        : 'Kyroz a corrigé deux choses\u00A0: tes séances étaient comptées en double avec ta dépense de repos, et le niveau d\'activité de tes journées était supposé au lieu d\'être demandé.';
   // ⚠️ Ne RIEN affirmer sur l'activité de la personne : la carte ne reçoit que la
   // notice, jamais le profil. « Ce budget correspond à des journées plutôt assises »
   // était faux pour qui a déjà déclaré `light`/`active`/`physical` — et ce sont
   // justement des gens à qui la carte est servie.
-  const suite = 'Si tes journées sont plus actives que ce que Kyroz a retenu, dis-le : ton budget suivra.';
+  const suite = 'Si tes journées sont plus actives que ce que Kyroz a retenu, dis-le\u00A0: ton budget suivra.';
   return (
     <Card t={t}>
       <Text style={{ ...Type.caption, color: t.text, lineHeight: 19 }}>
-        Ton budget est passé de {notice.from} à {notice.to} kcal/jour ({delta > 0 ? '+' : ''}{delta}). {explication}
+        Ton budget est passé de {notice.from} à {notice.to} kcal/jour ({frsigne(delta)}). {explication}
       </Text>
       <Text style={{ ...Type.caption, color: t.textSecondary, lineHeight: 19, marginTop: Spacing.sm }}>
         {suite}
@@ -1416,7 +1416,7 @@ function DatedGoalEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }:
   return (
     <EditorShell t={t} title="Objectif daté" onSave={submit} canSave={!!provisional && !goalBlockMsg} dragHandlers={dragHandlers} sheetScrollProps={sheetScrollProps}>
       <Text style={{ ...Type.caption, color: t.textSecondary, lineHeight: 18 }}>
-        Fixe un poids et une échéance : Kyroz ajuste tes calories jour après jour pour t'y amener au rythme le plus rapide — mais sûr.
+        Fixe un poids et une échéance : Kyroz ajuste tes calories jour après jour pour t'y amener au rythme le plus rapide — mais sûr.
       </Text>
 
       <Field t={t} label="Poids cible" suffix="kg" value={targetWeight} onChangeText={setTargetWeight} keyboardType="decimal-pad" />
@@ -1434,7 +1434,7 @@ function DatedGoalEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }:
         dateAuPlusTot ? (
           <View style={{ gap: Spacing.sm }}>
             <Text style={{ ...Type.caption, color: t.textSecondary, lineHeight: 18 }}>
-              À {twN} kg, la première date que Kyroz peut tenir en sécurité : le {formatFR(dateAuPlusTot)}.
+              À {twN} kg, la première date que Kyroz peut tenir en sécurité : le {formatFR(dateAuPlusTot)}.
             </Text>
             {dateVisee !== dateAuPlusTot && (
               <Presse
@@ -1449,7 +1449,7 @@ function DatedGoalEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }:
         ) : (
           <Text style={{ ...Type.caption, color: t.textSecondary, lineHeight: 18 }}>
             À {twN} kg, aucune date ne tient dans les cinq ans à venir, même au rythme le
-            plus rapide que la sécurité autorise. Vise un poids intermédiaire : le
+            plus rapide que la sécurité autorise. Vise un poids intermédiaire : le
             plancher baissera avec ton poids, et la suite deviendra possible.
           </Text>
         )
@@ -1506,8 +1506,8 @@ function DatedGoalEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }:
         <Text style={{ ...Type.caption, color: t.textSecondary, lineHeight: 18 }}>
           {!goalBlockMsg && status && !status.reachableByDate && !status.directionMismatch
             ? (dateAuPlusTot
-              ? `Cible le ${formatFR(dateVisee)} : c'est plus tôt que ce que Kyroz peut tenir : au rythme sûr, ce sera le ${formatFR(dateAuPlusTot)}.`
-              : `Cible le ${formatFR(dateVisee)} : ce poids n'est pas atteignable au rythme sûr, quelle que soit la date.`)
+              ? `Cible le ${formatFR(dateVisee)}\u00A0: c'est plus tôt que ce que Kyroz peut tenir\u00A0: au rythme sûr, ce sera le ${formatFR(dateAuPlusTot)}.`
+              : `Cible le ${formatFR(dateVisee)}\u00A0: ce poids n'est pas atteignable au rythme sûr, quelle que soit la date.`)
             : `Cible le ${formatFR(dateVisee)}.`}
         </Text>
       )}
@@ -1523,8 +1523,8 @@ function DatedGoalEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }:
 
       {!goalBlockMsg && status && preview && (
         <Card t={t} style={{ gap: Spacing.md }}>
-          <Row t={t} l="Trajectoire" v={status.direction === 'maintain' ? dirLabel : `${dirLabel} ${gapKg} kg`} strong />
-          {status.direction !== 'maintain' && <Row t={t} l="Rythme sûr" v={`${Math.abs(status.safeWeeklyKg)} kg / sem`} />}
+          <Row t={t} l="Trajectoire" v={status.direction === 'maintain' ? dirLabel : `${dirLabel} ${frnum(gapKg)} kg`} strong />
+          {status.direction !== 'maintain' && <Row t={t} l="Rythme sûr" v={`${frnum(Math.abs(status.safeWeeklyKg))} kg / sem`} />}
           <Row t={t} l="Calories ajustées" v={`${preview.target_kcal} kcal/j`} strong />
           {/* ⚠️ Cette ligne colorait le delta avec les tokens de MACRO — `carbs` en
               déficit, `protein` en surplus. Un jaune et un bleu détournés en code
@@ -1532,13 +1532,13 @@ function DatedGoalEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }:
               sont trois gris, ils ne se distinguaient même plus. Le signe porte
               l'information, et un écart à la maintenance n'a pas à s'alarmer
               (règle produit §10). */}
-          <Row t={t} l="vs maintenance" v={`${kcalDelta >= 0 ? '+' : ''}${kcalDelta} kcal/j`} />
+          <Row t={t} l="vs maintenance" v={`${frsigne(kcalDelta)} kcal/j`} />
         </Card>
       )}
       {!goalBlockMsg && status?.directionMismatch && (
         <Card t={t}>
           <Text style={{ ...Type.caption, color: t.text, lineHeight: 19 }}>
-            Ce poids cible va dans le sens inverse de ton objectif « {goalLabel(profile.goal)} ». Kyroz ne pilote pas tes calories tant que les deux ne concordent pas.
+            Ce poids cible va dans le sens inverse de ton objectif « {goalLabel(profile.goal)} ». Kyroz ne pilote pas tes calories tant que les deux ne concordent pas.
           </Text>
         </Card>
       )}
@@ -1567,7 +1567,7 @@ function DatedGoalEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }:
       {!goalBlockMsg && status?.clamped && !status.reachableByDate && !status.directionMismatch && !status.floorCapped && (
         <Card t={t}>
           <Text style={{ ...Type.caption, color: t.text, lineHeight: 19 }}>
-            Objectif ambitieux : au rythme le plus sûr tu atteins {frnum(status.targetWeightKg)} kg
+            Objectif ambitieux : au rythme le plus sûr tu atteins {frnum(status.targetWeightKg)} kg
             {dateAuPlusTot ? ` le ${formatFR(dateAuPlusTot)}` : ' plus tard que prévu'}, après ta date.{' '}
             {status.maxRateApplied
               ? 'Kyroz avance au maximum de ce qui reste sûr, et cette date-là, il la tient.'
@@ -1587,11 +1587,11 @@ function DatedGoalEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }:
           <Text style={{ ...Type.caption, color: t.text, lineHeight: 19 }}>
             Ton plan ne peut pas descendre sous {preview.target_kcal} kcal/jour en sécurité — c'est ton plancher, pas un réglage.{' '}
             {status.reachableByDate ? (
-              <>Ta date reste dans les clous : Kyroz ne creusera simplement pas plus que ça.</>
+              <>Ta date reste dans les clous : Kyroz ne creusera simplement pas plus que ça.</>
             ) : dateAuPlusTot ? (
-              <>Au rythme qu'il autorise, tu atteins {frnum(status.targetWeightKg)} kg le {formatFR(dateAuPlusTot)}. Tu peux viser cette date-là, ou choisir un poids cible plus proche : Kyroz ne creusera pas davantage.</>
+              <>Au rythme qu'il autorise, tu atteins {frnum(status.targetWeightKg)} kg le {formatFR(dateAuPlusTot)}. Tu peux viser cette date-là, ou choisir un poids cible plus proche : Kyroz ne creusera pas davantage.</>
             ) : (
-              <>À ce rythme, ce poids cible n'est pas atteignable quelle que soit la date. Choisis une cible plus proche, ou laisse le temps faire : ton poids qui baisse fera baisser le plancher avec lui.</>
+              <>À ce rythme, ce poids cible n'est pas atteignable quelle que soit la date. Choisis une cible plus proche, ou laisse le temps faire : ton poids qui baisse fera baisser le plancher avec lui.</>
             )}
           </Text>
         </Card>
@@ -1611,13 +1611,13 @@ function DatedGoalEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }:
       {!goalBlockMsg && floored && preview && !status?.floorCapped && (
         <Card t={t}>
           <Text style={{ ...Type.caption, color: t.text, lineHeight: 19 }}>
-            Ton plancher de sécurité est à {preview.target_kcal} kcal/jour : en dessous, ton corps n'a plus assez d'énergie pour fonctionner correctement. Plus tu t'entraînes, plus ce plancher monte, et c'est normal, l'énergie de tes séances ne compte pas comme énergie disponible.
+            Ton plancher de sécurité est à {preview.target_kcal} kcal/jour : en dessous, ton corps n'a plus assez d'énergie pour fonctionner correctement. Plus tu t'entraînes, plus ce plancher monte, et c'est normal, l'énergie de tes séances ne compte pas comme énergie disponible.
           </Text>
         </Card>
       )}
       {!goalBlockMsg && status?.direction === 'maintain' && (
         <Text style={{ ...Type.caption, color: t.textSecondary, lineHeight: 17 }}>
-          Tu es déjà à ton poids cible : Kyroz vise le maintien.
+          Tu es déjà à ton poids cible : Kyroz vise le maintien.
         </Text>
       )}
 
@@ -1732,7 +1732,7 @@ function PrefEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }: Edit
         <>
           <SectionLabel t={t}>Recettes masquées ({hiddenNamed.length})</SectionLabel>
           <Text style={{ ...Type.caption, color: t.textTertiary, lineHeight: 17, marginTop: -Spacing.sm }}>
-            Les recettes que tu as marquées « j'aime pas ». Touche-en une pour la réafficher.
+            Les recettes que tu as marquées « j'aime pas ». Touche-en une pour la réafficher.
           </Text>
           <View style={styles.wrap}>{hiddenNamed.map((r) => <Chip key={r.id} t={t} label={`${r.name}  ✕`} selected onPress={() => tog(hidden, r.id, setHidden)} />)}</View>
         </>
@@ -1924,13 +1924,13 @@ function MealsEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }: Edi
           // la règle du DERNIER repas (sans elle on croit qu'il ne se coche jamais),
           // la sortie de réserve, et l'irréversibilité. Taire l'un d'eux sur une
           // action irréversible serait un mensonge par omission.
-          ? "Un repas non marqué passe en « mangé » une heure après le début du suivant, et le dernier en fin de journée. Ses ingrédients quittent ta réserve, et un repas coché ne revient pas en arrière."
-          : "Tes repas ne se cochent que si tu tapes « J'ai cuisiné ». Ta journée n'est recalée que sur ce que tu as marqué toi-même."}
+          ? "Un repas non marqué passe en «\u00A0mangé\u00A0» une heure après le début du suivant, et le dernier en fin de journée. Ses ingrédients quittent ta réserve, et un repas coché ne revient pas en arrière."
+          : "Tes repas ne se cochent que si tu tapes «\u00A0J'ai cuisiné\u00A0». Ta journée n'est recalée que sur ce que tu as marqué toi-même."}
       </Text>
 
       <SectionLabel t={t}>Repas que tu gères toi-même</SectionLabel>
       <Text style={{ ...Type.caption, color: t.textTertiary, lineHeight: 17, marginTop: -Spacing.sm }}>
-        Définis-les une fois : Kyroz les compte dans ton total et cale tes autres repas autour, sans te les redemander chaque jour.
+        Définis-les une fois : Kyroz les compte dans ton total et cale tes autres repas autour, sans te les redemander chaque jour.
       </Text>
       <View style={{ gap: Spacing.sm }}>
         {orderedMeals(meals, customSlots).map((mt) => {
@@ -1961,7 +1961,7 @@ function MealsEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }: Edi
         })}
       </View>
 
-      <SectionLabel t={t}>Tu manges plus à quel moment ?</SectionLabel>
+      <SectionLabel t={t}>Tu manges plus à quel moment ?</SectionLabel>
       <View style={styles.wrap}>
         {emphasisOpts.map((e) => <Chip key={e.val} t={t} label={e.label} selected={emphasis.includes(e.val)} onPress={() => togEmphasis(e.val)} />)}
         {/* « Équilibré » n'est PAS un état caché : c'est la même donnée (liste vide),
@@ -2070,7 +2070,7 @@ function bankResume(p: UserProfile): string {
   const jours = WEEKDAY_OPTS.filter((o) => servis.has(o.val) && bank[String(o.val)]);
   if (!jours.length) return 'Tous mes jours pareils';
   return jours
-    .map((o) => `${o.label} ${bank[String(o.val)]! > 0 ? '+' : ''}${bank[String(o.val)]}`)
+    .map((o) => `${o.label} ${frsigne(bank[String(o.val)]!)}`)
     .join(' · ');
 }
 
@@ -2114,7 +2114,7 @@ function CalorieBankEditor({ t, profile, onSave, dragHandlers, sheetScrollProps 
     <EditorShell t={t} title="Jours plus copieux" onSave={() => onSave({ ...profile, calorie_bank: Object.keys(bank).length ? bank : undefined })} dragHandlers={dragHandlers} sheetScrollProps={sheetScrollProps}>
       <Text style={{ ...Type.bodySmall, color: t.textSecondary, lineHeight: 20 }}>
         Certains jours sont plus copieux que d'autres — le repas de famille du dimanche,
-        la soirée du samedi. Dis-le à Kyroz : il sert plus ce jour-là et reprend l'écart
+        la soirée du samedi. Dis-le à Kyroz : il sert plus ce jour-là et reprend l'écart
         sur tes autres jours. Le total de ta semaine ne bouge pas, tes protéines non plus,
         et aucun jour ne descend sous ton plancher de sécurité.
       </Text>
@@ -2125,7 +2125,7 @@ function CalorieBankEditor({ t, profile, onSave, dragHandlers, sheetScrollProps 
           au contraire — quelqu'un déclarait un samedi exceptionnel et le portait ensuite
           tous les samedis sans le savoir. Ne pas la retirer sans dater la donnée. */}
       <Text style={{ ...Type.bodySmall, color: t.textSecondary, lineHeight: 20, marginTop: Spacing.sm }}>
-        C'est un rythme, pas un événement : ton réglage vaut pour chaque semaine, tant que
+        C'est un rythme, pas un événement : ton réglage vaut pour chaque semaine, tant que
         tu ne le changes pas.
       </Text>
 
@@ -2141,13 +2141,13 @@ function CalorieBankEditor({ t, profile, onSave, dragHandlers, sheetScrollProps 
             Ta cible est déjà à ton minimum
           </Text>
           <Text style={{ ...Type.caption, color: t.textSecondary, lineHeight: 19 }}>
-            Tes {profile.target_kcal} kcal/jour correspondent à ton métabolisme de base :
+            Tes {profile.target_kcal} kcal/jour correspondent à ton métabolisme de base :
             l'énergie que ton corps dépense au repos. On ne descend pas en dessous, même
             un seul jour — la banque n'a donc rien à emprunter sur ta semaine.
             {'\n\n'}
-            Si tu comptais sécher, ça vaut le coup de vérifier deux choses : ta{' '}
+            Si tu comptais sécher, ça vaut le coup de vérifier deux choses : ta{' '}
             <Text style={{ fontWeight: '700' }}>masse grasse</Text> et ton{' '}
-            <Text style={{ fontWeight: '700' }}>poids</Text> dans « Informations » (une
+            <Text style={{ fontWeight: '700' }}>poids</Text> dans « Informations » (une
             erreur de saisie suffit), et ton objectif — à ce gabarit, un maintien te fera
             souvent plus de bien qu'un déficit.
           </Text>
@@ -2159,7 +2159,7 @@ function CalorieBankEditor({ t, profile, onSave, dragHandlers, sheetScrollProps 
         {joursDuPlan.map((o) => (
           <Chip
             key={o.val} t={t}
-            label={bank[String(o.val)] ? `${o.label} ${bank[String(o.val)]! > 0 ? '+' : ''}${bank[String(o.val)]}` : o.label}
+            label={bank[String(o.val)] ? `${o.label} ${frsigne(bank[String(o.val)]!)}` : o.label}
             selected={jour === o.val}
             onPress={() => setJour(jour === o.val ? null : o.val)}
           />
@@ -2167,13 +2167,13 @@ function CalorieBankEditor({ t, profile, onSave, dragHandlers, sheetScrollProps 
       </View>
       {joursDuPlan.length === 0 && (
         <Text style={{ ...Type.caption, color: t.textTertiary }}>
-          Choisis d'abord tes jours de plan dans « Paramètres des repas ».
+          Choisis d'abord tes jours de plan dans « Paramètres des repas ».
         </Text>
       )}
 
       {jour !== null && (
         <>
-          <SectionLabel t={t}>Combien en plus ce jour-là ?</SectionLabel>
+          <SectionLabel t={t}>Combien en plus ce jour-là ?</SectionLabel>
           <View style={styles.wrap}>
             {BANK_PRESETS.map((k) => (
               <Chip key={k} t={t} label={`+${k}`} selected={courant === k} onPress={() => set(jour, k)} />
@@ -2208,7 +2208,7 @@ function CalorieBankEditor({ t, profile, onSave, dragHandlers, sheetScrollProps 
             <View key={i} style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: Spacing.sm }}>
               <Text style={{ ...Type.bodySmall, color: t.textSecondary }}>{label}</Text>
               <Text style={{ color: ecart === 0 ? t.textSecondary : t.text, ...(ecart === 0 ? Type.bodySmall : Type.bodySmallStrong) }}>
-                {kcal} kcal{ecart !== 0 ? `  (${ecart > 0 ? '+' : ''}${ecart})` : ''}
+                {kcal} kcal{ecart !== 0 ? `  (${frsigne(ecart)})` : ''}
               </Text>
             </View>
           );
@@ -2219,7 +2219,7 @@ function CalorieBankEditor({ t, profile, onSave, dragHandlers, sheetScrollProps 
         // Ni alarme ni reproche : un fait, et ce que ça implique. On ne masque pas
         // l'écart non repris — l'avaler en silence serait un mensonge (§10).
         <Text style={{ ...Type.caption, color: t.textSecondary, lineHeight: 19 }}>
-          Sur cette semaine, {apercu.uncompensatedKcal} kcal ne peuvent pas être reprises :
+          Sur cette semaine, {apercu.uncompensatedKcal} kcal ne peuvent pas être reprises :
           les autres jours sont déjà à ton plancher de sécurité. Ta semaine finira un peu
           au-dessus de sa cible, et c'est très bien — le plancher passe avant.
         </Text>

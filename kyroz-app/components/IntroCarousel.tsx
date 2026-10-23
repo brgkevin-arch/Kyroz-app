@@ -281,7 +281,7 @@ export function IntroCarousel({ onTermine }: { onTermine: () => void }) {
               resizeMode="contain"
               accessibilityIgnoresInvertColors
               accessible
-              accessibilityLabel={`Aperçu de l'écran : ${d.titre}`}
+              accessibilityLabel={`Aperçu de l'écran\u00A0: ${d.titre}`}
             />
             )}
           </View>
@@ -310,7 +310,7 @@ export function IntroCarousel({ onTermine }: { onTermine: () => void }) {
             // `aria-selected` couvre les DEUX plateformes : RN natif le replie
             // lui-même dans `accessibilityState` (`Pressable.js:232`).
             accessibilityRole="tab"
-            accessibilityLabel={`Aller à « ${d.titre} »`}
+            accessibilityLabel={`Aller à «\u00A0${d.titre}\u00A0»`}
             aria-selected={i === index}
           >
             <View style={[s.point, i === index && { backgroundColor: t.text, width: 20 }]} />

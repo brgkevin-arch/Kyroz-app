@@ -11,7 +11,7 @@ import { todayStamp, localStamp, messageApresPesee, joursDeSaisie, indexAujourdh
 import { LocalIcon } from './Icons';
 import { useRouter } from 'expo-router';
 import { usePremium } from '../hooks/usePremium';
-import { frnum } from '../lib/units';
+import { frnum, frsigne } from '../lib/units';
 
 interface Props {
   t: ThemePalette;
@@ -279,7 +279,7 @@ export function WeightCheckin({ t, onClose, dragHandlers, sheetScrollProps }: Pr
                      le plus récent qui existe. On ne pèse toujours pas demain. */
                   onPress={() => { pickDate(d.futur ? todayStamp() : d.iso); setChoixDate(false); }}
                   activeOpacity={OPACITE_PRESSION}
-                  accessibilityLabel={d.futur ? `${d.wd} ${d.num}, à venir : ramène à aujourd'hui` : undefined}
+                  accessibilityLabel={d.futur ? `${d.wd} ${d.num}, à venir\u00A0: ramène à aujourd'hui` : undefined}
                   style={[
                     s.dateChip,
                     { backgroundColor: on ? t.accent : t.card, borderColor: on ? t.accent : t.line },
@@ -314,7 +314,7 @@ export function WeightCheckin({ t, onClose, dragHandlers, sheetScrollProps }: Pr
           <View style={s.confirm}>
             <Text style={s.confirmTitle}>
               {`✓ ${saved.label}, point ${saved.updated ? 'mis à jour' : 'enregistré'}`}
-              {saved.delta != null ? `  ·  ${saved.delta > 0 ? '+' : ''}${frnum(saved.delta)} kg` : ''}
+              {saved.delta != null ? `  ·  ${frsigne(saved.delta)} kg` : ''}
             </Text>
             <Text style={s.confirmSub}>{planStatusMsg(saved.date)}</Text>
           </View>

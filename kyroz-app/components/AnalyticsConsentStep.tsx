@@ -51,7 +51,7 @@ const MESURE = [
  *  du §6 de la synthèse, celui qui décide ce qu'une propriété d'event a le droit
  *  de contenir. Si une ligne devient fausse, c'est l'event qu'il faut corriger. */
 const JAMAIS = [
-  'Aucune donnée de santé : ni poids, ni taille, ni âge, ni sexe, ni objectif, ni régime, ni sport',
+  'Aucune donnée de santé\u00A0: ni poids, ni taille, ni âge, ni sexe, ni objectif, ni régime, ni sport',
   'Ni ton prénom, ni ton e-mail, ni tes photos de progression',
   'Rien de ce que tu écris toi-même',
 ];
@@ -75,7 +75,7 @@ export default function AnalyticsConsentStep({ onChoose }: Props) {
       <ScrollView contentContainerStyle={[s.content, layout.content]} showsVerticalScrollIndicator={false}>
         <Text style={s.title}>Aider à réparer Kyroz</Text>
         <Text style={s.sub}>
-          Kyroz tourne entièrement sur ton téléphone : sans mesure, on ne voit rien de ce
+          Kyroz tourne entièrement sur ton téléphone : sans mesure, on ne voit rien de ce
           qui casse chez toi. Tu peux nous laisser regarder comment l’app est utilisée —
           ou pas. Ça ne change strictement rien à ton plan.
         </Text>

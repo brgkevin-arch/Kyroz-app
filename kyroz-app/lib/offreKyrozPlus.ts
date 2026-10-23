@@ -130,7 +130,7 @@ export function friseEssai(
     {
       quand: `Pendant ${jours} jours`,
       titre: 'Tu essaies, tu décides',
-      texte: `Tu peux résilier à tout moment, au plus tard 24 h avant la fin, dans les réglages de ton compte ${store} : tu ne paieras rien.`,
+      texte: `Tu peux résilier à tout moment, au plus tard 24 h avant la fin, dans les réglages de ton compte ${store}\u00A0: tu ne paieras rien.`,
     },
     {
       quand: `Le ${le}`,

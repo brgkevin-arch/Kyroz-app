@@ -240,6 +240,9 @@ const DERNIERE_REVISION = {
   // (62ᵉ OTA) : à reporter si la publication glisse.
   // ➡️ Reportée du 20 au 23 octobre (2026-10-23) : la 62ᵉ OTA a glissé (#376 a reçu les
   // retouches d'avant publication). Si elle glisse encore, refaire ce geste.
+  // ➡️ **Puis des espaces insécables** (2026-10-23, PR de typographie) : devant « ? ! : ; »
+  // et dans « », aucun mot ne change. Même arbitrage que la HUITIÈME révision : la date
+  // suit la livraison, et ces espaces partent dans la même 62ᵉ OTA — elle reste donc le 23.
   // 🔴 **NEUVIÈME RÉVISION — LA SÉRIE QUITTE LES DEUX TEXTES** (2026-09-19). Décision
   // fondateur : la série (streak) est retirée de l'app, écrans, logique et synchro. La
   // politique la listait dans les données d'usage (§2), les CGU dans le cœur gratuit
@@ -337,7 +340,7 @@ const DERNIERE_REVISION = {
   // d'être déclaré le jour où il ne traite plus, données effacées. C'est la même règle
   // dans l'autre sens ; la garder à sens unique ferait décrire un traitement inexistant.
   // ➡️ La date ne bouge pas — même jour de livraison.
-  empreinte: 'a74e5c50f42a',
+  empreinte: '7852c72efbc5',
 };
 
 /**

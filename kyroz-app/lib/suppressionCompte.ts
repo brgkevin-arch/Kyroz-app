@@ -60,7 +60,7 @@ export function preuveExigee(email: string | null | undefined): PreuveExigee {
  * qui se voit vaut mieux que la panne qui accuse l'utilisateur.
  */
 export function messageEchecReauth(erreur: string | undefined, enLigne: boolean): string {
-  if (!enLigne) return 'Pas de connexion : impossible de vérifier ton mot de passe pour l’instant.';
+  if (!enLigne) return 'Pas de connexion\u00A0: impossible de vérifier ton mot de passe pour l’instant.';
   if (erreur && /network|fetch|timeout/i.test(erreur)) {
     return 'La vérification n’a pas abouti. Vérifie ta connexion et réessaie.';
   }

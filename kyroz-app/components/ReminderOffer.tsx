@@ -79,10 +79,10 @@ export function ReminderOffer({ visible, onClose }: Props) {
             {/* `fete` et non `vide` : ce n'est pas le décor d'un écran creux, c'est
                 le SUJET de la carte — même rôle que l'icône du reveal du 1er plan. */}
             <DureeIcon color={t.accent} size={Icone.fete} />
-            <Text style={s.title}>Un rappel par jour ?</Text>
+            <Text style={s.title}>Un rappel par jour ?</Text>
             <Text style={s.sub}>
               Une notification à l'heure que tu choisis, pour retrouver ton plan sans y penser.
-              Rien d'autre : Kyroz ne t'enverra pas de notification en dehors de ça.
+              Rien d'autre : Kyroz ne t'enverra pas de notification en dehors de ça.
             </Text>
 
             <View style={s.champ}>

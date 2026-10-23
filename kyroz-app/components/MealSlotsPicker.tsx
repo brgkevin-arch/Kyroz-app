@@ -144,7 +144,7 @@ export function MealSlotsPicker({
 
       {plein && !draft && (
         <Text style={{ ...Type.caption, color: t.textTertiary, lineHeight: 18 }}>
-          {MAX_MEAL_SLOTS} repas par jour, c'est le maximum : en deçà de cette taille de
+          {MAX_MEAL_SLOTS} repas par jour, c'est le maximum : en deçà de cette taille de
           portion, aucune recette du catalogue ne sait viser la cible.
         </Text>
       )}

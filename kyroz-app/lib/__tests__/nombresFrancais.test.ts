@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { globSync } from 'node:fs';
-import { frnum } from '../units';
+import { frnum, frsigne } from '../units';
 
 // ── UN NOMBRE DÉCIMAL S'ÉCRIT AVEC UNE VIRGULE ───────────────────────────────
 //
@@ -43,7 +43,16 @@ describe('frnum rend bien du français', () => {
   it('virgule sur un décimal, rien de superflu sur un entier', () => {
     expect(frnum(84.4)).toBe('84,4');
     expect(frnum(82)).toBe('82');
-    expect(frnum(-0.6)).toBe('-0,6');
+    // Le VRAI signe moins (U+2212) depuis le 2026-10-23 : le tiret court était plus étroit
+    // que le « + », et les écarts ne s'alignaient pas en colonne.
+    expect(frnum(-0.6)).toBe('\u22120,6');
+    expect(frnum(-269)).toBe('\u2212269');
+  });
+
+  it('un écart se signe dans les deux sens, par frsigne', () => {
+    expect(frsigne(0.3)).toBe('+0,3');
+    expect(frsigne(-0.3)).toBe('\u22120,3');
+    expect(frsigne(0)).toBe('0');
   });
 });
 
@@ -98,6 +107,33 @@ describe('aucun nombre décimal n\'est affiché brut', () => {
       }
     }
     expect(fautifs, `écarts affichés sans frnum :\n${fautifs.join('\n')}`).toEqual([]);
+  });
+
+  it('aucun « + » n\'est recollé à la main devant un nombre — c\'est le travail de frsigne', () => {
+    // 🔴 Neuf sites l'écrivaient encore le 2026-10-23, dont quatre sans frnum : « -269 kcal/j »
+    // sortait avec un tiret court au lieu du signe moins.
+    const MOTIF = /[<>]=? 0 \? '\+' : ''/g;
+    const fautifs: string[] = [];
+    for (const rel of fichiers) {
+      const src = sansCommentaires(readFileSync(join(RACINE, rel), 'utf8'));
+      for (const m of src.match(MOTIF) ?? []) fautifs.push(`${rel} → ${m}`);
+    }
+    expect(fautifs, `signe recollé à la main :\n${fautifs.join('\n')}`).toEqual([]);
+    expect("{delta > 0 ? '+' : ''}{delta}".match(MOTIF), 'la sonde ne voit plus rien').not.toBeNull();
+  });
+
+  it('le poids sous les photos avant/après passe par frnum', () => {
+    // « 79.4 kg » avec un POINT jusqu'au 2026-10-23 : la variable s'appelle `kg`, et la
+    // sonde des champs décimaux ne cherche que `weight_kg` et ses cousins.
+    const src = sansCommentaires(readFileSync(join(RACINE, 'components', 'Transformation.tsx'), 'utf8'));
+    expect(src).toContain('${frnum(kg)} kg');
+  });
+
+  it('l\'éditeur d\'objectif écrit « Perdre 4,4 kg » et « 0,2 kg / sem », avec une virgule', () => {
+    // Avec un POINT jusqu'au 2026-10-23 (vu sur la capture de l'éditeur).
+    const src = sansCommentaires(readFileSync(join(RACINE, 'app', 'profil.tsx'), 'utf8'));
+    expect(src).toContain('`${dirLabel} ${frnum(gapKg)} kg`');
+    expect(src).toContain('`${frnum(Math.abs(status.safeWeeklyKg))} kg / sem`');
   });
 
   it('aucun `toFixed` ne sert à afficher des kg — c\'est le travail de frnum', () => {

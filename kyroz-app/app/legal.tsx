@@ -29,7 +29,7 @@ export default function LegalScreen() {
 
       <ScrollView contentContainerStyle={[s.content, layout.content]} showsVerticalScrollIndicator={false}>
         <Text style={s.docTitle}>Politique de confidentialité</Text>
-        <Text style={s.updated}>Dernière mise à jour : {LEGAL.effectiveDate}</Text>
+        <Text style={s.updated}>Dernière mise à jour : {LEGAL.effectiveDate}</Text>
         {PRIVACY_POLICY.map((sec) => <Section key={sec.title} t={t} s={s} sec={sec} />)}
 
         <View style={s.divider} />

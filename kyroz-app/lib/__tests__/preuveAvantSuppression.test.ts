@@ -127,7 +127,10 @@ describe('le câblage de l’écran', () => {
     // présente AUCUNE, sans erreur ni trace (CLAUDE.md §11). Un `notify` ici ferait
     // un bouton qui ne répond pas — le défaut qui a déjà tué sept gestes.
     expect(code).toContain('MessageEnLigne');
-    const i = code.indexOf('Supprimer mon compte ?');
+    // ⚠️ Titre en insécable depuis le 2026-10-23. Sans ce contrôle, un titre introuvable
+    // donnait -1, donc une tranche VIDE, et le test passait sans rien lire.
+    const i = code.indexOf('Supprimer mon compte\u00A0?');
+    expect(i, 'le titre de la feuille de suppression a disparu').toBeGreaterThan(-1);
     const feuille = code.slice(i, i + 2500);
     expect(feuille, 'un dialogue a été rebranché dans la feuille de suppression')
       .not.toMatch(/\bnotify\(|\bconfirm\(/);

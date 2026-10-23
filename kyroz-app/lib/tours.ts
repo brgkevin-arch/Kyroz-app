@@ -161,8 +161,8 @@ export function visiteApp({ repasAuto }: VisiteContext): TourStep[] {
       // ⚠️ Aucune porte de retour n'est promise : il n'existe plus de chemin de
       // « mangé » vers « planifié » depuis le retrait du bouton « Annuler » (2026-08-25).
       text: repasAuto
-        ? "Tape « J'ai cuisiné » quand tu as mangé. Si tu oublies, Kyroz coche pour toi."
-        : "Tape « J'ai cuisiné » quand tu as mangé : ta journée se recale.",
+        ? "Tape «\u00A0J'ai cuisiné\u00A0» quand tu as mangé. Si tu oublies, Kyroz coche pour toi."
+        : "Tape «\u00A0J'ai cuisiné\u00A0» quand tu as mangé\u00A0: ta journée se recale.",
     },
     {
       onglet: 'courses',
@@ -187,7 +187,7 @@ export function visiteApp({ repasAuto }: VisiteContext): TourStep[] {
       // Prouvé par : recettes.tsx — le sélecteur « Catalogue / Réalisable », et
       // `cookableRecipes(reserve, profile)` derrière « Réalisable ». Le nom est celui du
       // bouton À L'ÉCRAN : la ligne désigne quelque chose qu'on voit derrière elle.
-      text: 'Et dans « Réalisable », celles que ta réserve permet de cuisiner.',
+      text: 'Et dans «\u00A0Réalisable\u00A0», celles que ta réserve permet de cuisiner.',
     },
     {
       // 🔴 L'arrêt du PROFIL est devenu celui de l'onglet POIDS le 2026-10-21 : la ligne
@@ -198,7 +198,7 @@ export function visiteApp({ repasAuto }: VisiteContext): TourStep[] {
       // `recalcProfile` ; ses cibles entrent dans `profileSignature` (lib/planEngine.ts),
       // et plan.tsx régénère le plan dès que la signature change (`profil_modifie`).
       // C'était la bulle du Profil, raccourcie : c'est ce que rien à l'écran ne dit.
-      text: 'Note ton poids : tes calories et ton plan suivent.',
+      text: 'Note ton poids\u00A0: tes calories et ton plan suivent.',
     },
   ];
 }

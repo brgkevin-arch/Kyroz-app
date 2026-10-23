@@ -146,6 +146,6 @@ export function lienAvis(texte: string, sujet: AvisSujet, ctx: AvisContexte): st
  */
 export function lienSuppressionStats(pseudonyme: string): string {
   const sujet = 'Kyroz · suppression de mes statistiques d’usage';
-  const corps = `Bonjour,\n\nJe demande la suppression des statistiques d’usage associées à mon appareil.\n\nIdentifiant pseudonyme : ${pseudonyme}\n\nMerci.\n`;
+  const corps = `Bonjour,\n\nJe demande la suppression des statistiques d’usage associées à mon appareil.\n\nIdentifiant pseudonyme\u00A0: ${pseudonyme}\n\nMerci.\n`;
   return `mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(sujet)}&body=${encodeURIComponent(corps)}`;
 }

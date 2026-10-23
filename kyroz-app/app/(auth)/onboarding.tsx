@@ -542,7 +542,7 @@ export default function Onboarding() {
     if (etape === 'objectif' && goal === null) return 'Choisis ton objectif pour continuer.';
     if (etape === 'objectif' && objectifBloque) return 'Sèche n\'est pas disponible ici. Choisis Maintien, ou un autre objectif.';
     if (etape === 'preferences' && !regimeChoisi(restrictions)) return 'Choisis ton régime.';
-    if (etape === 'preferences' && !preferencesValid) return 'Choisis tes protéines préférées, ou « Peu importe ».';
+    if (etape === 'preferences' && !preferencesValid) return 'Choisis tes protéines préférées, ou «\u00A0Peu importe\u00A0».';
     if (etape === 'preferences' && !goutsValid) return 'Dis-nous si tu préfères sucré ou salé, le matin et en collation.';
     if (etape === 'jours' && !joursValid) return 'Choisis au moins un jour.';
     if (etape === 'repas' && !mealsValid) return 'Choisis au moins un repas.';
@@ -1154,7 +1154,7 @@ function NameStep({ t, value, onChange, venuDApple }: { t: ThemePalette; value: 
       <Animated.Text style={[{ ...Type.body, color: t.textSecondary, lineHeight: 23 }, enter]}>
         {venuDApple
           ? "On va te bâtir un plan nutrition sur-mesure en moins de 2 minutes."
-          : "On va te bâtir un plan nutrition sur-mesure en moins de 2 minutes. D'abord, comment on t'appelle ?"}
+          : "On va te bâtir un plan nutrition sur-mesure en moins de 2 minutes. D'abord, comment on t'appelle\u00A0?"}
       </Animated.Text>
       <Animated.View style={{ opacity: field, marginTop: Spacing.sm }}>
         {/* ⚠️ Le placeholder REPREND le libellé, il ne donne pas d'exemple. C'était
