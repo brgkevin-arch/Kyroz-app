@@ -254,7 +254,9 @@ dans le temps* :
 1. **L'objectif daté** — viser un poids à une date, avec une trajectoire que le moteur tient
    vraiment ; il dit franchement quand la date n'est pas tenable, et propose la première qui
    l'est.
-2. **Le suivi de transformation** — photos et zone de progression.
+2. **Le suivi de transformation** — l'avant/après en photo. ⚠️ La zone de progression est
+   partie le 2026-09-20, le verdict de pente (« Dans ta zone ») le 2026-10-23 (décision
+   fondateur) : ne plus les citer.
 
 ⚠️ **Il y en avait TROIS jusqu'au 2026-08-18** : la banque de calories est sortie de l'offre
 (cf. §6). Ne pas la citer.

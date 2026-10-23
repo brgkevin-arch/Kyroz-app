@@ -1,15 +1,14 @@
 import React from 'react';
 import { View, Text, Image } from 'react-native';
 import { ThemePalette, Radius, Type, Spacing, Icone } from '../constants/theme';
-import { WeightEntry, todayStamp } from '../lib/weight';
-import { GoalTarget } from '../lib/types';
-import { trackStatus } from '../lib/datedGoal';
+import { WeightEntry } from '../lib/weight';
 import { LocalIcon } from './Icons';
 import { frnum } from '../lib/units';
 
 // ── Module « Transformation » (premium « Kyroz+ ») ───────────────────────────
-// La PREUVE que l'objectif daté avance : le verdict de pente (courbe réelle vs
-// trajectoire idéale) et la comparaison avant/après.
+// La comparaison avant/après. Le verdict de pente (« Dans ta zone »…) vivait ici ; il est
+// parti le 2026-10-23 (décision fondateur : « enlève dans ta zone »). Sa règle,
+// `lib/datedGoal.ts::trackStatus`, reste testée mais n'a plus d'écran.
 // RGPD : les photos restent LOCAL-ONLY (cf. lib/photos.ts) — rien n'est uploadé ici.
 
 const frDate = (iso: string) =>
@@ -18,56 +17,6 @@ const frDate = (iso: string) =>
 // Largeur max de la paire avant/après (≈ une largeur de téléphone) : borne la
 // hauteur des photos sur les écrans larges du web déployé.
 const PHOTO_ROW_MAX_WIDTH = 420;
-
-/**
- * Verdict d'avancement — pensé pour RASSURER, pas mettre la pression (North Star).
- * Jamais d'alarme : « en retard » devient un constat neutre, et on rappelle TOUJOURS
- * que la pente est un repère et que Kyroz réajuste les calories tout seul. On met en
- * avant l'acquis (kg déjà pris/perdus), pas l'écart à la ligne.
- */
-export function TrackVerdict({ t, goalTarget, currentWeightKg, paused = false }: {
-  t: ThemePalette; goalTarget: GoalTarget; currentWeightKg: number;
-  /** Le moteur ne pilote plus la trajectoire (insuffisance pondérale, sens contradictoire). */
-  paused?: boolean;
-}) {
-  const st = trackStatus(goalTarget, currentWeightKg, todayStamp(), paused);
-  if (!st) return null;
-
-  const losing = goalTarget.target_weight_kg < goalTarget.start_weight_kg;
-  // Progrès DANS LE BON SENS depuis le départ (positif = tu avances).
-  const progress = Math.round((goalTarget.start_weight_kg - currentWeightKg) * (losing ? 1 : -1) * 10) / 10;
-
-  // `paused` : le plan est bloqué à la maintenance, donc le poids ne PEUT plus
-  // descendre — mais la trajectoire idéale, elle, continuait de descendre. On
-  // affichait « en retard » à quelqu'un à qui l'app venait d'interdire tout déficit.
-  // Reprocher un retard qu'on impose soi-même est exactement la charge mentale
-  // qu'on refuse : ici on constate la pause, on ne juge rien.
-  const headline =
-    st.state === 'paused' ? { txt: 'Suivi en pause', color: t.text }
-    : st.state === 'ahead' ? { txt: 'En avance sur ton objectif', color: t.success }
-    : st.state === 'on_track' ? { txt: '✓ Dans ta zone', color: t.success }
-    : { txt: losing ? 'Ça descend à ton rythme' : 'Ça monte à ton rythme', color: t.text };
-
-  // 🔴 RÉDUIT À SA SEULE PHRASE LE 2026-09-20 (décision fondateur : « on garde QUE la
-  // phrase »). Sont partis avec la zone : « Depuis le départ : −4,4 kg » et « La pente
-  // est un repère, pas une règle… ».
-  // ⚠️ **SAUF EN PAUSE, et ce n'est pas moi qui décide d'y déroger — c'est le sens de
-  // la phrase.** « Suivi en pause » tout seul annonce un arrêt sans dire ni pourquoi ni
-  // ce que devient l'objectif : quelqu'un qui le lit croit avoir perdu sa trajectoire,
-  // alors que Kyroz vient de le mettre au maintien pour sa sécurité. Les trois autres
-  // états se suffisent (« En avance sur ton objectif » dit tout), celui-ci non.
-  // ➡️ À rouvrir si le fondateur tranche autrement : c'est une phrase, pas une règle.
-  return (
-    <View style={{ backgroundColor: t.fill, borderRadius: Radius.card, padding: Spacing.md, gap: Spacing.xs }}>
-      <Text style={{ ...Type.bodySmallStrong, color: headline.color }}>{headline.txt}</Text>
-      {st.state === 'paused' && (
-        <Text style={{ ...Type.caption, color: t.textTertiary, lineHeight: 17 }}>
-          Kyroz ne pilote plus cette trajectoire pour le moment : ton plan est au maintien. Ton objectif reste enregistré.
-        </Text>
-      )}
-    </View>
-  );
-}
 
 /** Comparaison avant / après : 1re et dernière photo, avec l'écart de poids. */
 export function PhotoCompare({ t, photos, entries }: {

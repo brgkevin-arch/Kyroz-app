@@ -17,7 +17,7 @@ import { WeightCheckin } from '../../components/WeightCheckin';
 import { CourbePoids } from '../../components/CourbePoids';
 import { HistoriquePesees } from '../../components/HistoriquePesees';
 import { ObjectifIcon } from '../../components/Icons';
-import { TrackVerdict, PhotoCompare } from '../../components/Transformation';
+import { PhotoCompare } from '../../components/Transformation';
 import { BlocObjectif } from '../../components/DatedGoalCard';
 import { useProfile } from '../../hooks/useProfile';
 import { useWeightLog } from '../../hooks/useWeightLog';
@@ -25,7 +25,6 @@ import { usePremium } from '../../hooks/usePremium';
 import { courbe, libelleFenetre, peutReculer, PERIODES, PERIODE_PAR_DEFAUT, Periode } from '../../lib/courbePoids';
 import { todayStamp, frequencyDays } from '../../lib/weight';
 import { FONCTIONS_KYROZ_PLUS } from '../../lib/offreKyrozPlus';
-import { planFlags, trackingTarget } from '../../lib/tdee';
 import { frnum } from '../../lib/units';
 
 // ── L'onglet Poids (2026-10-21, décision fondateur) ──────────────────────────
@@ -39,7 +38,7 @@ import { frnum } from '../../lib/units';
 //  1. le poids que le moteur utilise (celui du profil) et la date de la dernière pesée ;
 //  2. la courbe, par période, avec l'écart vécu sur la période ;
 //  3. le geste « Me peser » — la feuille de saisie, la même que celle du Plan ;
-//  4. ce que Kyroz+ ajoute (verdict de trajectoire, objectif daté, avant/après).
+//  4. ce que Kyroz+ ajoute (objectif daté, avant/après).
 // L'historique des pesées, d'où l'on supprime un point, s'ouvre par le bouton rond en
 // haut à droite (2026-10-23, décision fondateur) : `components/HistoriquePesees.tsx`.
 //
@@ -78,14 +77,6 @@ export default function PoidsScreen() {
   );
   const reculer = peutReculer(periode, c.fenetre.debut, entries);
 
-  // ⚠️ `trackingTarget`, PAS `profile.goal_target` : le verdict vise la date que le
-  // moteur TIENDRA, pas celle qui a été saisie — sinon il annonce « en retard » à
-  // quelqu'un qui suit le plan à la lettre (CLAUDE.md §10). Réservé à Kyroz+.
-  const suiviTarget = useMemo(
-    () => (profile ? trackingTarget(profile, aujourdhui) : undefined),
-    [profile?.goal_target?.target_date, profile?.goal_target?.target_weight_kg, profile?.weight_kg, profile?.target_kcal, aujourdhui], // eslint-disable-line react-hooks/exhaustive-deps
-  );
-  const suiviAffiche = transfoOk ? suiviTarget : undefined;
 
   // L'objectif daté se règle dans le Profil, où vivent tous les éditeurs : on y va
   // avec le drapeau que le Profil consomme à son arrivée (même chemin que les cartes
@@ -229,14 +220,9 @@ export default function PoidsScreen() {
           <Text style={s.ctaTxt}>{due || entries.length === 0 ? 'Me peser' : 'Ajouter une pesée'}</Text>
         </Presse>
 
-        {/* Kyroz+ — le verdict de trajectoire. La courbe, elle, ne se verrouille jamais. */}
-        {suiviAffiche && (
-          <TrackVerdict
-            t={t} goalTarget={suiviAffiche} currentWeightKg={profile.weight_kg}
-            paused={planFlags(profile).some((f) => f === 'UNDERWEIGHT_NO_DEFICIT' || f === 'GOAL_DIRECTION_MISMATCH')}
-          />
-        )}
-
+        {/* 🔴 LE VERDICT DE TRAJECTOIRE (« Dans ta zone », « En avance sur ton objectif »…)
+            EST PARTI LE 2026-10-23 (décision fondateur : « enlève dans ta zone »). La carte
+            de l'objectif, juste en dessous, dit déjà où l'on en est. */}
         {/* L'OBJECTIF DATÉ, À LA PLACE DE L'HISTORIQUE (2026-10-23, décision fondateur :
             « on peut personnaliser l'objectif daté pour les users Kyroz+, et la même chose
             avec un petit cadenas pour les users Free »). Posé : sa carte de suivi. Pas

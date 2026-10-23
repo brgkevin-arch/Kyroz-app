@@ -207,7 +207,10 @@ qu'ils étaient périmés.
    ouverte par un bouton rond **en haut à droite** — toutes les pesées (plus seulement dix), écart
    **neutre** ; à sa place, la carte **« Objectif daté »** : Kyroz+ la règle (l'éditeur s'ouvre
    dans le Profil, comme depuis le Plan), sans Kyroz+ la même carte porte un **cadenas** et ouvre
-   la page Kyroz+. Vu au navigateur (gratuit, Kyroz+, objectif posé, thème clair) ; thème clair,
+   la page Kyroz+. ✅ **Puis, le même jour** : le verdict (« Dans ta zone ») retiré de l'onglet
+   (« enlève dans ta zone ») ; les deux textes de vente de Kyroz+ réécrits (« ça fait beaucoup
+   trop IA, humanifie ») — celui du suivi de transformation promettait encore la trajectoire et
+   ce verdict, il ne dit plus que l'avant/après. Titres inchangés, donc CGU §3 inchangées. Vu au navigateur (gratuit, Kyroz+, objectif posé, thème clair) ; thème clair,
    largeur iPad et `qa-settings.mjs` (5 sous-écrans, 0 échec) revus le même jour. ⚠️ La rangée
    qui défile est un GESTE : à valider sur iPhone (CLAUDE.md §5). Puis la refonte du Profil,
    qu'il a placée juste après.

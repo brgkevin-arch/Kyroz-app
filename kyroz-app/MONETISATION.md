@@ -11,8 +11,9 @@
 > compte qui portait déjà un réglage n'en garde aucune trace, ni affichée ni servie.
 > 1. **🎯 Objectif daté** — poids cible + date → trajectoire calorique au rythme le plus
 >    rapide mais sûr (le « coffre » : le gratuit donne les clés, le premium le contenu).
-> 2. **📈 Trajectoire + réassurance** — zone ombrée sur la courbe (pas une ligne à suivre :
->    anti-charge-mentale), verdict jamais alarmant, « Kyroz réajuste tes calories tout seul ».
+> 2. ~~**📈 Trajectoire + réassurance**~~ — **RETIRÉ** : la zone ombrée sur la courbe est
+>    partie le 2026-09-20, le verdict (« Dans ta zone ») le 2026-10-23 (décisions fondateur).
+>    Il ne reste du suivi de transformation que l'avant/après en photo.
 > 3. **📸 Transformation** — photos avant/après (local-only).
 >
 > ✅ **LE PAYWALL EST LIVRÉ** — écran, verrou, SDK, prix du store. ⚠️ Cette ligne a annoncé

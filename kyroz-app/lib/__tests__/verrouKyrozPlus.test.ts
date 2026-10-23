@@ -184,10 +184,13 @@ describe('chaque feature de PREMIUM_FEATURES est réellement interrogée', () =>
       onglet.match(/<CourbePoids[\s\S]{0,160}?\/>/)?.[0] ?? '',
       'la courbe ne doit dépendre d\'AUCUN verrou : elle est gratuite, entièrement',
     ).not.toMatch(/transfoOk|suiviAffiche|premium/);
+    // 🔴 LE VERDICT (« Dans ta zone ») EST PARTI LE 2026-10-23 (décision fondateur). Ce
+    // que `transformation` garde encore, c'est l'avant/après : il reste réservé à Kyroz+.
+    expect(onglet, 'le verdict de trajectoire a été retiré de l’onglet').not.toMatch(/<TrackVerdict\b/);
     expect(
       onglet,
-      'le verdict de trajectoire, lui, reste réservé à Kyroz+ (`suiviAffiche`)',
-    ).toMatch(/<TrackVerdict[\s\S]{0,160}?goalTarget=\{suiviAffiche\}/);
+      'l’avant/après, lui, reste réservé à Kyroz+ (`transfoOk`)',
+    ).toMatch(/\{transfoOk \? \(\s*<PhotoCompare\b/);
     // L'historique (et la suppression d'une pesée) ne passe par aucun verrou non plus.
     // 🔴 IL A QUITTÉ LE BAS DE L'ONGLET le 2026-10-23 pour sa feuille, ouverte par un
     // bouton en haut à droite (décision fondateur). Même règle, deux surfaces : le
