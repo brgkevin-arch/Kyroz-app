@@ -41,6 +41,7 @@ const RETIREES: [string[], string][] = [
   [['app', '(tabs)', 'plan.tsx'], 'Elles suivent maintenant ton régime'],
   [['components', 'MealCard.tsx'], 'compté dans ton total'],
   [['components', 'RecipeDetail.tsx'], 'journée recalée'],
+  [['components', 'RecipeDetail.tsx'], 'retirer de ma réserve'],
   [['components', 'RecipeDetail.tsx'], 'un peu au-dessus de ta cible'],
   [['components', 'RecipeDetail.tsx'], 'un peu en dessous de ta cible'],
   [['components', 'RecipeDetail.tsx'], 'un peu pauvre en protéines'],

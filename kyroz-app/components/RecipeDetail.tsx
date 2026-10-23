@@ -224,7 +224,10 @@ export function RecipeDetail({ recipe, portions = 1, adaptedIngredients, adapted
                 <Text style={s.swapTxt}>Je l'ai sauté</Text>
               </Presse>
             )}
-            {onCook && <PrimaryButton t={t} label="J'ai mangé, retirer de ma réserve" onPress={onCook} />}
+            {/* « J'ai cuisiné », le mot de la carte du Plan (2026-10-23) : la fiche disait « J'ai
+                mangé, retirer de ma réserve » — deux mots pour un geste, et la machine racontée
+                (point 4). La déduction de la réserve, elle, n'a pas changé. */}
+            {onCook && <PrimaryButton t={t} label="J'ai cuisiné" onPress={onCook} />}
           </View>
         )}
       </ScrollView>

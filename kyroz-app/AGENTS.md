@@ -358,6 +358,31 @@ qu'ils étaient périmés.
    toucher coche toujours, avec son tic `choix` ; l'aide « Appui long pour retirer un
    article » part avec l'appui long. Vu au navigateur : retirer, glissement long, cocher,
    rétablir. Même validation au simulateur que la Réserve.
+8. **Tour de l'app du 2026-10-23** (« fais un tour de l'app, si tu trouves aussi des choses,
+   go ») — au navigateur, clair et sombre, inscription neuve comprise, et les parcours
+   « Courses terminées » → Réserve → Réalisable. **Corrigé dans #376** :
+   - **l'intro montrait une app qui n'existe plus** (`assets/intro/`, 8 images) : le bandeau
+     « ✓ Mangé, journée recalée », et une liste de courses EN GRAMMES avec l'ancienne aide et
+     l'ancien compteur (« 8 sur 8 ») — plus ancienne que le point 4. Regénérée par
+     `test/intro-captures.mjs` (session factice, aucun compte) ; poids total inchangé (1,1 Mo).
+     ⚠️ La diapo 2 (poids) montre la carte du Profil : à REGÉNÉRER quand #390 fusionne ;
+   - la fiche d'un repas disait « J'ai mangé, retirer de ma réserve » quand la carte dit
+     « J'ai cuisiné » : un geste, deux mots, et la machine racontée → « J'ai cuisiné » ;
+   - « Quand veux-tu commencer ? » coupait « jour-là » au trait d'union → trait insécable.
+   **Trouvé, PAS corrigé — à trancher ou à planifier** :
+   - 🔴 **les deux-points tombent en début de ligne** (« ne changent pas / : ils restent
+     gratuits » sur la page Kyroz+) : **437 espaces ordinaires** devant `: ; ? ! »` (ou après
+     `«`) dans **66 fichiers**. Le remède est mécanique (espace insécable), mais il touche la
+     plupart des fichiers de #390 → PR À PART, après les deux fusions, avec un garde-fou ;
+   - **unités : la liste dit « 1 ananas », la Réserve dit « 500 g »** (tomate : « 2 tomates » /
+     « 120 g »). La Réserve n'affiche en pièces que les aliments à `poidsUnitaire` (banane,
+     avocat, œuf…), pas ceux qu'on achète à la pièce (`FORMATS`). L'étendre change aussi les
+     fiches recette (« Tomate 80 g » → « ⅔ tomate ») — décision du fondateur ;
+   - « Quand veux-tu commencer ? » : l'option « Lundi 26 » a pour sous-titre « lundi 26
+     octobre » (redite) ;
+   - au navigateur seulement, le titre compact passe PAR-DESSUS le contenu qui défile sous lui
+     (« J'ai cuisiné Plan ») : c'est le fondu d'iOS (E80), validé au simulateur ; sur le site
+     web il se lit comme un chevauchement.
 ➡️ Avancement : tenu ici, ligne par ligne, au fil des validations. **Au 2026-10-21** : point 1
    codé + essai posé (ligne 1) ; **point 2 codé et vu au navigateur le 2026-10-22** (semaine
    suivante + pesée, niveau 2 des restes après l'OTA) ; **point 3 mesuré, fermé et validé le
