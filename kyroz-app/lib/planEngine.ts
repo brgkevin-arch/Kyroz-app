@@ -1037,6 +1037,23 @@ export function rotationRegistreActive(profile: UserProfile): boolean {
  */
 const PART_FIT_TOL = 0.04;
 
+/**
+ * LES RESTES DE LA SEMAINE D'AVANT (« niveau 2 », 2026-10-23) : le plan suivant commence par
+ * ce qui reste des paquets. Réglages de MESURE (`scripts/mesure-restes.ts`), pas encore figés.
+ */
+export const RESTES = {
+  /** Les N premiers jours du plan visent les restes ; ensuite, sélection ordinaire. */
+  jours: 2,
+  /** Même rôle que `PART_FIT_TOL` : un plat aux restes n'est retenu que s'il s'ajuste presque aussi bien. */
+  tol: PART_FIT_TOL,
+  /** Un plat « reprend » un reste à partir de ces grammes. */
+  minG: 1,
+  /** PROTOTYPE : la semaine finit aussi les paquets qu'elle ouvre, pendant N jours après l'ouverture (0 = non). */
+  ouvertJours: 0,
+  /** PROTOTYPE : famille déjà servie cette semaine — 'libre' (ignorée), 'preferee' (neuve d'abord), 'stricte' (neuve seulement). */
+  famille: 'libre' as 'libre' | 'preferee' | 'stricte',
+};
+
 function selectMealAdapted(
   pool: Recipe[],
   target: AdaptTarget,
@@ -1058,6 +1075,7 @@ function selectMealAdapted(
   fiberStrong: boolean,
   goalDir: number,
   couchesPart: ((r: Recipe) => boolean)[] = [],
+  restes?: ReadonlyMap<string, number>,
 ): AdaptedChoice {
   const tous: AdaptedChoice[] = pool
     .map((r) => {
@@ -1127,6 +1145,19 @@ function selectMealAdapted(
   if (goutMatch && goutImpose) {
     const dansLeGout = candidates.filter((c) => goutMatch.has(c.recipe.id));
     if (dansLeGout.some(propre)) candidates = dansLeGout;
+  }
+  // RESTES (niveau 2) : parmi les plats PROPRES qui s'ajustent presque aussi bien que le
+  // meilleur, ceux qui reprennent un reste de la semaine d'avant. Aucun → le panier reste tel quel.
+  if (restes && restes.size > 0) {
+    const repris = (c: AdaptedChoice) => c.ingredients.reduce(
+      (t, i) => t + (i.ref ? Math.min(i.quantity_g, restes.get(i.ref) ?? 0) : 0), 0);
+    const fit = Math.min(...candidates.filter(propre).map((c) => c.score));
+    const admis = candidates.filter((c) => propre(c) && c.score <= fit + RESTES.tol && repris(c) >= RESTES.minG);
+    const neuve = (c: AdaptedChoice) => (familyUsage[families.get(c.recipe.id) ?? ''] ?? 0) === 0;
+    const retenus = RESTES.famille === 'libre' ? admis
+      : RESTES.famille === 'stricte' ? admis.filter(neuve)
+      : (admis.some(neuve) ? admis.filter(neuve) : admis);
+    if (retenus.length > 0) candidates = retenus;
   }
 
   // Rotation intra-semaine par SCORE EFFECTIF : une recette déjà servie voit son
@@ -1668,7 +1699,29 @@ function fixedMealToMeal(fm: FixedMeal, day: number, slot: MealSlot, isRest: boo
  * ⚠️ Pas `rebalanceDay` : mesuré sur 36 semaines, il recale sans resserrer ni lisser —
  * écart de calories 0,56 → 0,89 % et drapeaux 30 → 63, dès une pesée de −0,5 kg.
  */
-export function buildLocalPlan(profile: UserProfile, seed: number = 0, imposes?: ReadonlyMap<string, Meal>): MealPlan {
+export function buildLocalPlan(
+  profile: UserProfile,
+  seed: number = 0,
+  imposes?: ReadonlyMap<string, Meal>,
+  restes?: ReadonlyMap<string, number>,
+  paquet?: (ref: string) => number | undefined,
+  tient?: (ref: string) => number,
+): MealPlan {
+  // Les restes encore à reprendre, en grammes par `ref` : chaque plat servi y puise.
+  const restesVivants = restes ? new Map(restes) : null;
+  // PROTOTYPE : les paquets ouverts cette semaine, ce qu'il en reste et le jour d'ouverture.
+  const ouverts = new Map<string, { g: number; jour: number }>();
+  const aViser = (d: number): ReadonlyMap<string, number> | undefined => {
+    // `tient(ref)` : combien de jours l'aliment tient encore (PROTOTYPE, fourni par l'appelant).
+    const m = new Map<string, number>();
+    if (restesVivants && d <= RESTES.jours) for (const [ref, g] of restesVivants) if (!tient || d <= tient(ref)) m.set(ref, g);
+    if (RESTES.ouvertJours > 0) {
+      for (const [ref, o] of ouverts) {
+        if (d - o.jour <= Math.min(RESTES.ouvertJours, tient ? tient(ref) : Infinity)) m.set(ref, (m.get(ref) ?? 0) + o.g);
+      }
+    }
+    return m.size > 0 ? m : undefined;
+  };
   const days = Math.min(Math.max(profile.plan_days, 1), 7);
 
   // Créneaux retenus par l'utilisateur, dans l'ordre CHRONOLOGIQUE. `activeSlots`
@@ -1948,7 +2001,24 @@ export function buildLocalPlan(profile: UserProfile, seed: number = 0, imposes?:
         variety, preferredIds, enRetraitIds, maxUsageRepetitif, goutMatch, goutImpose, exclusions,
         objectives, sportBuckets,
         seed, fiberStrong, goalDir, couchesPart,
+        aViser(d),
       );
+      for (const i of choice.ingredients) {
+        if (!i.ref) continue;
+        let q = i.quantity_g;
+        const g = restesVivants?.get(i.ref);
+        if (g !== undefined) {
+          if (g > q) { restesVivants!.set(i.ref, g - q); q = 0; }
+          else { restesVivants!.delete(i.ref); q -= g; }
+        }
+        const taille = paquet?.(i.ref);
+        if (!taille || q <= 0) continue;
+        const o = ouverts.get(i.ref);
+        if (o && o.g >= q) { o.g -= q; if (o.g < RESTES.minG) ouverts.delete(i.ref); continue; }
+        const manque = q - (o?.g ?? 0);
+        const reste = Math.ceil(manque / taille) * taille - manque;
+        if (reste >= RESTES.minG) ouverts.set(i.ref, { g: reste, jour: d }); else ouverts.delete(i.ref);
+      }
       if (principal && partsVisees) {
         const sortes = sortesDe(choice.recipe);
         let compte = false;
