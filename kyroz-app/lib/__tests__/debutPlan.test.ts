@@ -50,13 +50,15 @@ describe('E78 — les choix proposés à la fin de l’inscription', () => {
     expect(o.filter((x) => x.groupe === 'semaine').every((x) => x.detail === '')).toBe(true);
   });
 
-  it('un créneau créé, de genre inconnu : « ton » devant une voyelle, sinon son nom entre guillemets', () => {
+  it('un repas créé, de genre inconnu : « ton repas « … » », juste quel que soit son nom', () => {
+    // Décision fondateur (2026-10-23) : ni question à la création, ni liste de noms à deviner.
     const slots = [
-      { id: 'c1', label: 'Encas', hour: 22, minute: 0, pool: 'snack' as const },
-      { id: 'c2', label: 'Pause tardive', hour: 23, minute: 0, pool: 'snack' as const },
+      ...BUILTIN_SLOTS,
+      { id: 'c1', label: 'Pause tardive', hour: 22, minute: 0, pool: 'snack' as const },
+      { id: 'c2', label: 'Goûter', hour: 22, minute: 30, pool: 'snack' as const },
     ];
     const o = optionsDeDebut(new Date(2026, 9, 21, 21, 30), slots, SEMAINE);
-    expect(o[0].detail).toBe('Il reste ton encas et «\u00A0Pause tardive\u00A0»');
+    expect(o[0].detail).toBe('Il reste ton dîner, ton repas «\u00A0Pause tardive\u00A0» et ton repas «\u00A0Goûter\u00A0»');
   });
 
   it('plus aucun repas à venir : pas de « Ce soir », on commence au plus tôt demain', () => {

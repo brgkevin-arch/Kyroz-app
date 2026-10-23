@@ -1,4 +1,5 @@
-import type { MealPlan, MealSlot, MealType } from './types';
+import type { BuiltinMealType, MealPlan, MealSlot, MealType } from './types';
+import { isBuiltinSlot } from './mealSlots';
 import { heuresLimites, type DebutDuSuivi } from './repasAuto';
 import { dateLocale, datesDuPlan, joursEcoules } from './semainePlan';
 
@@ -69,21 +70,19 @@ function enumerer(noms: string[]): string {
 
 const minuscule = (s: string) => s.charAt(0).toLowerCase() + s.slice(1);
 
-/** Le genre des noms de repas courants, pour « ton dîner », « ta collation ». */
-const POSSESSIF: Record<string, 'ton' | 'ta'> = {
-  'petit-dej': 'ton', 'petit-dejeuner': 'ton', dejeuner: 'ton', diner: 'ton', collation: 'ta',
-  gouter: 'ton', souper: 'ton', brunch: 'ton', snack: 'ton', shaker: 'ton', 'casse-croute': 'ton',
-};
+/** Les quatre repas intégrés, avec leur possessif : « ton dîner », « ta collation ». */
+const POSSESSIF: Record<BuiltinMealType, 'ton' | 'ta'> = { breakfast: 'ton', lunch: 'ton', snack: 'ta', dinner: 'ton' };
 
 /**
- * « ton dîner », « ta collation ». Un créneau créé par l'utilisateur (« Pause du matin ») a un
- * genre qu'on ne devine pas : devant une voyelle « ton » vaut pour les deux (« ton encas »,
- * « ton envie ») ; sinon son nom passe entre guillemets, sans article, plutôt qu'avec le mauvais.
+ * « ton dîner », « ta collation ». Un repas CRÉÉ par l'utilisateur a un genre que l'app ne
+ * connaît pas : « ton repas « Shaker post-training » », juste quel que soit son nom (« repas »
+ * est masculin). Décision fondateur du 2026-10-23 : *« on ne se prend pas la tête avec ça »* —
+ * ni question à la création, ni liste de noms à deviner.
  */
-function avecPossessif(libelle: string): string {
-  const n = libelle.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-  const possessif = POSSESSIF[n] ?? (/^[aeiouy]/.test(n) ? 'ton' : null);
-  return possessif ? `${possessif} ${minuscule(libelle.trim())}` : `«\u00A0${libelle.trim()}\u00A0»`;
+function avecPossessif(slot: MealSlot, libelle: string): string {
+  return isBuiltinSlot(slot.id)
+    ? `${POSSESSIF[slot.id]} ${minuscule(libelle)}`
+    : `ton repas «\u00A0${libelle.trim()}\u00A0»`;
 }
 
 /**
@@ -126,7 +125,7 @@ export function optionsDeDebut(
       out.push({
         debut: { jour: dateLocale(maintenant), minutes },
         libelle: maintenant.getHours() >= HEURE_DU_SOIR ? 'Ce soir' : 'Aujourd’hui',
-        detail: `Il reste ${enumerer(restants.map((s) => avecPossessif(libelleDe(s))))}`,
+        detail: `Il reste ${enumerer(restants.map((s) => avecPossessif(s, libelleDe(s))))}`,
         groupe: 'aujourdhui',
       });
     }

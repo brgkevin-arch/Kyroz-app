@@ -397,9 +397,10 @@ qu'ils étaient périmés.
      *« Il reste ton petit-déj, ton déjeuner, ta collation et ton dîner »* ; « Un autre jour »
      (« Cette semaine ») ouvre les jours du plan de demain à DIMANCHE, sans sous-titre ;
      « La semaine prochaine » — son premier jour du plan, daté (« Lundi 26 octobre »). *Avant* :
-     « Demain » et 7 jours glissants, chacun sous-titré de sa date. Un créneau créé, de genre
-     inconnu : « ton » devant une voyelle (« ton encas »), sinon son nom entre guillemets — pas
-     de « ta goûter ». Un seul jour restant cette semaine se montre en carte ; un seul début
+     « Demain » et 7 jours glissants, chacun sous-titré de sa date. Un repas créé par
+     l'utilisateur, de genre inconnu : *« ton repas « Shaker post-training » »*, juste quel que
+     soit son nom (décision fondateur : *« le 2, on ne se prend pas la tête avec ça »* — ni
+     question à la création, ni liste de noms à deviner). Un seul jour restant cette semaine se montre en carte ; un seul début
      possible (samedi, plan lundi → vendredi) ne se demande plus : « C'est prêt » dit
      « Tu commences lundi 26 octobre. ». Vu au navigateur (inscription neuve, mercredi 21 h 45
      et samedi 10 h). Garde-fou : `debutPlan.test.ts`, vu rougir par 2 mutations.
