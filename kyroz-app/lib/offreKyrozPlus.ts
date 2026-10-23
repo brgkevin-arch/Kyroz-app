@@ -28,24 +28,23 @@ export interface FonctionKyrozPlus {
   corps: string;
 }
 
-// ⚠️ RÉÉCRITS LE 2026-10-23 (fondateur : « ça fait beaucoup trop IA, humanifie ») : des
-// phrases courtes, des mots de tous les jours, et rien que ce que l'app sert. Le second
-// promettait encore « la trajectoire visée » sur la courbe (partie le 2026-09-20) et « un
-// mot sur ta pente » (le verdict, retiré de l'onglet Poids le 2026-10-23).
+// ⚠️ RÉÉCRITS LE 2026-10-23 (fondateur : « ça fait beaucoup trop IA, humanifie »), puis
+// RACCOURCIS le même jour (« pas convaincu » par la première réécriture ; « go » sur
+// celle-ci) : une phrase, des mots de tous les jours, et rien que ce que l'app sert. Le
+// second promettait encore « la trajectoire visée » sur la courbe (partie le 2026-09-20) et
+// « un mot sur ta pente » (le verdict, retiré de l'onglet Poids le 2026-10-23).
 export const FONCTIONS_KYROZ_PLUS: FonctionKyrozPlus[] = [
   {
     feature: 'dated_goal',
     icone: 'rocket-outline',
     titre: 'Objectif daté',
-    corps:
-      "Choisis un poids et une date. Kyroz adapte tes calories pour y arriver et les réajuste " +
-      "à chaque pesée. Si c'est trop serré, il te propose une date réaliste.",
+    corps: 'Un poids, une date. Kyroz règle tes calories pour y arriver.',
   },
   {
     feature: 'transformation',
     icone: 'trending-up-outline',
     titre: 'Suivi de transformation',
-    corps: "Ta première et ta dernière photo côte à côte, avec les kilos qui les séparent.",
+    corps: 'Tes photos avant/après, côte à côte.',
   },
 ];
 

@@ -211,8 +211,13 @@ qu'ils étaient périmés.
    (« enlève dans ta zone ») ; les deux textes de vente de Kyroz+ réécrits (« ça fait beaucoup
    trop IA, humanifie ») — celui du suivi de transformation promettait encore la trajectoire et
    ce verdict, il ne dit plus que l'avant/après. Titres inchangés, donc CGU §3 inchangées.
-   🟡 **Le fondateur n'est « pas convaincu » par ces textes, il y reviendra** : à lui reposer
-   avant la 62ᵉ OTA. ✅ **Sans Kyroz+, la carte montre le VRAI aperçu de l'objectif, flouté,
+   ✅ **Textes TRANCHÉS le 2026-10-23** (« pas convaincu » par la première réécriture, puis
+   « go » sur la seconde) : « Un poids, une date. Kyroz règle tes calories pour y arriver. » ·
+   « Tes photos avant/après, côte à côte. » (PR de la typographie, #395).
+   🟡 **Le fondateur « n'aime pas l'onglet de l'objectif daté » (2026-10-23) — « on le
+   changera plus tard, pour le moment on finit ce que l'on fait »** : la carte « Objectif
+   daté » de l'onglet Poids (aperçu flouté sans Kyroz+, suivi avec) est à repenser APRÈS la
+   62ᵉ OTA. Lui demander d'abord ce qui le gêne, rien proposer avant. ✅ **Sans Kyroz+, la carte montre le VRAI aperçu de l'objectif, flouté,
    un cadenas ; le texte vient dans une POPUP au tap sur l'aperçu, avec « Découvrir Kyroz+ » et
    « Plus tard »** (« le vrai aperçu flouté avec un cadenas », « le texte apparaît que quand on
    appuie », « un pop-up, avec le Découvrir Kyroz+ ») ; le flou s'estompe sur les bords au lieu
