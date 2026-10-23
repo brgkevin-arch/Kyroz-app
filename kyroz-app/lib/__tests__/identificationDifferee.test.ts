@@ -69,10 +69,10 @@ describe('09-01 — l’identifiant ne part que si le verdict en dépend', () =>
     expect(fichiers.length, 'le balayage n’a rien trouvé : il ne mesure RIEN').toBeGreaterThan(50);
 
     const porteurs = fichiers.filter((f) => lire(f).includes('forcerIdentification'));
-    // `hooks/usePremium.ts` DÉFINIT l'option ; `app/kyroz-plus.tsx` est le seul écran
-    // qui a le droit de la poser — acheter exige que le fournisseur sache à quel
-    // compte rattacher l'achat.
-    expect(porteurs.sort()).toEqual(['app/kyroz-plus.tsx', 'hooks/usePremium.ts']);
+    // `hooks/usePremium.ts` DÉFINIT l'option ; seuls les écrans qui VENDENT ont le droit de
+    // la poser — acheter exige que le fournisseur sache à quel compte rattacher l'achat :
+    // l'écran Kyroz+ du Profil et, depuis le 2026-10-20, la page Kyroz+ du parcours d'arrivée.
+    expect(porteurs.sort()).toEqual(['app/kyroz-plus.tsx', 'app/offre-kyroz-plus.tsx', 'hooks/usePremium.ts']);
   });
 
   // ── LA FONCTION QUI DÉCIDE, MESURÉE ────────────────────────────────────────

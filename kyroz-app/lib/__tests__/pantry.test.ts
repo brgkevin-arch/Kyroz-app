@@ -111,10 +111,18 @@ describe('Déduction : l’unité du stock est respectée', () => {
     expect(after.find((i) => i.name === 'Banane')!.quantity).toBe(2.5);
   });
 
+  // La courgette servait d'exemple jusqu'au 2026-10-23 : elle se vend à la pièce, son poids
+  // est désormais connu (`lib/aLaPiece.ts`). Les champignons, en barquette, ne le sont pas.
   it('pièces d’un aliment au poids inconnu : rien n’est déduit, la ligne reste', () => {
+    const pantry: PantryItem[] = [{ name: 'Champignons', quantity: 2, unit: 'pièce', category: 'légumes' }];
+    const after = deductIngredients(pantry, [{ name: 'Champignons', quantity_g: 200, unit: 'g' }]);
+    expect(after).toEqual(pantry);
+  });
+
+  it('pièces d’un aliment vendu à la pièce : déduites au poids de la pièce (2026-10-23)', () => {
     const pantry: PantryItem[] = [{ name: 'Courgette', quantity: 2, unit: 'pièce', category: 'légumes' }];
     const after = deductIngredients(pantry, [{ name: 'Courgette', quantity_g: 200, unit: 'g' }]);
-    expect(after).toEqual(pantry);
+    expect(after[0].quantity).toBe(1);
   });
 
   it('grammes contre millilitres : incomparable, rien n’est déduit', () => {
@@ -125,10 +133,10 @@ describe('Déduction : l’unité du stock est respectée', () => {
 
   it('deux lignes du même aliment : on déduit de celle qui se compare, pas de la première venue', () => {
     const pantry: PantryItem[] = [
-      { name: 'Courgette', quantity: 2, unit: 'pièce', category: 'légumes' },
-      { name: 'Courgette', quantity: 300, unit: 'g', category: 'légumes' },
+      { name: 'Champignons', quantity: 2, unit: 'pièce', category: 'légumes' },
+      { name: 'Champignons', quantity: 300, unit: 'g', category: 'légumes' },
     ];
-    const after = deductIngredients(pantry, [{ name: 'Courgette', quantity_g: 200, unit: 'g' }]);
+    const after = deductIngredients(pantry, [{ name: 'Champignons', quantity_g: 200, unit: 'g' }]);
     expect(after.find((i) => i.unit === 'pièce')!.quantity).toBe(2);
     expect(after.find((i) => i.unit === 'g')!.quantity).toBe(100);
   });

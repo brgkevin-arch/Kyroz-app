@@ -92,8 +92,21 @@ core tuerait le North Star — donc interdit.
 ## Tarif recommandé (marché FR, cible hommes et femmes 18–50)
 
 - **4,99 €/mois** ou **39,99 €/an** (−33 %, ancre la formule annuelle).
-- **Essai** : pas d'essai chronométré agressif. Le gratuit EST l'essai (freemium
-  large). Kyroz+ se déclenche sur l'intention (clic sur une feature avancée).
+- **Essai** : ~~pas d'essai chronométré agressif. Le gratuit EST l'essai (freemium
+  large). Kyroz+ se déclenche sur l'intention (clic sur une feature avancée).~~
+  🔴 **RÈGLE CHANGÉE LE 2026-10-20** (décision fondateur : *« aucune règle n'est définitive,
+  je réfléchis et apprends à chaque instant »*) :
+  · **une page Kyroz+ dans le parcours d'arrivée**, une fois, APRÈS la visite de l'app (*« la
+    personne a vu ce que l'app a dans le ventre »*), avant l'offre du rappel —
+    `app/offre-kyroz-plus.tsx`, sur le modèle de la page d'essai de Wikiloc ; elle se ferme
+    d'un tap (croix, « Peut-être plus tard ») et ne touche jamais au gratuit ;
+  · **un essai gratuit de deux semaines** à la première souscription. L'écran ne l'annonce
+    que si le STORE l'accorde à cette personne (`lib/offreKyrozPlus.ts::joursEssai`) ; il
+    faut donc l'offre d'introduction posée sur les deux abonnements dans App Store Connect.
+    CGU §3 révisées le même jour (essai, résiliation 24 h avant la fin).
+  · **pas de liste « à venir »** sur la page d'achat (avis retenu) : on ne vend que ce qui
+    existe ; une phrase sans liste ni date dit que les nouveautés Kyroz+ sont incluses.
+  · Kyroz+ se déclenche toujours AUSSI sur l'intention (clic sur une fonction verrouillée).
 - Pas de pub, pas de revente de données (RGPD — données de santé, spec §7).
 
 ## Implémentation du paywall — plan de câblage (prochain chantier CODE)

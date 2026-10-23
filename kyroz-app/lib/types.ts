@@ -741,6 +741,10 @@ export interface MealPlan {
   // Date locale (YYYY-MM-DD) du dernier suivi posé (mangé/sauté/hors plan). Sert
   // à remettre la journée à zéro quand on change de jour calendaire.
   tracking_date?: string;
+  // Heure ISO à laquelle ce plan a été PRÉPARÉ D'AVANCE, comme semaine suivante (2026-10-21,
+  // `lib/semaineSuivante.ts`) : des courses closes après elle valent pour CE plan, même
+  // faites avant son premier jour. Absent sur un plan généré le jour même.
+  prepare_le?: string;
 }
 
 export interface ShoppingItem {
@@ -763,5 +767,10 @@ export interface ShoppingList {
   id: string;
   plan_id: string;
   items: ShoppingItem[];
+  // Quand une semaine suivante attend (`lib/semaineSuivante.ts`) : les articles qui
+  // manquent encore pour les repas de la semaine EN COURS, rangés à part, en tête.
+  pour_cette_semaine?: string[];
+  // Le premier jour de la semaine suivante couverte par la liste (`YYYY-MM-DD`).
+  semaine_suivante?: string;
 }
 

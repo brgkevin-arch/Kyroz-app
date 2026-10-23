@@ -3,7 +3,10 @@ import { Ingredient, Recipe, ShoppingItem, UserProfile } from './types';
 import { getEffectiveRecipes } from './recipes';
 import { RECIPE_INGREDIENTS } from './recipeData';
 import { poidsUnitaire } from './units';
+import { norm, refDuNom } from './nomsAliments';
 import { recipeAllowed } from './planEngine';
+
+export { norm, refDuNom };
 
 // ── La RÉSERVE ───────────────────────────────────────────────────────────────
 // Module isolé : inventaire de ce qu'il reste en cuisine, alimenté à la clôture
@@ -33,9 +36,10 @@ export interface PantryItem {
 // ── Frais ou sec : déduit de la catégorie, corrigeable en une touche ─────────
 //
 // Le classement automatique porte les articles qui arrivent des courses — personne
-// ne va trier 69 lignes à la main. Il se trompe forcément quelque part (le tofu est
-// dans « autres », donc annoncé sec ; le riz CUIT d'hier est un féculent, donc
-// annoncé sec alors qu'il est au frigo), d'où la correction manuelle.
+// ne va trier 69 lignes à la main. Il se trompe forcément quelque part (le riz CUIT
+// d'hier est un féculent, donc annoncé sec alors qu'il est au frigo), d'où la
+// correction manuelle. ⚠️ Les aliments du catalogue que la catégorie range mal ont
+// leur rangement à eux (`RANGEMENT_PAR_ALIMENT`, point 5 du 2026-10-23).
 //
 // ⚠️ Le champ est OPTIONNEL et n'est écrit qu'à la correction : c'est ce qui rend le
 // classement rétroactif. Les réserves déjà enregistrées n'ont pas ce champ et se
@@ -50,8 +54,48 @@ const CONSERVATION_PAR_CATEGORIE: Record<PantryCategory, Conservation> = {
   autres: 'sec',
 };
 
+/**
+ * Les CONSERVES se rangent au sec, quelle que soit leur catégorie (2026-10-04, relevé au
+ * troisième tour de l'app : le thon, les sardines, le maïs, les tomates concassées et la
+ * ratatouille en boîte s'affichaient « Au frais », avec la viande et les légumes du rayon
+ * frais). Les légumineuses en boîte y étaient déjà, par leur catégorie de féculent.
+ * ⚠️ Liste à la main, à côté de la catégorie : `formatsVendus.test.ts` exige que tout
+ * ingrédient vendu en boîte (œufs mis à part) finisse au sec.
+ */
+const CONSERVES = new Set([
+  'thon_naturel', 'sardines', 'tomate_concassee', 'ratatouille', 'mais',
+  'pois_chiches_conserve', 'haricots_rouges_conserve', 'haricots_blancs_conserve', 'haricots_noirs_conserve',
+]);
+
+/**
+ * LE RANGEMENT ALIMENT PAR ALIMENT, quand la catégorie se trompe (point 5, validé par le
+ * fondateur le 2026-10-23). La règle : **au frais = au frigo** (« tu ne mets pas une banane
+ * au frigo »), **au sec = tout le reste** — placard, corbeille, endroit sombre. Chaque
+ * aliment est rangé d'après les sources (Interfel surtout), citées avec leur raison dans
+ * `docs/2026-10-23-rangement-reserve.md` (`npx tsx scripts/gen-rangement-reserve.ts`).
+ * ⚠️ Les briques et pots qui se gardent au placard FERMÉS et au frigo une fois ouverts vont
+ * au sec (décision du même jour) : la Réserve reçoit des paquets fermés à « Courses
+ * terminées ». Comme le reste, la correction d'une touche l'emporte.
+ */
+const RANGEMENT_PAR_ALIMENT: Record<string, Conservation> = {
+  // Ce que le froid abîme : corbeille ou placard.
+  banane: 'sec', tomate: 'sec', avocat: 'sec', ananas: 'sec', mangue: 'sec', pomme: 'sec',
+  pomme_de_terre: 'sec', patate_douce: 'sec', oignon: 'sec', lentilles_corail: 'sec',
+  // Briques UHT fermées (le lait d'amande, le lait de coco et le tofu soyeux y étaient déjà).
+  lait_demi_ecreme: 'sec', creme_soja: 'sec',
+  // Vendus au rayon frais, et rangés « Autres » (donc sec) par leur catégorie.
+  tofu_ferme: 'frais', tofu_fume: 'frais', tempeh: 'frais', seitan: 'frais',
+  boulette_vegetale: 'frais', galette_vegetale: 'frais', lardons_vegetaux: 'frais',
+  merguez_vegetale: 'frais', nuggets_vegetal: 'frais', saucisse_vegetale: 'frais',
+  chorizo_vegetal: 'frais', falafel: 'frais',
+};
+
 export function conservationDe(item: PantryItem): Conservation {
-  return item.conservation ?? CONSERVATION_PAR_CATEGORIE[item.category] ?? 'sec';
+  if (item.conservation) return item.conservation;
+  const ref = refDuNom(item.name);
+  if (ref && CONSERVES.has(ref)) return 'sec';
+  if (ref && RANGEMENT_PAR_ALIMENT[ref]) return RANGEMENT_PAR_ALIMENT[ref];
+  return CONSERVATION_PAR_CATEGORIE[item.category] ?? 'sec';
 }
 
 /** Le stock d'un seul rangement, dans l'ordre où il a été saisi. */
@@ -88,22 +132,8 @@ export function isStaple(name: string): boolean {
   return STAPLES.some((s) => n.includes(s));
 }
 
-/**
- * Comparaison de noms d'aliments : sans casse, sans accents, sans ligatures.
- *
- * ⚠️ Exporté le 2026-08-26 — il était seulement PRIVÉ. Les ajouts manuels à la
- * liste de courses (`lib/shoppingAjouts.ts`) comparent des noms saisis au clavier
- * à ceux du plan ; une seconde normalisation aurait fait diverger deux moitiés de
- * la même liste (« Poêlée » ≠ « poelee » d'un côté, égal de l'autre).
- */
-export function norm(name: string): string {
-  return name
-    .trim()
-    .toLowerCase()
-    .normalize('NFD').replace(/[̀-ͯ]/g, '') // retire les accents (é→e…)
-    .replace(/œ/g, 'oe').replace(/æ/g, 'ae')   // ligatures œ/æ → lettres simples
-    .replace(/['‘’]/g, '');      // apostrophes (droites/courbes)
-}
+// `norm` (comparaison de noms) vit dans `lib/nomsAliments.ts` depuis le 2026-10-23 :
+// `lib/units.ts` en a besoin, et l'importer d'ici aurait fait un cycle.
 
 // Un article du garde-manger correspond-il à un ingrédient de recette ?
 // Tolère ligatures (œ↔oe), accents, singulier/pluriel et libellés partiels —
@@ -150,15 +180,7 @@ export function matches(pantryName: string, ingredientName: string): boolean {
 // rangée serait restée fautive jusqu'à ce qu'on la recoche. Personne n'aurait
 // compris pourquoi le bug survivait au correctif.
 
-/** Nom normalisé → `ref` du catalogue. Une seule construction, au chargement. */
-const REF_PAR_NOM: Map<string, string> = new Map(
-  Object.entries(RECIPE_INGREDIENTS).map(([ref, def]) => [norm(def.name), ref] as const),
-);
-
-/** La `ref` catalogue d'un nom, s'il en désigne une EXACTEMENT (sinon `undefined`). */
-export function refDuNom(name: string): string | undefined {
-  return REF_PAR_NOM.get(norm(name));
-}
+// `refDuNom` : `lib/nomsAliments.ts` (même raison que `norm`).
 
 /**
  * Le nom à AFFICHER pour un article : celui du catalogue quand le nom en désigne un.
@@ -203,7 +225,7 @@ const CAT_MAP: [string, PantryCategory][] = [
   ['poulet', 'viandes'], ['bœuf', 'viandes'], ['boeuf', 'viandes'], ['steak', 'viandes'],
   ['dinde', 'viandes'], ['jambon', 'viandes'], ['saumon', 'viandes'], ['thon', 'viandes'],
   ['cabillaud', 'viandes'], ['crevette', 'viandes'], ['poisson', 'viandes'],
-  ['porc', 'viandes'], ['maquereau', 'viandes'], ['sardine', 'viandes'],
+  ['porc', 'viandes'], ['maquereau', 'viandes'], ['sardine', 'viandes'], ['chorizo', 'viandes'],
 
   // Légumes & fruits
   ['brocoli', 'légumes'], ['épinard', 'légumes'], ['epinard', 'légumes'], ['tomate', 'légumes'],
@@ -236,10 +258,16 @@ const CAT_MAP: [string, PantryCategory][] = [
   ['beurre', 'laitiers'], ['mozzarella', 'laitiers'],
 ];
 
+// 🔴 UN MOT-CLÉ NE COMPTE QU'EN DÉBUT DE MOT (2026-10-23, point 5). Cherché n'importe où,
+// « ail » attrapait les lentilles cor-AIL (rangées en Légumes, donc au frigo) et « riz » le
+// cho-RIZ-o végétal (rangé en Féculents). L'apostrophe sépare deux mots (« lait d'amande »)
+// — `norm` la retire, d'où l'espace posé avant.
+const pourMots = (s: string) => norm(s.replace(/['‘’]/g, ' '));
+const CAT_MOTS = CAT_MAP.map(([kw, cat]) => [new RegExp(`(^|[^a-z0-9])${pourMots(kw).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`), cat] as const);
+
 export function categorize(name: string): PantryCategory {
-  const n = norm(name);
-  // norm(kw) pour comparer sans accents/ligatures des deux côtés.
-  for (const [kw, cat] of CAT_MAP) if (n.includes(norm(kw))) return cat;
+  const n = pourMots(name);
+  for (const [motif, cat] of CAT_MOTS) if (motif.test(n)) return cat;
   return 'autres';
 }
 

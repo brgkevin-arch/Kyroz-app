@@ -120,6 +120,12 @@ qu'ils étaient périmés.
 
 ### ▶️ Reprise du 2026-10-19 — À LIRE EN PREMIER
 
+> 🛰️ **PASSATION DU 2026-10-22 VERS UNE SESSION CLOUD** (le fondateur a atteint sa limite
+> hebdomadaire) : lire d'abord **`docs/2026-10-22-passation-session-cloud.md`** — reprise en
+> cinq gestes sur la branche `claude/semaine-datee` (#376), état des 6 points, point 3 à faire
+> valider, départ des points 4 et 5, livraison de la 62ᵉ OTA (Mac seulement, « go » du
+> fondateur), conflit attendu avec #390, et les règles de la mémoire locale recopiées.
+
 > Le fondateur reprend après dix jours et repart d'une **session fraîche** (« je me suis
 > trop éparpillé »). Ce bloc dit ce qui est EN LIGNE, ce qui ATTEND, et par où reprendre.
 > ➡️ **Une chose à la fois** : proposer le point 1, attendre la réponse, puis le suivant.
@@ -162,23 +168,28 @@ qu'ils étaient périmés.
    week-end est celui de la semaine qui vient, il se renouvelle le lendemain de son dernier
    jour, F9 compte les courses du week-end ; plus quatre retouches (« il t'en faut 2
    tranches », plus de « 2 bananes · il t'en faut 2 bananes », conserves au sec, 10 recettes
-   sans mot en capitales). ⚠️ Effet à faire valider : inscrit un samedi avec un plan de
-   7 jours, le premier plan dure 2 jours, puis la vraie semaine arrive le lundi. ⚠️ Elle a
-   pris du retard sur `main` (#377 à #383, dont des retouches d'`AGENTS.md`) : la remettre à
+   sans mot en capitales). ✅ Effet VALIDÉ par le fondateur (2026-10-19) : inscrit un
+   samedi, s'il choisit « Aujourd'hui » avec un plan de 7 jours, le premier plan dure 2 jours,
+   puis la vraie semaine arrive le lundi (la question d'E78 le rend rare). ✅ Remise à jour
+   avec `main` le 2026-10-19 (#377 à #384) ; elle avait pris du retard : la remettre à
    jour avant tout merge, conflits probables dans les fiches. Le mode automatique a refusé
    `gh pr merge` à Claude sur cette PR (« Merge Without Review », 2026-10-04) : le fondateur
    fusionne lui-même, ou l'autorise via `/permissions` dans un terminal `claude`.
 2. **L'inscription du soir — angle mort MESURÉ (E78)** : la première liste de courses achète
-   les repas du jour déjà passés (+22 % à +36 %). Le fondateur a des idées pour le régler :
-   **les écouter avant de proposer**. À livrer avec #376.
+   les repas du jour déjà passés (+22 % à +36 %). ✅ **CODÉ dans #376 le 2026-10-19** (idée du
+   fondateur : demander quand on commence) — non publié, part avec la 62ᵉ OTA ; détail en E78.
 3. **La table des formats vendus (E75) — le fondateur l'a RELUE le 2026-10-19** : *« 5 g est
    négligeable, aucun intérêt de faire acheter un pot ; pareil pour 10 g ; il faut estimer la
    proportion pour chaque aliment »*. À concevoir : un seuil PAR ALIMENT (besoin ÷ paquet)
-   sous lequel la liste n'impose pas un paquet ; rien codé. Deux questions posées, sans
-   réponse : sous le seuil, la ligne disparaît-elle (comme le sel) ou reste-t-elle sans paquet
-   (« cacao : 10 g ») ? et faut-il lui préparer le tableau besoin d'une semaine ÷ paquet,
-   aliment par aliment ? Défaut repéré au passage : 3 boîtes de thon proposées pour 290 g
-   alors que 2 boîtes font 280 g (la tolérance de 5 % porte sur UN paquet).
+   sous lequel la liste n'impose pas un paquet. ✅ **Tranché le 2026-10-19** : sous le seuil,
+   **la ligne disparaît** (comme le sel) ; **seuil = 20 % d'une portion habituelle, jamais moins
+   de 10 g**, et (2026-10-20) **au plus 15 g pour ce qui porte la protéine du plat** ; la
+   recette n'est PAS adaptée au manque. ✅ **Codé dans #376 le 2026-10-20** (`lib/seuilAchat.ts`,
+   seuils calculés sur le catalogue, appliqués à l'écran Courses), vu à l'écran, non publié.
+   Tableau généré depuis le code : `docs/2026-10-19-seuils-par-aliment.md`. Défaut repéré au passage : 3 boîtes de thon proposées pour 290 g
+   alors que 2 boîtes font 280 g (la tolérance de 5 % portait sur UN paquet) — ✅ **corrigé
+   dans #376 le 2026-10-19** : les 5 % portent sur l'achat entier (`formatsVendus.ts::achatPour`),
+   rien ne change pour un seul paquet ; test vérifié par mutation.
 3 bis. **Liquid Glass (E79) — ✅ PUBLIÉ dans la 61ᵉ OTA le 2026-10-20** (#385). Reste hors
    lot : l'icône en couches (Icon Composer, nouveau build).
 3 ter. **Le haut de l'app sous la Dynamic Island (E80) — ✅ PUBLIÉ dans la 61ᵉ OTA le
@@ -192,6 +203,230 @@ qu'ils étaient périmés.
 5. **Option B de la connexion** (questionnaire d'abord, compte à la fin) — **écartée pour
    l'instant**, pas refusée : cf. E77 pour ce qu'elle coûterait. Ne pas la relancer sans
    demande.
+
+**▶️ À peaufiner AVANT la 62ᵉ OTA — demandé le 2026-10-20, UN PAR UN, chacun validé avant le suivant**
+*(Passation cloud du 2026-10-22 : `docs/2026-10-22-passation-session-cloud.md`. Point 3 validé le 2026-10-22.)*
+1. **Une page Kyroz+ dans le parcours d'arrivée**, avec abonnement direct (modèle montré par le
+   fondateur : la page d'essai de Wikiloc — logo, « 14 jours offerts », frise « Aujourd'hui → … »,
+   gros bouton, « Restaurer les achats », croix pour fermer). ✅ **CODÉ le 2026-10-20 dans #376**
+   (non publié) : `app/offre-kyroz-plus.tsx`, une fois, APRÈS la visite, avant le rappel ; à un
+   compte qui doit payer, jamais sur le web ; croix + « Peut-être plus tard ». Pas de liste
+   « à venir » (avis retenu) : `lib/offreKyrozPlus.ts` porte LA liste vendue, lue aussi par
+   l'écran Kyroz+ et les CGU §3. **Essai de 14 jours** (décision fondateur) : affiché SEULEMENT
+   si le store l'accorde (`joursEssai`), frise datée, mention de paiement adaptée ; CGU §3
+   révisées (date 20 octobre, à reporter si la livraison glisse). Achat partagé
+   (`hooks/useAchatKyrozPlus.ts`). Vu au navigateur, avec et sans essai (sonde retirée).
+   ✅ **Essai posé dans App Store Connect le 2026-10-20** (accord du fondateur), par l'API :
+   `FREE_TRIAL`, `TWO_WEEKS`, 1 période, sans date de fin, sur `kyroz_plus_monthly_early` et
+   `_yearly_early` — **175 pays sur 175 chacun, relu pays par pays** (350 offres, 0 erreur ;
+   Apple exige une offre PAR territoire). En vigueur dès aujourd'hui, donc AVANT l'OTA : l'écran
+   Kyroz+ actuel (sans mention d'essai) vend déjà un abonnement qui commence par 14 jours
+   gratuits — Apple l'affiche lui-même dans sa feuille d'achat. ⚠️ Le site vitrine (`kyroz-site`) porte
+   sa copie des CGU : `KYROZ_SITE=… npm run gen:legal` à la livraison. Non vu sur iPhone.
+2. **Plan généré le week-end (E76)** : chercher d'autres angles morts par des tests (jours de
+   génération, plans de 5 et 7 jours, plans à trous, début choisi à l'inscription…).
+   📏 **MESURÉ le 2026-10-20** — 42 cas (6 formes de plan × 7 jours de génération, 4 semaines
+   simulées jour par jour) : **aucun trou**, **aucun renouvellement en milieu de semaine**,
+   **aucune course du jour oubliée**. Avance pour faire les courses de la semaine suivante :
+   lun→ven 2 j (samedi), lun-mer-ven 2 j, mar→sam 2 j, lun→jeu 3 j, week-end 5 j — et
+   🔴 **7 jours : 0 j** (la semaine suivante n'apparaît que le lundi matin ; le week-end, la
+   liste ne couvre que la fin de la semaine en cours). Point fragile non observé : le jour du
+   renouvellement, la régénération et l'effacement du suivi de la veille partent ensemble — si
+   la première gagnait, les repas cochés le vendredi réapparaîtraient quelques heures sur le
+   vendredi suivant (`carryTracking` reporte par numéro de jour). À blinder avec le chantier.
+   ✅ **DÉCISION FONDATEUR (2026-10-21)** : **« la liste de courses en attente »** — pour le plan
+   de 7 jours (et, à voir, pour toutes les formes) : le SAMEDI, la liste de la semaine suivante
+   apparaît « en attente » pour faire les courses du week-end ; le LUNDI, le plan apparaît,
+   **calé sur cette liste** (même tirage : ce qu'on a acheté est ce qu'on cuisine) ; la liste
+   **tient compte des restes de la réserve** → ce chantier ABSORBE le point 6 (0 gaspi).
+   🔁 **REDÉFINIE PAR LE FONDATEUR LE MÊME JOUR, puis CODÉE** (non publiée, sur #376) :
+   *« peu importe le plan, une fois une liste de courses validée, une nouvelle apparaît pour le
+   plan de la semaine d'après, faite en fonction de ce qu'il doit rester à la fin du plan
+   actuel »* — déclencheur = « Courses terminées », plus le samedi. Quatre règles validées :
+   (1) « ce qu'il doit rester » se recalcule à chaque lecture (UNE liste = besoin restant de la
+   semaine + semaine suivante − réserve ; deux listes compteraient deux fois le même stock) ;
+   (2) une seule semaine d'avance ; (3) ce qui manque encore cette semaine en tête (« Encore
+   pour cette semaine ») ; (4) sans clôture, rien ne change. Le jour du renouvellement, la
+   semaine préparée devient le plan SANS nouveau tirage ; ses courses faites d'avance comptent
+   pour elle (F9, `prepare_le`) et la semaine d'après se prépare aussitôt.
+   `lib/semaineSuivante.ts` (décisions, pur) · `lib/planSuivant.ts` (clé `@kyroz:planSuivant`,
+   locale) · Courses (`assurerLaSuivante`, bloc en tête, « Pour ta semaine du lundi 26
+   octobre. ») · Plan (bascule). Le suivi se reporte désormais **par DATE** (`carryTracking`) :
+   le point fragile du renouvellement est fermé.
+   🔴 **ET LA PESÉE (« on a oublié la pesée », fondateur)** — mesuré : une pesée re-tirait la
+   semaine, −0,3 kg (5 kcal/j) changeait **64 %** des recettes, −1 kg 72 %, 20 semaines sur 20 :
+   les courses du lundi ne servaient plus le mercredi. Désormais, quand seules les cibles
+   bougent (< 100 kcal/j, `ciblesSeulement`), mêmes recettes et portions recalculées par le
+   chemin de la génération (`buildLocalPlan(…, imposes)`), pour le plan ET la semaine en
+   attente. Coût mesuré (36 semaines, 1 008 repas) : 0 recette changée, écart du jour
+   0,56 → 0,64 % (−1 kg), et 1,7 à 4,6 % des repas portent la note « un peu au-dessus de ta
+   cible » (contre 0 à 0,3 % en re-tirant). `rebalanceDay` écarté : 0,89 % et deux fois plus
+   de drapeaux. Un changement d'objectif dépasse le seuil et re-tire, comme avant.
+   ✅ Tests `semaineSuivante.test.ts` (27 cas, **9 mutations, 9 rouges**), suite 2 783 / 196,
+   `tsc` 0. **Vu au navigateur, par les vrais gestes** : « Courses terminées » → semaine du 26
+   préparée, 28 articles ; un article manquant → « Encore pour cette semaine » ; pesée de
+   79 kg → 0 recette changée sur 20, au plan comme en attente ; bascule simulée → plan adopté
+   tel quel (tirage 1), suivante préparée aussitôt (tirage 2). Non vu sur iPhone.
+   ⏭️ **Reste du point 2** : le « niveau 2 » des restes (le plan CHOISIT ses premières recettes
+   avec les restes de paquets) = chantier moteur mesuré, APRÈS la 62ᵉ OTA (décision du
+   2026-10-21).
+   💡 **Idée Kyroz+ notée (2026-10-21, pas une fonction à vendre avant d'exister)** : planifier
+   sur plusieurs semaines (2 à 4 semaines visibles, courses groupées). Le fondateur voulait y
+   mettre la préparation du samedi ; avis donné et retenu : la liste du week-end est le cœur
+   GRATUIT (CGU : « rien de tout ça ne passera jamais derrière un abonnement »), seule la
+   planification multi-semaines serait premium.
+3. **Thon (E75)** : d'autres aliments avaient-ils le même défaut d'arrondi de paquet ?
+   ✅ **MESURÉ ET FERMÉ le 2026-10-22.** Oui, 8 autres. Le correctif du thon était déjà commun
+   (la tolérance de 5 % porte sur l'achat entier, `achatPour`). Mesuré sur 240 listes réelles
+   (4 gabarits × 5 régimes × 3 formes de plan × 4 tirages, 9 352 lignes en paquet) :
+   l'ancienne règle faisait prendre UN paquet de trop à **19 lignes (0,2 %)** et **9 aliments**,
+   soit épinards frais (7 cas), poulet végétal (3), jambon végétal (2), thon (2), seitan,
+   myrtilles, maïs, pois chiches, nouilles de riz. Avec la règle actuelle, il en reste 0, et
+   aucun achat ne tombe sous 95 % du besoin. Balayage ajouté à `formatsVendus.test.ts` (chaque
+   aliment, chaque format, 1 à 6 paquets), vérifié par mutation (l'ancienne formule le fait
+   rougir). Vus au passage et laissés (avis) : 26 lignes où un MÉLANGE de tailles ferait moins
+   de paquets pour le même poids (« 3 barquettes de 300 g » au lieu de 600 + 300), 2 où il
+   ferait quelques grammes de moins, 1 tomate de trop à la pièce (marge d'un quart de pièce),
+   sur 11 628 lignes : du cosmétique, pas de l'argent jeté.
+   ✅ **VALIDÉ par le fondateur le 2026-10-22**, sans le mélange de formats (avis retenu).
+4. **« Il t'en faut … »** : la phrase est inutile pour l'utilisateur — la retirer, que l'app
+   tourne en silence ; chercher les autres phrases du même genre.
+   ✅ **« il t'en faut » RETIRÉ dans #376 le 2026-10-22** : « 1 pot de 250 g · il t'en faut
+   5 g » → « 1 pot de 250 g ». Le calcul est parti avec la phrase (`Achat.besoin`,
+   `ecartVisible`, `besoinLisible`, `UNITES_COMPTEES`) ; garde-fou dans
+   `formatsVendus.test.ts`, vu rougir. Non vu à l'écran.
+   ✅ **Les phrases voisines : 16 propositions VALIDÉES le 2026-10-22, 15 APPLIQUÉES** dans
+   #376 (`docs/2026-10-22-point-4-phrases.md`) : note de pied et mentions des Courses, aide
+   réduite à « Appui long pour retirer un article. », toasts du Plan (il ne reste que « Ok.
+   Réactivable dans Profil. »), auto-coche EN SILENCE (la règle « on le DIT » est renversée),
+   notes de précision de la fiche recette (reste « ajoute un side protéiné »), etc.
+   ⚠️ **Le n° 8 n'est PAS appliqué** (« Descends à 0 pour retirer cet aliment ») : mon motif
+   était faux, c'est le seul chemin de suppression de la Réserve — à re-trancher avec lui.
+   Garde-fou `silence.test.ts` (3 mutations, 3 rouges). Vu au navigateur, pas sur iPhone.
+   Hors #376 : « Chaque pesée recale ton plan » (feuille de pesée) → avec #390.
+   ➡️ **Le n° 8, tranché le 2026-10-23** : la phrase part AVEC le glissement pour supprimer
+   (point 7 ci-dessous), pas avant — sans lui, la suppression d'un aliment serait introuvable.
+5. **Réserve** : vérifier aliment par aliment le rangement frais / sec.
+   ✅ **VALIDÉ ET CODÉ le 2026-10-23** (« je valide et oui fermés tous au sec ») —
+   `docs/2026-10-23-rangement-reserve.md`, généré depuis le code
+   (`npx tsx scripts/gen-rangement-reserve.ts`) : 129 aliments. Ma première règle (« la
+   corbeille compte avec le frais ») est REFUSÉE par le fondateur : **au frais = au frigo**
+   (« tu ne mets pas une banane au frigo »), chaque aliment rangé d'après des sources
+   (Interfel surtout, citées dans le doc). **24 corrections proposées** : 12 → au frais
+   (tofu ferme et fumé, tempeh, seitan, 7 similis, falafels), 12 → au sec (banane, tomate,
+   avocat, ananas, mangue, pomme, pomme de terre, patate douce, oignon, lentilles corail, et
+   — à trancher — lait UHT et crème de soja, briques fermées), plus **2 rayons faux**
+   dans la liste de courses aussi : `categorize` cherche ses mots-clés n'importe où dans le
+   mot, donc « corail » attrape « ail » (lentilles → Légumes) et « chorizo » attrape « riz »
+   (chorizo végétal → Féculents). Codé dans #376 : `pantry.ts::RANGEMENT_PAR_ALIMENT` (les
+   24, par `ref`, donc rétroactif sur les réserves existantes) et `categorize` (un mot-clé ne
+   compte plus qu'en début de mot, l'apostrophe sépare deux mots ; « chorizo » → Viandes).
+   Mesuré avant/après sur les 139 aliments + 13 saisies manuelles types : **24 changements,
+   exactement ceux décidés**. Garde-fou `rangementReserve.test.ts` (3 mutations, 3 rouges).
+   Vu au navigateur (réserve posée dans le stockage) : les deux rangements justes.
+   ⚠️ Reste connu, laissé : une réserve EXISTANTE garde le RAYON enregistré à l'arrivée
+   (lentilles corail sous « Légumes », chorizo végétal sous « Féculents »), à l'intérieur du
+   bon rangement, jusqu'à ce que l'aliment soit épuisé puis racheté.
+6. **Bonus « 0 gaspi »** : le début du plan suivant cuisine les restes de la réserve du dimanche.
+   ➡️ **Fusionné dans le point 2** (décision du 2026-10-21) : la liste en attente du samedi et
+   le plan du lundi partent des restes.
+7. **Réserve : glisser un aliment vers la gauche pour le supprimer** (demande du fondateur,
+   2026-10-23, « comme chez Apple ») : un bouton « Supprimer » apparaît, un glissement long
+   supprime d'un coup (déclic haptique au seuil).
+   ✅ **CODÉ le 2026-10-23 dans #376, VALIDÉ par le fondateur le même jour** (« c'est bon ») —
+   `components/LigneGlissable.tsx` (PanResponder + Animated, aucune dépendance native →
+   publiable en OTA) et `lib/motion.ts::decisionGlissement` (pur). Règles : au-delà de la
+   MOITIÉ de la ligne, relâcher supprime ; sous ce seuil, la projection décide d'ouvrir ou
+   de refermer le bouton (88 pt) ; **l'élan ne supprime jamais** ; déclic au franchissement ;
+   une seule ligne ouverte à la fois, toucher ailleurs ou défiler la referme ; défilement
+   coupé pendant un glissement ; action « Supprimer » pour VoiceOver ; descendre à 0 marche
+   toujours. La phrase n° 8 du point 4 est partie avec (`silence.test.ts`).
+   🔴 **Trouvé au navigateur, corrigé** : (1) relâcher après un glissement déclenchait AUSSI
+   le tap de la ligne (un `click` suit le `mouseup`) — la ligne s'ouvrait puis se refermait ;
+   le tap vit désormais dans le composant, ignoré une fois après un glissement, la marque
+   tombe au contact suivant ; (2) la suppression longue partait > 1 s après la sortie de la
+   ligne (ressort au repos à un millième de point) — seuil de repos à 1 pt pour la sortie ;
+   (3) liseré rouge aux coins arrondis au repos — le rouge n'existe que si la ligne s'écarte.
+   ⚠️ La marge latérale des lignes est passée de la carte à la ligne (en marge, filet en
+   retrait inchangé). Garde-fous `glisserPourSupprimer.test.ts` (4 mutations, 4 rouges).
+   Vu au navigateur (souris) : glissement court → bouton ; tap → supprimé ; glissement long
+   → supprimé ; trop court → rien ; tap après → referme, puis ouvre la fiche. **Non vu au
+   doigt** : conflit avec le défilement vertical, ressenti du ressort, déclic — au simulateur.
+   ✅ **Et dans Courses, le 2026-10-23** (« go faire cela pour la liste de courses aussi ») :
+   le glissement REMPLACE l'appui long et sa confirmation ; le bouton dit **« Retirer »**
+   (un article du plan se rétablit par « Rétablir » ; un ajout manuel, lui, est supprimé) ;
+   toucher coche toujours, avec son tic `choix` ; l'aide « Appui long pour retirer un
+   article » part avec l'appui long. Vu au navigateur : retirer, glissement long, cocher,
+   rétablir. Même validation au simulateur que la Réserve.
+8. **Tour de l'app du 2026-10-23** (« fais un tour de l'app, si tu trouves aussi des choses,
+   go ») — au navigateur, clair et sombre, inscription neuve comprise, et les parcours
+   « Courses terminées » → Réserve → Réalisable. **Corrigé dans #376** :
+   - **l'intro montrait une app qui n'existe plus** (`assets/intro/`, 8 images) : le bandeau
+     « ✓ Mangé, journée recalée », et une liste de courses EN GRAMMES avec l'ancienne aide et
+     l'ancien compteur (« 8 sur 8 ») — plus ancienne que le point 4. Regénérée par
+     `test/intro-captures.mjs` (session factice, aucun compte) ; poids total inchangé (1,1 Mo).
+     ⚠️ La diapo 2 (poids) montre la carte du Profil : à REGÉNÉRER quand #390 fusionne ;
+   - la fiche d'un repas disait « J'ai mangé, retirer de ma réserve » quand la carte dit
+     « J'ai cuisiné » : un geste, deux mots, et la machine racontée → « J'ai cuisiné » ;
+   - « Quand veux-tu commencer ? » coupait « jour-là » au trait d'union → trait insécable.
+   ✅ **Tranché par le fondateur le 2026-10-23** (« 1. Je suis d'accord 2. Corrige les unités
+   3. Montre-moi avec un screen 4. Corrige cela ») :
+   - ✅ **unités — CORRIGÉ dans #376** : ce qui s'achète à la pièce se compte en pièces sur tous
+     les écrans. *Avant* : liste « 1 ananas », Réserve « 500 g » ; fiche « Tomate 80 g ».
+     *Après* : Réserve « 1 ananas », fiche « ⅔ tomate » ; « Il te manque : » et l'historique
+     des courses comptent de même (même `formatQuantity`).
+     Une seule table (`lib/aLaPiece.ts`, 16 aliments) lue par la liste (`formatsVendus.ts`),
+     l'affichage et la conversion de la Réserve (`units.ts`). Sous une pièce : ¼ ⅓ ½ ⅔ ¾ ;
+     sous un cinquième, des grammes (40 g de salade) ; au-delà, à la demi-pièce, pluriel à
+     partir de deux. Catalogue : 424 des 469 lignes de ces aliments se lisent en pièces, aucune
+     fraction à plus d'un quart de la quantité comptée. La feuille « Modifier la quantité »
+     s'ouvre en pièces, et enregistrer sans toucher garde la quantité exacte ; des pièces
+     saisies se rangent en grammes (une seule ligne par aliment). ⚠️ Aussi : la banane de 60 g
+     disait « 1 banane » (les macros en comptaient une demie) → « ½ banane ». Garde-fou :
+     `lib/__tests__/unitesPieces.test.ts`, vu rougir par 4 mutations. Vu au navigateur ;
+   - ✅ **titre compact au navigateur — CORRIGÉ dans #376** : la barre est pleine au
+     navigateur (`FONDU_TITRE_WEB`), seul son débord de 20 pt fond. Sur iPhone, le fondu
+     d'E80 ne bouge pas d'un arrêt (figé par `repliTitre.test.ts`, vu rougir par mutation) ;
+   - **typographie — ACCORD, PR À PART APRÈS la fusion de #376 ET de #390** : espaces
+     insécables devant `: ; ? ! »` et après `«` (437 dans 66 fichiers), avec un garde-fou ;
+   - ✅ **« Quand veux-tu commencer ? » — CORRIGÉ dans #376** (fondateur, sur la capture de la
+     redite « Lundi 26 / lundi 26 octobre » : *« Enlève le sous-titre du jour. Si l'user commence
+     aujourd'hui : écris "Il reste ton …, …". Un autre jour et il choisit le jour qui lui convient
+     dans la semaine. Sinon son plan commencera au premier jour du plan de la semaine
+     d'après »*). Trois cartes : « Ce soir » / « Aujourd'hui » — *« Il reste ton dîner »*,
+     *« Il reste ton petit-déj, ton déjeuner, ta collation et ton dîner »* ; « Un autre jour »
+     (« Cette semaine ») ouvre les jours du plan de demain à DIMANCHE, sans sous-titre ;
+     « La semaine prochaine » — son premier jour du plan, daté (« Lundi 26 octobre »). *Avant* :
+     « Demain » et 7 jours glissants, chacun sous-titré de sa date. Un repas créé par
+     l'utilisateur, de genre inconnu : *« ton repas « Shaker post-training » »*, juste quel que
+     soit son nom (décision fondateur : *« le 2, on ne se prend pas la tête avec ça »* — ni
+     question à la création, ni liste de noms à deviner). Un seul jour restant cette semaine se montre en carte ; un seul début
+     possible (samedi, plan lundi → vendredi) ne se demande plus : « C'est prêt » dit
+     « Tu commences lundi 26 octobre. ». Vu au navigateur (inscription neuve, mercredi 21 h 45
+     et samedi 10 h). Garde-fou : `debutPlan.test.ts`, vu rougir par 2 mutations.
+➡️ Avancement : tenu ici, ligne par ligne, au fil des validations. **Au 2026-10-21** : point 1
+   codé + essai posé (ligne 1) ; **point 2 codé et vu au navigateur le 2026-10-22** (semaine
+   suivante + pesée, niveau 2 des restes après l'OTA) ; **point 3 mesuré, fermé et validé le
+   2026-10-22** ; **point 4 : codé, les 16 phrases retirées** (le n° 8 avec le
+   glissement, 2026-10-23) ; **point 5 : validé et codé**
+   (2026-10-23) ; point 6 fusionné dans le 2 ; **point 7 (glisser pour supprimer) codé le
+   2026-10-23, à valider au simulateur** ; **point 8 (tour de l'app) : tout corrigé sauf la
+   typographie, PR à part** (2026-10-23).
+   ⚠️ #376 porte TOUT (plan daté, « Quand veux-tu commencer ? », seuils, thon, page Kyroz+,
+   CGU révisées le 20 octobre — date à reporter si la livraison glisse) ; elle est à jour de
+   `main` (61ᵉ OTA = Liquid Glass) et FUSIONNABLE ; la livraison sera la **62ᵉ OTA**, avec le
+   site vitrine (`KYROZ_SITE=… npm run gen:legal`).
+   ✅ **Le compteur du jour — TRANCHÉ ET CODÉ le 2026-10-23** (fondateur : « je valide ton
+   avis ») : le soir du « Ce soir », il ne compte que les repas qui restent (*avant* « 0 / 2 183
+   kcal » pour un seul dîner, *après* « 0 / 655 kcal », la carte du dîner dit 655) ; un jour
+   d'avant le début n'a plus de compteur, seulement « Ton plan commence vendredi 23
+   octobre. ». `lib/debutPlan.ts::compteurDuJour` (la cible = ce que pèsent au plan les repas
+   affichés ; une première version « journée moins les repas écartés » affichait 643 au-dessus
+   d'une carte à 655, vu au navigateur et corrigé). Garde-fou `debutPlan.test.ts` (2 mutations
+   rouges). Vu au navigateur : « Ce soir », « Vendredi 23 » (jour 3 sans compteur), « La
+   semaine prochaine ».
+   ✅ **CGU : date d'entrée en vigueur reportée au 23 octobre 2026** (`constants/legal.ts`,
+   `legal.test.ts`, miroirs régénérés) — la 62ᵉ OTA a glissé. À reporter encore si elle glisse.
 
 **Décidé le 2026-10-19 — ne pas le relancer à chaque bilan**
 - **Médiateur de la consommation** (obligation L.612-1 dès la première vente, aucune
@@ -1161,6 +1396,8 @@ produit en suspens — il ne reste qu'à coder.
      semaine civile (`startOfWeekMonday` + offset). Trier par rang effaçait donc le dimanche
      d'un plan généré un jeudi — un jour à VENIR. C'est la POSITION DANS LA SEMAINE qui
      tranche, et une mutation le garde (`coursesDepuis.test.ts`, 5 mutations).
+     ➡️ Depuis le 2026-10-04 (E76), l'écran et la liste lisent la MÊME date de chaque jour,
+     `semainePlan.ts::datesDuPlan` ; `startOfWeekMonday` ne sert plus que de repli.
      ⚠️ Aucun jour restant (plan lundi-mercredi généré un samedi) → on garde TOUT : une liste
      vide se lirait « rien à acheter ». Pas d'`ENGINE_VERSION` : le plan ne change pas.
      **Mesuré à l'aperçu** : plan généré un jeudi → 43 articles + la mention ; le même plan
@@ -1809,11 +2046,45 @@ produit en suspens — il ne reste qu'à coder.
   ⚠️ **Non vu à l'écran** : le passage carrousel → formulaire d'inscription (il attend la fin d'une animation, et `requestAnimationFrame` ne tourne pas dans le panneau navigateur). La règle est testée en fonction pure.
   Garde-fous : `modeConnexion.test.ts` et le bloc « adresse déjà inscrite » d'`emailConfirmation.test.ts` — **2 mutations, 2 rouges**. Harnais QA (`test/qa-full.mjs`) adapté : l'écran s'ouvrant désormais sur « Connexion », il touche « Créer un compte » avant la case de consentement.
 
-- **E78 · L'INSCRIPTION DU SOIR : la première liste de courses achète les repas du jour déjà passés** — 📏 MESURÉ le 2026-10-19, ❌ rien codé (question du fondateur : *« si la personne s'est inscrite le soir, la liste contient les plats de la journée alors qu'elle ne va probablement pas les manger ? »*).
+- **E76 · LA SEMAINE DU PLAN EST DATÉE : un plan généré le week-end est celui de la semaine qui vient** — 🟡 codé (PR #376, 2026-10-04), NON mergé : part avec la 62ᵉ OTA (la 61ᵉ est partie le 2026-10-20 avec le seul Liquid Glass ; décision fondateur du 2026-10-19)
+  🔴 **TROUVÉ AU TROISIÈME TOUR DE L'APP, dès la première capture** (un dimanche) : un plan du
+  lundi au vendredi généré le dimanche affichait L 28 … V 2, la semaine passée. Vécu au
+  navigateur en avançant l'horloge jusqu'au vendredi : lundi soir, **2 articles déjà achetés**
+  revenaient (F9 ne jouait plus) ; vendredi matin, le plan se régénérait et **ses 4 repas du
+  vendredi changeaient**, après les courses. Au moteur : généré samedi → jeudi et vendredi
+  remplacés ; généré jeudi → l'ancien plan affiché le lundi, hors liste, jusqu'au mardi ; 7 jours
+  généré dimanche → la liste ne couvrait que le dimanche toute la semaine suivante ; plan à trous
+  (lundi, mercredi, vendredi) → renouvelé le jeudi, même généré un lundi.
+  **Cause** : quatre lectures de « la semaine du plan » — le bandeau (semaine en cours),
+  l'ouverture (prochain jour à venir), le renouvellement (N jours après la génération), la liste
+  et F9 (jour de génération). Elles ne s'accordaient que pour un plan généré à son premier jour.
+  **Décision fondateur (« oui go », option A)** : chaque jour du plan a sa vraie date
+  (`lib/semainePlan.ts::datesDuPlan`), lue par les quatre ; généré sans jour restant cette
+  semaine = la semaine qui vient ; renouvelé le lendemain de son dernier jour (lundi→vendredi :
+  le samedi, pour faire ses courses le week-end ; 7 jours : le lundi) ; F9 compte les courses
+  depuis le lendemain du dernier jour du cycle d'avant ; la règle du 2026-09-17 tient (inscrit le
+  jeudi, la liste part du jeudi). Vu à l'écran du dimanche au samedi : bandeau 5 → 9, lundi soir
+  **0** article, vendredi les repas tiennent, samedi un plan neuf daté 12 → 16. Garde-fous :
+  `semainePlan.test.ts`, `coursesApresCloture.test.ts` (les courses du dimanche rejouées sur le
+  moteur), 4 mutations.
+  ⚠️ Effet assumé, ✅ validé par le fondateur le 2026-10-19 : inscrit un samedi avec un plan de 7 jours, s'il choisit « Aujourd'hui » (E78), le premier plan dure 2 jours,
+  puis la vraie semaine arrive le lundi (« le lundi, quand le plan se génère », 2026-09-17).
+  **Avec, dans la même PR, quatre retouches du même tour** : « il t'en faut » se dit dans
+  l'unité du paquet (« 1 paquet de 4 tranches · il t'en faut 2 tranches ») et se tait quand il
+  redit l'achat (« 2 bananes · il t'en faut 2 bananes ») ; les conserves se rangent « Au sec »
+  (thon, sardines, maïs, tomates concassées, ratatouille) ; 10 recettes ne crient plus un mot
+  en capitales (« feu DOUX »), sans `ENGINE_VERSION` : les plans en cours prennent la phrase à
+  leur renouvellement plutôt que de se régénérer tous à l'OTA.
+
+- **E78 · L'INSCRIPTION DU SOIR : la première liste de courses achète les repas du jour déjà passés** — 📏 MESURÉ puis 🟡 **CODÉ le 2026-10-19 dans #376, NON publié** (question du fondateur : *« si la personne s'est inscrite le soir, la liste contient les plats de la journée alors qu'elle ne va probablement pas les manger ? »*).
   Avant des « Courses terminées », la liste part du jour de génération ENTIER (règle du 2026-09-17, `lib/coursesDepuis.ts`) : à 21 h 45, les quatre repas du jour sont passés et pourtant achetés. #365 a réglé le SUIVI (rien n'est coché « mangé » avant le premier plan) ; la LISTE, elle, n'a pas bougé, et ces repas restent « à faire » à l'écran. Mesuré au moteur (profil de test, plan lun → ven, inscription à 21 h 45) :
   · inscrit le **lundi** : 20 repas comptés dont 4 passés → **9,2 kg au lieu de 7,5 (+22 %)**, 5 lignes n'existent que pour ce soir ;
   · inscrit le **mercredi** : 12 repas dont 4 passés (un tiers) → **5,6 kg au lieu de 4,1 (+36 %)**, 11 lignes rien que pour ce soir (filet mignon 205 g, saumon fumé 100 g…).
   ➡️ Le fondateur a ses idées : les recueillir avant de proposer ; à livrer avec #376 (même zone : `coursesDepuis.ts`, `semainePlan.ts`). Tout correctif se mesure sur un lundi ET un milieu de semaine, à plusieurs heures (19 h, 21 h 45).
+  ✅ **Décision fondateur (2026-10-19)** : à la fin de l'inscription, AVANT « C'est prêt », Kyroz demande **« Quand veux-tu commencer ? »** — « Ce soir » / « Aujourd'hui » (s'il reste un repas : la collation et le dîner à 19 h 30), « Demain », « Un autre jour » (les jours du plan des 7 prochains jours). 🔄 **Resserré le 2026-10-23** (fondateur) : « Ce soir » / « Aujourd'hui » (« Il reste ton dîner »), « Un autre jour » (les jours du plan de CETTE semaine, sans sous-titre), « La semaine prochaine » (son premier jour du plan) — détail au point 8 des « À peaufiner ». Puis « C'est prêt » (« Tu commences jeudi 22 octobre. », l'aperçu montre le premier jour vécu), puis la visite. Une fois, au premier plan ; les comptes existants ne voient rien changer.
+  **Comment** : le début EST `@kyroz:debutSuivi` (`{ jour, minutes }`, `fixerDebutSuivi`) — un seul objet pour l'auto-coche, la liste et l'écran. Un début à venir fait partir `week_start_date` de ce jour-là (`lib/debutPlan.ts::semaineDuDebut`, y compris aux régénérations d'ici là) : liste, dates du bandeau et renouvellement suivent sans rien d'autre. Les repas d'avant le début (jours antérieurs, ou heure limite passée au moment du « Ce soir ») ne s'affichent pas et ne s'achètent pas (`repasDepuisLeDebut`) ; l'auto-coche et le solde de la veille ne touchent à rien avant le jour du début. Une seule `Modal` pour les deux pages (`FirstPlanReveal`, iOS refuse d'en enchaîner deux).
+  **Mesuré au moteur** (profil de test, lun → ven) : mercredi 21 h 45 « Ce soir » → **5,8 → 4,8 kg, 44 → 36 lignes** ; lundi 21 h 45 → 9,9 → 8,8 kg. Garde-fou : `debutPlan.test.ts` (12 cas, 2 mutations rouges). **Vu à l'écran** (web, 375 pt, lundi 19 h 30) : « Ce soir » → Plan avec collation + dîner et « Les repas d'avant ton début ne sont pas comptés » ; « Jeudi 22 » → Plan ouvert sur le jour 4, lundi affiche « Ton plan commence jeudi 22 octobre. », Courses « À partir de jeudi, le jour où tu commences. ». ⚠️ Non vu au simulateur iOS.
+  ✅ **Tranché le 2026-10-23** : le chiffre du jour ne compte que les repas qui restent le soir du « Ce soir », et disparaît sur un jour d'avant le début (`compteurDuJour`). Et l'effet du samedi d'E76 (premier plan de 2 jours) n'arrive plus que si l'on choisit « Aujourd'hui » un samedi.
 - **E79 · LIQUID GLASS : LA BARRE D'ONGLETS D'APPLE, ET LES FEUILLES PARTIELLES EN VERRE** — ✅ mergé le 2026-10-19 (#385, `bbfd9da`), validé sur captures par le fondateur ; ✅ **publié dans la 61ᵉ OTA le 2026-10-20** (*« mets l'app aux normes liquid glass d'apple »*, puis *« fais A et B, puis je vérifie »*).
   *Avant* : la barre d'onglets avait la MATIÈRE d'iOS 26 (verre, E36) mais la FORME d'iOS 18 — une bande pleine largeur collée en bas ; toutes les feuilles étaient peintes. *Après* : **A** — sur iOS, la barre est `UITabBar` lui-même (`NativeTabs` d'expo-router) : capsule de verre décollée des bords, onglet actif dans sa bulle ; sur iPad, en haut, en libellés. Web et Android gardent la barre dessinée. **B** — la feuille partielle (`ActionSheet`, donc aussi tous les dialogues de `Dialog.tsx`) passe en verre, décollée de 8 pt, coins concentriques (24 + 14) ; la feuille pleine hauteur (`Sheet`, 94 %) reste opaque — c'est la règle d'Apple, et CLAUDE.md affirmait à tort le contraire depuis août (corrigé).
   🔴 **Publiable en OTA** : le natif des onglets (`react-native-screens` 4.26.2, `ios/tabs`) est dans le build (22) ; **empreinte iOS mesurée `823c89db…` = build (22)**. Aucune ligne ajoutée à `package.json` (un raccourci `npm run` aurait coupé la ligne OTA — le script des icônes se lance par `npx tsx`).

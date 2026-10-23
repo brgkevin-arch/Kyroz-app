@@ -1,10 +1,11 @@
-import React, { useEffect, useMemo, useRef } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Modal, View, Text, StyleSheet, Animated, ScrollView, Easing } from 'react-native';
 import { RESSORT, DUREE, ressortRN, ressortReduit, dureeReduite } from '../lib/motion';
 import { reduceMotionActif } from '../lib/reduceMotion';
 import { useModaleRecensee } from '../lib/modalesPresentees';
 import { useTheme, Radius, Spacing, Type, ThemePalette, Trait , Icone } from '../constants/theme';
-import { PrimaryButton, SectionLabel } from './ui';
+import { PrimaryButton, SectionLabel, OptionCard, GrilleChoix } from './ui';
+import type { OptionDebut } from '../lib/debutPlan';
 import { goalLabel } from '../lib/tdee';
 import { Meal, UserProfile } from '../lib/types';
 import { DISCLAIMER } from '../constants/legal';
@@ -16,7 +17,12 @@ interface Props {
   visible: boolean;
   profile: UserProfile;
   firstName: string;
-  previewMeals: Meal[];       // aperçu (repas du jour 1), affichés en concret
+  previewMeals: Meal[];       // aperçu (le premier jour vécu), affiché en concret
+  /** E78 : les débuts proposés. Vide = pas de question, on ouvre directement sur « C'est prêt ». */
+  optionsDebut: OptionDebut[];
+  onDebut: (o: OptionDebut) => void | Promise<void>;
+  /** « Tu commences ce soir. » — une fois le début choisi. */
+  debutLibelle: string | null;
   onClose: () => void;
 }
 
@@ -34,7 +40,7 @@ interface Props {
  * *(Ce préambule disait « le RAPPEL QUOTIDIEN vit uniquement dans le Profil →
  * Réglages ». C'était vrai, et c'était le défaut : personne n'y allait.)*
  */
-export function FirstPlanReveal({ visible, profile, firstName, previewMeals, onClose }: Props) {
+export function FirstPlanReveal({ visible, profile, firstName, previewMeals, optionsDebut, onDebut, debutLibelle, onClose }: Props) {
   const t = useTheme();
   // Recensée tant qu'elle est à l'écran : une visite guidée attend qu'elle soit partie (lib/modalesPresentees.ts).
   useModaleRecensee(visible);
@@ -43,6 +49,44 @@ export function FirstPlanReveal({ visible, profile, firstName, previewMeals, onC
   // juste après l'onboarding, sur le profil qu'on vient d'enregistrer.
   const slots = useMemo(() => knownSlots(profile), [profile]);
   const scale = useRef(new Animated.Value(0.9)).current;
+  // 🔴 E78 (décision fondateur, 2026-10-19) : DEUX pages dans la même fenêtre — « Quand
+  // veux-tu commencer ? », puis « C'est prêt ». Pas deux `Modal` : iOS refuse d'en
+  // présenter une seconde pendant que la première s'efface (CLAUDE.md §11).
+  const [etape, setEtape] = useState<'debut' | 'pret'>('pret');
+  const [choix, setChoix] = useState<string | null>(null);
+  const [autreJour, setAutreJour] = useState(false);
+  const [envoi, setEnvoi] = useState(false);
+  useEffect(() => {
+    if (!visible) return;
+    setChoix(null);
+    setAutreJour(false);
+    // Un seul début possible (un samedi, sur un plan du lundi au vendredi : la semaine
+    // prochaine) : pas de question à une seule réponse, « C'est prêt » dit quand on commence.
+    if (optionsDebut.length === 1) {
+      setEtape('pret');
+      void onDebut(optionsDebut[0]);
+      return;
+    }
+    setEtape(optionsDebut.length > 0 ? 'debut' : 'pret');
+  }, [visible]);
+  // 2026-10-23 (fondateur) : aujourd'hui (« Il reste ton dîner »), un autre jour de CETTE
+  // semaine dans une grille, puis la semaine prochaine. Les jours n'ont plus de sous-titre :
+  // « Lundi 26 » au-dessus de « lundi 26 octobre » disait deux fois la même chose.
+  // Un seul jour restant cette semaine se montre en carte : une grille d'un choix n'en est pas une.
+  const semaine = optionsDebut.filter((o) => o.groupe === 'semaine');
+  const principaux = [
+    ...optionsDebut.filter((o) => o.groupe === 'aujourdhui'),
+    ...(semaine.length === 1 ? semaine : []),
+  ];
+  const autres = semaine.length > 1 ? semaine : [];
+  const suivantes = optionsDebut.filter((o) => o.groupe === 'suivante');
+  const retenu = optionsDebut.find((o) => o.debut.jour === choix) ?? null;
+  const continuer = async () => {
+    if (!retenu) return;
+    setEnvoi(true);
+    try { await onDebut(retenu); } finally { setEnvoi(false); }
+    setEtape('pret');
+  };
   const opacity = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -84,6 +128,57 @@ export function FirstPlanReveal({ visible, profile, firstName, previewMeals, onC
     <Modal visible transparent animationType="none" onRequestClose={onClose}>
       <View style={s.root}>
         <Animated.View style={[s.card, { opacity, transform: [{ scale }] }]}>
+          {etape === 'debut' ? (
+          <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
+            <Text style={s.title}>Quand veux-tu commencer ?</Text>
+            {/* Trait d'union INSÉCABLE (U+2011) : « jour-là » se coupait en fin de ligne, « là. »
+                seul en tête de la suivante (vu au navigateur, 2026-10-23). */}
+            <Text style={s.sub}>Ton plan et ta liste de courses partiront de ce jour‑là.</Text>
+            <View style={[s.section, { gap: Spacing.sm }]}>
+              {principaux.map((o) => (
+                <OptionCard
+                  key={o.debut.jour}
+                  t={t}
+                  title={o.libelle}
+                  subtitle={o.detail || undefined}
+                  selected={choix === o.debut.jour}
+                  onPress={() => { setChoix(o.debut.jour); setAutreJour(false); }}
+                />
+              ))}
+              {autres.length > 0 && (
+                <OptionCard
+                  t={t}
+                  title="Un autre jour"
+                  subtitle="Cette semaine"
+                  selected={autreJour}
+                  onPress={() => { setAutreJour(true); setChoix(null); }}
+                />
+              )}
+              {autreJour && (
+                <GrilleChoix
+                  t={t}
+                  options={autres.map((o) => ({ label: o.libelle, value: o.debut.jour }))}
+                  estChoisi={(v) => v === choix}
+                  onChoisir={(v) => setChoix(v)}
+                />
+              )}
+              {suivantes.map((o) => (
+                <OptionCard
+                  key={o.debut.jour}
+                  t={t}
+                  title={o.libelle}
+                  subtitle={o.detail}
+                  selected={choix === o.debut.jour}
+                  onPress={() => { setChoix(o.debut.jour); setAutreJour(false); }}
+                />
+              ))}
+            </View>
+            <View style={{ height: 18 }} />
+            <View style={{ alignSelf: 'stretch' }}>
+              <PrimaryButton t={t} label="Continuer" onPress={continuer} disabled={!retenu} loading={envoi} />
+            </View>
+          </ScrollView>
+          ) : (
           <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
             <ReussiteIcon color={t.accent} size={Icone.fete} />
             <Text style={s.title}>C'est prêt{firstName ? `, ${firstName}` : ''} !</Text>
@@ -101,6 +196,7 @@ export function FirstPlanReveal({ visible, profile, firstName, previewMeals, onC
                 ➡️ Le nombre affiché reste une MOYENNE hebdomadaire pour qui déclare des
                 séances. Si ça doit se redire, ça se redira ailleurs — pas ici. */}
             <Text style={s.sub}>Ta semaine est calée sur ton objectif.</Text>
+            {debutLibelle && <Text style={[s.sub, { marginTop: Spacing.xs }]}>{debutLibelle}</Text>}
 
             {/* Libellé AU-DESSUS de la valeur (2026-08-12, décision fondateur). Ce n'est
                 pas qu'une préférence : en dessous, il fallait réserver deux lignes de
@@ -121,7 +217,7 @@ export function FirstPlanReveal({ visible, profile, firstName, previewMeals, onC
 
             {previewMeals.length > 0 && (
               <View style={s.section}>
-                <SectionLabel t={t}>Un aperçu de ta semaine</SectionLabel>
+                <SectionLabel t={t}>Ton premier jour</SectionLabel>
                 <View style={{ gap: Spacing.md }}>
                   {previewMeals.map((m) => (
                     <View key={m.id} style={s.mealRow}>
@@ -154,6 +250,7 @@ export function FirstPlanReveal({ visible, profile, firstName, previewMeals, onC
 
             <Text style={s.disclaimer}>{DISCLAIMER}</Text>
           </ScrollView>
+          )}
         </Animated.View>
       </View>
     </Modal>

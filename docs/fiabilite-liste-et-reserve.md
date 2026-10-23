@@ -14,6 +14,14 @@
 > liste ne compte que les jours à venir et, le jour même, les repas pas encore tranchés
 > (`kyroz-app/lib/coursesDepuis.ts::repasACompter`). Avant les courses, la règle du
 > 2026-09-17 tient : la liste part du jour de génération et ne glisse pas.
+>
+> ✅ **Et le trou de F9, trouvé le 2026-10-04 au troisième tour de l'app : les courses du
+> WEEK-END.** La première version prenait pour semaine du plan celle de sa génération : un
+> plan généré le dimanche pour la semaine qui vient sortait de la règle dès le lundi, et
+> 2 articles déjà achetés revenaient le lundi soir (mesuré au navigateur). Chaque jour du plan
+> a désormais sa vraie date (`kyroz-app/lib/semainePlan.ts::datesDuPlan`, AGENTS.md E76), et
+> les courses comptent depuis le lendemain du dernier jour du cycle d'avant : le samedi, pour
+> un plan du lundi au vendredi. Lundi soir : **0**.
 
 Analyse du 21 septembre 2026. Rien n'est décidé ici.
 

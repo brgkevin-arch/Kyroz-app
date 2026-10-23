@@ -12,15 +12,22 @@ import { Sheet } from '../../components/Sheet';
 import { useDialog } from '../../components/Dialog';
 import { ShoppingHistory } from '../../components/ShoppingHistory';
 import { ActionSheet } from '../../components/ActionSheet';
+import { LigneGlissable } from '../../components/LigneGlissable';
 import { PrimaryButton, Chip, Field } from '../../components/ui';
 import { MealPlan, ShoppingItem, ShoppingList } from '../../lib/types';
 import { buildShoppingList } from '../../lib/shoppingList';
 import { repasACompter, mentionDepart } from '../../lib/coursesDepuis';
+import { dateEnLettres, repasDepuisLeDebut } from '../../lib/debutPlan';
+import { assurerLaSuivante } from '../../lib/planSuivant';
+import { premierJour } from '../../lib/semaineSuivante';
+import { sousLeSeuil } from '../../lib/seuilAchat';
+import { lireDebutSuivi } from '../../lib/repasAuto';
+import { activeSlots } from '../../lib/mealSlots';
 import { useProfile } from '../../hooks/useProfile';
 import { formatQuantity, toBaseUnit } from '../../lib/units';
 import { searchFoods } from '../../lib/foods';
 import { loadPantry, savePantry, addOrMerge, isStaple, nomAffiche } from '../../lib/pantry';
-import { achatPour, besoinLisible, quantiteRangee } from '../../lib/formatsVendus';
+import { achatPour, quantiteRangee } from '../../lib/formatsVendus';
 import {
   ShoppingTrip, loadHistory, saveHistory, recordTrip, removeTrip, historySummary, newestFirst,
 } from '../../lib/shoppingHistory';
@@ -51,7 +58,8 @@ const CATEGORY_LABELS: Record<ShoppingItem['category'], string> = {
 const CATEGORY_ORDER: ShoppingItem['category'][] = ['viandes', 'légumes', 'féculents', 'laitiers', 'autres'];
 
 type CoursesSection = {
-  cat: ShoppingItem['category'];
+  // `cette_semaine` : ce qui manque encore pour la semaine en cours quand la suivante attend.
+  cat: ShoppingItem['category'] | 'cette_semaine';
   title: string;
   left: number;
   data: ShoppingItem[];
@@ -67,12 +75,16 @@ export default function CoursesScreen() {
   // Ce que la liste couvre, dit à l'écran. Posé là où le plan est LU (`load`), parce que
   // cet écran ne garde pas le plan en état — il le relit à chaque venue sur l'onglet.
   const [depart, setDepart] = useState('');
-  const { confirm, choose } = useDialog();
+  const { choose } = useDialog();
   const [list, setList] = useState<ShoppingList | null>(null);
   // Articles écartés (`lib/shoppingRemoved.ts`). ⚠️ Ils vivent HORS de `list` :
   // le cache de la liste est effacé par `plan.tsx` à chaque `persistPlan`, donc
   // une suppression rangée dedans se déferait toute seule.
   const [ecartes, setEcartes] = useState<string[]>([]);
+  // Glisser vers la gauche pour retirer (2026-10-23, le geste de la Réserve) : une seule
+  // ligne ouverte à la fois, et le défilement coupé le temps d'un glissement.
+  const [ligneOuverte, setLigneOuverte] = useState<string | null>(null);
+  const [glisseEnCours, setGlisseEnCours] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [hideChecked, setHideChecked] = useState(false);
   const [history, setHistory] = useState<ShoppingTrip[]>([]);
@@ -99,7 +111,9 @@ export default function CoursesScreen() {
   // rien est pire que pas de bouton. Le tour est retiré de `TOURS`, donc il ne
   // figure plus dans « Revoir les tutos » — c'est la même source (`lib/tours.ts`).
 
-  useFocusEffect(useCallback(() => { load(); }, []));
+  // ⚠️ `profile` en dépendance : la semaine suivante se prépare avec le profil du moment
+  // (`assurerLaSuivante`), jamais avec celui du premier rendu.
+  useFocusEffect(useCallback(() => { load(); }, [profile]));
 
   const load = async () => {
     setHistory(await loadHistory());
@@ -132,10 +146,26 @@ export default function CoursesScreen() {
     // à cuisiner : un repas cuisiné a déjà été retiré de la réserve, le compter aussi dans
     // le besoin le faisait racheter (F9, décision fondateur du 2026-10-02). Avant les
     // courses, la règle du 2026-09-17 tient : la liste part du jour de génération.
-    const perimetre = repasACompter(plan, profile?.plan_weekdays, newestFirst(await loadHistory())[0]?.at);
-    setDepart(perimetre.apresCourses
-      ? 'Depuis tes dernières courses : pour les repas qu’il te reste à cuisiner.'
-      : mentionDepart(plan, profile?.plan_weekdays));
+    // E78 (2026-10-19) : rien d'avant le début choisi à l'inscription — ni les repas
+    // déjà passés quand on a dit « Ce soir », ni les jours d'avant un début à venir.
+    const debut = await lireDebutSuivi();
+    const servi = { ...plan, meals: repasDepuisLeDebut(plan, profile?.plan_weekdays, debut, activeSlots(profile)) };
+    const cloture = newestFirst(await loadHistory())[0]?.at;
+    const perimetre = repasACompter(servi, profile?.plan_weekdays, cloture);
+    // La SEMAINE SUIVANTE (2026-10-21, `lib/semaineSuivante.ts`) : préparée dès que les courses
+    // de la semaine en cours sont closes, remise d'accord avec le profil (une pesée) à chaque
+    // lecture. Sa liste part de « ce qu'il doit rester » : la réserve d'aujourd'hui moins les
+    // repas qu'il reste à cuisiner cette semaine.
+    const suivante = profile ? await assurerLaSuivante(profile, plan, cloture) : null;
+    const debutSuivante = suivante ? premierJour(suivante.plan, profile?.plan_weekdays) : null;
+    // Après des courses terminées, la liste ne compte que les repas qu'il reste à cuisiner
+    // (F9) et ne le dit plus : « Depuis tes dernières courses : pour les repas qu'il te reste
+    // à cuisiner » est retiré le 2026-10-22 (fondateur, point 4 : « l'app tourne en silence »).
+    setDepart(debutSuivante
+      ? `Pour ta semaine du ${dateEnLettres(debutSuivante)}.`
+      : perimetre.apresCourses
+        ? ''
+        : mentionDepart(plan, profile?.plan_weekdays));
     // ── LA RÉSERVE EST TOUJOURS SOUSTRAITE (2026-08-24) ──────────────────────
     //
     // L'interrupteur « Tenir compte du frigo » a été RETIRÉ (décision fondateur).
@@ -148,7 +178,29 @@ export default function CoursesScreen() {
     // La liste part du jour où le plan a été généré, jamais des jours déjà passés
     // (décision fondateur du 2026-09-17, `lib/coursesDepuis.ts`). ⚠️ Sans profil encore
     // chargé, on achète toute la semaine, c'est le repli SÛR.
-    const l = buildShoppingList({ ...plan, meals: perimetre.meals }, pantry, perimetre.jours);
+    const restantes = perimetre.meals.filter((m) => perimetre.jours.includes(m.day));
+    // Avec une semaine suivante, UNE liste pour les deux : le besoin total moins la réserve.
+    // Deux listes séparées compteraient deux fois le même stock — le poulet de dimanche soir
+    // servirait aussi lundi. Ce qui manque encore pour CETTE semaine est repéré à part
+    // (`pour_cette_semaine`) et rangé en tête.
+    const brute = suivante
+      ? buildShoppingList({ ...plan, meals: [...restantes, ...suivante.plan.meals] }, pantry)
+      : buildShoppingList({ ...plan, meals: perimetre.meals }, pantry, perimetre.jours);
+    // E75 (2026-10-20) : un reste sous son seuil ne vaut pas un paquet — la ligne disparaît,
+    // comme le sel (`lib/seuilAchat.ts` : 20 % d'une portion, 10 g au moins, 15 g au plus
+    // pour la protéine du plat).
+    const items = brute.items.filter((i) => !sousLeSeuil(i));
+    const encore = suivante
+      ? new Set(buildShoppingList({ ...plan, meals: restantes }, pantry).items
+        .filter((i) => !sousLeSeuil(i)).map((i) => i.name.toLowerCase()))
+      : null;
+    const l: ShoppingList = {
+      ...brute, items,
+      ...(encore && debutSuivante ? {
+        pour_cette_semaine: items.filter((i) => encore.has(i.name.toLowerCase())).map((i) => i.name),
+        semaine_suivante: debutSuivante,
+      } : {}),
+    };
     // Ne pas mettre en cache une liste vide (tout couvert) : sinon l'onglet
     // resterait bloqué sur « rien à acheter » même après avoir vidé la réserve.
     // Sans cache, load() la reconstruit à chaque focus et les articles
@@ -168,30 +220,19 @@ export default function CoursesScreen() {
   //
   // On le décoche au passage, pour qu'un article rétabli plus tard ne revienne pas
   // coché d'un achat qui n'a pas eu lieu.
+  //
+  // Le geste est un GLISSEMENT vers la gauche depuis le 2026-10-23 (il était un appui long
+  // suivi d'une confirmation) : le geste d'Apple, celui de la Réserve, et sans dialogue — un
+  // article du plan retiré se rétablit (« Rétablir », sous les commandes).
+  // 🔴 UN AJOUT MANUEL NE S'ÉCARTE PAS, IL SE SUPPRIME : rien ne peut le refaire à la place
+  // de celui qui l'a tapé, et « Rétablir » ne le ramène pas.
   const ecarterArticle = async (item: ShoppingItem) => {
-    // 🔴 UN AJOUT MANUEL NE S'ÉCARTE PAS, IL SE SUPPRIME. Le message ci-dessous
-    // promet « tu le retrouveras en tirant la liste vers le bas » — c'est vrai
-    // d'un article du plan, que la liste sait refaire, et FAUX d'un article que
-    // l'utilisateur a tapé lui-même : rien ne peut le deviner à sa place. Deux
-    // portées différentes derrière le même appui long, donc deux phrases.
+    animerMiseEnPage();
+    setLigneOuverte(null);
     if (item.manuel) {
-      const oui = await confirm({
-        title: `Supprimer ${nomAffiche(item.name)} ?`,
-        message: "Tu l'as ajouté toi-même, donc il ne reviendra pas tout seul.",
-        confirmLabel: 'Supprimer',
-        destructive: true,
-      });
-      if (!oui) return;
       await persistAjouts(retirerAjout(ajouts, item.name));
       return;
     }
-    const ok = await confirm({
-      title: `Retirer ${nomAffiche(item.name)} ?`,
-      message: 'Il quitte ta liste de courses. Ton plan de repas ne change pas : tu le retrouveras en tirant la liste vers le bas.',
-      confirmLabel: 'Retirer',
-      destructive: true,
-    });
-    if (!ok) return;
     if (item.checked) await toggle(item);
     const suivants = ecarter(ecartes, item.name);
     setEcartes(suivants);
@@ -472,11 +513,11 @@ export default function CoursesScreen() {
       <View style={s.unitRow}>
         {UNITES_AJOUT.map((u) => <Chip key={u} t={t} label={u} selected={unite === u} onPress={() => setUnite(u)} />)}
       </View>
-      {/* Une phrase d'aide est une AFFIRMATION SUR LE CODE : sans quantité,
-          `terminer` n'a rien à ranger en réserve, et il ne range rien. */}
-      <Text style={s.sheetNote}>
-        {note ?? "Sans quantité, l'article ne rejoindra pas ta réserve une fois acheté."}
-      </Text>
+      {/* Seul ce qui répond à la saisie se dit ici (« … est déjà dans ta liste »). La note
+          « Sans quantité, l'article ne rejoindra pas ta réserve une fois acheté » est
+          retirée le 2026-10-22 (fondateur, point 4) ; le code, lui, ne range toujours rien
+          en réserve sans quantité. */}
+      {note && <Text style={s.sheetNote}>{note}</Text>}
       <PrimaryButton t={t} label="Ajouter" onPress={ajouterArticle} disabled={!nom.trim()} />
       <Presse onPress={fermerAjout} style={s.cancel}><Text style={s.cancelTxt}>Annuler</Text></Presse>
     </ActionSheet>
@@ -520,9 +561,9 @@ export default function CoursesScreen() {
         <Text style={s.emptyT}>{toutEcarte ? 'Liste vidée' : covered ? 'Rien à acheter' : 'Aucune liste'}</Text>
         <Text style={s.emptyS}>
           {toutEcarte
-            ? `Tu as retiré ${nbEcartes > 1 ? 'tous les articles' : "le dernier article"} de ta liste. Ton plan de repas, lui, n'a pas changé.`
+            ? `Tu as retiré ${nbEcartes > 1 ? 'tous les articles' : "le dernier article"} de ta liste.`
             : covered
-            ? 'Ta réserve couvre déjà tout le plan de la semaine. La liste réapparaîtra dès qu\'il te manquera quelque chose.'
+            ? 'Ta réserve couvre déjà tout le plan de la semaine.'
             : 'Génère un plan repas et ta liste de courses apparaît ici, triée par rayon.'}
         </Text>
 
@@ -573,17 +614,27 @@ export default function CoursesScreen() {
   const pct = total ? (checked / total) * 100 : 0;
 
   // Tri : non cochés d'abord, cochés en bas. Option « masquer cochés ».
-  const sections: CoursesSection[] = CATEGORY_ORDER
+  // Ce qui manque encore pour la semaine EN COURS passe en tête, quand la suivante attend
+  // (règle 3 du 2026-10-21) : sinon la semaine d'après masquerait ce qu'il faut pour demain.
+  const pourCetteSemaine = new Set((list?.pour_cette_semaine ?? []).map((n) => n.toLowerCase()));
+  const deCetteSemaine = (i: ShoppingItem) => !i.manuel && pourCetteSemaine.has(i.name.toLowerCase());
+  const trier = (data: ShoppingItem[]) => [...(hideChecked ? data.filter((i) => !i.checked) : data)]
+    .sort((a, b) => Number(a.checked) - Number(b.checked) || a.name.localeCompare(b.name));
+  const enTeteSemaine: CoursesSection[] = pourCetteSemaine.size === 0 ? [] : ([{
+    cat: 'cette_semaine',
+    title: 'Encore pour cette semaine',
+    left: visibles.filter((i) => deCetteSemaine(i) && !i.checked).length,
+    data: trier(visibles.filter(deCetteSemaine)),
+  }] satisfies CoursesSection[]).filter((sec) => sec.data.length > 0);
+  const sections: CoursesSection[] = [...enTeteSemaine, ...CATEGORY_ORDER
     .map((cat) => {
-      let data = visibles.filter((i) => i.category === cat);
-      if (hideChecked) data = data.filter((i) => !i.checked);
-      data = [...data].sort((a, b) => Number(a.checked) - Number(b.checked) || a.name.localeCompare(b.name));
-      const left = visibles.filter((i) => i.category === cat && !i.checked).length;
-      return { cat, title: CATEGORY_LABELS[cat], left, data };
+      const duRayon = visibles.filter((i) => i.category === cat && !deCetteSemaine(i));
+      const left = duRayon.filter((i) => !i.checked).length;
+      return { cat, title: CATEGORY_LABELS[cat], left, data: trier(duRayon) };
     })
-    .filter((sec) => sec.data.length > 0);
+    .filter((sec) => sec.data.length > 0)];
 
-  // ⚠️ En-tête, progression, commandes et note vivent DANS la liste
+  // ⚠️ En-tête, progression, commandes et aide vivent DANS la liste
   // (`ListHeaderComponent`) : c'est ce qui permet au grand titre de s'effacer au
   // profit de la barre compacte, comme dans la maquette. Ils étaient au-dessus de
   // la SectionList, donc « Courses » en 34 restait planté en haut pour toujours.
@@ -688,15 +739,11 @@ export default function CoursesScreen() {
           </View>
         )}
 
-        {/* 🔴 UNE PHRASE D'AIDE EST UNE AFFIRMATION SUR LE CODE. Celle-ci a déjà été
-            fausse deux fois — « il part direct dans ton frigo » quand le cochage a
-            cessé de remplir le stock, puis quand ce suivi est devenu optionnel. Elle
-            décrit désormais les DEUX moments du geste, parce que c'est ce que le code
-            fait : cocher marque, terminer range. */}
-        <Text style={s.hint}>
-          Coche ce que tu prends, puis « Courses terminées » range le tout dans ta réserve,
-          paquets entiers. Appui long pour retirer un article.
-        </Text>
+        {/* Plus de phrase d'aide sous les commandes (2026-10-23) : elle disait le seul geste
+            qui ne se voyait pas, « Appui long pour retirer un article ». Retirer se fait
+            désormais en GLISSANT la ligne vers la gauche, le geste d'Apple, qu'on n'explique
+            pas plus qu'iOS ne l'explique. (Elle avait menti deux fois avant : « il part
+            direct dans ton frigo ».) */}
     </View>
   );
 
@@ -710,17 +757,12 @@ export default function CoursesScreen() {
         showsVerticalScrollIndicator={false}
         stickySectionHeadersEnabled={false}
         ListHeaderComponent={enTete}
-        // ⚠️ La note de pied AFFIRME d'où sortent les quantités. Dès qu'un article
-        // a été tapé à la main, elle ne vaut plus pour toute la liste — et une
-        // phrase d'aide fausse est pire que pas de phrase du tout.
-        ListFooterComponent={(
-          <Text style={s.footnote}>
-            {visibles.some((i) => i.manuel)
-              ? 'Formats courants en magasin, arrondis au-dessus de ce que demandent tes repas de la semaine, sauf ce que tu as ajouté toi-même. Ce qui reste d’un paquet est déduit de tes prochaines listes.'
-              : 'Formats courants en magasin, arrondis au-dessus de ce que demandent tes repas de la semaine. Ce qui reste d’un paquet est déduit de tes prochaines listes.'}
-          </Text>
-        )}
+        // La note de pied (« Formats courants en magasin, arrondis au-dessus de ce que
+        // demandent tes repas… ») est RETIRÉE le 2026-10-22 (fondateur, point 4 : « l'app
+        // tourne en silence ») : elle racontait le calcul, la ligne dit déjà quoi prendre.
         {...repli.scrollProps}
+        scrollEnabled={!glisseEnCours}
+        onScrollBeginDrag={() => setLigneOuverte(null)}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={t.textTertiary} progressViewOffset={repli.haut} />}
         renderSectionHeader={({ section }) => (
           <View style={s.section}>
@@ -743,30 +785,26 @@ export default function CoursesScreen() {
           // manuel ou un aliment sans format, qui gardent leur quantité seule.
           const achat = achatPour(item);
           return (
-            <Presse
-              style={[
-                s.row,
-                first && { borderTopLeftRadius: Radius.card, borderTopRightRadius: Radius.card },
-                last && { borderBottomLeftRadius: Radius.card, borderBottomRightRadius: Radius.card },
-                !last && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.line },
-              ]}
-              onPress={() => toggle(item)}
+            // Les coins de la carte sont posés par la ligne glissable (premiere / derniere),
+            // qui rogne aussi le rouge qu'elle découvre.
+            <LigneGlissable
+              libelle="Retirer"
+              ouverte={ligneOuverte === item.name}
+              onOuvrir={() => setLigneOuverte(item.name)}
+              onFermer={() => setLigneOuverte((o) => (o === item.name ? null : o))}
+              onGlisse={setGlisseEnCours}
+              onSupprimer={() => ecarterArticle(item)}
+              premiere={first}
+              derniere={last}
+              styleLigne={[s.row, !last && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.line }]}
+              onTouche={() => (ligneOuverte ? setLigneOuverte(null) : toggle(item))}
               // Le geste le plus RÉPÉTÉ de l'app : on coche une trentaine
               // d'articles d'affilée, en magasin, souvent sans regarder l'écran.
               // D'où `choix` et non `validation` : `selectionAsync` est le tic
               // léger du sélecteur iOS, celui qu'on peut sentir trente fois de
               // suite. Un retour de succès à chaque ligne serait épuisant — c'est
               // la même raison qui interdit un retour par défaut sur `Presse`.
-              retour="choix"
-              // ⚠️ `onLongPress`, PAS un balayage : un glissement passe par le
-              // système de responder et se vérifie au simulateur uniquement (§5,
-              // « un GESTE ne se vérifie pas en web »). L'appui long, lui, n'est
-              // qu'un délai posé sur le press — il marche des deux côtés et se
-              // teste ici. Il n'est pas découvrable pour autant : d'où la note
-              // sous les contrôles ET une bulle dans la visite guidée.
-              onLongPress={() => ecarterArticle(item)}
-              delayLongPress={400}
-              activeOpacity={OPACITE_PRESSION}
+              retourTouche="choix"
             >
               {/* Pastille RONDE et pleine : une case à cocher carrée est un objet de
                   formulaire, or ici on ne remplit pas un formulaire, on fait ses courses. */}
@@ -775,20 +813,20 @@ export default function CoursesScreen() {
               </View>
               <View style={s.texte}>
                 <Text style={[s.name, item.checked && { textDecorationLine: 'line-through', color: t.textTertiary }]} numberOfLines={1}>{nomAffiche(item.name)}</Text>
-                {/* « 1 pot de 250 g · il t'en faut 5 g » : d'abord ce qu'on prend en
-                    rayon, puis, quand il diffère, ce que les repas demandent vraiment.
-                    Un ajout manuel n'a souvent pas de quantité : `formatQuantity`
-                    rendrait « 0 g », un chiffre faux là où un blanc dit la vérité. */}
+                {/* « 1 pot de 250 g » : ce qu'on prend en rayon, rien d'autre. Le besoin
+                    des repas (« · il t'en faut 5 g ») est retiré le 2026-10-22 : inutile à
+                    qui fait ses courses (fondateur, point 4). Un ajout manuel n'a souvent pas
+                    de quantité : `formatQuantity` rendrait « 0 g », un chiffre faux là où un
+                    blanc dit la vérité. */}
                 {achat ? (
                   <Text style={[s.qty, item.checked && { color: t.textTertiary }]} numberOfLines={1}>
                     {achat.libelle}
-                    {achat.ecartVisible && <Text style={s.besoin}>{` · ${besoinLisible(item)}`}</Text>}
                   </Text>
                 ) : item.quantity > SANS_QUANTITE && (
                   <Text style={[s.qty, item.checked && { color: t.textTertiary }]} numberOfLines={1}>{formatQuantity(item.name, item.quantity, item.unit)}</Text>
                 )}
               </View>
-            </Presse>
+            </LigneGlissable>
           );
         }}
       />
@@ -836,10 +874,8 @@ function makeStyles(t: ThemePalette) {
     retires: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: Spacing.md, paddingTop: Spacing.md },
     retiresTxt: { ...Type.caption, color: t.textTertiary, flex: 1 },
     retiresLien: { ...Type.captionStrong, color: t.accent, minHeight: CIBLE_TACTILE_MIN, textAlignVertical: 'center', lineHeight: CIBLE_TACTILE_MIN },
-    hint: { ...Type.caption, color: t.textTertiary, lineHeight: 18, paddingTop: Spacing.md },
     // Note de pied présente dans la maquette et absente de l'app : elle dit d'où
     // sortent les quantités, ce qu'aucun autre élément de l'écran n'explique.
-    footnote: { ...Type.caption, color: t.textTertiary, lineHeight: 17, paddingTop: Spacing.xl },
 
     list: { paddingHorizontal: Spacing.xl, paddingBottom: Fond.barreOnglets, paddingTop: Spacing.xs },
     section: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', marginTop: Spacing.xxl, marginBottom: Spacing.sm },
@@ -864,6 +900,5 @@ function makeStyles(t: ThemePalette) {
     texte: { flex: 1, gap: Spacing.xs },
     name: { ...Type.body, color: t.text },
     qty: { ...Type.bodySmall, color: t.textSecondary },
-    besoin: { color: t.textTertiary },
   });
 }

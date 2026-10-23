@@ -2,10 +2,10 @@ import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { RECIPE_INGREDIENTS } from '../recipeData';
-import { isStaple } from '../pantry';
+import { categorize, conservationDe, isStaple } from '../pantry';
 import { buildLocalPlan } from '../planEngine';
 import { buildShoppingList } from '../shoppingList';
-import { FORMATS, SANS_FORMAT, achatPour, quantiteRangee, besoinLisible } from '../formatsVendus';
+import { FORMATS, SANS_FORMAT, achatPour, quantiteRangee } from '../formatsVendus';
 import { makeProfile } from './helpers';
 import { DietaryRestriction } from '../types';
 
@@ -59,8 +59,6 @@ describe('format vendu : le choix du format', () => {
     const a = achatPour(article('beurre_amande', 5));
     expect(a?.libelle).toBe('1 pot de 250 g');
     expect(a?.total).toBe(250);
-    expect(a?.ecartVisible).toBe(true);
-    expect(besoinLisible(article('beurre_amande', 5))).toBe('il t’en faut 5 g');
   });
 
   it('le moins de surplus, puis le moins de paquets', () => {
@@ -74,15 +72,43 @@ describe('format vendu : le choix du format', () => {
   it('à 5 % près, un paquet suffit : pas de second paquet pour quelques grammes', () => {
     const a = achatPour(article('riz_basmati', 510));
     expect(a?.libelle).toBe('1 paquet de 500 g');
-    expect(a?.ecartVisible).toBe(false);
     // Et la réserve reçoit le besoin, pas moins : sinon 10 g reviendraient sur la liste.
     expect(quantiteRangee(article('riz_basmati', 510))).toBe(510);
   });
 
-  it('les œufs se prennent à la boîte, et le besoin se dit en œufs', () => {
+  it('les 5 % portent sur l’achat entier, pas sur un seul paquet (thon, 2026-10-19)', () => {
+    // 290 g : deux boîtes de 140 g (280 g) couvrent à 3 % près — une troisième serait de trop.
+    expect(achatPour(article('thon_naturel', 290))?.libelle).toBe('2 boîtes de 140 g égouttés');
+    // 300 g : 280 g manqueraient de 7 % — la troisième boîte reste due.
+    expect(achatPour(article('thon_naturel', 300))?.libelle).toBe('3 boîtes de 140 g égouttés');
+    expect(quantiteRangee(article('thon_naturel', 290))).toBe(290);
+  });
+
+  it('… et pour TOUS les aliments vendus en paquet, pas seulement le thon (point 3, 2026-10-22)', () => {
+    // Mesuré sur 240 listes réelles (9 352 lignes en paquet) : l’ancienne règle faisait prendre
+    // un paquet de trop à 19 lignes et 9 aliments — épinards (7), poulet végétal (3), jambon
+    // végétal (2), thon (2), seitan, myrtilles, maïs, pois chiches, nouilles de riz. Le
+    // correctif était commun ; ce balayage le fige pour chacun : un besoin à 4 % au-dessus de
+    // k paquets n’en fait jamais prendre davantage, et l’achat ne descend jamais sous 95 %.
+    const fautes: string[] = [];
+    for (const [ref, regle] of Object.entries(FORMATS)) {
+      if (!('formats' in regle) || !RECIPE_INGREDIENTS[ref]) continue;
+      for (const f of regle.formats) {
+        for (let k = 1; k <= 6; k++) {
+          const besoin = Math.round(k * f.taille * 1.04);
+          const achat = achatPour(article(ref, besoin));
+          if (!achat) { fautes.push(`${ref} : aucun achat pour ${besoin}`); continue; }
+          if (achat.total > k * f.taille) fautes.push(`${ref} ${besoin} → ${achat.libelle} (${k} × ${f.taille} suffisaient)`);
+          if (achat.total < besoin * 0.95 - 1e-6) fautes.push(`${ref} ${besoin} → ${achat.total}, sous 95 %`);
+        }
+      }
+    }
+    expect(fautes).toEqual([]);
+  });
+
+  it('les œufs se prennent à la boîte', () => {
     const a = achatPour(article('oeuf_entier', 165));
     expect(a?.libelle).toBe('1 boîte de 6 œufs');
-    expect(besoinLisible(article('oeuf_entier', 165))).toBe('il t’en faut 3 œufs');
     expect(achatPour(article('oeuf_entier', 385))?.libelle).toBe('1 boîte de 12 œufs');
   });
 
@@ -90,8 +116,6 @@ describe('format vendu : le choix du format', () => {
     expect(achatPour(article('courgette', 350))?.libelle).toBe('2 courgettes');
     expect(achatPour(article('courgette', 210))?.libelle).toBe('1 courgette');
     expect(achatPour(article('chou_fleur', 900))?.libelle).toBe('2 choux-fleurs');
-    // Une banane pour 100 g de banane : rien à préciser.
-    expect(achatPour(article('banane', 100))?.ecartVisible).toBe(false);
   });
 
   it('les liquides se disent en litres', () => {
@@ -144,8 +168,33 @@ describe('format vendu : l’écran Courses s’en sert', () => {
     expect(bloc).toMatch(/addOrMerge\(pantry, \{ name: it\.name, quantity: quantiteRangee\(it\)/);
   });
 
-  it('chaque ligne dit ce qu’on prend en magasin', () => {
+  it('chaque ligne dit ce qu’on prend en magasin, et rien d’autre (point 4, 2026-10-22)', () => {
+    // « 1 pot de 250 g · il t’en faut 5 g » : la seconde moitié est retirée, « l’app tourne en
+    // silence » (fondateur). L’achat ne porte plus que ce qu’on prend et ce qui entre en réserve,
+    // et la ligne de l’écran se ferme juste après le libellé.
     expect(courses).toContain('achatPour(item)');
-    expect(courses).toContain('besoinLisible(item)');
+    expect(courses).toMatch(/\{achat\.libelle\}\s*<\/Text>/);
+    expect(Object.keys(achatPour(article('beurre_amande', 5)) ?? {}).sort()).toEqual(['libelle', 'total']);
+    expect(Object.keys(achatPour(article('avocat', 75)) ?? {}).sort()).toEqual(['libelle', 'total']);
+  });
+});
+
+describe('la Réserve range les conserves au sec (2026-10-04)', () => {
+  it('tout ingrédient vendu en boîte finit « Au sec », les œufs mis à part', () => {
+    const auFrais = Object.entries(FORMATS).flatMap(([ref, regle]) => {
+      if (!('formats' in regle) || ref === 'oeuf_entier') return [];
+      if (!regle.formats.every((f) => f.contenant === 'boîte')) return [];
+      const name = RECIPE_INGREDIENTS[ref].name;
+      const ou = conservationDe({ name, quantity: 1, unit: RECIPE_INGREDIENTS[ref].unit, category: categorize(name) });
+      return ou === 'sec' ? [] : [`${ref} (${categorize(name)})`];
+    });
+    expect(auFrais).toEqual([]);
+  });
+
+  it('le classement reste corrigeable : un choix manuel passe devant', () => {
+    const name = RECIPE_INGREDIENTS.thon_naturel.name;
+    expect(conservationDe({ name, quantity: 140, unit: 'g', category: 'viandes', conservation: 'frais' })).toBe('frais');
+    // Et les œufs, eux, restent au frais.
+    expect(conservationDe({ name: RECIPE_INGREDIENTS.oeuf_entier.name, quantity: 330, unit: 'g', category: 'laitiers' })).toBe('frais');
   });
 });

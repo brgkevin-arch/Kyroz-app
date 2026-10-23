@@ -7,7 +7,7 @@ import { PREMIUM_FEATURES, PremiumFeature } from '../premium';
 //
 // 🔴 CE FICHIER EXISTE À CAUSE D'UN TROU RÉEL (audit paywall, 2026-08-25).
 // `transformation` était déclarée dans `PREMIUM_FEATURES` depuis le 2026-07-27,
-// annoncée sur l'écran de vente (`app/kyroz-plus.tsx::BRIQUES`), écrite dans les
+// annoncée sur l'écran de vente (`lib/offreKyrozPlus.ts::FONCTIONS_KYROZ_PLUS`, depuis le 2026-10-20), écrite dans les
 // CGU §3 — et `can('transformation')` n'était appelé NULLE PART. Le jour où
 // `PAYWALL_LAUNCH` reçoit une date, l'objectif daté se serait verrouillé et les
 // photos seraient restées ouvertes : un paywall qui vend deux briques et n'en

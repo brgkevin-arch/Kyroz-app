@@ -12,6 +12,8 @@ describe('chaque aliment tombe dans son rayon', () => {
     ['Filet mignon de porc', 'viandes'], ['Maquereau', 'viandes'], ['Sardines (conserve égouttées)', 'viandes'],
     ['Millet', 'féculents'], ['Sarrasin', 'féculents'], ['Polenta', 'féculents'], ['Chapelure', 'féculents'],
     ['Mozzarella light', 'laitiers'],
+    // « corail » attrapait « ail », « chorizo » attrapait « riz » (2026-10-23).
+    ['Lentilles corail', 'féculents'], ['Chorizo végétal', 'viandes'],
     // Et ce qui reste en « Autres » y est à dessein : épicerie sèche.
     ['Dattes dénoyautées', 'autres'], ['Châtaigne', 'autres'], ['Amandes', 'autres'], ['Huile d\'olive', 'autres'],
   ])('%s → %s', (nom, rayon) => {

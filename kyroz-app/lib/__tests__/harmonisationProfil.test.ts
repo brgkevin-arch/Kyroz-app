@@ -52,6 +52,8 @@ describe('la note sous la cible dit la vraie cause', () => {
     const plan = sansCommentaires(lire('app/(tabs)/plan.tsx'));
     expect(plan).toMatch(/repasAVenir > 0\s*\?\s*'les portions de tes repas ne peuvent pas monter plus haut\.'/);
     expect(plan).toMatch(/tes repas du jour sont passés, il n\\'y a plus rien à ajuster\./);
-    expect(plan).toMatch(/repasAVenir=\{\(plan\?\.meals \?\? \[\]\)\.filter\(\(m\) => m\.day === selectedDay && !m\.status\)\.length\}/);
+    // Compté sur les repas AFFICHÉS depuis le 2026-10-23 (`dayMeals`) : un repas d'avant le
+    // début choisi n'est jamais mangé ni sauté, il passait pour « à venir » toute la journée.
+    expect(plan).toMatch(/repasAVenir=\{dayMeals\.filter\(\(m\) => !m\.status\)\.length\}/);
   });
 });

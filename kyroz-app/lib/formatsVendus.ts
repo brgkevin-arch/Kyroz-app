@@ -1,10 +1,13 @@
 // ── Le FORMAT VENDU : ce qu'on prend vraiment en magasin (2026-10-02) ─────────
 //
 // Décision fondateur (« Liste + réserve ») : la liste de courses montre ce qu'on
-// achète vraiment, « Beurre d'amande · 1 pot de 250 g · il t'en faut 5 g » ; à
-// « Courses terminées », le paquet ENTIER entre en réserve ; ce qu'il en reste est
-// déduit des listes suivantes (la réserve est toujours soustraite de la liste) ; et
-// les quantités restent corrigeables dans la Réserve.
+// achète vraiment, « Beurre d'amande · 1 pot de 250 g » ; à « Courses terminées », le
+// paquet ENTIER entre en réserve ; ce qu'il en reste est déduit des listes suivantes
+// (la réserve est toujours soustraite de la liste) ; et les quantités restent
+// corrigeables dans la Réserve.
+// La ligne disait aussi « · il t'en faut 5 g » : RETIRÉ le 2026-10-22 (fondateur, point 4
+// avant la 62ᵉ OTA : « la phrase est inutile pour un user… l'app tourne en silence »).
+// La ligne dit ce qu'on prend en rayon, rien d'autre.
 //
 // 🔴 LE DÉFAUT QUE ÇA FERME (docs/fiabilite-liste-et-reserve.md, F1 et F2) : la
 // réserve recevait le BESOIN, jamais l'ACHAT. 320 g de riz demandés, un paquet de
@@ -21,7 +24,8 @@
 
 import { RECIPE_INGREDIENTS } from './recipeData';
 import { refDuNom } from './pantry';
-import { formatQuantity, frnum } from './units';
+import { frnum } from './units';
+import { A_LA_PIECE } from './aLaPiece';
 
 type Contenant =
   | 'paquet' | 'pot' | 'boîte' | 'brique' | 'bouteille' | 'sachet' | 'barquette'
@@ -54,6 +58,9 @@ const f = (contenant: Contenant, ...tailles: number[]): Regle =>
   ({ formats: tailles.map((taille) => ({ contenant, taille })) });
 const fl = (...formats: Format[]): Regle => ({ formats });
 const p = (piece: number, nom: string, pluriel: string): Regle => ({ piece, nom, pluriel });
+const PIECES: Record<string, Regle> = Object.fromEntries(
+  Object.entries(A_LA_PIECE).map(([ref, a]) => [ref, p(a.poids, a.nom, a.pluriel)]),
+);
 
 /**
  * Le format courant de chaque ingrédient du catalogue.
@@ -180,23 +187,9 @@ export const FORMATS: Record<string, Regle> = {
   pain_pita_complet: fl({ contenant: 'paquet', taille: 330, libelle: '6 pains pita' }),
   pomme_de_terre: f('filet', 1000),
 
-  // Fruits et légumes : à la pièce quand ils se vendent à la pièce
-  banane: p(120, 'banane', 'bananes'),
-  avocat: p(150, 'avocat', 'avocats'),
-  pomme: p(150, 'pomme', 'pommes'),
-  kiwi: p(75, 'kiwi', 'kiwis'),
-  mangue: p(250, 'mangue', 'mangues'),
-  ananas: p(500, 'ananas', 'ananas'),
-  courgette: p(200, 'courgette', 'courgettes'),
-  poivron: p(150, 'poivron', 'poivrons'),
-  tomate: p(120, 'tomate', 'tomates'),
-  oignon: p(100, 'oignon', 'oignons'),
-  carotte: p(100, 'carotte', 'carottes'),
-  concombre: p(350, 'concombre', 'concombres'),
-  brocoli: p(350, 'brocoli', 'brocolis'),
-  chou_fleur: p(600, 'chou-fleur', 'choux-fleurs'),
-  salade_verte: p(250, 'salade', 'salades'),
-  patate_douce: p(300, 'patate douce', 'patates douces'),
+  // Fruits et légumes : à la pièce quand ils se vendent à la pièce. La table vit dans
+  // `lib/aLaPiece.ts` depuis le 2026-10-23 : la Réserve et les fiches comptent avec elle.
+  ...PIECES,
   myrtilles: f('barquette', 125),
   framboises: f('barquette', 125),
   fruits_rouges: f('sachet', 500),
@@ -229,9 +222,9 @@ export interface Achat {
   libelle: string;
   /** Ce qui entre en réserve à la clôture, dans l'unité de l'article. */
   total: number;
-  /** Faut-il dire « il t'en faut … » ? Non quand l'achat et le besoin se confondent. */
-  ecartVisible: boolean;
 }
+
+const compter = (k: number, un: string, plusieurs: string) => `${k} ${k > 1 ? plusieurs : un}`;
 
 type Article = { name: string; quantity: number; unit: string; manuel?: boolean };
 
@@ -254,19 +247,16 @@ export function achatPour(article: Article): Achat | null {
 
   if ('piece' in regle) {
     const n = Math.max(1, Math.ceil((besoin - TOLERANCE_PIECE * regle.piece) / regle.piece));
-    const total = n * regle.piece;
-    return {
-      libelle: `${n} ${n > 1 ? regle.pluriel : regle.nom}`,
-      total,
-      ecartVisible: Math.abs(total - besoin) > TOLERANCE_PIECE * regle.piece,
-    };
+    return { libelle: compter(n, regle.nom, regle.pluriel), total: n * regle.piece };
   }
 
   // Le format qui couvre le besoin avec le moins de surplus ; à surplus égal, le moins
   // de paquets (520 g de riz : un paquet de 1 kg plutôt que deux de 500 g).
   let retenu: { format: Format; n: number; total: number } | null = null;
   for (const format of regle.formats) {
-    const n = Math.max(1, Math.ceil((besoin - TOLERANCE_FORMAT * format.taille) / format.taille));
+    // La tolérance porte sur ce qu'on ACHÈTE, pas sur un seul paquet (2026-10-19) : 290 g de
+    // thon, c'est 2 boîtes de 140 g (280 g, 3 % de moins), pas 3. Pour un paquet, rien ne change.
+    const n = Math.max(1, Math.ceil(besoin / (format.taille * (1 + TOLERANCE_FORMAT)) - 1e-9));
     const total = n * format.taille;
     if (!retenu || total < retenu.total || (total === retenu.total && n < retenu.n)) {
       retenu = { format, n, total };
@@ -277,7 +267,6 @@ export function achatPour(article: Article): Achat | null {
   return {
     libelle: `${n} ${n > 1 ? PLURIEL[format.contenant] : format.contenant} de ${format.libelle ?? taille(format.taille, article.unit)}`,
     total,
-    ecartVisible: Math.abs(total - besoin) > TOLERANCE_FORMAT * total,
   };
 }
 
@@ -289,9 +278,4 @@ export function achatPour(article: Article): Achat | null {
 export function quantiteRangee(article: Article): number {
   const achat = achatPour(article);
   return achat ? Math.max(achat.total, article.quantity) : article.quantity;
-}
-
-/** « il t'en faut 5 g », dans l'unité lisible de l'aliment (« 3 œufs »). */
-export function besoinLisible(article: Article): string {
-  return `il t’en faut ${formatQuantity(article.name, article.quantity, article.unit)}`;
 }

@@ -1,7 +1,10 @@
 // ── Affichage des quantités en unités lisibles ───────────────────────────────
-// Convertit des grammes en PIÈCES (œufs, bananes, tortillas…) ou en kg/L quand
-// c'est plus naturel pour faire ses courses. Partagé par les courses, le frigo
+// Convertit des grammes en PIÈCES (œufs, tomates, ananas…) ou en kg/L quand
+// c'est plus naturel pour faire ses courses. Partagé par les courses, la réserve
 // et les fiches recette pour un affichage cohérent partout.
+
+import { A_LA_PIECE, FRACTION_MIN, piecesLisibles } from './aLaPiece';
+import { refDuNom } from './nomsAliments';
 
 /**
  * Nombre à une décimale, séparateur FRANÇAIS. Exporté depuis le 2026-08-10 : la carte
@@ -18,13 +21,6 @@ export function frnum(x: number): string {
 function countStr(x: number, one: string, many: string): string {
   const c = Math.max(1, Math.round(x));
   return `${c} ${c > 1 ? many : one}`;
-}
-
-// Arrondi à la demi-unité (avocat : on coupe souvent en deux).
-function halfStr(x: number, one: string, many: string): string {
-  const c = Math.max(0.5, Math.round(x * 2) / 2);
-  const label = c > 1 ? many : one;
-  return `${c === 0.5 ? '½' : frnum(c)} ${label}`;
 }
 
 /** Un nom désigne-t-il un œuf ? ⚠️ « bœuf » contient « œuf » → exclusion explicite,
@@ -46,32 +42,55 @@ function estOeuf(n: string): boolean {
 export function poidsUnitaire(name: string): number | undefined {
   const n = (name || '').toLowerCase();
   if (estOeuf(n)) return n.includes('blanc') ? 33 : 55;
-  if (n.includes('banane')) return 120;
+  const piece = pieceDe(name);
+  if (piece) return piece.poids;
   if (n.includes('tortilla')) return 60;
-  if (n.includes('avocat')) return 150;
+  return undefined;
+}
+
+/**
+ * La pièce d'un aliment vendu à la pièce (`lib/aLaPiece.ts`), d'après son nom.
+ * Le nom du catalogue d'abord (« Patate douce ») ; puis, pour un nom saisi à la main
+ * (« bananes »), les deux mots que l'app reconnaissait déjà avant le 2026-10-23.
+ */
+function pieceDe(name: string) {
+  const ref = refDuNom(name || '');
+  if (ref && A_LA_PIECE[ref]) return A_LA_PIECE[ref];
+  const n = (name || '').toLowerCase();
+  if (n.includes('banane')) return A_LA_PIECE.banane;
+  if (n.includes('avocat')) return A_LA_PIECE.avocat;
   return undefined;
 }
 
 /**
  * Quantité lisible pour un aliment.
- *  - ml → ml / L ; 'pièce' → « pc »
- *  - œufs, bananes, tortillas, avocats → comptés à l'unité
+ *  - ml → ml / L ; 'pièce' → « 2 courgettes » si l'aliment se vend à la pièce, sinon « pc »
+ *  - œufs, tortillas → comptés à l'unité
+ *  - ce qui s'achète à la pièce (`lib/aLaPiece.ts`) → « ⅔ tomate », « 1 ananas »
  *  - sinon : g, ou kg au-delà de 1000 g
+ *
+ * 🔴 « Tomate 80 g » sur la fiche, « 500 g » d'ananas dans la Réserve quand la liste
+ * avait dit « 1 ananas » : corrigé le 2026-10-23 (fondateur, « corrige les unités »).
+ * Ce qu'on achète à la pièce se compte en pièces, sur tous les écrans.
  */
 export function formatQuantity(name: string, quantity: number, unit: string = 'g'): string {
   const n = (name || '').toLowerCase();
+  const piece = pieceDe(name);
 
   if (unit === 'ml') return quantity >= 1000 ? `${frnum(quantity / 1000)} L` : `${Math.round(quantity)} ml`;
-  if (unit === 'pièce' || unit === 'pc') return `${frnum(quantity)} pc`;
+  if (unit === 'pièce' || unit === 'pc') {
+    return (piece && piecesLisibles(quantity, piece.nom, piece.pluriel)) || `${frnum(quantity)} pc`;
+  }
 
   // Aliments naturellement comptés à l'unité (poids de la pièce : `poidsUnitaire`).
   const pu = poidsUnitaire(name);
   const egg = estOeuf(n);
   if (pu && egg && n.includes('blanc')) return countStr(quantity / pu, "blanc d'œuf", "blancs d'œuf");
   if (pu && egg) return countStr(quantity / pu, 'œuf', 'œufs');
-  if (pu && n.includes('banane')) return countStr(quantity / pu, 'banane', 'bananes');
-  if (pu && n.includes('tortilla')) return countStr(quantity / pu, 'tortilla', 'tortillas');
-  if (pu && n.includes('avocat')) return halfStr(quantity / pu, 'avocat', 'avocats');
+  if (piece) {
+    const pieces = piecesLisibles(quantity / piece.poids, piece.nom, piece.pluriel);
+    if (pieces) return pieces;
+  } else if (pu && n.includes('tortilla')) return countStr(quantity / pu, 'tortilla', 'tortillas');
 
   // Poids
   if (quantity >= 1000) return `${frnum(quantity / 1000)} kg`;
@@ -83,4 +102,26 @@ export function toBaseUnit(quantity: number, unit: string): { quantity: number; 
   if (unit === 'kg') return { quantity: Math.round(quantity * 1000), unit: 'g' };
   if (unit === 'L' || unit === 'l') return { quantity: Math.round(quantity * 1000), unit: 'ml' };
   return { quantity, unit };
+}
+
+/**
+ * La quantité à proposer dans un champ de saisie, dans l'unité que la ligne AFFICHE :
+ * une ligne qui dit « ⅔ tomate » s'ouvre sur « 0.67 pièce », pas sur « 80 g »
+ * (2026-10-23). Sous un cinquième de pièce, la ligne dit des grammes : le champ aussi.
+ */
+export function quantiteDeSaisie(name: string, quantity: number, unit: string): { quantity: number; unit: string } {
+  const pu = unit === 'g' ? poidsUnitaire(name) : undefined;
+  if (!pu || quantity / pu < FRACTION_MIN) return { quantity, unit };
+  return { quantity: Math.round((quantity / pu) * 100) / 100, unit: 'pièce' };
+}
+
+/**
+ * Ce qui se range en réserve pour une saisie : des pièces d'un aliment dont on connaît le
+ * poids partent en GRAMMES, l'unité dans laquelle la liste de courses le range. Sinon le
+ * même aliment vivrait sur deux lignes, « 2 tomates » et « 2 tomates », que rien ne fusionne.
+ */
+export function versStockage(name: string, quantity: number, unit: string): { quantity: number; unit: string } {
+  const base = toBaseUnit(quantity, unit);
+  const pu = base.unit === 'pièce' ? poidsUnitaire(name) : undefined;
+  return pu ? { quantity: Math.round(base.quantity * pu), unit: 'g' } : base;
 }

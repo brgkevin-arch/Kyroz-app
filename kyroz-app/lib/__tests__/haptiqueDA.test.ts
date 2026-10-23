@@ -77,7 +77,9 @@ describe('Retour au toucher — quatre rôles, et surtout pas un de plus sous ch
   it('🔴 chaque rôle est réellement EMPLOYÉ quelque part', () => {
     const code = sources().map((f) => f.code).join('\n');
     const inemployes = ROLES.filter(
-      (r) => !new RegExp(`retour=["']${r}["']|retour\\(['"]${r}['"]\\)`).test(code)
+      // `retourTouche="choix"` compte aussi : la ligne glissable (2026-10-23) porte elle-même
+      // son `Presse`, et l'écran lui passe le rôle du tap sous ce nom.
+      (r) => !new RegExp(`retour(?:Touche)?=["']${r}["']|retour\\(['"]${r}['"]\\)`).test(code)
     );
     expect(inemployes, `rôles déclarés mais jamais employés : ${inemployes.join(', ')}`).toEqual([]);
   });

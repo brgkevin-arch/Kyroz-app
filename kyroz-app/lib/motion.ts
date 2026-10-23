@@ -230,6 +230,46 @@ export function decisionFeuille(
   return projetee > hauteur / 2 ? 'fermer' : 'revenir';
 }
 
+// ── Glisser une ligne vers la gauche pour la supprimer (2026-10-23) ──────────
+//
+// Demande du fondateur, pour la Réserve : « slide l'aliment à gauche, ça fait apparaître
+// "supprimer" comme chez Apple, et un slide long supprime l'aliment ». Le geste de Mail et
+// de Rappels : un bouton rouge se révèle sous la ligne ; glisser au-delà de la moitié de la
+// ligne supprime d'un coup, avec un déclic au moment où le seuil est franchi.
+//
+// 🔴 LA SUPPRESSION SE DÉCIDE SUR LA POSITION, JAMAIS SUR L'ÉLAN. Ouvrir ou refermer le
+// bouton suit la projection (un jeté vif ouvre, comme une feuille), mais un geste
+// irréversible ne part pas sur un mouvement trop vif du pouce : il faut AMENER la ligne
+// au-delà du seuil — et le déclic dit qu'on y est avant qu'on lâche.
+export const GLISSEMENT = {
+  /** Largeur du bouton « Supprimer » révélé, en points. */
+  bouton: 88,
+  /** Part de la ligne au-delà de laquelle relâcher supprime (le glissement long). */
+  seuilSuppression: 0.5,
+} as const;
+
+/** La ligne tirée vers la gauche (`position` négative) a-t-elle passé le seuil ? */
+export function seuilSuppressionFranchi(position: number, largeur: number): boolean {
+  return largeur > 0 && -position >= largeur * GLISSEMENT.seuilSuppression;
+}
+
+/**
+ * Au relâchement : supprimer, laisser le bouton ouvert, ou refermer.
+ *
+ * @param position décalage de la ligne (0 = en place, négatif = tirée vers la gauche)
+ * @param vitesse  px/seconde au relâchement (négatif = vers la gauche)
+ * @param largeur  largeur de la ligne
+ */
+export function decisionGlissement(
+  position: number,
+  vitesse: number,
+  largeur: number,
+): 'supprimer' | 'ouvrir' | 'fermer' {
+  if (seuilSuppressionFranchi(position, largeur)) return 'supprimer';
+  const projetee = -(position + projection(vitesse));
+  return projetee > GLISSEMENT.bouton / 2 ? 'ouvrir' : 'fermer';
+}
+
 // ── « Réduire les animations » ───────────────────────────────────────────────
 //
 // Réglage d'accessibilité iOS et Android, qu'Apple TESTE en revue. L'app

@@ -228,6 +228,7 @@ export async function identifyUser(userId: string | null): Promise<boolean> {
 // ne remonte dans `premium.ts`.
 export type { StorePrice, StorePrices } from './premium';
 import type { StorePrices } from './premium';
+import { joursEssai, eligibiliteDepuisStatut } from './offreKyrozPlus';
 
 /**
  * Prix réels du store, localisés (`priceString`).
@@ -291,12 +292,17 @@ export async function fetchStorePrices(ids: { monthly: string; annual: string })
   if (!sdk) return {};
   try {
     const produits = await sdk.default.getProducts([ids.monthly, ids.annual]);
+    // L'essai gratuit (2026-10-20) : l'offre ET le droit de CETTE personne, tous deux lus au
+    // store. Un échec ici n'empêche pas de vendre — l'écran annonce alors l'abonnement seul.
+    let droits: Record<string, { status?: number }> = {};
+    try { droits = await sdk.default.checkTrialOrIntroductoryPriceEligibility([ids.monthly, ids.annual]); } catch {}
     const prix: StorePrices = {};
     for (const p of produits) {
       // `montant` et `devise` viennent du MÊME produit que `priceString` : c'est ce
       // qui garantit que la mensualité dérivée parle de la même monnaie que le prix
       // affiché juste au-dessus (cf. `mensualiteEquivalente`).
-      const servi = { priceString: p.priceString, montant: p.price, devise: p.currencyCode };
+      const essai = joursEssai(p.introPrice, eligibiliteDepuisStatut(droits[p.identifier]?.status));
+      const servi = { priceString: p.priceString, montant: p.price, devise: p.currencyCode, ...(essai ? { essaiJours: essai } : {}) };
       produitsVus.set(p.identifier, p);
       if (p.identifier === ids.monthly) prix.monthly = servi;
       if (p.identifier === ids.annual) prix.annual = servi;

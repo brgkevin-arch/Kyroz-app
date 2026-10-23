@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform } from 'react-native';
 import { Presse } from '../components/Presse';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -8,13 +8,14 @@ import { StatusBar } from 'expo-status-bar';
 import { useTheme, ThemePalette, Spacing, Radius, Type, Fond, Icone, OPACITE_PRESSION, Trait } from '../constants/theme';
 import { useLayout } from '../constants/layout';
 import { Card, OptionCard, PrimaryButton, SectionLabel } from '../components/ui';
-import { useDialog } from '../components/Dialog';
 import { usePremium } from '../hooks/usePremium';
+import { useAchatKyrozPlus } from '../hooks/useAchatKyrozPlus';
 import { PHOTOS_NOTICE_LOCALE } from '../lib/photos';
-import { PREMIUM_PRICES, annualSavingPct, paywallBanner, withStorePrices, type StorePrices } from '../lib/premium';
-import { buy, fetchStorePrices, purchasesConfigured, restore, PURCHASE_BUDGET_MS } from '../lib/purchases';
+import { paywallBanner } from '../lib/premium';
+import { PURCHASE_BUDGET_MS } from '../lib/purchases';
 import { DISCLAIMER } from '../constants/legal';
 import { RYTHME_HEBDOMADAIRE_ACTIF } from '../lib/featureFlags';
+import { FONCTIONS_KYROZ_PLUS, NOUVEAUTES_INCLUSES, mentionPaiement } from '../lib/offreKyrozPlus';
 
 // ── Écran Kyroz+ — route racine /kyroz-plus ──────────────────────────────────
 //
@@ -45,22 +46,8 @@ import { RYTHME_HEBDOMADAIRE_ACTIF } from '../lib/featureFlags';
 // Le web ne peut pas encaisser (Kyroz vend par les stores, cf. CLAUDE.md §1) :
 // l'écran le DIT au lieu d'afficher un bouton qui échouerait.
 
-const BRIQUES = [
-  {
-    icone: 'rocket-outline' as const,
-    titre: 'Objectif daté',
-    corps:
-      "Tu poses un poids et une date. Kyroz calcule le rythme tenable pour ton corps, " +
-      "réajuste tes calories à chaque pesée, et te dit franchement quand la date ne l'est pas.",
-  },
-  {
-    icone: 'trending-up-outline' as const,
-    titre: 'Suivi de transformation',
-    corps:
-      "Ta courbe de poids avec, par-dessus, la trajectoire visée. Un mot honnête sur ta pente " +
-      "à chaque pesée : un repère, jamais une alarme. Et l'avant/après en photo.",
-  },
-];
+// Ce que Kyroz+ ajoute : UNE liste pour l'app et les CGU (`lib/offreKyrozPlus.ts`, 2026-10-20).
+// Elle vivait ici en copie ; la page d'arrivée et les CGU en avaient chacune une autre.
 
 // 🔴 « Le réglage de tes jours plus copieux » figurait ici alors que ce réglage est
 // ÉTEINT depuis le 2026-08-18 (`RYTHME_HEBDOMADAIRE_ACTIF`) et introuvable dans l'app :
@@ -78,108 +65,17 @@ export default function KyrozPlusScreen() {
   const s = useMemo(() => makeStyles(t), [t]);
   const layout = useLayout();
   const router = useRouter();
-  const dialog = useDialog();
   // L'écran d'achat est le SEUL à forcer l'identification : acheter ou restaurer
   // exige que RevenueCat sache à quel compte rattacher la transaction. Partout
   // ailleurs, l'identifiant ne part que si le verdict en dépend (cf. usePremium).
   const { reason } = usePremium({ forcerIdentification: true });
-  // ⚠️ L'ANNUEL EST PRÉSÉLECTIONNÉ (2026-08-25) — une décision, pas un défaut
-  // d'écriture. Le mensuel l'était jusque-là, ce qui mettait en avant la seule
-  // formule dont l'économie affichée juste en dessous (`annualSavingPct`) ne parle
-  // pas. Le mensuel reste à UN TAP et n'est jamais masqué : on met en avant, on
-  // n'enferme pas — c'est la limite entre présélectionner et piéger.
-  const [plan, setPlan] = useState<'monthly' | 'annual'>('annual');
-  const [prixStore, setPrixStore] = useState<StorePrices>({});
-  const [enCours, setEnCours] = useState(false);
-
   const banner = paywallBanner(reason);
   const enVente = reason === 'locked';
   const surWeb = Platform.OS === 'web';
-  const store = Platform.OS === 'android' ? 'Google Play' : 'App Store';
-  const encaissable = purchasesConfigured();
-
-  // Prix RÉELS du store, localisés. Tant qu'ils n'arrivent pas (dormant, offre non
-  // publiée, réseau), on garde les tarifs français ET on le dit — cf. `withStorePrices`.
-  const { plans, fallback } = useMemo(() => withStorePrices(prixStore), [prixStore]);
-  const economie = useMemo(() => annualSavingPct(plans), [plans]);
-
-  useEffect(() => {
-    if (!enVente || !encaissable) return;
-    let vivant = true;
-    const ids = {
-      monthly: PREMIUM_PRICES.find((p) => p.id === 'monthly')!.storeProductId,
-      annual: PREMIUM_PRICES.find((p) => p.id === 'annual')!.storeProductId,
-    };
-    fetchStorePrices(ids).then((p) => { if (vivant) setPrixStore(p); });
-    return () => { vivant = false; };
-  }, [enVente, encaissable]);
-
-  const choisi = plans.find((p) => p.id === plan) ?? plans[0];
-
-  // ⚠️ `useDialog` et PAS `Alert.alert` : ce dernier est une fonction VIDE sur
-  // react-native-web (CLAUDE.md §11). Un achat échoué y serait resté MUET.
-  const acheter = async () => {
-    if (enCours) return;
-    setEnCours(true);
-    const r = await buy(choisi.storeProductId);
-    setEnCours(false);
-    if (r.statut === 'annule') return;          // l'utilisateur a renoncé : rien à dire
-    if (r.statut === 'ok') {
-      await dialog.notify({
-        title: r.entitled ? 'Kyroz+ est actif' : 'Achat enregistré',
-        message: r.entitled
-          ? 'Tes deux outils sont débloqués. Le renouvellement se gère dans ton compte ' + store + '.'
-          : "L'achat est passé mais le droit n'est pas encore actif. Il le sera d'ici quelques instants.",
-      });
-      return;
-    }
-    // ⚠️ `sansreponse` n'est PAS un échec : l'issue réelle est INCONNUE (le store
-    // n'a pas répondu à temps, cf. `lib/purchases.ts::PURCHASE_BUDGET_MS`). Dire
-    // « rien ne t'a été débité » ici serait un mensonge si l'achat aboutit malgré
-    // tout une seconde plus tard — Kyroz+ s'activerait alors tout seul.
-    if (r.statut === 'sansreponse') {
-      await dialog.notify({
-        title: 'Pas de réponse du store',
-        message: "On n'a pas de réponse pour l'instant. Si l'achat aboutit, Kyroz+ s'active automatiquement. Sinon, réessaie dans un instant.",
-      });
-      return;
-    }
-    await dialog.notify({
-      title: "L'achat n'a pas abouti",
-      message: r.statut === 'indisponible'
-        ? "L'abonnement n'est pas disponible sur cet appareil pour l'instant. Rien ne t'a été débité."
-        : `${r.message}\n\nRien ne t'a été débité.`,
-    });
-  };
-
-  const restaurer = async () => {
-    if (enCours) return;
-    setEnCours(true);
-    const r = await restore();
-    setEnCours(false);
-    if (r.statut === 'ok') {
-      await dialog.notify({
-        title: r.entitled ? 'Abonnement retrouvé' : 'Aucun abonnement à restaurer',
-        message: r.entitled
-          ? 'Ton Kyroz+ est de nouveau actif sur cet appareil.'
-          : `Aucun achat Kyroz+ n'est associé à ce compte ${store}.`,
-      });
-      return;
-    }
-    if (r.statut === 'sansreponse') {
-      await dialog.notify({
-        title: 'Pas de réponse du store',
-        message: "On n'a pas de réponse pour l'instant. Réessaie dans un instant.",
-      });
-      return;
-    }
-    await dialog.notify({
-      title: 'Restauration impossible',
-      message: r.statut === 'echec'
-        ? r.message
-        : "Les achats ne sont pas disponibles sur cet appareil.",
-    });
-  };
+  // L'achat (prix réels, abonnement, restauration et leurs messages) est partagé avec la
+  // page d'arrivée Kyroz+ (`app/offre-kyroz-plus.tsx`) : une seule logique d'argent.
+  const { plan, setPlan, plans, fallback, economie, choisi, enCours, acheter, restaurer, store, encaissable, essaiJours } =
+    useAchatKyrozPlus(enVente);
 
   return (
     <SafeAreaView style={s.safe} edges={['top']}>
@@ -198,16 +94,17 @@ export default function KyrozPlusScreen() {
         <View style={s.block}>
           <SectionLabel t={t}>Ce que Kyroz+ ajoute</SectionLabel>
           <View style={{ gap: Spacing.md, marginTop: Spacing.md }}>
-            {BRIQUES.map((b) => (
+            {FONCTIONS_KYROZ_PLUS.map((b) => (
               <Card key={b.titre} t={t}>
                 <View style={s.briqueTitre}>
-                  <Ionicons name={b.icone} size={Icone.standard} color={t.text} />
+                  <Ionicons name={b.icone as keyof typeof Ionicons.glyphMap} size={Icone.standard} color={t.text} />
                   <Text style={s.briqueNom}>{b.titre}</Text>
                 </View>
                 <Text style={s.briqueCorps}>{b.corps}</Text>
               </Card>
             ))}
           </View>
+          <Text style={[s.briqueCorps, { marginTop: Spacing.md }]}>{NOUVEAUTES_INCLUSES}</Text>
           {/* 🔴 LA FRAGILITÉ EST ANNONCÉE SUR L'ÉCRAN QUI VEND (2026-08-25). Les trois
               surfaces qui parlent des photos promettaient « restent sur ton téléphone »
               sans jamais dire « et tu les perds en changeant de téléphone ». Sur un
@@ -267,7 +164,7 @@ export default function KyrozPlusScreen() {
                     une durée qu'on ne contrôle pas serait un mensonge de plus. */}
                 <PrimaryButton
                   t={t}
-                  label="S'abonner"
+                  label={essaiJours ? `Essayer ${essaiJours} jours gratuitement` : "S'abonner"}
                   loading={enCours}
                   onPress={acheter}
                   disabled={!encaissable}
@@ -311,12 +208,7 @@ export default function KyrozPlusScreen() {
               </View>
             )}
 
-            <Text style={s.mentions}>
-              Le paiement est débité de ton compte {store} à la confirmation de l'achat.
-              L'abonnement se renouvelle automatiquement au même tarif à la fin de chaque période,
-              sauf si tu le désactives au moins 24 h avant. Tu peux le gérer ou l'arrêter à tout
-              moment dans les réglages de ton compte {store}.
-            </Text>
+            <Text style={s.mentions}>{mentionPaiement(store, essaiJours)}</Text>
             {fallback && (
               <Text style={s.mentions}>
                 Les montants ci-dessus sont les tarifs français. Le prix exact de ton pays

@@ -54,3 +54,30 @@ describe('étapes de recettes — rédigées au tutoiement', () => {
     ).toEqual([]);
   });
 });
+
+/**
+ * ── Et sans mot en CAPITALES (2026-10-04) ────────────────────────────────────
+ *
+ * Relevé au troisième tour de l’app : dix recettes écrivaient « feu DOUX », « poêle
+ * FROIDE », « HORS DU FEU ». Une consigne qui compte se dit par sa raison (« chauffé plus
+ * longtemps il durcit »), pas en criant ; et dans une fiche lue en cuisinant, des capitales
+ * se lisent comme une alerte. Le compteur vaut zéro : aucune étape n’en a besoin.
+ */
+const CRIE = /(?<!\p{L})\p{Lu}{2,}(?!\p{L})/u;
+
+describe('étapes de recettes — sans mot en capitales', () => {
+  it('la sonde sait dire OUI, puis NON', () => {
+    expect(CRIE.test('Mets sur feu DOUX et remue.')).toBe(true);
+    expect(CRIE.test('Verse-les brûlantes dans la poêle, HORS DU FEU.')).toBe(true);
+    expect(CRIE.test('Mets sur feu doux et remue.')).toBe(false);
+    // Une majuscule d’initiale n’est pas un cri, même accentuée.
+    expect(CRIE.test('Égoutte les pâtes. Sers aussitôt.')).toBe(false);
+  });
+
+  it('aucune étape ne met un mot en capitales', () => {
+    const fautives = RAW_RECIPES.flatMap((r) =>
+      r.instructions.filter((s) => CRIE.test(s)).map((s) => `${r.id} « ${r.name} » : ${s}`),
+    );
+    expect(fautives, `${fautives.length} étape(s) en capitales :\n  ${fautives.slice(0, 12).join('\n  ')}`).toEqual([]);
+  });
+});

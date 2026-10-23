@@ -1,7 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync, readdirSync } from 'fs';
 import { join } from 'path';
-import { seuilRepli, paddingHautDecale, COMPACT_BAR_H, SEUIL_PAR_DEFAUT } from '../collapsingTitle';
+import {
+  seuilRepli, paddingHautDecale, COMPACT_BAR_H, SEUIL_PAR_DEFAUT, DEBORD_FONDU, FONDU_TITRE, FONDU_TITRE_WEB,
+} from '../collapsingTitle';
 
 // ── Le seuil de repli du grand titre ────────────────────────────────────────
 //
@@ -120,5 +122,32 @@ describe('Sous l’îlot — chaque onglet porte les trois pièces', () => {
   it('le titre compact est posé SOUS la barre d’état, jamais en haut de l’écran (l’îlot le cachait)', () => {
     const src = sansCommentaires(readFileSync(join(RACINE, 'components', 'CollapsingTitle.tsx'), 'utf8'));
     expect(src).toMatch(/style=\{\[styles\.centre, \{ top: haut \}\]\}/);
+  });
+});
+
+describe('Le titre compact au navigateur (2026-10-23)', () => {
+  // Fondateur, tour de l'app : au navigateur, le contenu se lisait SOUS le titre compact
+  // (« J'ai cuisiné » sous « Plan »). Sur iPhone, c'est le fondu d'iOS 26, validé (E80).
+  it('au navigateur, la barre est pleine et seul son débord fond', () => {
+    const barre = COMPACT_BAR_H / (COMPACT_BAR_H + DEBORD_FONDU);
+    for (const arret of FONDU_TITRE_WEB) {
+      if (arret.a <= barre) expect(arret.opacite, `arrêt ${arret.a}`).toBe(1);
+    }
+    expect(FONDU_TITRE_WEB[FONDU_TITRE_WEB.length - 1]).toEqual({ a: 1, opacite: 0 });
+  });
+
+  it('sur iPhone, le fondu validé au simulateur ne bouge pas d’un arrêt (E80)', () => {
+    expect(FONDU_TITRE).toEqual([
+      { a: 0, opacite: 0.5 },
+      { a: 0.42, opacite: 0.5 },
+      { a: 0.52, opacite: 0.68 },
+      { a: 0.8, opacite: 0.58 },
+      { a: 1, opacite: 0 },
+    ]);
+  });
+
+  it('la barre pleine est réservée au navigateur sans barre d’état dessous', () => {
+    const src = sansCommentaires(readFileSync(join(RACINE, 'components', 'CollapsingTitle.tsx'), 'utf8'));
+    expect(src).toMatch(/arrets=\{Platform\.OS === 'web' && haut === 0 \? FONDU_TITRE_WEB : FONDU_TITRE\}/);
   });
 });

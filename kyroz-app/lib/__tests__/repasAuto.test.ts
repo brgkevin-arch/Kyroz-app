@@ -188,10 +188,15 @@ describe('l’auto-coche vaut EXACTEMENT « J’ai cuisiné »', () => {
     expect(bloc).toContain('capture(Events.mealCooked, { meal_type: m.meal_type, auto: true })');
   });
 
-  it('elle DIT ce qu’elle a fait', () => {
-    // Un statut qui change tout seul sans un mot se lit comme un bug.
-    expect(bloc).toMatch(/toast\(/);
-    expect(bloc).toContain("son heure était passée");
+  it('elle coche EN SILENCE (point 4, 2026-10-22)', () => {
+    // La règle d'avant — « un statut qui change tout seul sans un mot se lit comme un bug » —
+    // est renversée par le fondateur : « l'app tourne en silence ». Le bandeau « Repas coché,
+    // son heure était passée » est retiré ; la visite guidée annonce l'auto-coche.
+    const fonction = plan.slice(plan.indexOf('const autoCocher'), plan.indexOf('}, [plan, profile, repasAuto, idxDuJour]);'));
+    const code = fonction.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
+    expect(code).toContain('auto: true'); // la tranche est bien la fonction d'auto-coche
+    expect(code).not.toMatch(/toast\(/);
+    expect(code).not.toContain('son heure était passée');
   });
 
   it('elle ne tourne pas quand le réglage est éteint', () => {
@@ -251,8 +256,11 @@ describe('🔴 rien n’est échu AVANT le premier plan (inscription du soir, 20
     const premier = plan.slice(plan.indexOf("if (!reroll && !(await AsyncStorage.getItem(FIRST_PLAN_KEY)))"));
     expect(premier.slice(0, 600)).toContain('await noterDebutSuivi(todayStamp(), minutesDepuisMinuit());');
     expect(premier.indexOf('noterDebutSuivi')).toBeLessThan(premier.indexOf('setPlan(p)'));
-    expect(plan).toMatch(/minutesDepuisMinuit\(\),[\s\S]{0,140}bornePremierJour\(await lireDebutSuivi\(\), todayStamp\(\)\)/);
-    expect(plan).toMatch(/repasEchusVeille\([\s\S]{0,120}bornePremierJour\(await lireDebutSuivi\(\), hier\)/);
+    expect(plan).toMatch(/minutesDepuisMinuit\(\),[\s\S]{0,140}bornePremierJour\(debutDuPlan, todayStamp\(\)\)/);
+    // E78 : le début se lit une fois (`debutDuPlan`), et rien ne se coche avant son jour.
+    expect(plan).toMatch(/const debutDuPlan = await lireDebutSuivi\(\);[\s\S]{0,120}if \(avantLeJourDuDebut\(todayStamp\(\), debutDuPlan\)\) return;/);
+    expect(plan).toMatch(/if \(avantLeJourDuDebut\(hier, debutDuPlan\)\) return;/);
+    expect(plan).toMatch(/repasEchusVeille\([\s\S]{0,120}bornePremierJour\(debutDuPlan, hier\)/);
   });
 });
 
