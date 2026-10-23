@@ -369,20 +369,28 @@ qu'ils étaient périmés.
    - la fiche d'un repas disait « J'ai mangé, retirer de ma réserve » quand la carte dit
      « J'ai cuisiné » : un geste, deux mots, et la machine racontée → « J'ai cuisiné » ;
    - « Quand veux-tu commencer ? » coupait « jour-là » au trait d'union → trait insécable.
-   **Trouvé, PAS corrigé — à trancher ou à planifier** :
-   - 🔴 **les deux-points tombent en début de ligne** (« ne changent pas / : ils restent
-     gratuits » sur la page Kyroz+) : **437 espaces ordinaires** devant `: ; ? ! »` (ou après
-     `«`) dans **66 fichiers**. Le remède est mécanique (espace insécable), mais il touche la
-     plupart des fichiers de #390 → PR À PART, après les deux fusions, avec un garde-fou ;
-   - **unités : la liste dit « 1 ananas », la Réserve dit « 500 g »** (tomate : « 2 tomates » /
-     « 120 g »). La Réserve n'affiche en pièces que les aliments à `poidsUnitaire` (banane,
-     avocat, œuf…), pas ceux qu'on achète à la pièce (`FORMATS`). L'étendre change aussi les
-     fiches recette (« Tomate 80 g » → « ⅔ tomate ») — décision du fondateur ;
+   ✅ **Tranché par le fondateur le 2026-10-23** (« 1. Je suis d'accord 2. Corrige les unités
+   3. Montre-moi avec un screen 4. Corrige cela ») :
+   - ✅ **unités — CORRIGÉ dans #376** : ce qui s'achète à la pièce se compte en pièces sur tous
+     les écrans. *Avant* : liste « 1 ananas », Réserve « 500 g » ; fiche « Tomate 80 g ».
+     *Après* : Réserve « 1 ananas », fiche « ⅔ tomate » ; « Il te manque : » et l'historique
+     des courses comptent de même (même `formatQuantity`).
+     Une seule table (`lib/aLaPiece.ts`, 16 aliments) lue par la liste (`formatsVendus.ts`),
+     l'affichage et la conversion de la Réserve (`units.ts`). Sous une pièce : ¼ ⅓ ½ ⅔ ¾ ;
+     sous un cinquième, des grammes (40 g de salade) ; au-delà, à la demi-pièce, pluriel à
+     partir de deux. Catalogue : 424 des 469 lignes de ces aliments se lisent en pièces, aucune
+     fraction à plus d'un quart de la quantité comptée. La feuille « Modifier la quantité »
+     s'ouvre en pièces, et enregistrer sans toucher garde la quantité exacte ; des pièces
+     saisies se rangent en grammes (une seule ligne par aliment). ⚠️ Aussi : la banane de 60 g
+     disait « 1 banane » (les macros en comptaient une demie) → « ½ banane ». Garde-fou :
+     `lib/__tests__/unitesPieces.test.ts`, vu rougir par 4 mutations. Vu au navigateur ;
+   - ✅ **titre compact au navigateur — CORRIGÉ dans #376** : la barre est pleine au
+     navigateur (`FONDU_TITRE_WEB`), seul son débord de 20 pt fond. Sur iPhone, le fondu
+     d'E80 ne bouge pas d'un arrêt (figé par `repliTitre.test.ts`, vu rougir par mutation) ;
+   - **typographie — ACCORD, PR À PART APRÈS la fusion de #376 ET de #390** : espaces
+     insécables devant `: ; ? ! »` et après `«` (437 dans 66 fichiers), avec un garde-fou ;
    - « Quand veux-tu commencer ? » : l'option « Lundi 26 » a pour sous-titre « lundi 26
-     octobre » (redite) ;
-   - au navigateur seulement, le titre compact passe PAR-DESSUS le contenu qui défile sous lui
-     (« J'ai cuisiné Plan ») : c'est le fondu d'iOS (E80), validé au simulateur ; sur le site
-     web il se lit comme un chevauchement.
+     octobre » (redite) — capture envoyée au fondateur, en attente de son avis.
 ➡️ Avancement : tenu ici, ligne par ligne, au fil des validations. **Au 2026-10-21** : point 1
    codé + essai posé (ligne 1) ; **point 2 codé et vu au navigateur le 2026-10-22** (semaine
    suivante + pesée, niveau 2 des restes après l'OTA) ; **point 3 mesuré, fermé et validé le
