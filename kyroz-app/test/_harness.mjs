@@ -43,7 +43,7 @@ export const PHONE = { width: 430, height: 932 };
 // Onglets réellement montés — source : app/(tabs)/_layout.tsx.
 // (« Favoris », « Réglages », « Paramètres » traînaient dans les vieux scripts :
 //  ces onglets n'existent pas, les boucles tournaient dans le vide.)
-export const TABS = ['Plan', 'Courses', 'Réserve', 'Recettes', 'Profil'];
+export const TABS = ['Plan', 'Courses', 'Réserve', 'Recettes', 'Poids'];
 
 export const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -576,9 +576,40 @@ export async function closeSheet(page) {
   await sleep(600);
 }
 
-/** Va sur l'onglet Profil et remonte la liste en haut. */
+/**
+ * Ouvre le Profil et remonte la liste en haut.
+ * 🔴 Le Profil n'est plus un onglet depuis le 2026-10-21 : il s'ouvre par la BULLE en
+ * haut à droite du Plan (étiquette d'accessibilité « Profil »), et il est poussé
+ * par-dessus les onglets — déjà ouvert, on le reconnaît à son bouton « Retour ».
+ * ⚠️ `waitFor`, pas `isVisible({ timeout })` : ce dernier n'attend pas.
+ */
 export async function goToProfil(page) {
-  await tap(page, 'Profil', { which: 'last', timeout: 3000 });
+  const retour = page.getByRole('button', { name: 'Retour', exact: true }).first();
+  const voit = (loc, timeout) => loc.waitFor({ state: 'visible', timeout }).then(() => true).catch(() => false);
+  let dejaLa = await voit(retour, 500);
+  // Un écran poussé PAR le Profil (la page Kyroz+ qu'ouvre « Objectif daté » sur un
+  // compte verrouillé) cache à la fois les onglets et le Profil : on revient d'un cran.
+  if (!dejaLa && !(await voit(page.getByText('Plan', { exact: true }).last(), 500))) {
+    await page.goBack().catch(() => {});
+    await sleep(1000);
+    dejaLa = await voit(retour, 1500);
+  }
+  if (!dejaLa) {
+    await tap(page, 'Plan', { exact: true, which: 'last', timeout: 3000 });
+    await sleep(800);
+    const bulle = page.getByRole('button', { name: 'Profil', exact: true }).first();
+    if (await bulle.waitFor({ state: 'visible', timeout: 3000 }).then(() => true).catch(() => false)) {
+      await bulle.click({ timeout: 2000 }).catch(() => {});
+    }
+  }
+  await sleep(1400);
+  await page.mouse.wheel(0, -3000);
+  await sleep(600);
+}
+
+/** Va sur l'onglet Poids (2026-10-21 : il a pris la place de l'onglet Profil). */
+export async function goToPoids(page) {
+  await tap(page, 'Poids', { exact: true, which: 'last', timeout: 3000 });
   await sleep(1400);
   await page.mouse.wheel(0, -3000);
   await sleep(600);

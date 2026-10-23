@@ -86,7 +86,7 @@ const DOIT_ETRE_EXCLU = [
 const DOIT_RESTER = [
   'kyroz-app/.env.example', 'kyroz-app/app.json', 'kyroz-app/eas.json',
   'kyroz-app/package.json', 'kyroz-app/package-lock.json', 'kyroz-app/metro.config.js',
-  'kyroz-app/tsconfig.json', 'kyroz-app/app/(tabs)/profil.tsx',
+  'kyroz-app/tsconfig.json', 'kyroz-app/app/profil.tsx',
   'kyroz-app/lib/foods.generated.ts', 'kyroz-app/components/BodyFatPicker.tsx',
   'kyroz-app/assets/bodyfat/male-1.png', 'kyroz-app/assets/bodyfat/female-6.png',
   'kyroz-app/assets/icon.png', 'kyroz-app/supabase/config.toml',

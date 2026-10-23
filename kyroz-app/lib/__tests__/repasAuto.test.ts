@@ -164,8 +164,8 @@ describe('le réglage : ALLUMÉ par défaut', () => {
   });
 
   it('elle se règle depuis le Profil, et l’écran dit où', () => {
-    expect(lire('app/(tabs)/profil.tsx')).toContain('useRepasAuto()');
-    expect(lire('app/(tabs)/profil.tsx')).toContain('Repas cochés automatiquement');
+    expect(lire('app/profil.tsx')).toContain('useRepasAuto()');
+    expect(lire('app/profil.tsx')).toContain('Repas cochés automatiquement');
   });
 });
 
@@ -317,7 +317,7 @@ describe('🔴 aucun texte ne promet un retour arrière qui n’existe pas', () 
       .split('\n').map((l) => l.replace(/(?<!:)\/\/.*$/, '')).join('\n');
 
   const detail = sansCommentaires(lire('components/RecipeDetail.tsx'));
-  const profil = lire('app/(tabs)/profil.tsx');
+  const profil = lire('app/profil.tsx');
 
   /** Le chemin de retour existe-t-il ? Deux preuves, pas une : la prop côté écran
    *  ET l'appelant côté Plan. L'une sans l'autre est un mécanisme à moitié posé. */

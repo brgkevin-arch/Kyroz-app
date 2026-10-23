@@ -93,7 +93,7 @@ export function BlocObjectif({ t, profile, onPress }: { t: ThemePalette; profile
           deux boutons imbriqués, c'est une erreur de rendu sur le web (« <button>
           cannot contain a nested button ») et deux zones tactiles qui se disputent le
           geste en natif. C'est la carte parente qui a cédé : elle n'est plus pressable
-          en entier, chaque zone porte son propre geste (cf. `WeightSummaryCard`). */}
+          en entier, chaque zone porte son propre geste (cf. `WeightSummaryCard`, retirée le 2026-10-21 avec l'onglet Poids). */}
       {/* Ligne de tête : vers QUOI on va, et ce qu'il reste. Le palier prend la place
           de la cible quand il y en a un — sinon la barre mesurerait une chose et le
           chiffre à côté en désignerait une autre. */}

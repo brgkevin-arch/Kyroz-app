@@ -27,7 +27,7 @@ const sansCommentaires = (src: string) =>
   src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\{\/\*[\s\S]*?\*\/\}/g, '').replace(/^\s*\/\/.*$/gm, '');
 
 const ONBOARDING = 'app/(auth)/onboarding.tsx';
-const PROFIL = 'app/(tabs)/profil.tsx';
+const PROFIL = 'app/profil.tsx';
 const PICKER = 'components/NeatPicker.tsx';
 
 const onboarding = sansCommentaires(lire(ONBOARDING));
@@ -67,7 +67,7 @@ describe('la question est posée à l\'inscription', () => {
 describe('un seul composant pour les deux écrans', () => {
   it('l\'inscription et le Profil posent la question par le MÊME composant', () => {
     expect(profil).toContain('<NeatPicker');
-    expect(profil).toContain("from '../../components/NeatPicker'");
+    expect(profil).toContain("from '../components/NeatPicker'");
   });
 
   it('aucun écran ne redéploie la liste des crans dans son coin', () => {

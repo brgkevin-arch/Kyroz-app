@@ -137,7 +137,7 @@ describe('aucune phrase ne promet ce que le code ne fait plus', () => {
     // Le mot est resté dans des commentaires historiques, à dessein — un renommage
     // qui efface ses traces se relit comme s'il n'avait jamais eu lieu. Ce qui est
     // compté ici, c'est l'INTERFACE : `sansCommentaires` sur les cinq onglets.
-    for (const ecran of ['plan', 'courses', 'reserve', 'recettes', 'profil']) {
+    for (const ecran of ['plan', 'courses', 'reserve', 'recettes', 'poids']) {
       expect(sansCommentaires(lire(`app/(tabs)/${ecran}.tsx`)), ecran).not.toMatch(/[Ff]rigo/);
     }
   });

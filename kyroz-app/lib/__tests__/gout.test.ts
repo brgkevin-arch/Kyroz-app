@@ -207,7 +207,7 @@ describe('la promesse servie : 70 % du créneau dans le goût choisi', () => {
 
 describe('la question est posée, et on ne peut pas la sauter', () => {
   const onboarding = sansCommentaires(readFileSync(join(RACINE, 'app/(auth)/onboarding.tsx'), 'utf8'));
-  const profil = sansCommentaires(readFileSync(join(RACINE, 'app/(tabs)/profil.tsx'), 'utf8'));
+  const profil = sansCommentaires(readFileSync(join(RACINE, 'app/profil.tsx'), 'utf8'));
   const harnais = sansCommentaires(readFileSync(join(RACINE, 'test/_harness.mjs'), 'utf8'));
 
   it('l\'étape 6 exige les deux réponses, « Peu importe » compris', () => {

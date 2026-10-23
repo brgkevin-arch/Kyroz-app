@@ -27,7 +27,7 @@ const RACINE = join(__dirname, '..', '..');
 const sansCommentaires = (src: string) =>
   src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
 
-const profil = sansCommentaires(readFileSync(join(RACINE, 'app', '(tabs)', 'profil.tsx'), 'utf8'));
+const profil = sansCommentaires(readFileSync(join(RACINE, 'app', 'profil.tsx'), 'utf8'));
 const sessionLocale = sansCommentaires(readFileSync(join(RACINE, 'lib', 'sessionLocale.ts'), 'utf8'));
 const effetsPurge = sansCommentaires(readFileSync(join(RACINE, 'lib', 'effetsPurge.ts'), 'utf8'));
 const useAuth = sansCommentaires(readFileSync(join(RACINE, 'hooks', 'useAuth.tsx'), 'utf8'));

@@ -1,94 +1,92 @@
 import React, { useMemo, useState, useCallback, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform } from 'react-native';
-import { Presse } from '../../components/Presse';
+import { Presse } from '../components/Presse';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import Constants from 'expo-constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useRouter, useFocusEffect } from 'expo-router';
-import { useTheme, ThemePalette, Radius, Spacing, Type, Fond, CIBLE_TACTILE_MIN, Trait, Icone, OPACITE_PRESSION } from '../../constants/theme';
-import { useCollapsingTitle, CompactTitleBar } from '../../components/CollapsingTitle';
-import { useLayout } from '../../constants/layout';
-import { ThemeMode, useThemeMode, setThemeMode } from '../../lib/themeMode';
-import { ACCENTS, ACCENT_IDS, useAccentId, setAccentId, readableOn } from '../../lib/accentColor';
-import { DISCLAIMER } from '../../constants/legal';
-import { CIQUAL_ATTRIBUTION } from '../../lib/foods';
-import { Card, PrimaryButton, Chip, OptionCard, Field, SectionLabel, Segmented, SectionTitle, MenuRow, clavierScrollProps, GrilleChoix } from '../../components/ui';
-import { RangeeJours } from '../../components/RangeeJours';
-import { MesureField } from '../../components/MesureField';
-import { GOUT_CHOIX, goutEnregistre, goutLu, type GoutChoix } from '../../lib/gout';
+import { useRouter, useFocusEffect, Redirect } from 'expo-router';
+import { useTheme, ThemePalette, Radius, Spacing, Type, Fond, CIBLE_TACTILE_MIN, Trait, Icone, OPACITE_PRESSION } from '../constants/theme';
+import { useLayout } from '../constants/layout';
+import { ThemeMode, useThemeMode, setThemeMode } from '../lib/themeMode';
+import { ACCENTS, ACCENT_IDS, useAccentId, setAccentId, readableOn } from '../lib/accentColor';
+import { DISCLAIMER } from '../constants/legal';
+import { CIQUAL_ATTRIBUTION } from '../lib/foods';
+import { Card, PrimaryButton, Chip, OptionCard, Field, SectionLabel, Segmented, SectionTitle, MenuRow, clavierScrollProps, GrilleChoix } from '../components/ui';
+import { RangeeJours } from '../components/RangeeJours';
+import { MesureField } from '../components/MesureField';
+import { GOUT_CHOIX, goutEnregistre, goutLu, type GoutChoix } from '../lib/gout';
 
 // Les goûts se présentent comme à l'inscription : deux tranches côte à côte, « Peu
 // importe » en case pleine largeur dessous (harmonisation du 2026-09-30).
 const GOUT_TRANCHES = GOUT_CHOIX.filter((g) => g.value !== 'egal');
 const GOUT_EGAL = GOUT_CHOIX.find((g) => g.value === 'egal')!;
-import { useRepasAuto } from '../../lib/repasAuto';
-import { bankedDailyTargets, offsetsForPlan, servedWeekdays } from '../../lib/calorieBank';
-import { usePremium } from '../../hooks/usePremium';
-import { PremiumFeature, AccessReason } from '../../lib/premium';
-import { Sheet } from '../../components/Sheet';
-import { ReglagesSheet } from '../../components/ReglagesSheet';
-import { useDialog } from '../../components/Dialog';
-import { BirthDateField } from '../../components/BirthDateField';
-import { DateInput } from '../../components/DateInput';
-import { ageOn } from '../../lib/birthday';
-import { ActionSheet } from '../../components/ActionSheet';
-import { MessageEnLigne } from '../../components/MessageEnLigne';
-import { preuveExigee, messageEchecReauth } from '../../lib/suppressionCompte';
-import { WeightSummaryCard } from '../../components/WeightSummaryCard';
-import { useTour, resetAllTours } from '../../components/GuidedTour';
-import { BodyFatPicker } from '../../components/BodyFatPicker';
-import { DislikedFoodsField } from '../../components/DislikedFoodsField';
-import { ProteinesParRegime } from '../../components/ProteinesParRegime';
-import { cocheesValides } from '../../lib/partsProteines';
-import { marquerPreferencesRevues } from '../../lib/revuePreferences';
-import { basculerRegime } from '../../lib/regime';
-import { MacroSplit } from '../../components/MacroSplit';
-import { WeightCheckin } from '../../components/WeightCheckin';
-import { OffPlanHistory } from '../../components/OffPlanHistory';
-import { useHydrationEnabled } from '../../components/HydrationBar';
-import { useFirstName, saveFirstName } from '../../lib/profileName';
-import { ProtectionIcon, RepasLibreIcon } from '../../components/Icons';
-import { MealSlotsPicker } from '../../components/MealSlotsPicker';
-import { NeatPicker } from '../../components/NeatPicker';
-import { BUILTIN_SLOTS, knownSlots, slotLabel } from '../../lib/mealSlots';
-import { useProfile } from '../../hooks/useProfile';
-import { useWeightLog } from '../../hooks/useWeightLog';
-import { useOffPlanJournal } from '../../hooks/useOffPlanJournal';
-import { journalSummary } from '../../lib/offPlanJournal';
-import { PARCOURS_HORS_PLAN_ACTIF, RYTHME_HEBDOMADAIRE_ACTIF } from '../../lib/featureFlags';
-import { useReminder } from '../../hooks/useReminder';
-import { usePlanCheckin } from '../../hooks/usePlanCheckin';
-import { useAuth } from '../../hooks/useAuth';
-import { remindersSupported } from '../../lib/notifications';
-import { DEFAULT_REMINDER_TIME, ReminderTime, formatReminderTime } from '../../lib/reminder';
-import { ReminderTimeField } from '../../components/ReminderTimeField';
-import { deleteAccount, deleteCloudData } from '../../lib/sync';
-import { exportMyData } from '../../lib/exportData';
+import { useRepasAuto } from '../lib/repasAuto';
+import { bankedDailyTargets, offsetsForPlan, servedWeekdays } from '../lib/calorieBank';
+import { usePremium } from '../hooks/usePremium';
+import { PremiumFeature, AccessReason } from '../lib/premium';
+import { Sheet } from '../components/Sheet';
+import { ReglagesSheet } from '../components/ReglagesSheet';
+import { useDialog } from '../components/Dialog';
+import { BirthDateField } from '../components/BirthDateField';
+import { DateInput } from '../components/DateInput';
+import { ageOn } from '../lib/birthday';
+import { ActionSheet } from '../components/ActionSheet';
+import { MessageEnLigne } from '../components/MessageEnLigne';
+import { preuveExigee, messageEchecReauth } from '../lib/suppressionCompte';
+import { useTour, resetAllTours } from '../components/GuidedTour';
+import { BodyFatPicker } from '../components/BodyFatPicker';
+import { DislikedFoodsField } from '../components/DislikedFoodsField';
+import { ProteinesParRegime } from '../components/ProteinesParRegime';
+import { cocheesValides } from '../lib/partsProteines';
+import { marquerPreferencesRevues } from '../lib/revuePreferences';
+import { basculerRegime } from '../lib/regime';
+import { MacroSplit } from '../components/MacroSplit';
+import { WeightCheckin } from '../components/WeightCheckin';
+import { OffPlanHistory } from '../components/OffPlanHistory';
+import { useHydrationEnabled } from '../components/HydrationBar';
+import { useFirstName, saveFirstName } from '../lib/profileName';
+import { ProtectionIcon, RepasLibreIcon } from '../components/Icons';
+import { MealSlotsPicker } from '../components/MealSlotsPicker';
+import { NeatPicker } from '../components/NeatPicker';
+import { BUILTIN_SLOTS, knownSlots, slotLabel } from '../lib/mealSlots';
+import { useProfile } from '../hooks/useProfile';
+import { useWeightLog } from '../hooks/useWeightLog';
+import { useOffPlanJournal } from '../hooks/useOffPlanJournal';
+import { journalSummary } from '../lib/offPlanJournal';
+import { PARCOURS_HORS_PLAN_ACTIF, RYTHME_HEBDOMADAIRE_ACTIF } from '../lib/featureFlags';
+import { useReminder } from '../hooks/useReminder';
+import { usePlanCheckin } from '../hooks/usePlanCheckin';
+import { useAuth } from '../hooks/useAuth';
+import { remindersSupported } from '../lib/notifications';
+import { DEFAULT_REMINDER_TIME, ReminderTime, formatReminderTime } from '../lib/reminder';
+import { ReminderTimeField } from '../components/ReminderTimeField';
+import { deleteAccount, deleteCloudData } from '../lib/sync';
+import { exportMyData } from '../lib/exportData';
 import {
   calculateTDEE, computePlan, goalLabel, goalSubtitle, planFlags, validateProfile, recalcProfile, DEFAULT_CARB_RATIO, recommendedProteinPerKg,
   DEFAULT_NEAT_LEVEL, NEAT_SHORT, dismissEngineNotice,
   bankFloorKcal, makeWeeklyProjector, trackingTarget,
-} from '../../lib/tdee';
+} from '../lib/tdee';
 import {
   lowEaWeeksForFloor, checkEligibility, eligibilityMessage, LowEaEscalation,
   AGE_BOUNDS, WEIGHT_BOUNDS, HEIGHT_BOUNDS,
-} from '../../lib/safety';
-import { datedGoalStatus, datedGoalKcalDelta, addDaysStamp } from '../../lib/datedGoal';
-import { deadlineLadder, checkEcheance, messageEcheance } from '../../lib/goalLadder';
-import { BlocObjectif, formatFR } from '../../components/DatedGoalCard';
-import { todayStamp, DEFAULT_WEIGH_IN_FREQUENCY, weighInDayOf } from '../../lib/weight';
-import { applyWeighInReminder, cancelAllReminders } from '../../lib/notifications';
-import { purgeAllProgressPhotos } from '../../lib/photos';
+} from '../lib/safety';
+import { datedGoalStatus, datedGoalKcalDelta, addDaysStamp } from '../lib/datedGoal';
+import { deadlineLadder, checkEcheance, messageEcheance } from '../lib/goalLadder';
+import { formatFR } from '../components/DatedGoalCard';
+import { todayStamp, DEFAULT_WEIGH_IN_FREQUENCY, weighInDayOf } from '../lib/weight';
+import { applyWeighInReminder, cancelAllReminders } from '../lib/notifications';
+import { purgeAllProgressPhotos } from '../lib/photos';
 import {
   ActivityLevel, BodyFatSource, DietaryRestriction, EngineNotice, FixedMeals, Goal, GoalTarget, MealSlot, MealType, NeatLevel, Sex, SportSession, UserProfile, VarietyPreference,
-} from '../../lib/types';
-import { totalSessionsPerWeek } from '../../lib/sport';
-import { baseDayTargets, deducedRestWeekdays, emphasisIds } from '../../lib/planEngine';
-import { getRecipeById } from '../../lib/recipes';
-import SportsEditor from '../../components/SportsEditor';
-import { FixedMealSheet } from '../../components/FixedMealSheet';
-import { frnum } from '../../lib/units';
+} from '../lib/types';
+import { totalSessionsPerWeek } from '../lib/sport';
+import { baseDayTargets, deducedRestWeekdays, emphasisIds } from '../lib/planEngine';
+import { getRecipeById } from '../lib/recipes';
+import SportsEditor from '../components/SportsEditor';
+import { FixedMealSheet } from '../components/FixedMealSheet';
+import { frnum } from '../lib/units';
 
 // ── Options ──────────────────────────────────────────────────────────────────
 // `cut_aggressive` retiré le 2026-07-29 (cf. lib/syncGuard.ts::normalizeGoal) : il
@@ -236,15 +234,15 @@ export default function ProfilScreen() {
   const t = useTheme();
   const s = useMemo(() => makeStyles(t), [t]);
   const layout = useLayout();
-  const repli = useCollapsingTitle();
   const { profile, saveProfile, clearProfile } = useProfile();
   // Prénom : DIFFUSÉ, pas lu au montage (lib/profileName.ts) — il se pose depuis
   // l'éditeur « Informations » de cet écran même, donc le surtitre doit suivre
   // sans changer d'onglet ni redémarrer.
   const prenom = useFirstName();
-  // Le suivi du poids est désormais une CARTE (courbe + écart) et non une ligne de
-  // menu : il lui faut les pesées, pas seulement le poids courant du profil.
-  const { entries: weightEntries, delta: weightDelta, due: weighInDue } = useWeightLog();
+  // 🔴 LE SUIVI DU POIDS A QUITTÉ CET ÉCRAN le 2026-10-21 (décision fondateur) : il est
+  // devenu l'onglet « Poids » (`app/(tabs)/poids.tsx`), et le Profil s'ouvre depuis une
+  // bulle en haut à droite du Plan. Les pesées ne servent plus ici qu'au rappel.
+  const { entries: weightEntries } = useWeightLog();
   // Dernière pesée connue : elle sert à ré-armer la notification ET à déduire le jour
   // de rendez-vous quand aucun n'a été choisi. Une seule lecture, deux usages.
   const dernierePesee = weightEntries[weightEntries.length - 1]?.date ?? null;
@@ -274,7 +272,7 @@ export default function ProfilScreen() {
   const [motDePasse, setMotDePasse] = useState('');
   const [echecReauth, setEchecReauth] = useState<string | null>(null);
   // Ce qu'il faudra ouvrir UNE FOIS la feuille Réglages démontée (cf. son `onClosed`).
-  const [apresReglages, setApresReglages] = useState<'supprimer' | null>(null);
+  const [apresReglages, setApresReglages] = useState<'supprimer' | 'visite' | null>(null);
   // 🔴 MÊME MÉCANIQUE POUR L'ÉDITEUR, et elle manquait — « Me peser » était MORT sur
   // iPhone. Mesuré au simulateur le 2026-08-14 : deux captures à cinq secondes
   // d'intervalle, IDENTIQUES AU BIT PRÈS, l'éditeur refermé et aucune feuille de
@@ -307,23 +305,10 @@ export default function ProfilScreen() {
   const scrollRef = useRef<ScrollView>(null);
   premiumRef.current = premium;
 
-  // ⚠️ RECENSÉ PAR RÔLE, PAS PAR GREP (2026-08-25). Le verrou de `openEditor` garde
-  // les ÉDITEURS ; il ne dit rien de ce qui s'AFFICHE. Trois surfaces montrent la
-  // trajectoire vendue avec Kyroz+, et deux vivent ici : la zone posée sur la mini-
-  // courbe du suivi, et la carte d'objectif daté. La troisième est la feuille de
-  // pesée (`WeightCheckin`). Trouvées en basculant `PAYWALL_LAUNCH` sur une date
-  // passée et en REGARDANT l'écran — la relecture du code les avait laissées passer.
-  // ⚠️ Deux features distinctes à dessein, même si elles rendent le même verdict
-  // aujourd'hui : la ZONE sur la courbe est vendue comme « suivi de transformation »,
-  // la CARTE est l'objectif daté lui-même. Le jour où les deux se séparent, chaque
-  // surface part du bon côté.
-  // ⚠️ `trajectoireVisible` (= `can('transformation')`) a été RETIRÉ D'ICI le
-  // 2026-09-20 : son seul lecteur était la zone posée sur la courbe de cette carte, et
-  // la zone est partie (décision fondateur). Le verrou de la transformation n'a pas
-  // disparu pour autant — il vit là où il a encore quelque chose à garder : les photos
-  // et le VERDICT, dans `WeightCheckin` (`transfoOk`). Un verrou sans surface à
-  // protéger est un verrou décoratif, et `verrouKyrozPlus.test.ts` le compte.
-  const objectifDateVisible = premium.can('dated_goal');
+  // ⚠️ La carte du poids, qui portait l'objectif daté et son verrou d'AFFICHAGE, est
+  // partie dans l'onglet Poids le 2026-10-21 : c'est là que vit désormais
+  // `can('dated_goal')` pour la carte d'objectif. Ici, le verrou garde les ÉDITEURS
+  // (`openEditor`, juste en dessous) — le deep-link de l'onglet Poids passe par lui.
 
   const openEditor = (key: EditorKey) => {
     const feature = EDITEURS_PREMIUM[key];
@@ -429,10 +414,24 @@ export default function ProfilScreen() {
   // restait invisible par-dessus l'écran une fois la feuille refermée. On ferme d'abord ;
   // la visite attend que la feuille soit partie (`startTour`, lib/modalesPresentees.ts).
   const { relancer } = useTour();
+  // 🔴 LE PROFIL EST POUSSÉ PAR-DESSUS LES ONGLETS depuis le 2026-10-21 : la visite se
+  // joue sur eux, donc on les DÉCOUVRE d'abord. Sans ce retour, elle partait derrière
+  // l'écran du Profil.
+  // 🔴 ET SEULEMENT UNE FOIS LA FEUILLE RÉGLAGES DÉMONTÉE — vu au simulateur le
+  // 2026-10-21 : retirer le Profil pendant que la feuille ouverte PAR-DESSUS LUI jouait
+  // encore sa sortie FIGEAIT l'app (plus un tap ne passait, barre d'onglets comprise).
+  // Même famille que « Supprimer mon compte » et « Me peser » (CLAUDE.md §11).
+  // ⚠️ Pas `navigate` vers le Plan pour revenir : sous Expo Router récent, `navigate`
+  // EMPILE un écran au lieu de revenir à celui qui existe.
+  const quitterPourLaVisite = () => {
+    if (router.canGoBack()) router.back(); else router.replace('/(tabs)/plan');
+    relancer('app');
+  };
   const revoirVisite = async () => {
     await resetAllTours();
+    // La suite attend que la feuille soit DÉMONTÉE (`onClosed`, plus bas) : cf. `quitterPourLaVisite`.
+    setApresReglages('visite');
     setReglages(false);
-    if (!relancer('app')) router.navigate('/(tabs)/plan');
   };
 
   const appVersion = Constants.expoConfig?.version ?? '1.0.0';
@@ -465,7 +464,11 @@ export default function ProfilScreen() {
   // met tout à jour ») est devenue la ligne de son arrêt dans la visite de l'app, qui
   // part du Plan. Il n'en garde que la porte de rejeu, dans ses réglages.
 
-  if (!profile) return null;
+  // ⚠️ HORS DES ONGLETS, PLUS DE GARDE D'ENTRÉE (2026-10-21). Le layout des onglets
+  // renvoie vers la connexion ou l'inscription quand il n'y a ni session ni profil ;
+  // cet écran n'est plus sous lui. Ouvert directement (un lien `/profil` sur le web),
+  // il rendait une page vide. On repasse par l'index, qui sait où envoyer.
+  if (!profile) return <Redirect href="/" />;
 
   // Dérive sous IMC 18,5 : le moteur a ramené le plan à la maintenance. On le DIT,
   // sinon les calories remontent sans explication et la personne continue de croire
@@ -497,86 +500,37 @@ export default function ProfilScreen() {
 
   return (
     <SafeAreaView style={s.safe} edges={['top']}>
-      {/* `ref` : la visite guidée en a besoin pour amener ses cibles basses (la
-          dépense estimée, le bloc « ce qui suit ton compte ») dans le champ
-          visible. En natif, sans cette ref, une cible sous la ligne de flottaison
-          se mesure hors écran et son étape s'ouvre sur le vide. */}
-      <ScrollView ref={scrollRef} style={repli.zone} contentContainerStyle={repli.contenu([s.content, layout.content])} showsVerticalScrollIndicator={false} {...repli.scrollProps}>
-        {/* En-tête — l'écran n'en avait AUCUN : il démarrait direct sur la carte
-            poids. Sur un écran aussi long, arriver sans savoir où on est coûte plus
-            cher que les 60 px que ça prend. Le surtitre dit qui tu es, le titre dit
-            où tu es.
-            ⚠️ Le surtitre disait « Homme · 30 ans · Sèche » — soit MOT POUR MOT ce
-            que les lignes « Informations » et « Objectif » redisent 600 px plus bas.
-            Une ligne qui répète n'informe pas, elle occupe. Il porte désormais le
-            prénom, la seule chose de cet écran qui ne soit écrite nulle part
-            ailleurs. Pas de prénom (compte antérieur à la question) → pas de ligne :
-            mieux vaut un en-tête plus court qu'un remplissage. */}
-        <View style={s.header} onLayout={repli.onHeaderLayout}>
-          {/* 🔴 L'EN-TÊTE NE PORTE PLUS QUE LE TITRE (2026-09-20, décision fondateur :
-              « on met rien du tout »). Troisième état de cette ligne, et le plus court :
-              elle a d'abord dit « Homme · 30 ans · Sèche » — retiré parce qu'il répétait
-              mot pour mot « Informations » et « Objectif » 600 px plus bas —, puis le
-              prénom, la seule chose de cet écran écrite nulle part ailleurs.
-              ⚠️ Le prénom n'est pas perdu : il accueille sur l'écran Plan (« Bonjour
-              Kévin »), qui est l'écran qu'on ouvre en premier. Ici, il ne servait plus
-              qu'à remplir une ligne. */}
-          <View style={{ flex: 1 }}>
-            <Text style={s.h1}>Profil</Text>
-          </View>
-          {/* 🔴 LE « ? » EST PARTI le 2026-08-14 (décision fondateur). La série qui
-              avait pris sa place est partie à son tour le 2026-09-19 (décision
-              fondateur : la série est retirée de l'app).
-              ⚠️ La porte de sortie du tuto ne disparaît PAS avec lui : « Revoir
-              les tutos » vit dans la roue dentée juste à droite, sur ce même
-              écran. CLAUDE.md §8 exige qu'un écran à tour garde un recours ; il
-              en garde un, il change simplement d'endroit. */}
-          {/* 🔴 LA ROUE DENTÉE — décision fondateur du 2026-08-09. Tout ce qui
-              n'est ni toi ni ton plan vit derrière : notifications, apparence,
-              accent, confidentialité, compte. L'écran empilait 6 interrupteurs
-              système entre « Régénérer mon plan » et « Supprimer mon compte ».
-              ⚠️ Elle porte la cible `profil-donnees` : l'étape de visite guidée
-              qui parle de synchronisation visait le bloc de bas de page, parti
-              dans la feuille. Une étape dont la cible n'est pas MONTÉE est
-              écartée en silence — le tour se serait joué plus court en ayant
-              l'air complet (cf. `visiteGuidee.test.ts`, qui l'exige désormais). */}
-          <Presse
-            onPress={() => setReglages(true)}
-            hitSlop={10}
-            activeOpacity={OPACITE_PRESSION}
-            accessibilityRole="button"
-            accessibilityLabel="Réglages"
-            style={s.roue}
-          >
-            <Ionicons name="settings-outline" size={Icone.nav} color={t.textSecondary} />
-          </Presse>
-        </View>
-
-        {/* ⚠️ Le POIDS ouvre l'écran (décision fondateur du 2026-08-02) : il alimente
-            le moteur — chaque pesée recalcule TDEE, macros et plan. */}
-        {/* 🔴 LE TITRE DE LA CARTE EST REVENU DEHORS (2026-09-21, décision fondateur sur
-            maquette) : « Suivi du poids » se pose au-dessus, comme « Tes cibles ». Les
-            deux sections de l'écran ont donc la même grammaire — un titre, une carte —
-            là où celle du poids portait son nom à l'intérieur, en petites capitales. */}
-        <SectionTitle t={t}>Suivi du poids</SectionTitle>
-
-        {/* 🔴 L'OBJECTIF DATÉ EST DANS LA CARTE DEPUIS LE 2026-09-20 (décision
-            fondateur, sur maquette) : il n'a plus de carte à lui. Le verrou reste ICI
-            et pas dans la carte — c'est l'écran qui connaît les droits, pas un
-            composant d'affichage. Sans objectif ou sans Kyroz+, la carte du poids
-            s'affiche exactement comme avant, sans trou ni séparateur. */}
-        <WeightSummaryCard
-          t={t}
-          profileWeightKg={profile.weight_kg}
-          entries={weightEntries}
-          delta={weightDelta}
-          due={weighInDue}
-          objectif={profile.goal_target && objectifDateVisible
-            ? <BlocObjectif t={t} profile={profile} onPress={() => setEditor('dated_goal')} />
-            : undefined}
-          onPress={() => setWeighIn(true)}
-        />
-
+      {/* 🔴 LE PROFIL N'EST PLUS UN ONGLET (2026-10-21, décision fondateur) : l'onglet est
+          devenu « Poids », et le Profil s'ouvre depuis la bulle en haut à droite du Plan.
+          Il prend donc l'en-tête des écrans POUSSÉS (Méthodologie, Kyroz+) — un retour à
+          gauche, le titre, la roue dentée à droite — et perd le grand titre qui se replie,
+          réservé aux onglets (`enTeteOnglets.test.ts` les compte).
+          ⚠️ La roue dentée reste ici : tout ce qui n'est ni toi ni ton plan vit derrière
+          (décision du 2026-08-09), dont « Revoir la visite », seule porte de rejeu. */}
+      <View style={[s.header, layout.header]}>
+        <Presse
+          onPress={() => (router.canGoBack() ? router.back() : router.replace('/(tabs)/plan'))}
+          hitSlop={10}
+          activeOpacity={OPACITE_PRESSION}
+          accessibilityRole="button"
+          accessibilityLabel="Retour"
+          style={s.retour}
+        >
+          <Ionicons name="chevron-back" size={Icone.nav} color={t.text} />
+        </Presse>
+        <Text style={s.titre}>Profil</Text>
+        <Presse
+          onPress={() => setReglages(true)}
+          hitSlop={10}
+          activeOpacity={OPACITE_PRESSION}
+          accessibilityRole="button"
+          accessibilityLabel="Réglages"
+          style={s.roue}
+        >
+          <Ionicons name="settings-outline" size={Icone.nav} color={t.textSecondary} />
+        </Presse>
+      </View>
+      <ScrollView ref={scrollRef} contentContainerStyle={[s.content, layout.content]} showsVerticalScrollIndicator={false}>
         {/* Révision du moteur : la cible a bougé sans que l'utilisateur touche à rien.
             On l'explique UNE fois, factuellement, avec l'action qui permet d'affiner —
             plutôt que de laisser découvrir un budget différent sans un mot. */}
@@ -763,7 +717,6 @@ export default function ProfilScreen() {
 
       </ScrollView>
 
-      <CompactTitleBar t={t} title="Profil" opacity={repli.opacity} />
 
       {/* Réglages — déclarée AVANT les éditeurs, sans conséquence : depuis le
           2026-08-09 chaque feuille monte son conteneur à l'ouverture, donc
@@ -787,7 +740,11 @@ export default function ProfilScreen() {
       <Sheet
         visible={reglages}
         onClose={() => setReglages(false)}
-        onClosed={() => { if (apresReglages === 'supprimer') setConfirmDelete(true); setApresReglages(null); }}
+        onClosed={() => {
+          if (apresReglages === 'supprimer') setConfirmDelete(true);
+          if (apresReglages === 'visite') quitterPourLaVisite();
+          setApresReglages(null);
+        }}
       >
         <ReglagesSheet
           t={t}
@@ -2044,13 +2001,14 @@ const styles = StyleSheet.create({
 function makeStyles(t: ThemePalette) {
   return StyleSheet.create({
     safe: { flex: 1, backgroundColor: t.bg },
-    content: { padding: Spacing.xl, gap: Spacing.lg, paddingBottom: Fond.barreOnglets },
-    header: { flexDirection: 'row', alignItems: 'flex-end', marginBottom: Spacing.xs },
+    content: { padding: Spacing.xl, paddingTop: Spacing.sm, gap: Spacing.lg, paddingBottom: Fond.ecran },
+    header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: Spacing.md },
+    titre: { ...Type.h3, color: t.text },
     // La roue s'aligne sur le « ? » du tour, à droite du grand titre. Cible
     // tactile pleine : `hitSlop` élargit au doigt, jamais à l'œil.
     roue: { alignItems: 'center', justifyContent: 'center', minWidth: CIBLE_TACTILE_MIN, minHeight: CIBLE_TACTILE_MIN },
+    retour: { alignItems: 'center', justifyContent: 'center', minWidth: CIBLE_TACTILE_MIN, minHeight: CIBLE_TACTILE_MIN },
     sub: { ...Type.bodySmall, color: t.textSecondary, lineHeight: 19 },
-    h1: { color: t.text, ...Type.display, marginTop: Spacing.xs },
     cibles: {
       backgroundColor: t.card, borderRadius: Radius.card,
       padding: Spacing.xl, gap: Spacing.xl,

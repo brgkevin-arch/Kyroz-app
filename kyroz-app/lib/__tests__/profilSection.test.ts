@@ -32,7 +32,7 @@ import { visiteApp } from '../tours';
 // ferment les trois chemins par lesquels la confusion est réellement arrivée.
 
 const RACINE = join(__dirname, '..', '..');
-const SRC_PROFIL = readFileSync(join(RACINE, 'app', '(tabs)', 'profil.tsx'), 'utf8');
+const SRC_PROFIL = readFileSync(join(RACINE, 'app', 'profil.tsx'), 'utf8');
 const SRC_REGLAGES = readFileSync(join(RACINE, 'components', 'ReglagesSheet.tsx'), 'utf8');
 
 /** Casse et accents écartés : « Réglages », « RÉGLAGES » et « réglages » sont le
@@ -174,7 +174,7 @@ describe('Profil — la visite guidée descend l’écran, elle ne fait pas d’
 
   // Le Profil n'a plus de tour à lui depuis le 2026-09-30 : son arrêt vit dans la
   // visite de l'app. Ce sont ses étapes qu'on relit ici.
-  const etapes = visiteApp({ repasAuto: true }).filter((e) => e.onglet === 'profil');
+  const etapes = visiteApp({ repasAuto: true }).filter((e) => e.onglet === 'poids');
   /** Les étapes qui visent un objet. Une étape SANS `targetId` se pose au centre
    *  (`lib/tours.ts`) : elle ne fait défiler nulle part, donc l'ordre ne la concerne pas. */
   const ciblees = etapes.filter((e) => e.targetId);

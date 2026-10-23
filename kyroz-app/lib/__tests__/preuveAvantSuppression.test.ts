@@ -61,7 +61,7 @@ describe('qui doit prouver son identité, et qui ne le peut pas', () => {
 // runtime de test n'atteint pas. Ça garantit que le câblage DIT la bonne chose, jamais
 // qu'il tourne — le geste réel se vérifie au simulateur.
 describe('le câblage de l’écran', () => {
-  const profil = src('app', '(tabs)', 'profil.tsx');
+  const profil = src('app', 'profil.tsx');
   const auth = src('hooks', 'useAuth.tsx');
   const code = sansCommentaires(profil);
 

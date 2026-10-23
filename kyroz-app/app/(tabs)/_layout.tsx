@@ -5,7 +5,7 @@ import { useTheme, Type, Spacing, Trait, HAUTEUR_BARRE_ONGLETS } from '../../con
 import { useAuth } from '../../hooks/useAuth';
 import { useProfile } from '../../hooks/useProfile';
 import Splash from '../../components/Splash';
-import { PlanIcon, CoursesIcon, ReserveIcon, RecettesIcon, ProfilIcon } from '../../components/TabIcons';
+import { PlanIcon, CoursesIcon, ReserveIcon, RecettesIcon, PoidsIcon } from '../../components/TabIcons';
 
 // Chaque onglet nomme un OBJET, pas une ambiance. Les tracés viennent de
 // `lib/iconesOnglets.ts` (la maquette) — voir `components/TabIcons.tsx` pour la note
@@ -26,7 +26,9 @@ const ONGLETS_BARRE = [
   { name: 'courses', title: 'Courses', Icon: CoursesIcon, image: require('../../assets/onglets/courses.png'), imageActive: require('../../assets/onglets/courses-actif.png') },
   { name: 'reserve', title: 'Réserve', Icon: ReserveIcon, image: require('../../assets/onglets/reserve.png'), imageActive: require('../../assets/onglets/reserve-actif.png') },
   { name: 'recettes', title: 'Recettes', Icon: RecettesIcon, image: require('../../assets/onglets/recettes.png'), imageActive: require('../../assets/onglets/recettes-actif.png') },
-  { name: 'profil', title: 'Profil', Icon: ProfilIcon, image: require('../../assets/onglets/profil.png'), imageActive: require('../../assets/onglets/profil-actif.png') },
+  // 🔴 L'onglet « Profil » est devenu « Poids » le 2026-10-21 (décision fondateur) :
+  // le Profil s'ouvre désormais depuis une bulle en haut à droite du Plan (`app/profil.tsx`).
+  { name: 'poids', title: 'Poids', Icon: PoidsIcon, image: require('../../assets/onglets/poids.png'), imageActive: require('../../assets/onglets/poids-actif.png') },
 ] as const;
 
 export default function TabLayout() {

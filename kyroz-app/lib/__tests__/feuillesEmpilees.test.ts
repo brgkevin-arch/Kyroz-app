@@ -201,7 +201,7 @@ describe('Enchaîner une feuille et une modale passe par onClosed', () => {
     // `setConfirmDelete(true)` partaient ensemble. La feuille gardait sa `Modal`
     // montée le temps de sa sortie, iOS refusait la seconde, et la confirmation
     // n'apparaissait JAMAIS — geste RGPD et point de revue App Store.
-    const src = l('app', '(tabs)', 'profil.tsx');
+    const src = l('app', 'profil.tsx');
     expect(src).not.toMatch(/setReglages\(false\);\s*setConfirmDelete\(true\)/);
     expect(src).toMatch(/onClosed=\{[^}]*setConfirmDelete\(true\)/);
   });
@@ -213,7 +213,7 @@ describe('Enchaîner une feuille et une modale passe par onClosed', () => {
     // d'ouvrir la pesée ». Les setters étaient bien dans cet ordre ; ils partaient
     // dans le même LOT. Preuve : deux captures à cinq secondes d'intervalle,
     // identiques au bit près, aucune feuille ouverte.
-    const src = l('app', '(tabs)', 'profil.tsx');
+    const src = l('app', 'profil.tsx');
     expect(src).not.toMatch(/setEditor\(null\);\s*setWeighIn\(true\)/);
     expect(src).toMatch(/onClosed=\{[^}]*setWeighIn\(true\)/);
   });

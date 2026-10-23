@@ -149,7 +149,7 @@ describe('le périmètre — aucun champ masqué écrit à la main', () => {
 
   it('les trois champs de mot de passe existent toujours, et passent par `Field`', () => {
     // Sans lui, supprimer les trois champs rendrait la suite verte.
-    for (const rel of ['app/(auth)/login.tsx', 'components/MotDePasseOublie.tsx', 'app/(tabs)/profil.tsx']) {
+    for (const rel of ['app/(auth)/login.tsx', 'components/MotDePasseOublie.tsx', 'app/profil.tsx']) {
       const masques = balises(sansCommentaires(lire(rel)), 'Field')
         .filter((b) => /secureTextEntry/.test(b));
       expect(masques.length, `${rel} : aucun <Field secureTextEntry>`).toBeGreaterThan(0);
