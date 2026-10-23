@@ -69,6 +69,7 @@ export default function PoidsScreen() {
   const [decalage, setDecalage] = useState(0);
   const [peser, setPeser] = useState(false);
   const [historiqueOuvert, setHistoriqueOuvert] = useState(false);
+  const [offreOuverte, setOffreOuverte] = useState(false);
 
   const aujourdhui = todayStamp();
   const cadence = frequencyDays(profile?.weigh_in_frequency);
@@ -247,20 +248,35 @@ export default function PoidsScreen() {
             <Text style={s.note}>Choisis ton poids cible et ta date.</Text>
           </Presse>
         ) : (
-          // Sans Kyroz+ : le VRAI aperçu, flouté, un cadenas, le texte en bas (fondateur,
-          // 2026-10-23). Le tap ouvre la page Kyroz+.
-          <Presse
-            onPress={() => router.push('/kyroz-plus')} activeOpacity={OPACITE_PRESSION} accessibilityRole="button"
-            accessibilityLabel="Objectif daté, inclus dans Kyroz+" style={s.carte}
-          >
-            <View style={s.carteTete}>
-              <ObjectifIcon color={t.text} size={Icone.action} />
-              <Text style={[s.serie, { flex: 1 }]}>{OBJECTIF_DATE.titre}</Text>
-            </View>
-            <ApercuObjectif t={t} profile={profile} />
-            <Text style={s.vide}>{OBJECTIF_DATE.corps}</Text>
-            <Text style={s.note}>Inclus dans Kyroz+</Text>
-          </Presse>
+          // Sans Kyroz+ : le VRAI aperçu, flouté, un cadenas (fondateur, 2026-10-23). Le texte
+          // n'apparaît qu'au tap sur l'aperçu (« le texte apparaît que quand on appuie »), avec
+          // le lien vers la page Kyroz+. Deux zones séparées : un bouton dans un bouton est une
+          // erreur de rendu sur le web et deux gestes qui se disputent en natif.
+          <View style={s.carte}>
+            <Presse
+              onPress={() => setOffreOuverte((o) => !o)} activeOpacity={OPACITE_PRESSION} accessibilityRole="button"
+              accessibilityLabel="Objectif daté, inclus dans Kyroz+" accessibilityState={{ expanded: offreOuverte }}
+              style={s.apercu}
+            >
+              <View style={s.carteTete}>
+                <ObjectifIcon color={t.text} size={Icone.action} />
+                <Text style={[s.serie, { flex: 1 }]}>{OBJECTIF_DATE.titre}</Text>
+              </View>
+              <ApercuObjectif t={t} profile={profile} />
+            </Presse>
+            {offreOuverte && (
+              <>
+                <Text style={s.vide}>{OBJECTIF_DATE.corps}</Text>
+                <Presse
+                  onPress={() => router.push('/kyroz-plus')} activeOpacity={OPACITE_PRESSION} accessibilityRole="button"
+                  style={s.lienOffre}
+                >
+                  <Text style={s.lienOffreTxt}>Découvrir Kyroz+</Text>
+                  <Ionicons name="chevron-forward" size={Icone.standard} color={t.text} />
+                </Presse>
+              </>
+            )}
+          </View>
         )}
 
         {nbPhotos >= 2 && (
@@ -320,6 +336,9 @@ function makeStyles(t: ThemePalette) {
     navTxt: { ...Type.bodyStrong, color: t.textSecondary, flex: 1, textAlign: 'center' },
     carte: { backgroundColor: t.card, borderRadius: Radius.card, padding: Spacing.lg, gap: Spacing.md },
     carteTete: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
+    apercu: { gap: Spacing.md },
+    lienOffre: { flexDirection: 'row', alignItems: 'center', gap: Spacing.xs, minHeight: CIBLE_TACTILE_MIN },
+    lienOffreTxt: { ...Type.bodyStrong, color: t.text },
     serie: { ...Type.bodyStrong, color: t.text },
     ecart: {
       flexDirection: 'row', alignItems: 'center', gap: Spacing.xs,

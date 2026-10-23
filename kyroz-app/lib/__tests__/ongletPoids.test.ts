@@ -51,6 +51,11 @@ describe('L’onglet Poids (2026-10-23)', () => {
     expect(gratuit, 'sans Kyroz+ : la page Kyroz+, jamais l’éditeur').toMatch(/router\.push\('\/kyroz-plus'\)/);
     expect(gratuit).not.toMatch(/ouvrirObjectif/);
     expect(gratuit, 'sans Kyroz+ : le vrai aperçu, flouté').toMatch(/<ApercuObjectif\b/);
+    // Le texte n'apparaît qu'au tap sur l'aperçu (fondateur, 2026-10-23), avec le lien Kyroz+.
+    expect(gratuit, 'le tap sur l’aperçu ouvre le texte').toMatch(/onPress=\{\(\) => setOffreOuverte\(\(o\) => !o\)\}[\s\S]*?<ApercuObjectif\b/);
+    const ouvert = gratuit.match(/\{offreOuverte && \([\s\S]*?\n            \)\}/)?.[0] ?? '';
+    expect(ouvert, 'le texte et le lien n’apparaissent qu’une fois l’aperçu touché').toMatch(/OBJECTIF_DATE\.corps[\s\S]*?router\.push\('\/kyroz-plus'\)/);
+    expect(gratuit.replace(ouvert, ''), 'le texte ne s’affiche pas d’entrée').not.toMatch(/OBJECTIF_DATE\.corps|kyroz-plus/);
     // Le texte vendu vient de LA liste vendue, pas d'une copie.
     expect(ONGLET).toMatch(/FONCTIONS_KYROZ_PLUS\.find\(\(f\) => f\.feature === 'dated_goal'\)/);
   });
