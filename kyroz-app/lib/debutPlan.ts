@@ -1,4 +1,4 @@
-import type { BuiltinMealType, MealPlan, MealSlot, MealType } from './types';
+import type { BuiltinMealType, Macros, MealPlan, MealSlot, MealType } from './types';
 import { isBuiltinSlot } from './mealSlots';
 import { heuresLimites, type DebutDuSuivi } from './repasAuto';
 import { dateLocale, datesDuPlan, joursEcoules } from './semainePlan';
@@ -212,4 +212,40 @@ export function debutEnClair(debut: DebutDuSuivi, aujourdHui: string): string {
 /** Aujourd'hui (`YYYY-MM-DD`) tombe-t-il avant le début ? L'auto-coche n'y touche à rien. */
 export function avantLeJourDuDebut(aujourdHui: string, debut: DebutDuSuivi | null): boolean {
   return !!debut && aujourdHui < debut.jour;
+}
+
+/**
+ * Le compteur d'un jour du plan (« 0 / 2 314 kcal »), depuis le début choisi.
+ * Décision fondateur du 2026-10-23 : le soir du « Ce soir », le compteur affichait la cible
+ * de la journée ENTIÈRE pour un seul dîner ; un jour d'avant le début, une journée que
+ * personne ne mangera.
+ *  - `null` : le jour entier tombe avant le début → pas de compteur ;
+ *  - un jour entamé en cours de route ne compte que les repas qui restent : la cible est ce
+ *    qu'ils pèsent au plan (« 0 / 655 kcal » pour un dîner de 655), les macros et ce qui est
+ *    mangé sont les leurs. Une cible « journée moins les repas écartés » aurait affiché
+ *    643 au-dessus d'une carte à 655 (vu au navigateur).
+ * `macrosDe` : les macros COMPTÉES d'un repas (`planEngine::effectiveMacros`).
+ */
+export function compteurDuJour<M extends { macros: Macros }>(
+  jour: Macros,
+  cible: number,
+  repasDuJour: readonly M[],
+  repasAffiches: readonly M[],
+  macrosDe: (m: M) => Macros,
+): { macros: Macros; cible: number } | null {
+  if (repasDuJour.length > 0 && repasAffiches.length === 0) return null;
+  const ecartes = repasDuJour.filter((m) => !repasAffiches.includes(m));
+  if (ecartes.length === 0) return { macros: jour, cible };
+  const moins = ecartes.reduce((t, m) => {
+    const x = macrosDe(m);
+    return { kcal: t.kcal + x.kcal, protein_g: t.protein_g + x.protein_g, carbs_g: t.carbs_g + x.carbs_g, fat_g: t.fat_g + x.fat_g };
+  }, { kcal: 0, protein_g: 0, carbs_g: 0, fat_g: 0 });
+  const r = (x: number) => Math.max(0, Math.round(x));
+  return {
+    macros: {
+      kcal: r(jour.kcal - moins.kcal), protein_g: r(jour.protein_g - moins.protein_g),
+      carbs_g: r(jour.carbs_g - moins.carbs_g), fat_g: r(jour.fat_g - moins.fat_g),
+    },
+    cible: r(repasAffiches.reduce((t, m) => t + m.macros.kcal, 0)),
+  };
 }

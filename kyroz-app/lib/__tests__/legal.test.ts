@@ -238,6 +238,8 @@ const DERNIERE_REVISION = {
   // « réglage du rythme de la semaine », éteint depuis le 2026-08-18, quitte le cœur gratuit
   // énuméré au §3 : il y était promis sans exister. ⚠️ Date = celle de la LIVRAISON prévue
   // (62ᵉ OTA) : à reporter si la publication glisse.
+  // ➡️ Reportée du 20 au 23 octobre (2026-10-23) : la 62ᵉ OTA a glissé (#376 a reçu les
+  // retouches d'avant publication). Si elle glisse encore, refaire ce geste.
   // 🔴 **NEUVIÈME RÉVISION — LA SÉRIE QUITTE LES DEUX TEXTES** (2026-09-19). Décision
   // fondateur : la série (streak) est retirée de l'app, écrans, logique et synchro. La
   // politique la listait dans les données d'usage (§2), les CGU dans le cœur gratuit
@@ -262,7 +264,7 @@ const DERNIERE_REVISION = {
   // on se trompe. Le prix à payer est une date qui avance pour une virgule ; le prix de
   // l'inverse est un engagement qui passe inaperçu.
   // ➡️ Ce texte-ci est livré le 8 : 31ᵉ OTA + le binaire qui la suit.
-  date: '20 octobre 2026',
+  date: '23 octobre 2026',
   // ⚠️ **SIXIÈME RÉVISION** (2026-08-27, même jour) : le `DISCLAIMER` disait « l'avis d'un
   // médecin ou diététicien-nutritionniste » quand `lib/methodologie.ts` dit « ou D'UN
   // diététicien-nutritionniste ». Deux variantes d'une phrase OBLIGATOIRE (§6, Apple

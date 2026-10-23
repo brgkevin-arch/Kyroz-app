@@ -333,7 +333,7 @@ qu'ils étaient périmés.
 7. **Réserve : glisser un aliment vers la gauche pour le supprimer** (demande du fondateur,
    2026-10-23, « comme chez Apple ») : un bouton « Supprimer » apparaît, un glissement long
    supprime d'un coup (déclic haptique au seuil).
-   🟡 **CODÉ le 2026-10-23 dans #376, À VALIDER AU SIMULATEUR par le fondateur** —
+   ✅ **CODÉ le 2026-10-23 dans #376, VALIDÉ par le fondateur le même jour** (« c'est bon ») —
    `components/LigneGlissable.tsx` (PanResponder + Animated, aucune dépendance native →
    publiable en OTA) et `lib/motion.ts::decisionGlissement` (pur). Règles : au-delà de la
    MOITIÉ de la ligne, relâcher supprime ; sous ce seuil, la projection décide d'ouvrir ou
@@ -415,8 +415,18 @@ qu'ils étaient périmés.
    ⚠️ #376 porte TOUT (plan daté, « Quand veux-tu commencer ? », seuils, thon, page Kyroz+,
    CGU révisées le 20 octobre — date à reporter si la livraison glisse) ; elle est à jour de
    `main` (61ᵉ OTA = Liquid Glass) et FUSIONNABLE ; la livraison sera la **62ᵉ OTA**, avec le
-   site vitrine (`KYROZ_SITE=… npm run gen:legal`). Le compteur du jour (« 0 / 2 314 kcal » le
-   soir du « Ce soir ») reste à trancher.
+   site vitrine (`KYROZ_SITE=… npm run gen:legal`).
+   ✅ **Le compteur du jour — TRANCHÉ ET CODÉ le 2026-10-23** (fondateur : « je valide ton
+   avis ») : le soir du « Ce soir », il ne compte que les repas qui restent (*avant* « 0 / 2 183
+   kcal » pour un seul dîner, *après* « 0 / 655 kcal », la carte du dîner dit 655) ; un jour
+   d'avant le début n'a plus de compteur, seulement « Ton plan commence vendredi 23
+   octobre. ». `lib/debutPlan.ts::compteurDuJour` (la cible = ce que pèsent au plan les repas
+   affichés ; une première version « journée moins les repas écartés » affichait 643 au-dessus
+   d'une carte à 655, vu au navigateur et corrigé). Garde-fou `debutPlan.test.ts` (2 mutations
+   rouges). Vu au navigateur : « Ce soir », « Vendredi 23 » (jour 3 sans compteur), « La
+   semaine prochaine ».
+   ✅ **CGU : date d'entrée en vigueur reportée au 23 octobre 2026** (`constants/legal.ts`,
+   `legal.test.ts`, miroirs régénérés) — la 62ᵉ OTA a glissé. À reporter encore si elle glisse.
 
 **Décidé le 2026-10-19 — ne pas le relancer à chaque bilan**
 - **Médiateur de la consommation** (obligation L.612-1 dès la première vente, aucune
@@ -2074,7 +2084,7 @@ produit en suspens — il ne reste qu'à coder.
   ✅ **Décision fondateur (2026-10-19)** : à la fin de l'inscription, AVANT « C'est prêt », Kyroz demande **« Quand veux-tu commencer ? »** — « Ce soir » / « Aujourd'hui » (s'il reste un repas : la collation et le dîner à 19 h 30), « Demain », « Un autre jour » (les jours du plan des 7 prochains jours). 🔄 **Resserré le 2026-10-23** (fondateur) : « Ce soir » / « Aujourd'hui » (« Il reste ton dîner »), « Un autre jour » (les jours du plan de CETTE semaine, sans sous-titre), « La semaine prochaine » (son premier jour du plan) — détail au point 8 des « À peaufiner ». Puis « C'est prêt » (« Tu commences jeudi 22 octobre. », l'aperçu montre le premier jour vécu), puis la visite. Une fois, au premier plan ; les comptes existants ne voient rien changer.
   **Comment** : le début EST `@kyroz:debutSuivi` (`{ jour, minutes }`, `fixerDebutSuivi`) — un seul objet pour l'auto-coche, la liste et l'écran. Un début à venir fait partir `week_start_date` de ce jour-là (`lib/debutPlan.ts::semaineDuDebut`, y compris aux régénérations d'ici là) : liste, dates du bandeau et renouvellement suivent sans rien d'autre. Les repas d'avant le début (jours antérieurs, ou heure limite passée au moment du « Ce soir ») ne s'affichent pas et ne s'achètent pas (`repasDepuisLeDebut`) ; l'auto-coche et le solde de la veille ne touchent à rien avant le jour du début. Une seule `Modal` pour les deux pages (`FirstPlanReveal`, iOS refuse d'en enchaîner deux).
   **Mesuré au moteur** (profil de test, lun → ven) : mercredi 21 h 45 « Ce soir » → **5,8 → 4,8 kg, 44 → 36 lignes** ; lundi 21 h 45 → 9,9 → 8,8 kg. Garde-fou : `debutPlan.test.ts` (12 cas, 2 mutations rouges). **Vu à l'écran** (web, 375 pt, lundi 19 h 30) : « Ce soir » → Plan avec collation + dîner et « Les repas d'avant ton début ne sont pas comptés » ; « Jeudi 22 » → Plan ouvert sur le jour 4, lundi affiche « Ton plan commence jeudi 22 octobre. », Courses « À partir de jeudi, le jour où tu commences. ». ⚠️ Non vu au simulateur iOS.
-  ⚠️ **Reste à trancher** : le chiffre du jour (« 0 / 2 314 kcal ») reste celui d'une journée entière sur un jour d'avant le début et le soir du « Ce soir ». Et l'effet du samedi d'E76 (premier plan de 2 jours) n'arrive plus que si l'on choisit « Aujourd'hui » un samedi.
+  ✅ **Tranché le 2026-10-23** : le chiffre du jour ne compte que les repas qui restent le soir du « Ce soir », et disparaît sur un jour d'avant le début (`compteurDuJour`). Et l'effet du samedi d'E76 (premier plan de 2 jours) n'arrive plus que si l'on choisit « Aujourd'hui » un samedi.
 - **E79 · LIQUID GLASS : LA BARRE D'ONGLETS D'APPLE, ET LES FEUILLES PARTIELLES EN VERRE** — ✅ mergé le 2026-10-19 (#385, `bbfd9da`), validé sur captures par le fondateur ; ✅ **publié dans la 61ᵉ OTA le 2026-10-20** (*« mets l'app aux normes liquid glass d'apple »*, puis *« fais A et B, puis je vérifie »*).
   *Avant* : la barre d'onglets avait la MATIÈRE d'iOS 26 (verre, E36) mais la FORME d'iOS 18 — une bande pleine largeur collée en bas ; toutes les feuilles étaient peintes. *Après* : **A** — sur iOS, la barre est `UITabBar` lui-même (`NativeTabs` d'expo-router) : capsule de verre décollée des bords, onglet actif dans sa bulle ; sur iPad, en haut, en libellés. Web et Android gardent la barre dessinée. **B** — la feuille partielle (`ActionSheet`, donc aussi tous les dialogues de `Dialog.tsx`) passe en verre, décollée de 8 pt, coins concentriques (24 + 14) ; la feuille pleine hauteur (`Sheet`, 94 %) reste opaque — c'est la règle d'Apple, et CLAUDE.md affirmait à tort le contraire depuis août (corrigé).
   🔴 **Publiable en OTA** : le natif des onglets (`react-native-screens` 4.26.2, `ios/tabs`) est dans le build (22) ; **empreinte iOS mesurée `823c89db…` = build (22)**. Aucune ligne ajoutée à `package.json` (un raccourci `npm run` aurait coupé la ligne OTA — le script des icônes se lance par `npx tsx`).

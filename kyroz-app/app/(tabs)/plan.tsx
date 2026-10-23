@@ -42,7 +42,7 @@ import { datesDuPlan, semaineEcoulee } from '../../lib/semainePlan';
 import { aAdopter, aligner, ciblesSeulement, memesRecettes } from '../../lib/semaineSuivante';
 import { CLE_GRAINE_DU_PLAN, assurerLaSuivante, ecrireLaSuivante, lireLaSuivante } from '../../lib/planSuivant';
 import { loadHistory, newestFirst } from '../../lib/shoppingHistory';
-import { buildLocalPlan, carryTracking, nextPlanSeed, profileSignature, swapMeal, computeDailyTotals, rebalanceDay, resetTracking, adaptDayOptions, AdaptOption, mealIngredients, reAdaptMealRecipe, mealPoolSize, dayTargetKcal, ON_TARGET_TOLERANCE_KCAL } from '../../lib/planEngine';
+import { buildLocalPlan, carryTracking, nextPlanSeed, profileSignature, swapMeal, computeDailyTotals, rebalanceDay, resetTracking, adaptDayOptions, AdaptOption, mealIngredients, reAdaptMealRecipe, mealPoolSize, dayTargetKcal, ON_TARGET_TOLERANCE_KCAL, effectiveMacros } from '../../lib/planEngine';
 import { DISLIKE_THRESHOLD, dislikeCandidates, applyDislikedIngredient } from '../../lib/dislike';
 import { todayStamp, localStamp } from '../../lib/weight';
 import { recordOffPlan, resolveOffPlan, forgetOffPlan } from '../../lib/offPlanJournal';
@@ -58,7 +58,7 @@ import {
   lireDebutSuivi, noterDebutSuivi, fixerDebutSuivi, bornePremierJour, heuresLimites, type DebutDuSuivi,
 } from '../../lib/repasAuto';
 import {
-  optionsDeDebut, semaineDuDebut, avantLeDebut, avantLeJourDuDebut, dateEnLettres, debutEnClair, type OptionDebut,
+  optionsDeDebut, semaineDuDebut, avantLeDebut, avantLeJourDuDebut, dateEnLettres, debutEnClair, compteurDuJour, type OptionDebut,
 } from '../../lib/debutPlan';
 import { useFirstName } from '../../lib/profileName';
 import { salutation } from '../../lib/salutation';
@@ -953,6 +953,11 @@ export default function PlanScreen() {
   // de banque). Avec la cible plate, un jour déclaré « resto +600 » s'affichait comme
   // 600 kcal de dépassement — alors que c'est exactement ce que l'utilisateur a demandé.
   const dayTarget = (plan && profile) ? dayTargetKcal(profile, plan.days, selectedDay) : profile?.target_kcal;
+  // Le compteur depuis le début choisi (2026-10-23, fondateur) : le soir du « Ce soir », les
+  // seuls repas qui restent ; un jour d'avant le début, aucun compteur (`compteurDuJour`).
+  const compteur = dayMacros
+    ? compteurDuJour(dayMacros, dayTarget ?? dayMacros.kcal, dayMealsPlan, dayMeals, effectiveMacros)
+    : null;
   // « Repos » ne s'affiche que pour qui a déclaré au moins une séance (décision
   // fondateur, 2026-09-26). Sans sport, le moteur marque TOUS les jours en repos
   // (`restDaysForProfile` : 0 séance → 7 jours de repos) — juste en arithmétique,
@@ -1187,23 +1192,27 @@ export default function PlanScreen() {
                     mécanique — ne pas « réparer » l'un en croyant l'autre cassé.
                     ℹ️ `moduleParVolume` est parti le 2026-09-30 avec la dernière bulle
                     du Plan, qui le recevait encore sans le lire. */}
-                <View style={{ height: 12 }} />
-                <MacroBar
-                  protein_g={dayMacros.protein_g}
-                  carbs_g={dayMacros.carbs_g}
-                  fat_g={dayMacros.fat_g}
-                  targetKcal={dayTarget ?? dayMacros.kcal}
-                  plannedKcal={dayMacros.kcal}
-                  consumedKcal={consumedDayKcal}
-                />
-                <SousCibleNote
-                  t={t} manque={(dayTarget ?? dayMacros.kcal) - dayMacros.kcal}
-                  repasAVenir={(plan?.meals ?? []).filter((m) => m.day === selectedDay && !m.status).length}
-                />
-                {dayExtraKcal > 0 && (
+                {compteur && (
+                  <>
+                    <View style={{ height: 12 }} />
+                    <MacroBar
+                      protein_g={compteur.macros.protein_g}
+                      carbs_g={compteur.macros.carbs_g}
+                      fat_g={compteur.macros.fat_g}
+                      targetKcal={compteur.cible}
+                      plannedKcal={compteur.macros.kcal}
+                      consumedKcal={consumedDayKcal}
+                    />
+                    <SousCibleNote
+                      t={t} manque={compteur.cible - compteur.macros.kcal}
+                      repasAVenir={dayMeals.filter((m) => !m.status).length}
+                    />
+                  </>
+                )}
+                {compteur && dayExtraKcal > 0 && (
                   <View style={s.extraRow}>
                     <Text style={{ ...Type.caption, color: t.textSecondary }}>
-                      {(dayMacros.kcal - dayExtraKcal).toLocaleString('fr-FR')} plan
+                      {(compteur.macros.kcal - dayExtraKcal).toLocaleString('fr-FR')} plan
                       <Text style={{ color: t.text, fontWeight: '700' }}>{` + ${dayExtraKcal} kcal assumées`}</Text>
                       {/* CE QUE C'ÉTAIT (E6) : deux jours plus tard, « +450 kcal » ne
                           dit plus rien. Ton inchangé — on nomme, on ne reproche pas. */}

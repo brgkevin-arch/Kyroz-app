@@ -8,7 +8,7 @@ import { repasACompter, mentionDepart } from '../coursesDepuis';
 import { datesDuPlan, semaineEcoulee } from '../semainePlan';
 import { heuresLimites, repasEchus, bornePremierJour } from '../repasAuto';
 import {
-  optionsDeDebut, semaineDuDebut, repasDepuisLeDebut, avantLeJourDuDebut, creneauxRestants,
+  optionsDeDebut, semaineDuDebut, repasDepuisLeDebut, avantLeJourDuDebut, creneauxRestants, compteurDuJour,
 } from '../debutPlan';
 import { makeProfile } from './helpers';
 
@@ -164,5 +164,44 @@ describe('E78 — l’auto-coche ne touche à rien avant le début', () => {
     const dus = repasEchus(repas, BUILTIN_SLOTS, 23 * 60 + 59, bornePremierJour(ceSoir, LUN_DU_MER));
     expect(dus.map((m: { meal_type: string }) => m.meal_type)).toEqual(['dinner']);
     expect(heuresLimites(BUILTIN_SLOTS).get('dinner')).toBe(23 * 60 + 59);
+  });
+});
+
+describe('le compteur du jour depuis le début choisi (2026-10-23)', () => {
+  // Fondateur, qui valide l'avis : le premier soir, ne compter que les repas qui restent ;
+  // avant le début, pas de compteur. Avant : « 0 / 2 314 kcal » pour un seul dîner.
+  const m = (kcal: number, p: number) => ({ macros: { kcal, protein_g: p, carbs_g: 10, fat_g: 5 } });
+  const petitDej = m(500, 30), dejeuner = m(700, 45), collation = m(300, 20), diner = m(610, 40);
+  const tous = [petitDej, dejeuner, collation, diner];
+  const jour = { kcal: 2110, protein_g: 135, carbs_g: 40, fat_g: 20 };
+  const macrosDe = (x: { macros: typeof jour }) => x.macros;
+
+  it('le soir du « Ce soir » : seulement le dîner — « 0 / 610 kcal », la carte dit 610', () => {
+    const c = compteurDuJour(jour, 2314, tous, [diner], macrosDe)!;
+    expect(c.macros).toEqual({ kcal: 610, protein_g: 40, carbs_g: 10, fat_g: 5 });
+    expect(c.cible).toBe(610);
+  });
+
+  it('le dîner sauté ce soir-là : la cible reste ce qu’il pesait au plan', () => {
+    const saute = { ...diner, status: 'skipped' as const };
+    const c = compteurDuJour({ ...jour, kcal: 1500 }, 2314, [petitDej, dejeuner, collation, saute], [saute],
+      (x: { macros: typeof jour; status?: string }) => (x.status === 'skipped' ? { kcal: 0, protein_g: 0, carbs_g: 0, fat_g: 0 } : x.macros))!;
+    expect(c.cible).toBe(610);
+    expect(c.macros.kcal).toBe(0);
+  });
+
+  it('un jour d’avant le début : pas de compteur', () => {
+    expect(compteurDuJour(jour, 2314, tous, [], macrosDe)).toBeNull();
+  });
+
+  it('un jour ordinaire ne bouge pas', () => {
+    expect(compteurDuJour(jour, 2314, tous, tous, macrosDe)).toEqual({ macros: jour, cible: 2314 });
+  });
+
+  it('l’écran Plan s’en sert pour la barre ET la note', () => {
+    const ecran = readFileSync(join(__dirname, '..', '..', 'app', '(tabs)', 'plan.tsx'), 'utf8');
+    expect(ecran).toContain('compteurDuJour(dayMacros, dayTarget ?? dayMacros.kcal, dayMealsPlan, dayMeals, effectiveMacros)');
+    expect(ecran).toContain('targetKcal={compteur.cible}');
+    expect(ecran).not.toContain('targetKcal={dayTarget ?? dayMacros.kcal}');
   });
 });
