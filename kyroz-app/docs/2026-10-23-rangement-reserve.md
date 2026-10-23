@@ -5,8 +5,13 @@
 > le rayon et le rangement sont ceux que l'app donne VRAIMENT à un aliment qui arrive des
 > courses (`pantry.ts::categorize`, `conservationDe`). Ne pas l'éditer à la main.
 >
+>
+> ✅ **Validé par le fondateur le 2026-10-23** (« je valide et oui fermés tous au sec ») :
+> 24 corrections (12 au frais, 12 au sec) et 2 rayons, appliquées dans
+> `pantry.ts::RANGEMENT_PAR_ALIMENT` et `categorize` (un mot-clé ne compte plus qu'en début
+> de mot). Garde-fou : `lib/__tests__/rangementReserve.test.ts`.
 > **129 aliments** (servis par au moins une recette, hors fonds de placard) ·
-> **24 corrections proposées**, en attente du fondateur.
+> **0 décision non appliquée** par le code.
 
 ## La règle (fondateur, 2026-10-23)
 
@@ -19,22 +24,29 @@
   frais oublié au placard est un risque, l'inverse non.
 - Toujours corrigeable d'une touche dans la Réserve, et la correction l'emporte.
 
-### À trancher : les briques UHT et les pots fermés
+### Tranché : les briques UHT et les pots fermés vont au sec
 
 Lait demi-écrémé, crème de soja, lait d'amande, lait de coco, tofu soyeux en brique [5],
 pesto, sirop d'érable : **placard tant que c'est fermé, frigo une fois ouvert**. La Réserve
-reçoit des paquets fermés à « Courses terminées ». Proposé : **au sec pour tous** (aujourd'hui
-le lait et la crème de soja sont au frais, les cinq autres au sec — deux rangements pour le
-même cas).
+reçoit des paquets fermés à « Courses terminées » : **au sec pour tous** (décision du
+2026-10-23 ; le lait et la crème de soja étaient au frais, les cinq autres au sec).
 
 ### Au frais aujourd'hui (61)
 
-| Aliment | Rayon | Proposé |
+| Aliment | Rayon | Décidé le 2026-10-23 |
 |---|---|---|
-| Ananas | Légumes & fruits | **au sec** — air ambiant, il craint le froid (< 7 °C) [1] |
+| Boulettes végétales | Autres | rayon frais, comme les autres similis déjà au frais |
+| Burger végétal (blé et soja) | Autres | rayon frais, comme les autres similis déjà au frais |
+| Falafels prêts à consommer | Autres | prêts à consommer : rayon traiteur frais |
+| Lardons végétaux | Autres | rayon frais, comme les autres similis déjà au frais |
+| Merguez végétales | Autres | rayon frais, comme les autres similis déjà au frais |
+| Nuggets végétaux panés | Autres | rayon frais, comme les autres similis déjà au frais |
+| Saucisses végétales (tofu) | Autres | rayon frais, comme les autres similis déjà au frais |
+| Seitan | Autres | frigo (même remarque que le tempeh) [4] |
+| Tempeh | Autres | frigo (certaines marques bio le vendent pasteurisé, au frigo une fois ouvert) [4] |
+| Tofu ferme | Autres | rayon frais [4] |
+| Tofu fumé | Autres | rayon frais [4] |
 | Asperges | Légumes & fruits |  |
-| Avocat | Légumes & fruits | **au sec** — température ambiante tant qu'il est entier [1] |
-| Banane | Légumes & fruits | **au sec** — corbeille : au frigo elle noircit et perd son goût [1] |
 | Betterave cuite | Légumes & fruits |  |
 | Brocoli | Légumes & fruits |  |
 | Carotte | Légumes & fruits |  |
@@ -48,26 +60,17 @@ même cas).
 | Fruits rouges (mélange) | Légumes & fruits |  |
 | Haricots verts | Légumes & fruits |  |
 | Kiwi | Légumes & fruits |  |
-| Lentilles corail | Légumes & fruits | **au sec, rayon Féculents** — lentilles sèches ; et « corail » contient « ail », d'où le rayon Légumes |
-| Mangue | Légumes & fruits | **au sec** — mûrit à l'air libre, en corbeille [1] |
 | Mélange wok (poivron/brocoli/carotte) | Légumes & fruits |  |
 | Myrtilles | Légumes & fruits |  |
-| Oignon | Légumes & fruits | **au sec** — endroit sombre et aéré [1] |
-| Patate douce | Légumes & fruits | **au sec** — au sec, comme la pomme de terre [1] |
 | Petits pois | Légumes & fruits |  |
 | Poivron | Légumes & fruits |  |
-| Pomme | Légumes & fruits | **au sec** — corbeille, 7 à 8 jours à l'air ambiant [1] |
-| Pomme de terre | Légumes & fruits | **au sec** — endroit frais et sec, à l'abri de la lumière [1] |
 | Raisins | Légumes & fruits |  |
 | Roquette | Légumes & fruits |  |
 | Salade verte | Légumes & fruits |  |
-| Tomate | Légumes & fruits | **au sec** — température ambiante : le froid la rend farineuse [1][2] |
 | Blanc d'œuf | Produits laitiers & œufs |  |
 | Cottage cheese | Produits laitiers & œufs |  |
-| Crème de soja | Produits laitiers & œufs | **au sec** — brique UHT fermée : placard (frigo une fois ouverte) — comme le lait d'amande et le lait de coco |
 | Feta | Produits laitiers & œufs |  |
 | Fromage blanc 0% | Produits laitiers & œufs |  |
-| Lait demi-écrémé | Produits laitiers & œufs | **au sec** — brique UHT fermée : placard (frigo une fois ouverte) — comme le lait d'amande et le lait de coco |
 | Mozzarella light | Produits laitiers & œufs |  |
 | Œuf entier | Produits laitiers & œufs |  |
 | Parmesan | Produits laitiers & œufs |  |
@@ -77,6 +80,7 @@ même cas).
 | Aiguillettes de poulet végétal | Viandes & poissons |  |
 | Bavette de bœuf | Viandes & poissons |  |
 | Bœuf haché 5% MG | Viandes & poissons |  |
+| Chorizo végétal | Viandes & poissons | rayon frais ; et « chorizo » contient « riz », d'où le rayon Féculents |
 | Crevettes cuites | Viandes & poissons |  |
 | Dos de cabillaud | Viandes & poissons |  |
 | Émincés de poulet végétal (soja et blé) | Viandes & poissons |  |
@@ -95,51 +99,40 @@ même cas).
 
 ### Au sec aujourd'hui (68)
 
-| Aliment | Rayon | Proposé |
+| Aliment | Rayon | Décidé le 2026-10-23 |
 |---|---|---|
 | Amandes | Autres |  |
 | Beurre d'amande | Autres |  |
 | Beurre de cacahuète | Autres |  |
-| Boulettes végétales | Autres | **au frais** — rayon frais, comme les autres similis déjà au frais |
-| Burger végétal (blé et soja) | Autres | **au frais** — rayon frais, comme les autres similis déjà au frais |
 | Cacao maigre en poudre | Autres |  |
 | Châtaigne | Autres |  |
 | Chocolat noir 70% | Autres |  |
 | Dattes dénoyautées | Autres |  |
-| Falafels prêts à consommer | Autres | **au frais** — prêts à consommer : rayon traiteur frais |
 | Graines de chia | Autres |  |
 | Graines de courge | Autres |  |
 | Lait d'amande | Autres |  |
 | Lait de coco | Autres |  |
-| Lardons végétaux | Autres | **au frais** — rayon frais, comme les autres similis déjà au frais |
 | Levure maltée | Autres |  |
-| Merguez végétales | Autres | **au frais** — rayon frais, comme les autres similis déjà au frais |
 | Noisettes | Autres |  |
 | Noix | Autres |  |
-| Nuggets végétaux panés | Autres | **au frais** — rayon frais, comme les autres similis déjà au frais |
 | Olives | Autres |  |
 | Pesto | Autres |  |
 | Protéine de soja texturée (PST) | Autres |  |
 | Protéine végétale (pois/soja) | Autres |  |
 | Purée de sésame (tahini) | Autres |  |
 | Sauce soja | Autres |  |
-| Saucisses végétales (tofu) | Autres | **au frais** — rayon frais, comme les autres similis déjà au frais |
-| Seitan | Autres | **au frais** — frigo (même remarque que le tempeh) [4] |
 | Sirop d'érable | Autres |  |
-| Tempeh | Autres | **au frais** — frigo (certaines marques bio le vendent pasteurisé, au frigo une fois ouvert) [4] |
-| Tofu ferme | Autres | **au frais** — rayon frais [4] |
-| Tofu fumé | Autres | **au frais** — rayon frais [4] |
 | Tofu soyeux | Autres |  |
 | Whey (neutre/vanille) | Autres |  |
 | Boulgour | Féculents |  |
 | Chapelure | Féculents |  |
-| Chorizo végétal | Féculents | **au frais, rayon Viandes & poissons** — rayon frais ; et « chorizo » contient « riz », d'où le rayon Féculents |
 | Fèves sèches décortiquées | Féculents |  |
 | Flocons d'avoine | Féculents |  |
 | Galette de riz soufflé | Féculents |  |
 | Haricots blancs (conserve, égouttés) | Féculents |  |
 | Haricots noirs (conserve, égouttés) | Féculents |  |
 | Haricots rouges (conserve, égouttés) | Féculents |  |
+| Lentilles corail | Féculents | lentilles sèches ; et « corail » contient « ail », d'où le rayon Légumes |
 | Lentilles cuites (conserve ou sachet) | Féculents |  |
 | Millet | Féculents |  |
 | Nouilles complètes | Féculents |  |
@@ -160,9 +153,20 @@ même cas).
 | Semoule de couscous | Féculents |  |
 | Tortilla blé complet | Féculents |  |
 | Wrap / tortilla sans gluten | Féculents |  |
+| Ananas | Légumes & fruits | air ambiant, il craint le froid (< 7 °C) [1] |
+| Avocat | Légumes & fruits | température ambiante tant qu'il est entier [1] |
+| Banane | Légumes & fruits | corbeille : au frigo elle noircit et perd son goût [1] |
 | Maïs | Légumes & fruits |  |
+| Mangue | Légumes & fruits | mûrit à l'air libre, en corbeille [1] |
+| Oignon | Légumes & fruits | endroit sombre et aéré [1] |
+| Patate douce | Légumes & fruits | au sec, comme la pomme de terre [1] |
+| Pomme | Légumes & fruits | corbeille, 7 à 8 jours à l'air ambiant [1] |
+| Pomme de terre | Légumes & fruits | endroit frais et sec, à l'abri de la lumière [1] |
 | Ratatouille de légumes | Légumes & fruits |  |
+| Tomate | Légumes & fruits | température ambiante : le froid la rend farineuse [1][2] |
 | Tomate concassée | Légumes & fruits |  |
+| Crème de soja | Produits laitiers & œufs | brique UHT fermée : placard (frigo une fois ouverte) — comme le lait d'amande et le lait de coco |
+| Lait demi-écrémé | Produits laitiers & œufs | brique UHT fermée : placard (frigo une fois ouverte) — comme le lait d'amande et le lait de coco |
 | Sardines (conserve égouttées) | Viandes & poissons |  |
 | Thon au naturel (conserve) | Viandes & poissons |  |
 

@@ -5,8 +5,8 @@
  * Écrit `docs/2026-10-23-rangement-reserve.md` DEPUIS LE CODE : pour chaque aliment du
  * catalogue servi par au moins une recette, le rayon (`categorize`) et le rangement
  * (`conservationDe`) que l'app lui donne vraiment quand il arrive des courses. Les
- * propositions de correction sont écrites ci-dessous, à la main, avec leur raison : elles
- * s'affichent en face de l'état du code tant qu'il ne les applique pas.
+ * décisions (validées par le fondateur le 2026-10-23) sont écrites ci-dessous, à la main,
+ * avec leur source ; le tableau les affiche, et signale celles que le code n'applique pas.
  *
  * Lancer : `npx tsx scripts/gen-rangement-reserve.ts` (pas de ligne `npm run`, cf. CLAUDE.md §2).
  */
@@ -21,7 +21,8 @@ const RAYON: Record<string, string> = {
 };
 
 /**
- * Les propositions, à valider par le fondateur. RÈGLE (fondateur, 2026-10-23 : « tu ne mets
+ * Les décisions, VALIDÉES par le fondateur le 2026-10-23 (appliquées dans
+ * `pantry.ts::RANGEMENT_PAR_ALIMENT` et `categorize`). RÈGLE (fondateur, 2026-10-23 : « tu ne mets
  * pas une banane au frigo ») : **au frais = au frigo** ; **au sec = tout le reste** (placard,
  * corbeille, à l'abri de la lumière). Chaque ligne dit sa source (cf. SOURCES plus bas).
  * Dans le doute (marques qui vendent l'un ou l'autre), le frigo : un produit du rayon frais
@@ -52,7 +53,7 @@ const PROPOSE: Record<string, { rangement?: Conservation; rayon?: string; pourqu
   saucisse_vegetale: { rangement: 'frais', pourquoi: 'rayon frais, comme les autres similis déjà au frais' },
   chorizo_vegetal: { rangement: 'frais', rayon: 'viandes', pourquoi: 'rayon frais ; et « chorizo » contient « riz », d\'où le rayon Féculents' },
   falafel: { rangement: 'frais', pourquoi: 'prêts à consommer : rayon traiteur frais' },
-  // Briques UHT : au placard tant qu'elles sont fermées (À TRANCHER, cf. la question du doc).
+  // Briques UHT : au placard tant qu'elles sont fermées (tranché le 2026-10-23 : « fermés tous au sec »).
   lait_demi_ecreme: { rangement: 'sec', pourquoi: 'brique UHT fermée : placard (frigo une fois ouverte) — comme le lait d\'amande et le lait de coco' },
   creme_soja: { rangement: 'sec', pourquoi: 'brique UHT fermée : placard (frigo une fois ouverte) — comme le lait d\'amande et le lait de coco' },
 };
@@ -88,13 +89,13 @@ const table = (c: Conservation) => {
     .sort((a, b) => RAYON[a.rayon].localeCompare(RAYON[b.rayon]) || a.nom.localeCompare(b.nom));
   return [
     `### ${c === 'frais' ? 'Au frais' : 'Au sec'} aujourd'hui (${l.length})`, '',
-    '| Aliment | Rayon | Proposé |', '|---|---|---|',
+    '| Aliment | Rayon | Décidé le 2026-10-23 |', '|---|---|---|',
     ...l.map((x) => {
-      const p = enAttente(x);
-      const propose = p
-        ? `**${[p.rangement && p.rangement !== x.rangement ? (p.rangement === 'frais' ? 'au frais' : 'au sec') : '', p.rayon && p.rayon !== x.rayon ? `rayon ${RAYON[p.rayon]}` : ''].filter(Boolean).join(', ')}** — ${p.pourquoi}`
+      const p = PROPOSE[x.ref];
+      const ecart = enAttente(x)
+        ? ` ⚠️ **PAS APPLIQUÉ** : le code dit ${x.rangement === 'frais' ? 'au frais' : 'au sec'}, ${RAYON[x.rayon]}`
         : '';
-      return `| ${x.nom} | ${RAYON[x.rayon]} | ${propose} |`;
+      return `| ${x.nom} | ${RAYON[x.rayon]} | ${p ? p.pourquoi : ''}${ecart} |`;
     }),
   ].join('\n');
 };
@@ -109,8 +110,13 @@ const doc = `# Le rangement de la Réserve, aliment par aliment (point 5, 2026-1
 > le rayon et le rangement sont ceux que l'app donne VRAIMENT à un aliment qui arrive des
 > courses (\`pantry.ts::categorize\`, \`conservationDe\`). Ne pas l'éditer à la main.
 >
+>
+> ✅ **Validé par le fondateur le 2026-10-23** (« je valide et oui fermés tous au sec ») :
+> 24 corrections (12 au frais, 12 au sec) et 2 rayons, appliquées dans
+> \`pantry.ts::RANGEMENT_PAR_ALIMENT\` et \`categorize\` (un mot-clé ne compte plus qu'en début
+> de mot). Garde-fou : \`lib/__tests__/rangementReserve.test.ts\`.
 > **${lignes.length} aliments** (servis par au moins une recette, hors fonds de placard) ·
-> **${nbPropose} corrections proposées**, en attente du fondateur.
+> **${nbPropose} décision non appliquée** par le code.
 
 ## La règle (fondateur, 2026-10-23)
 
@@ -123,13 +129,12 @@ const doc = `# Le rangement de la Réserve, aliment par aliment (point 5, 2026-1
   frais oublié au placard est un risque, l'inverse non.
 - Toujours corrigeable d'une touche dans la Réserve, et la correction l'emporte.
 
-### À trancher : les briques UHT et les pots fermés
+### Tranché : les briques UHT et les pots fermés vont au sec
 
 Lait demi-écrémé, crème de soja, lait d'amande, lait de coco, tofu soyeux en brique [5],
 pesto, sirop d'érable : **placard tant que c'est fermé, frigo une fois ouvert**. La Réserve
-reçoit des paquets fermés à « Courses terminées ». Proposé : **au sec pour tous** (aujourd'hui
-le lait et la crème de soja sont au frais, les cinq autres au sec — deux rangements pour le
-même cas).
+reçoit des paquets fermés à « Courses terminées » : **au sec pour tous** (décision du
+2026-10-23 ; le lait et la crème de soja étaient au frais, les cinq autres au sec).
 
 ${table('frais')}
 
@@ -152,4 +157,4 @@ concombre et le poivron (bac à légumes) [1].
 `;
 
 writeFileSync(join(__dirname, '..', 'docs', '2026-10-23-rangement-reserve.md'), doc);
-console.log(`${lignes.length} aliments, ${nbPropose} corrections proposées`);
+console.log(`${lignes.length} aliments, ${nbPropose} décision(s) non appliquée(s)`);

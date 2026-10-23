@@ -307,7 +307,7 @@ qu'ils étaient périmés.
    ➡️ **Le n° 8, tranché le 2026-10-23** : la phrase part AVEC le glissement pour supprimer
    (point 7 ci-dessous), pas avant — sans lui, la suppression d'un aliment serait introuvable.
 5. **Réserve** : vérifier aliment par aliment le rangement frais / sec.
-   ⏳ **Inventaire fait le 2026-10-23, EN ATTENTE DU FONDATEUR** —
+   ✅ **VALIDÉ ET CODÉ le 2026-10-23** (« je valide et oui fermés tous au sec ») —
    `docs/2026-10-23-rangement-reserve.md`, généré depuis le code
    (`npx tsx scripts/gen-rangement-reserve.ts`) : 129 aliments. Ma première règle (« la
    corbeille compte avec le frais ») est REFUSÉE par le fondateur : **au frais = au frigo**
@@ -318,7 +318,15 @@ qu'ils étaient périmés.
    — à trancher — lait UHT et crème de soja, briques fermées), plus **2 rayons faux**
    dans la liste de courses aussi : `categorize` cherche ses mots-clés n'importe où dans le
    mot, donc « corail » attrape « ail » (lentilles → Légumes) et « chorizo » attrape « riz »
-   (chorizo végétal → Féculents). Rien n'est touché avant sa réponse.
+   (chorizo végétal → Féculents). Codé dans #376 : `pantry.ts::RANGEMENT_PAR_ALIMENT` (les
+   24, par `ref`, donc rétroactif sur les réserves existantes) et `categorize` (un mot-clé ne
+   compte plus qu'en début de mot, l'apostrophe sépare deux mots ; « chorizo » → Viandes).
+   Mesuré avant/après sur les 139 aliments + 13 saisies manuelles types : **24 changements,
+   exactement ceux décidés**. Garde-fou `rangementReserve.test.ts` (3 mutations, 3 rouges).
+   Vu au navigateur (réserve posée dans le stockage) : les deux rangements justes.
+   ⚠️ Reste connu, laissé : une réserve EXISTANTE garde le RAYON enregistré à l'arrivée
+   (lentilles corail sous « Légumes », chorizo végétal sous « Féculents »), à l'intérieur du
+   bon rangement, jusqu'à ce que l'aliment soit épuisé puis racheté.
 6. **Bonus « 0 gaspi »** : le début du plan suivant cuisine les restes de la réserve du dimanche.
    ➡️ **Fusionné dans le point 2** (décision du 2026-10-21) : la liste en attente du samedi et
    le plan du lundi partent des restes.
@@ -333,7 +341,7 @@ qu'ils étaient périmés.
    codé + essai posé (ligne 1) ; **point 2 codé et vu au navigateur le 2026-10-22** (semaine
    suivante + pesée, niveau 2 des restes après l'OTA) ; **point 3 mesuré, fermé et validé le
    2026-10-22** ; **point 4 : codé, 15 des 16 phrases retirées, le n° 8 à re-trancher**
-   (2026-10-22, session cloud) ; **point 5 : inventaire fait, 24 corrections à trancher**
+   (2026-10-22, session cloud) ; **point 5 : validé et codé**
    (2026-10-23) ; point 6 fusionné dans le 2 ; point 7 (glisser pour supprimer) après.
    ⚠️ #376 porte TOUT (plan daté, « Quand veux-tu commencer ? », seuils, thon, page Kyroz+,
    CGU révisées le 20 octobre — date à reporter si la livraison glisse) ; elle est à jour de
