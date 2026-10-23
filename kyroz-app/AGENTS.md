@@ -304,15 +304,33 @@ qu'ils étaient périmés.
    était faux, c'est le seul chemin de suppression de la Réserve — à re-trancher avec lui.
    Garde-fou `silence.test.ts` (3 mutations, 3 rouges). Vu au navigateur, pas sur iPhone.
    Hors #376 : « Chaque pesée recale ton plan » (feuille de pesée) → avec #390.
+   ➡️ **Le n° 8, tranché le 2026-10-23** : la phrase part AVEC le glissement pour supprimer
+   (point 7 ci-dessous), pas avant — sans lui, la suppression d'un aliment serait introuvable.
 5. **Réserve** : vérifier aliment par aliment le rangement frais / sec.
+   ⏳ **Inventaire fait le 2026-10-23, EN ATTENTE DU FONDATEUR** —
+   `docs/2026-10-23-rangement-reserve.md`, généré depuis le code
+   (`npx tsx scripts/gen-rangement-reserve.ts`) : 129 aliments, **19 corrections proposées**
+   (13 → au frais : tofus, tempeh, seitan, similis, falafels ; 6 → au sec : pomme de terre,
+   patate douce, oignon, lentilles corail, lait UHT, crème de soja), plus **2 rayons faux**
+   dans la liste de courses aussi : `categorize` cherche ses mots-clés n'importe où dans le
+   mot, donc « corail » attrape « ail » (lentilles → Légumes) et « chorizo » attrape « riz »
+   (chorizo végétal → Féculents). Rien n'est touché avant sa réponse.
 6. **Bonus « 0 gaspi »** : le début du plan suivant cuisine les restes de la réserve du dimanche.
    ➡️ **Fusionné dans le point 2** (décision du 2026-10-21) : la liste en attente du samedi et
    le plan du lundi partent des restes.
+7. **Réserve : glisser un aliment vers la gauche pour le supprimer** (demande du fondateur,
+   2026-10-23, « comme chez Apple ») : un bouton « Supprimer » apparaît, un glissement long
+   supprime d'un coup (déclic haptique au seuil). **À coder APRÈS les points 1 à 6** ; la
+   phrase « Descends à 0 pour retirer cet aliment » (n° 8 du point 4) part avec. Sans
+   dépendance native (PanResponder, comme les feuilles) → publiable en OTA. ⚠️ Un geste ne
+   se vérifie pas sur le web (CLAUDE.md §5) : validation au simulateur par le fondateur.
+   Ensuite, même geste dans Courses (aujourd'hui l'appui long) — à trancher avec lui.
 ➡️ Avancement : tenu ici, ligne par ligne, au fil des validations. **Au 2026-10-21** : point 1
    codé + essai posé (ligne 1) ; **point 2 codé et vu au navigateur le 2026-10-22** (semaine
    suivante + pesée, niveau 2 des restes après l'OTA) ; **point 3 mesuré, fermé et validé le
    2026-10-22** ; **point 4 : codé, 15 des 16 phrases retirées, le n° 8 à re-trancher**
-   (2026-10-22, session cloud) ; point 5 pas commencé ; point 6 fusionné dans le 2.
+   (2026-10-22, session cloud) ; **point 5 : inventaire fait, 19 corrections à trancher**
+   (2026-10-23) ; point 6 fusionné dans le 2 ; point 7 (glisser pour supprimer) après.
    ⚠️ #376 porte TOUT (plan daté, « Quand veux-tu commencer ? », seuils, thon, page Kyroz+,
    CGU révisées le 20 octobre — date à reporter si la livraison glisse) ; elle est à jour de
    `main` (61ᵉ OTA = Liquid Glass) et FUSIONNABLE ; la livraison sera la **62ᵉ OTA**, avec le
