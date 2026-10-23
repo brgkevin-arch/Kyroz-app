@@ -189,8 +189,18 @@ describe('chaque feature de PREMIUM_FEATURES est réellement interrogée', () =>
       'le verdict de trajectoire, lui, reste réservé à Kyroz+ (`suiviAffiche`)',
     ).toMatch(/<TrackVerdict[\s\S]{0,160}?goalTarget=\{suiviAffiche\}/);
     // L'historique (et la suppression d'une pesée) ne passe par aucun verrou non plus.
-    const hist = onglet.slice(onglet.indexOf('>Historique<'));
-    expect(hist.length, 'l’historique des pesées a disparu de l’onglet').toBeGreaterThan(20);
-    expect(hist.slice(0, 1500), 'l’historique ne doit dépendre d’aucun verrou').not.toMatch(/transfoOk|premium/);
+    // 🔴 IL A QUITTÉ LE BAS DE L'ONGLET le 2026-10-23 pour sa feuille, ouverte par un
+    // bouton en haut à droite (décision fondateur). Même règle, deux surfaces : le
+    // bouton et la feuille de l'onglet, et le composant qui liste les pesées.
+    const feuille = sansCommentaires(readFileSync(join(RACINE, 'components', 'HistoriquePesees.tsx'), 'utf8'));
+    expect(feuille, 'l’historique des pesées a disparu').toMatch(/>Historique</);
+    expect(feuille, 'l’historique ne doit dépendre d’aucun verrou').not.toMatch(/transfoOk|premium|\.can\(/);
+    const bouton = onglet.match(/\{entries\.length > 0 && \([\s\S]{0,300}?setHistoriqueOuvert\(true\)/)?.[0] ?? '';
+    expect(bouton, 'le bouton de l’historique a disparu de l’onglet').not.toBe('');
+    expect(bouton, 'le bouton de l’historique ne doit dépendre d’aucun verrou').not.toMatch(/transfoOk|objectifOk|premium/);
+    expect(
+      onglet.match(/<Sheet visible=\{historiqueOuvert\}[\s\S]{0,200}?<\/Sheet>/)?.[0] ?? '',
+      'la feuille de l’historique doit monter la liste, sans condition',
+    ).toMatch(/<HistoriquePesees\b/);
   });
 });

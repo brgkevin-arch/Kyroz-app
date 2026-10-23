@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   courbe, fenetre, libelleFenetre, peutReculer, graduer, seuilTrou, ajouterMois,
-  ECART_AXE_MIN_KG, Pesee,
+  ECART_AXE_MIN_KG, PERIODES, PERIODE_PAR_DEFAUT, Pesee,
 } from '../courbePoids';
 
 // ── La courbe du poids, par période (onglet Poids, 2026-10-21) ────────────────
@@ -59,6 +59,48 @@ describe('Les fenêtres', () => {
   it('le libellé est en français, avec « 1er » et l’année une seule fois quand elle ne change pas', () => {
     expect(libelleFenetre({ debut: '2026-09-22', fin: AUJ })).toBe('22 sept. – 21 oct. 2026');
     expect(libelleFenetre({ debut: '2025-11-01', fin: AUJ })).toBe('1er nov. 2025 – 21 oct. 2026');
+  });
+});
+
+describe('La Semaine (2026-10-23, « rajoute le suivi à la semaine »)', () => {
+  const quotidien = (debut: string, kgs: number[]): Pesee[] =>
+    kgs.map((kg, i) => ({ date: new Date(Date.parse(debut + 'T00:00:00Z') + i * 86_400_000).toISOString().slice(0, 10), weight_kg: kg }));
+
+  it('le sélecteur s’ouvre sur Mois, et Semaine vient en premier', () => {
+    // Décision fondateur : « mets au mois par défaut ».
+    expect(PERIODE_PAR_DEFAUT).toBe('mois');
+    expect(PERIODES.map((p) => p.label)).toEqual(['Semaine', 'Mois', '3 mois', '6 mois', 'Année', 'Tout']);
+  });
+
+  it('les 7 derniers jours, aujourd’hui compris ; reculer recule de 7 jours, sans trou', () => {
+    expect(fenetre('semaine', 0, AUJ, null)).toEqual({ debut: '2026-10-15', fin: AUJ });
+    expect(fenetre('semaine', 1, AUJ, null)).toEqual({ debut: '2026-10-08', fin: '2026-10-14' });
+    expect(libelleFenetre(fenetre('semaine', 0, AUJ, null))).toBe('15 oct. – 21 oct. 2026');
+    expect(peutReculer('semaine', '2026-10-15', [{ date: '2026-10-14', weight_kg: 80 }])).toBe(true);
+  });
+
+  it('un repère par jour, nommé comme sur la vidéo de référence (« Jeu » … « Mer »)', () => {
+    const c = courbe([], 'semaine', 0, AUJ, 7);
+    expect(c.reperes.map((r) => r.libelle)).toEqual(['Jeu', 'Ven', 'Sam', 'Dim', 'Lun', 'Mar', 'Mer']);
+    expect(c.reperes[0].x).toBe(0);
+    expect(c.reperes[6].x).toBe(1);
+  });
+
+  it('une pesée par jour : sept points, trait plein, et l’écart de la semaine', () => {
+    const c = courbe(quotidien('2026-10-15', [80.4, 80.2, 80.3, 80.1, 79.9, 80.0, 79.8]), 'semaine', 0, AUJ, 7);
+    expect(c.points).toHaveLength(7);
+    expect(c.segments.every((sg) => !sg.pointille)).toBe(true);
+    expect(c.ecartKg).toBe(-0.6);
+    expect(c.agregation).toBe('pesee');
+  });
+
+  it('au rythme par défaut (une fois par semaine), UN seul point : d’où « Mois » par défaut', () => {
+    const c = courbe(hebdo('2026-08-26', 9, 82, -0.2), 'semaine', 0, AUJ, 7);
+    expect(c.points).toHaveLength(1);
+    expect(c.ecartKg).toBeNull();
+    // Le trait entre quand même par le bord gauche : la pesée d'avant existe.
+    expect(c.segments).toHaveLength(1);
+    expect(c.segments[0].x1).toBe(0);
   });
 });
 

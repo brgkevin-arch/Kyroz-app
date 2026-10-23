@@ -32,8 +32,9 @@ const TOLERE: Record<string, { combien: number; pourquoi: string }> = {
   'lib/recipeFoodMap.ts': { combien: 2, pourquoi: 'commentaires en fin de ligne, pas des textes' },
   'lib/foods.ts': { combien: 1, pourquoi: 'commentaire d’attribution Ciqual' },
   // L'historique des pesées a quitté la feuille de saisie pour l'onglet Poids le
-  // 2026-10-21 : l'exception l'a suivi, elle ne s'est pas élargie.
-  'app/(tabs)/poids.tsx': {
+  // 2026-10-21, puis l'onglet pour sa propre feuille le 2026-10-23 (« l'historique sera
+  // en haut à droite ») : l'exception l'a suivi deux fois, elle ne s'est pas élargie.
+  'components/HistoriquePesees.tsx': {
     combien: 1,
     pourquoi: 'le tiret SEUL de la colonne « écart » : il ne remplace pas une conjonction, il dit « pas de valeur »',
   },
