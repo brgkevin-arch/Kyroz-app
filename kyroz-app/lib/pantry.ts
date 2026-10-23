@@ -33,9 +33,10 @@ export interface PantryItem {
 // ── Frais ou sec : déduit de la catégorie, corrigeable en une touche ─────────
 //
 // Le classement automatique porte les articles qui arrivent des courses — personne
-// ne va trier 69 lignes à la main. Il se trompe forcément quelque part (le tofu est
-// dans « autres », donc annoncé sec ; le riz CUIT d'hier est un féculent, donc
-// annoncé sec alors qu'il est au frigo), d'où la correction manuelle.
+// ne va trier 69 lignes à la main. Il se trompe forcément quelque part (le riz CUIT
+// d'hier est un féculent, donc annoncé sec alors qu'il est au frigo), d'où la
+// correction manuelle. ⚠️ Les aliments du catalogue que la catégorie range mal ont
+// leur rangement à eux (`RANGEMENT_PAR_ALIMENT`, point 5 du 2026-10-23).
 //
 // ⚠️ Le champ est OPTIONNEL et n'est écrit qu'à la correction : c'est ce qui rend le
 // classement rétroactif. Les réserves déjà enregistrées n'ont pas ce champ et se
@@ -63,10 +64,34 @@ const CONSERVES = new Set([
   'pois_chiches_conserve', 'haricots_rouges_conserve', 'haricots_blancs_conserve', 'haricots_noirs_conserve',
 ]);
 
+/**
+ * LE RANGEMENT ALIMENT PAR ALIMENT, quand la catégorie se trompe (point 5, validé par le
+ * fondateur le 2026-10-23). La règle : **au frais = au frigo** (« tu ne mets pas une banane
+ * au frigo »), **au sec = tout le reste** — placard, corbeille, endroit sombre. Chaque
+ * aliment est rangé d'après les sources (Interfel surtout), citées avec leur raison dans
+ * `docs/2026-10-23-rangement-reserve.md` (`npx tsx scripts/gen-rangement-reserve.ts`).
+ * ⚠️ Les briques et pots qui se gardent au placard FERMÉS et au frigo une fois ouverts vont
+ * au sec (décision du même jour) : la Réserve reçoit des paquets fermés à « Courses
+ * terminées ». Comme le reste, la correction d'une touche l'emporte.
+ */
+const RANGEMENT_PAR_ALIMENT: Record<string, Conservation> = {
+  // Ce que le froid abîme : corbeille ou placard.
+  banane: 'sec', tomate: 'sec', avocat: 'sec', ananas: 'sec', mangue: 'sec', pomme: 'sec',
+  pomme_de_terre: 'sec', patate_douce: 'sec', oignon: 'sec', lentilles_corail: 'sec',
+  // Briques UHT fermées (le lait d'amande, le lait de coco et le tofu soyeux y étaient déjà).
+  lait_demi_ecreme: 'sec', creme_soja: 'sec',
+  // Vendus au rayon frais, et rangés « Autres » (donc sec) par leur catégorie.
+  tofu_ferme: 'frais', tofu_fume: 'frais', tempeh: 'frais', seitan: 'frais',
+  boulette_vegetale: 'frais', galette_vegetale: 'frais', lardons_vegetaux: 'frais',
+  merguez_vegetale: 'frais', nuggets_vegetal: 'frais', saucisse_vegetale: 'frais',
+  chorizo_vegetal: 'frais', falafel: 'frais',
+};
+
 export function conservationDe(item: PantryItem): Conservation {
   if (item.conservation) return item.conservation;
   const ref = refDuNom(item.name);
   if (ref && CONSERVES.has(ref)) return 'sec';
+  if (ref && RANGEMENT_PAR_ALIMENT[ref]) return RANGEMENT_PAR_ALIMENT[ref];
   return CONSERVATION_PAR_CATEGORIE[item.category] ?? 'sec';
 }
 
@@ -219,7 +244,7 @@ const CAT_MAP: [string, PantryCategory][] = [
   ['poulet', 'viandes'], ['bœuf', 'viandes'], ['boeuf', 'viandes'], ['steak', 'viandes'],
   ['dinde', 'viandes'], ['jambon', 'viandes'], ['saumon', 'viandes'], ['thon', 'viandes'],
   ['cabillaud', 'viandes'], ['crevette', 'viandes'], ['poisson', 'viandes'],
-  ['porc', 'viandes'], ['maquereau', 'viandes'], ['sardine', 'viandes'],
+  ['porc', 'viandes'], ['maquereau', 'viandes'], ['sardine', 'viandes'], ['chorizo', 'viandes'],
 
   // Légumes & fruits
   ['brocoli', 'légumes'], ['épinard', 'légumes'], ['epinard', 'légumes'], ['tomate', 'légumes'],
@@ -252,10 +277,16 @@ const CAT_MAP: [string, PantryCategory][] = [
   ['beurre', 'laitiers'], ['mozzarella', 'laitiers'],
 ];
 
+// 🔴 UN MOT-CLÉ NE COMPTE QU'EN DÉBUT DE MOT (2026-10-23, point 5). Cherché n'importe où,
+// « ail » attrapait les lentilles cor-AIL (rangées en Légumes, donc au frigo) et « riz » le
+// cho-RIZ-o végétal (rangé en Féculents). L'apostrophe sépare deux mots (« lait d'amande »)
+// — `norm` la retire, d'où l'espace posé avant.
+const pourMots = (s: string) => norm(s.replace(/['‘’]/g, ' '));
+const CAT_MOTS = CAT_MAP.map(([kw, cat]) => [new RegExp(`(^|[^a-z0-9])${pourMots(kw).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`), cat] as const);
+
 export function categorize(name: string): PantryCategory {
-  const n = norm(name);
-  // norm(kw) pour comparer sans accents/ligatures des deux côtés.
-  for (const [kw, cat] of CAT_MAP) if (n.includes(norm(kw))) return cat;
+  const n = pourMots(name);
+  for (const [motif, cat] of CAT_MOTS) if (motif.test(n)) return cat;
   return 'autres';
 }
 
