@@ -219,7 +219,17 @@ installation neuve part du binaire, donc du (6).
   encore `0639ecc` après la compilation, 0 PR ouverte — le piège du 11 août ne s'est pas
   rejoué). *(Le précédent :)* le **(6)** — `ceec1b17`, commit
   `1047b9f`, terminé le 2026-08-11 à 20 h 37. Il a **62 commits de retard** sur `main` — chiffre RE-MESURÉ le 2026-08-26 (il en annonçait 40, mesurés le 2026-08-23), qui **grandit à chaque merge** : le relire avec `git rev-list --count 1047b9f..origin/main` plutôt que de le recopier (même défaut que le décompte d'OTA tenu à la main).
-- **OTA** : la dernière est la **61ᵉ** (groupe `112ea060`, **iOS seulement**, 2026-10-20),
+- **OTA** : la dernière est la **62ᵉ** (groupe `28380372`, **iOS seulement**, 2026-10-23),
+  publiée sur le commit `435f82a` — `main`, arbre propre, détaché sur `origin/main`.
+  ✅ **Runtime iOS `823c89db…` = le build (22)**, empreinte comparée AVANT publication.
+  Contenu (#376, #390, #393, #395) : **le plan daté** (un plan généré le week-end est celui
+  de la semaine qui vient) et **le début choisi** à l'inscription, la liste de la semaine
+  suivante préparée après les courses, **l'onglet Poids** à la place du Profil (Semaine,
+  historique, objectif daté), **la page Kyroz+ à l'arrivée** (essai de 14 jours quand le
+  store l'accorde), **glisser pour retirer**, les **unités à la pièce**, l'app qui se tait,
+  la **typographie**. CGU au 23 octobre 2026 (§3 : l'essai gratuit). Aucun changement
+  natif. Export simulé vérifié.
+  *(La précédente :)* la **61ᵉ** (groupe `112ea060`, **iOS seulement**, 2026-10-20),
   publiée sur le commit `3d898f6` — `main`, arbre propre, détaché sur `origin/main`.
   ✅ **Runtime iOS `823c89db…` = le build (22)**, empreinte comparée AVANT publication.
   Contenu (#385, #387) : **Liquid Glass** — la barre d'onglets d'Apple sur iPhone (en haut

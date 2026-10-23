@@ -152,7 +152,10 @@ App mobile React Native (Expo Router, **SDK 57** depuis le 2026-08-27) de plans 
 > à la première connexion lente. Vérifié dans le manifeste généré :
 > `EXPO_UPDATES_LAUNCH_WAIT_MS = 0`.
 >
-> **Publier un correctif** : `npx eas-cli update --branch production --platform ios --message "…"`.
+> **Publier un correctif** : `npx eas-cli update --branch production --platform ios --environment production --clear-cache --message "…"`.
+> ⚠️ **`--environment production` est OBLIGATOIRE depuis le SDK 55** (aide d'eas-cli 25 : « Required for projects using
+> Expo SDK 55 or greater ») : sans lui, les variables serveur EAS — dont l'URL Supabase — ne sont pas chargées
+> (`docs/JOURNAL.md`, 1ʳᵉ OTA). Il manquait à cette ligne jusqu'à la 62ᵉ OTA (2026-10-23), qui l'a ajouté à la main.
 >
 > 🔴 **SUR iOS SEULEMENT** (décision fondateur du 2026-09-16 : « publie sur iOS »). **Aucun
 > binaire Android n'est distribué** : un groupe Android publié n'atteint donc personne, et
