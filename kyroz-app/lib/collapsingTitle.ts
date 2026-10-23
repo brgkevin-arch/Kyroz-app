@@ -89,3 +89,19 @@ export const FONDU_TITRE = [
 
 /** Ce que le fondu déborde sous la bande qu'il couvre, pour que la fin soit douce. */
 export const DEBORD_FONDU = 20;
+
+/**
+ * Le fondu du titre compact AU NAVIGATEUR : la barre est pleine, seul son débord fond.
+ *
+ * 🔴 2026-10-23 (fondateur, tour de l'app : « corrige cela »). Sur iPhone, le contenu qui
+ * passe sous le titre s'y devine à 40–50 % : c'est l'effet de bord de défilement d'iOS 26,
+ * validé au simulateur (E80), et il ne bouge pas. Sur le site, il n'y a ni heure ni îlot
+ * dessous (`haut` = 0) : le même dégradé se lisait comme deux textes l'un sur l'autre
+ * (« J'ai cuisiné » sous « Plan »). Le navigateur reçoit donc une barre opaque, et le
+ * fondu ne garde que ses 20 pt de débord, pour que la coupure reste douce.
+ */
+export const FONDU_TITRE_WEB = [
+  { a: 0, opacite: 1 },
+  { a: COMPACT_BAR_H / (COMPACT_BAR_H + DEBORD_FONDU), opacite: 1 },
+  { a: 1, opacite: 0 },
+] as const;

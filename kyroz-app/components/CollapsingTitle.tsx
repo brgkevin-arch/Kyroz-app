@@ -1,7 +1,7 @@
 import React, { useRef } from 'react';
 import {
   Animated, LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent,
-  StyleSheet, Text, View, Easing, type StyleProp, type ViewStyle,
+  Platform, StyleSheet, Text, View, Easing, type StyleProp, type ViewStyle,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Defs, LinearGradient, Stop, Rect } from 'react-native-svg';
@@ -10,7 +10,7 @@ import { reduceMotionActif } from '../lib/reduceMotion';
 import { ThemePalette, Type, Spacing } from '../constants/theme';
 import {
   COMPACT_BAR_H, SEUIL_PAR_DEFAUT, seuilRepli, paddingHautDecale,
-  FONDU_BARRE_ETAT, FONDU_TITRE, DEBORD_FONDU,
+  FONDU_BARRE_ETAT, FONDU_TITRE, FONDU_TITRE_WEB, DEBORD_FONDU,
 } from '../lib/collapsingTitle';
 import { useFormeBarre } from '../hooks/useFormeBarre';
 
@@ -183,7 +183,12 @@ export function CompactTitleBar({
       {/* Toujours là : au repos rien ne passe dessous, il ne se voit pas. */}
       {haut > 0 && <Fondu couleur={t.bg} hauteur={haut} arrets={FONDU_BARRE_ETAT} />}
       <Animated.View style={[StyleSheet.absoluteFill, { opacity }]}>
-        <Fondu couleur={t.bg} hauteur={haut + COMPACT_BAR_H + DEBORD_FONDU} arrets={FONDU_TITRE} />
+        {/* Au navigateur, rien sous la barre ne justifie le fondu d'iOS : elle est pleine. */}
+        <Fondu
+          couleur={t.bg}
+          hauteur={haut + COMPACT_BAR_H + DEBORD_FONDU}
+          arrets={Platform.OS === 'web' && haut === 0 ? FONDU_TITRE_WEB : FONDU_TITRE}
+        />
         {/* SOUS la barre d'état, jamais dedans : l'îlot le cacherait. */}
         <View style={[styles.centre, { top: haut }]}>
           <Text numberOfLines={1} style={[styles.titre, { color: t.text }]}>{title}</Text>
