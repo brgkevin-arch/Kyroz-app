@@ -55,8 +55,8 @@ export function CourbePoids({ t, courbe: c, hauteur = 180, fond }: Props) {
   const dernier = c.points[c.points.length - 1];
 
   const resume = dernier
-    ? `Courbe du poids : ${c.points.length} point${c.points.length > 1 ? 's' : ''}, de ${frnum(c.points[0].kg)} à ${frnum(dernier.kg)} kg.`
-    : 'Courbe du poids : aucune pesée sur cette période.';
+    ? `Courbe du poids\u00A0: ${c.points.length} point${c.points.length > 1 ? 's' : ''}, de ${frnum(c.points[0].kg)} à ${frnum(dernier.kg)} kg.`
+    : 'Courbe du poids\u00A0: aucune pesée sur cette période.';
 
   return (
     <View onLayout={onLayout} accessible accessibilityLabel={resume}>

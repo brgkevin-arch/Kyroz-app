@@ -209,8 +209,8 @@ export function compteDejaExistant(
  * être ouvert (un compte Apple n'a pas de mot de passe).
  */
 export function messageCompteExistant(appleDisponible: boolean): string {
-  const base = 'Cette adresse a déjà un compte Kyroz. Connecte-toi avec ton mot de passe, ou touche « Mot de passe oublié ? ».';
+  const base = 'Cette adresse a déjà un compte Kyroz. Connecte-toi avec ton mot de passe, ou touche «\u00A0Mot de passe oublié\u00A0?\u00A0».';
   return appleDisponible
-    ? `${base} Si tu t'étais inscrit avec Apple, utilise « Continuer avec Apple ».`
+    ? `${base} Si tu t'étais inscrit avec Apple, utilise «\u00A0Continuer avec Apple\u00A0».`
     : base;
 }

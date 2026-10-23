@@ -66,7 +66,7 @@ export default function OffreKyrozPlusScreen() {
         <Text style={s.titre}>
           {essaiJours ? `Essaie Kyroz+ gratuitement pendant ${essaiJours} jours` : 'Va plus loin avec Kyroz+'}
         </Text>
-        <Text style={s.sous}>Ton plan, tes courses et tes recettes restent gratuits, pour toujours. Kyroz+ ajoute :</Text>
+        <Text style={s.sous}>Ton plan, tes courses et tes recettes restent gratuits, pour toujours. Kyroz+ ajoute :</Text>
 
         <View style={s.fonctions}>
           {FONCTIONS_KYROZ_PLUS.map((f) => (

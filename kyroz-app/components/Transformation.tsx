@@ -3,7 +3,7 @@ import { View, Text, Image } from 'react-native';
 import { ThemePalette, Radius, Type, Spacing, Icone } from '../constants/theme';
 import { WeightEntry } from '../lib/weight';
 import { LocalIcon } from './Icons';
-import { frnum } from '../lib/units';
+import { frnum, frsigne } from '../lib/units';
 
 // ── Module « Transformation » (premium « Kyroz+ ») ───────────────────────────
 // La comparaison avant/après. Le verdict de pente (« Dans ta zone »…) vivait ici ; il est
@@ -42,7 +42,7 @@ export function PhotoCompare({ t, photos, entries }: {
       </View>
       {delta != null && (
         <Text style={{ ...Type.bodySmallStrong, color: t.text }}>
-          {delta > 0 ? '+' : ''}{frnum(delta)} kg entre les deux photos
+          {frsigne(delta)} kg entre les deux photos
         </Text>
       )}
       {/* 🔴 LA PHRASE SUR LES PHOTOS A ÉTÉ RETIRÉE D'ICI le 2026-08-26 : elle
@@ -71,7 +71,7 @@ function Shot({ t, uri, label, date, kg }: {
       />
       <Text style={{ ...Type.captionStrong, color: t.text }}>{label}</Text>
       <Text style={{ ...Type.caption, color: t.textSecondary }}>
-        {frDate(date)}{kg != null ? ` · ${kg} kg` : ''}
+        {frDate(date)}{kg != null ? ` · ${frnum(kg)} kg` : ''}
       </Text>
     </View>
   );

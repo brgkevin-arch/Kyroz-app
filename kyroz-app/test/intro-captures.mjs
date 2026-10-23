@@ -72,7 +72,10 @@ const DIAPOS = [
     preparer: async (page) => tap(page, 'J\'ai cuisiné', { which: 'first', timeout: 3000 }),
     refuser: '0 / ',
   },
-  { nom: '2-poids', onglet: 'Profil', ancre: 'Suivi du poids', refuser: '0 kg depuis' },
+  // Le poids est un ONGLET depuis le 2026-10-21 (E81) : la diapo le photographie, et non
+  // plus la carte en tête de l'ancien Profil. `refuser` : sans courbe, l'onglet dit
+  // « Encore une pesée et ta courbe apparaît ici » — une diapo qui vend le suivi sans suivi.
+  { nom: '2-poids', onglet: 'Poids', ancre: 'Ajouter une pesée', refuser: 'Encore une pesée' },
   { nom: '3-courses',  onglet: 'Courses',  ancre: 'Viandes & poissons' },
   { nom: '4-recettes', onglet: 'Recettes', ancre: 'Toutes les recettes' },
 ];

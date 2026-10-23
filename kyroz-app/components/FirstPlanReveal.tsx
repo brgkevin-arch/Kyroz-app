@@ -130,7 +130,7 @@ export function FirstPlanReveal({ visible, profile, firstName, previewMeals, opt
         <Animated.View style={[s.card, { opacity, transform: [{ scale }] }]}>
           {etape === 'debut' ? (
           <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
-            <Text style={s.title}>Quand veux-tu commencer ?</Text>
+            <Text style={s.title}>Quand veux-tu commencer ?</Text>
             {/* Trait d'union INSÉCABLE (U+2011) : « jour-là » se coupait en fin de ligne, « là. »
                 seul en tête de la suivante (vu au navigateur, 2026-10-23). */}
             <Text style={s.sub}>Ton plan et ta liste de courses partiront de ce jour‑là.</Text>

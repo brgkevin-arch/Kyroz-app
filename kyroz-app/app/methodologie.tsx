@@ -96,7 +96,7 @@ function Source({ s, src }: { s: ReturnType<typeof makeStyles>; src: MethodoSour
       onPress={ouvrir}
       activeOpacity={OPACITE_PRESSION}
       accessibilityRole="link"
-      accessibilityLabel={`Ouvrir la source : ${src.titre}`}
+      accessibilityLabel={`Ouvrir la source\u00A0: ${src.titre}`}
       style={s.sourceBloc}
     >
       {citation}

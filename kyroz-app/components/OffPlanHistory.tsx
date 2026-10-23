@@ -51,7 +51,7 @@ export function OffPlanHistory({
       <View {...(dragHandlers ?? {})}>
         <Text style={s.title}>Mes repas hors plan</Text>
         <Text style={s.sub}>
-          Ce que tu as mangé en dehors du plan, et ce que Kyroz en a fait. Rien à en tirer d'autre : une
+          Ce que tu as mangé en dehors du plan, et ce que Kyroz en a fait. Rien à en tirer d'autre : une
           journée ne fait pas ta semaine.
         </Text>
       </View>
@@ -93,7 +93,7 @@ export function OffPlanHistory({
                 {aConfirmer === i && (
                   <ConfirmationEnLigne
                     t={t}
-                    question={`Retirer cette ligne ? ${frDate(e.date)}${e.label ? ` · ${e.label}` : ''} · +${e.kcal} kcal. Ton plan ne change pas : seule la trace disparaît.`}
+                    question={`Retirer cette ligne\u00A0? ${frDate(e.date)}${e.label ? ` · ${e.label}` : ''} · +${e.kcal} kcal. Ton plan ne change pas\u00A0: seule la trace disparaît.`}
                     confirmLabel="Retirer"
                     onCancel={() => setAConfirmer(null)}
                     onConfirm={() => { setAConfirmer(null); onRemove(i); }}

@@ -88,7 +88,7 @@ export default function AvisScreen() {
             Kyroz est fait par une seule personne, et chaque retour est lu. Dis ce qui coince, ce qui manque, ou ce qui t'a plu.
           </Text>
 
-          <Text style={s.label}>De quoi s'agit-il ?</Text>
+          <Text style={s.label}>De quoi s'agit-il ?</Text>
           <View style={s.sujets}>
             {AVIS_SUJETS.map((o) => {
               const on = sujet === o.id;
@@ -125,12 +125,12 @@ export default function AvisScreen() {
           )}
 
           <Text style={s.contexte}>
-            Joint à ton message : {mentionContexte(ctx)}. Rien d'autre — ni ton poids, ni ton objectif, ni tes plans.
+            Joint à ton message : {mentionContexte(ctx)}. Rien d'autre — ni ton poids, ni ton objectif, ni tes plans.
           </Text>
 
           <PrimaryButton t={t} label="Envoyer" onPress={envoyer} disabled={!envoyable} />
           <Text style={s.note}>
-            Ton message s'ouvre dans ta messagerie : tu le relis, et c'est toi qui l'envoies.
+            Ton message s'ouvre dans ta messagerie : tu le relis, et c'est toi qui l'envoies.
           </Text>
         </ScrollView>
       </KeyboardAvoidingView>

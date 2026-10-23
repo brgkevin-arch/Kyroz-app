@@ -135,7 +135,7 @@ export function ReglagesSheet({
       // `openURL` échouerait en silence et le bouton passerait pour mort.
       setAvisMail({
         titre: 'Aucune application e-mail',
-        message: `Écris-nous à ${SUPPORT_EMAIL} en précisant ton identifiant : ${pseudonyme}`,
+        message: `Écris-nous à ${SUPPORT_EMAIL} en précisant ton identifiant\u00A0: ${pseudonyme}`,
       });
       return;
     }
@@ -293,7 +293,7 @@ export function ReglagesSheet({
         </View>
         <Text style={s.aide}>
           {accentId === 'mono'
-            ? 'Monochrome : encre sur fond clair, blanc sur fond sombre.'
+            ? 'Monochrome\u00A0: encre sur fond clair, blanc sur fond sombre.'
             : `${ACCENTS[accentId].label}, appliqué aux boutons et aux éléments actifs.`}
         </Text>
 
@@ -366,7 +366,7 @@ export function ReglagesSheet({
                 pas anonyme (synthèse §3.3). */}
             <Text style={s.aide}>
               {analyticsConsent === 'granted'
-                ? 'Tu partages comment tu utilises l’app : écrans ouverts, repas cochés, erreurs. Jamais tes données de santé, ton prénom ni ton e-mail. C’est rattaché à un identifiant pseudonyme tiré sur cet appareil, envoyé à PostHog et stocké sur ses serveurs de Francfort au moins un an.'
+                ? 'Tu partages comment tu utilises l’app\u00A0: écrans ouverts, repas cochés, erreurs. Jamais tes données de santé, ton prénom ni ton e-mail. C’est rattaché à un identifiant pseudonyme tiré sur cet appareil, envoyé à PostHog et stocké sur ses serveurs de Francfort au moins un an.'
                 : 'Aucune statistique d’usage n’est partagée.'}
             </Text>
           </>

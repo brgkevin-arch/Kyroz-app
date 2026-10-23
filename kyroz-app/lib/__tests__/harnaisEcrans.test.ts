@@ -169,6 +169,9 @@ const ANCRES: Ancre[] = [
 
   // ── Arrivée sur le plan ──
   { quoi: 'reveal du 1er plan', texte: 'Voir mon plan', dans: 'components/FirstPlanReveal.tsx' },
+  // Depuis E78 (#376), le reveal pose d'abord la question du début ; le harnais y répond.
+  { quoi: 'question du début du plan', texte: 'Quand veux-tu commencer', dans: 'components/FirstPlanReveal.tsx' },
+  { quoi: 'diapo Poids de l\'intro', texte: 'Ajouter une pesée', dans: 'app/(tabs)/poids.tsx', script: 'test/intro-captures.mjs' },
   { quoi: 'sortie de la visite guidée', texte: 'Passer', dans: 'components/GuidedTour.tsx' },
 
   // ── Sous-écrans du Profil (qa-deep / qa-settings) ──

@@ -334,8 +334,8 @@ export default function CoursesScreen() {
     if (restants.length > 0) {
       const n = restants.length;
       const choix = await choose<SortDesRestants>({
-        title: 'Terminer les courses ?',
-        message: `${n} article${n > 1 ? 's ne sont' : " n'est"} pas coché${n > 1 ? 's' : ''}. Qu'est-ce qu'on en fait ?`,
+        title: 'Terminer les courses\u00A0?',
+        message: `${n} article${n > 1 ? 's ne sont' : " n'est"} pas coché${n > 1 ? 's' : ''}. Qu'est-ce qu'on en fait\u00A0?`,
         options: [
           { label: n > 1 ? 'Les garder pour la prochaine fois' : 'Le garder pour la prochaine fois', value: 'garder' },
           { label: n > 1 ? 'Les retirer de ma liste' : 'Le retirer de ma liste', value: 'retirer', destructive: true },

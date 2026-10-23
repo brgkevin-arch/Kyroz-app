@@ -68,7 +68,7 @@ export const ALIMENTS_VEGETAUX: AlimentVegetal[] = [
         kcal: 158, proteines: 20, glucides: 0.9, lipides: 7.8, fibres: 1.4, ble: false, soja: true, tracesGluten: false },
     ],
     ecartes: [
-      { produit: 'HappyVore, suprêmes panés végétaux', raison: 'filet PANÉ au blé : c’est une escalope, pas un filet nature' },
+      { produit: 'HappyVore, suprêmes panés végétaux', raison: 'filet PANÉ au blé\u00A0: c’est une escalope, pas un filet nature' },
     ],
   },
   {
@@ -113,8 +113,8 @@ export const ALIMENTS_VEGETAUX: AlimentVegetal[] = [
         kcal: 153, proteines: 14, glucides: 4.5, lipides: 7.6, fibres: 5, ble: false, soja: true, tracesGluten: false },
     ],
     ecartes: [
-      { produit: 'La Vie, mini chorizos (75 g)', raison: 'saucisson SEC d’apéritif (367 kcal, 36 g de protéines) : un autre produit que le chorizo qu’on cuisine' },
-      { produit: 'Plantélan, « Piton de la fournaise »', raison: 'page sans liste d’ingrédients : ni le produit ni le gluten ne sont vérifiables' },
+      { produit: 'La Vie, mini chorizos (75 g)', raison: 'saucisson SEC d’apéritif (367 kcal, 36 g de protéines)\u00A0: un autre produit que le chorizo qu’on cuisine' },
+      { produit: 'Plantélan, «\u00A0Piton de la fournaise\u00A0»', raison: 'page sans liste d’ingrédients\u00A0: ni le produit ni le gluten ne sont vérifiables' },
     ],
   },
   {

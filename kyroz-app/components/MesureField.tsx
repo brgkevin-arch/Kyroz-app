@@ -49,7 +49,7 @@ export function MesureField({ t, mesure, value, onChange, sex }: Props) {
       <Presse
         onPress={() => setOuvert(true)}
         accessibilityRole="button"
-        accessibilityLabel={affiche ? `${LABEL[mesure]} : ${affiche}` : A_CHOISIR[mesure]}
+        accessibilityLabel={affiche ? `${LABEL[mesure]}\u00A0: ${affiche}` : A_CHOISIR[mesure]}
         testID={`ligne-${mesure}`}
         style={{
           minHeight: CIBLE_TACTILE_MIN,

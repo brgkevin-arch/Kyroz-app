@@ -153,7 +153,7 @@ export default function MotDePasseOublie({
             </Text>
           </Presse>
 
-          <Text style={s.aide}>Rien reçu ? Regarde dans les indésirables.</Text>
+          <Text style={s.aide}>Rien reçu ? Regarde dans les indésirables.</Text>
         </>
       )}
 

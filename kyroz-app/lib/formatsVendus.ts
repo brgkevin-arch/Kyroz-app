@@ -209,7 +209,7 @@ export const FORMATS: Record<string, Regle> = {
  * d'avant : le besoin seul, et c'est lui qui entre en réserve.
  */
 export const SANS_FORMAT: Record<string, string> = {
-  blanc_oeuf: 'se prend en œufs entiers ou en brique de blancs, selon le magasin : aucun format ne vaut pour tous',
+  blanc_oeuf: 'se prend en œufs entiers ou en brique de blancs, selon le magasin\u00A0: aucun format ne vaut pour tous',
 };
 
 /** À 5 % près, un format couvre le besoin : on ne fait pas prendre un second paquet pour 5 g. */

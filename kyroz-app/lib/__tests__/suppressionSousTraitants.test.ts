@@ -190,13 +190,15 @@ describe('ce qui est PROMIS à l’écran est ce qui sera fait', () => {
     // laisser derrière soi — et que le code efface pourtant).
     const i = profil.indexOf('const doDelete');
     expect(i).toBeGreaterThan(-1);
-    const dialogue = sansCommentaires(profil.slice(profil.indexOf('Supprimer mon compte ?')));
+    // ⚠️ Titre en insécable depuis le 2026-10-23 : un `indexOf` à -1 lirait la fin du fichier.
+    expect(profil.indexOf('Supprimer mon compte\u00A0?'), 'le titre du dialogue de suppression a disparu').toBeGreaterThan(-1);
+    const dialogue = sansCommentaires(profil.slice(profil.indexOf('Supprimer mon compte\u00A0?')));
     expect(dialogue.slice(0, 600), 'la promesse absolue est revenue')
       .not.toMatch(/Toutes tes données/);
   });
 
   it('🔴 il nomme les pesées et les photos — le code les efface, le texte doit le dire', () => {
-    const dialogue = sansCommentaires(profil.slice(profil.indexOf('Supprimer mon compte ?'))).slice(0, 600);
+    const dialogue = sansCommentaires(profil.slice(profil.indexOf('Supprimer mon compte\u00A0?'))).slice(0, 600);
     for (const mot of ['pesées', 'photos']) {
       expect(dialogue, `« ${mot} » a disparu de la promesse`).toContain(mot);
     }

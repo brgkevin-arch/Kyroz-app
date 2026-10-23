@@ -115,7 +115,7 @@ export function OffPlanSheet({
                   </Presse>
                 ))}
                 {searchFoods(query, 1).length === 0 && (
-                  <Text style={s.suggestEmpty}>Aucun aliment trouvé — bascule sur « Estimer vite ».</Text>
+                  <Text style={s.suggestEmpty}>Aucun aliment trouvé — bascule sur « Estimer vite ».</Text>
                 )}
               </View>
             )}

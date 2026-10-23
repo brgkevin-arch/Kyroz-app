@@ -62,7 +62,7 @@ export function BirthDateField({ t, value, onChange, fallbackAge }: Props) {
     : tropJeune ? `Kyroz est réservé aux ${MIN_AGE} ans et plus.` : null;
   // Repli des comptes sans date : on n'a rien à leur reprocher, ton neutre.
   const repli = !probleme && age == null && fallbackAge != null
-    ? `Âge enregistré : ${fallbackAge} ans. Renseigne ta date de naissance pour qu’il se mette à jour tout seul.`
+    ? `Âge enregistré\u00A0: ${fallbackAge} ans. Renseigne ta date de naissance pour qu’il se mette à jour tout seul.`
     : null;
 
   return (
@@ -76,7 +76,7 @@ export function BirthDateField({ t, value, onChange, fallbackAge }: Props) {
       <Presse
         onPress={() => setOuvert(true)}
         accessibilityRole="button"
-        accessibilityLabel={value ? `Date de naissance : ${libelleDate(value)}` : 'Choisir ma date de naissance'}
+        accessibilityLabel={value ? `Date de naissance\u00A0: ${libelleDate(value)}` : 'Choisir ma date de naissance'}
         style={{
           minHeight: CIBLE_TACTILE_MIN,
           flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',

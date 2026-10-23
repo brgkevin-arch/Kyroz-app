@@ -8,10 +8,10 @@ import { BUILTIN_SLOTS } from '../mealSlots';
 
 describe('la boîte nomme le repas retiré', () => {
   it('les quatre créneaux intégrés ont leur article', () => {
-    expect(messageRepasGere('breakfast', 'Petit-déj').titre).toBe('Tu prends toujours le même petit-déjeuner ?');
-    expect(messageRepasGere('lunch', 'Déjeuner').titre).toBe('Tu prends toujours le même déjeuner ?');
-    expect(messageRepasGere('dinner', 'Dîner').titre).toBe('Tu prends toujours le même dîner ?');
-    expect(messageRepasGere('snack', 'Collation').titre).toBe('Tu prends toujours la même collation ?');
+    expect(messageRepasGere('breakfast', 'Petit-déj').titre).toBe('Tu prends toujours le même petit-déjeuner\u00A0?');
+    expect(messageRepasGere('lunch', 'Déjeuner').titre).toBe('Tu prends toujours le même déjeuner\u00A0?');
+    expect(messageRepasGere('dinner', 'Dîner').titre).toBe('Tu prends toujours le même dîner\u00A0?');
+    expect(messageRepasGere('snack', 'Collation').titre).toBe('Tu prends toujours la même collation\u00A0?');
   });
 
   it('les quatre intégrés sont TOUS couverts — un créneau ajouté au produit se verrait', () => {
@@ -24,7 +24,7 @@ describe('la boîte nomme le repas retiré', () => {
 
   it('un créneau CRÉÉ se cite par son nom, sans article deviné', () => {
     const { titre } = messageRepasGere('slot-123', 'Shaker post-training');
-    expect(titre).toBe('Tu prends toujours la même chose à « Shaker post-training » ?');
+    expect(titre).toBe('Tu prends toujours la même chose à «\u00A0Shaker post-training\u00A0»\u00A0?');
     expect(titre).not.toContain('le même Shaker');
   });
 

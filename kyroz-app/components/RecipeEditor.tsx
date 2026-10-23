@@ -199,7 +199,7 @@ export function RecipeEditor({ t, recipe, isCustom, onSave, onReset, onCancel, d
               <View style={{ flex: 1 }}><Field t={t} label="Glucides" suffix="g" value={carb} onChangeText={setCarb} keyboardType="number-pad" /></View>
               <View style={{ flex: 1 }}><Field t={t} label="Lipides" suffix="g" value={fat} onChangeText={setFat} keyboardType="number-pad" /></View>
             </View>
-            <Text style={s.hint}>Astuce : ajuste les macros si tu changes une quantité, pour garder ton plan précis.</Text>
+            <Text style={s.hint}>Astuce : ajuste les macros si tu changes une quantité, pour garder ton plan précis.</Text>
           </>
         )}
 

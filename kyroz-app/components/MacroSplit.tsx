@@ -62,7 +62,7 @@ export function MacroSplit({
         <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: Spacing.sm }}>
           <ConseilIcon color={t.textSecondary} size={Icone.petite} />
           <Text style={[styles.note, { color: t.textSecondary, flex: 1 }]}>
-            Conseillé pour « {goalLabel(goal)} » : <Text style={{ fontWeight: '700' }}>{reco} g/kg</Text>
+            Conseillé pour « {goalLabel(goal)} » : <Text style={{ fontWeight: '700' }}>{reco} g/kg</Text>
           </Text>
         </View>
         {bodyFat == null && (
@@ -83,7 +83,7 @@ export function MacroSplit({
           // Ton : on explique, on ne reproche pas (règle produit §10). Le réglage
           // n'est pas « refusé », il est servi au plus près de ce que le corps permet.
           <Text style={[styles.note, { color: t.textTertiary }]}>
-            Servi : <Text style={{ fontWeight: '700' }}>{carbServi}%</Text> glucides ·{' '}
+            Servi : <Text style={{ fontWeight: '700' }}>{carbServi}%</Text> glucides ·{' '}
             <Text style={{ fontWeight: '700' }}>{fatServi}%</Text> lipides. Kyroz garde un minimum
             de lipides pour tes hormones et tes vitamines, et répartit le reste selon ton réglage.
           </Text>
@@ -95,7 +95,7 @@ export function MacroSplit({
         <Row t={t} l="Objectif calorique" v={`${m.target_kcal} kcal`} strong />
         {floored && (
           <Text style={[styles.note, { color: t.warning }]}>
-            Plancher de sécurité atteint : Kyroz ne descend pas sous {m.floor_kcal} kcal/jour pour ton gabarit et ton volume d'entraînement.
+            Plancher de sécurité atteint : Kyroz ne descend pas sous {m.floor_kcal} kcal/jour pour ton gabarit et ton volume d'entraînement.
           </Text>
         )}
         <View style={[styles.sep, { backgroundColor: t.line }]} />

@@ -199,7 +199,7 @@ export default function LoginScreen() {
     setCode('');
     setMode('signin');
     setError(null);
-    setNotice('Adresse confirmée ? Connecte-toi avec ton e-mail et ton mot de passe.');
+    setNotice('Adresse confirmée\u00A0? Connecte-toi avec ton e-mail et ton mot de passe.');
   };
 
   const guest = async () => {
@@ -385,7 +385,7 @@ export default function LoginScreen() {
               </Presse>
 
               <Text style={s.aideConfirmation}>
-                Rien reçu ? Regarde dans les indésirables. Si tu as cliqué le lien de l'e-mail, ton adresse est déjà confirmée : connecte-toi.
+                Rien reçu ? Regarde dans les indésirables. Si tu as cliqué le lien de l'e-mail, ton adresse est déjà confirmée : connecte-toi.
               </Text>
 
               <Presse onPress={retourConnexion} activeOpacity={OPACITE_PRESSION} style={s.lienSecondaire}>
@@ -442,7 +442,7 @@ export default function LoginScreen() {
               onPress={() => { setOubli(true); setError(null); setNotice(null); }}
               activeOpacity={OPACITE_PRESSION} style={s.lienSecondaire}
             >
-              <Text style={s.lienSecondaireTxt}>Mot de passe oublié ?</Text>
+              <Text style={s.lienSecondaireTxt}>Mot de passe oublié ?</Text>
             </Presse>
           )}
 
@@ -465,7 +465,7 @@ export default function LoginScreen() {
             disabled={busy} activeOpacity={OPACITE_PRESSION} style={s.bascule}
           >
             <Text style={s.basculeTxt}>
-              {mode === 'signup' ? 'Déjà un compte ? ' : 'Pas encore de compte ? '}
+              {mode === 'signup' ? 'Déjà un compte\u00A0? ' : 'Pas encore de compte\u00A0? '}
               <Text style={s.basculeLien}>{mode === 'signup' ? 'Se connecter' : 'Créer un compte'}</Text>
             </Text>
           </Presse>

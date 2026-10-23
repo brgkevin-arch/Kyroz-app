@@ -131,7 +131,7 @@ export function RecipeDetail({ recipe, portions = 1, adaptedIngredients, adapted
             <Text style={[s.warn, { flex: 1 }]}>Aucune recette adaptée à ton régime pour ce repas — option standard.</Text>
           </View>
         )}
-        {manqueProteines > 0 && <Text style={s.warn}>{`~${manqueProteines} g de protéines sous ta cible : ajoute un side protéiné.`}</Text>}
+        {manqueProteines > 0 && <Text style={s.warn}>{`~${manqueProteines} g de protéines sous ta cible\u00A0: ajoute un side protéiné.`}</Text>}
 
         {/* MÊME PLAT (D30) : un conseil, et les quantités restent celles de CE repas
             (décision fondateur du 2026-09-14). Les étapes restent affichées au déjeuner :
@@ -139,8 +139,8 @@ export function RecipeDetail({ recipe, portions = 1, adaptedIngredients, adapted
         {memePlat && (
           <Text style={s.memePlat}>
             {memePlat === 'demain'
-              ? 'Tu retrouves ce plat demain midi : tu peux cuisiner les deux en même temps. Les quantités ci-dessous sont celles de ce soir, celles de demain sont sur sa fiche.'
-              : "Même plat qu'hier soir : si tu l'as cuisiné en double, il ne te reste qu'à le réchauffer."}
+              ? 'Tu retrouves ce plat demain midi\u00A0: tu peux cuisiner les deux en même temps. Les quantités ci-dessous sont celles de ce soir, celles de demain sont sur sa fiche.'
+              : "Même plat qu'hier soir\u00A0: si tu l'as cuisiné en double, il ne te reste qu'à le réchauffer."}
           </Text>
         )}
 
@@ -214,7 +214,7 @@ export function RecipeDetail({ recipe, portions = 1, adaptedIngredients, adapted
                     régénération peut ramener le plat écarté. On le DIT, et on donne
                     l'action qui, elle, tient dans le temps — le 👎. Cf. AGENTS.md A26. */}
                 <Text style={s.swapHint}>
-                  Ce remplacement vaut pour ce plan. Si ce plat ne te plaît pas du tout, « je n'aime pas » l'écarte pour de bon.
+                  Ce remplacement vaut pour ce plan. Si ce plat ne te plaît pas du tout, « je n'aime pas » l'écarte pour de bon.
                 </Text>
               </>
             )}

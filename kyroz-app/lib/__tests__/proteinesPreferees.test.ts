@@ -54,7 +54,8 @@ describe('l\'étape 6 exige une réponse', () => {
 
   it('l\'étape dit ce qui manque, et nomme la porte de sortie', () => {
     expect(onboarding).toContain('Choisis ton régime.');
-    expect(onboarding).toContain('Choisis tes protéines préférées, ou « Peu importe ».');
+    // Insécables depuis le 2026-10-23 (PR de typographie) : la source porte `\u00A0`.
+    expect(onboarding).toContain('Choisis tes protéines préférées, ou «\\u00A0Peu importe\\u00A0».');
   });
 });
 

@@ -135,7 +135,7 @@ export function FixedMealSheet({
                   </Presse>
                 ))}
                 {searchFoods(query, 1).length === 0 && (
-                  <Text style={s.suggestEmpty}>Aucun aliment trouvé — bascule sur « Saisir mon repas ».</Text>
+                  <Text style={s.suggestEmpty}>Aucun aliment trouvé — bascule sur « Saisir mon repas ».</Text>
                 )}
               </View>
             )}

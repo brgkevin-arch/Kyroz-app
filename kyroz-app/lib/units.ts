@@ -15,7 +15,14 @@ import { refDuNom } from './nomsAliments';
  */
 export function frnum(x: number): string {
   const r = Math.round(x * 10) / 10;
-  return (Number.isInteger(r) ? String(r) : r.toFixed(1)).replace('.', ',');
+  // Le VRAI signe moins (U+2212), pas le tiret court : aussi large que le « + », il aligne
+  // les écarts en colonne (typographie, 2026-10-23). Aucun appelant ne relit ce texte.
+  return (Number.isInteger(r) ? String(r) : r.toFixed(1)).replace('.', ',').replace('-', '\u2212');
+}
+
+/** Un écart, signé dans les deux sens : « +0,3 », « −0,3 », « 0 ». Le « + » ne se recolle plus à la main. */
+export function frsigne(x: number): string {
+  return x > 0 ? `+${frnum(x)}` : frnum(x);
 }
 
 function countStr(x: number, one: string, many: string): string {

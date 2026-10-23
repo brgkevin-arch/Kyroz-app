@@ -74,7 +74,7 @@ export function ShoppingHistory({
         <View style={s.videCard}>
           <Text style={s.videTitre}>Rien pour l'instant</Text>
           <Text style={s.videTexte}>
-            Quand tu appuies sur « Courses terminées » depuis l'onglet Courses, ta liste s'archive ici avec ce
+            Quand tu appuies sur « Courses terminées » depuis l'onglet Courses, ta liste s'archive ici avec ce
             que tu as coché.
           </Text>
         </View>
@@ -123,7 +123,7 @@ export function ShoppingHistory({
                     {aConfirmer === tr.at ? (
                       <ConfirmationEnLigne
                         t={t}
-                        question="Retirer ces courses de l'historique ? Ta réserve n'y touche pas : seule la trace disparaît."
+                        question="Retirer ces courses de l'historique ? Ta réserve n'y touche pas : seule la trace disparaît."
                         confirmLabel="Retirer"
                         onCancel={() => setAConfirmer(null)}
                         onConfirm={() => { setAConfirmer(null); onRemove(tr.at); }}

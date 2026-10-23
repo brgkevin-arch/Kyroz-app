@@ -223,9 +223,9 @@ export function checkEcheance(
  */
 export function messageEcheance(r: EcheanceRefus): string {
   switch (r) {
-    case 'incomplete': return 'Complète la date : jour, mois et année.';
+    case 'incomplete': return 'Complète la date\u00A0: jour, mois et année.';
     case 'impossible': return DATE_IMPOSSIBLE;
-    case 'passee': return 'Choisis une date à venir : Kyroz ne peut pas piloter vers une échéance déjà passée.';
+    case 'passee': return 'Choisis une date à venir\u00A0: Kyroz ne peut pas piloter vers une échéance déjà passée.';
     case 'trop_loin': return `Kyroz ne projette pas au-delà de ${HORIZON_ANS} ans. Choisis une date plus proche.`;
   }
 }

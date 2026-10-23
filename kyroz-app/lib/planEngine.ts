@@ -2443,7 +2443,7 @@ export function adaptDayOptions(
     const skipped = rebalanceCore(profile, plan, day, rest, new Set([snack.id]));
     options.push({
       key: 'skip_snack',
-      label: `Sauter ${mealLabelFor(slots, snack.meal_type) === 'collation' ? 'la collation' : `« ${slotOrFallback(slots, snack.meal_type).label} »`}`,
+      label: `Sauter ${mealLabelFor(slots, snack.meal_type) === 'collation' ? 'la collation' : `«\u00A0${slotOrFallback(slots, snack.meal_type).label}\u00A0»`}`,
       detail: 'le reste se densifie en protéines',
       plan: skipped, ...chiffrer(skipped),
     });
@@ -2458,7 +2458,7 @@ export function adaptDayOptions(
     const focused = rebalanceCore(profile, plan, day, new Set([dinner.id]), new Set());
     options.push({
       key: 'focus_dinner',
-      label: `Ajuster surtout ${mealLabelFor(slots, dinner.meal_type) === 'dîner' ? 'le dîner' : `« ${slotOrFallback(slots, dinner.meal_type).label} »`}`,
+      label: `Ajuster surtout ${mealLabelFor(slots, dinner.meal_type) === 'dîner' ? 'le dîner' : `«\u00A0${slotOrFallback(slots, dinner.meal_type).label}\u00A0»`}`,
       detail: 'tes autres repas ne bougent pas',
       plan: focused, ...chiffrer(focused),
     });

@@ -617,6 +617,18 @@ export async function goToPoids(page) {
 
 /** Reveal du 1er plan (components/FirstPlanReveal.tsx) — masque l'écran Plan. */
 export async function dismissReveal(page) {
+  // 🔴 DEPUIS E78 (#376, 2026-10-23), LE REVEAL DEMANDE D'ABORD « Quand veux-tu
+  // commencer ? » — sauf quand un seul début est possible. Sans réponse, la question
+  // reste PAR-DESSUS l'écran Plan : les onglets ne répondent plus, et chaque script
+  // rapportait « écran introuvable » en accusant le parcours. On prend le premier début
+  // proposé (aujourd'hui, ce soir ou demain), puis « Continuer ».
+  const question = page.getByText('Quand veux-tu commencer', { exact: false }).first();
+  if (await question.waitFor({ state: 'visible', timeout: 4000 }).then(() => true, () => false)) {
+    await page.getByText(/^(Ce soir|Aujourd['’]hui|Demain|La semaine prochaine)$/).first().click({ timeout: 2000 }).catch(() => {});
+    await sleep(400);
+    await tap(page, 'Continuer', { exact: true, which: 'last', timeout: 2000 });
+    await sleep(1500);
+  }
   if (await tap(page, 'Voir mon plan', { which: 'last', timeout: 4000 })) {
     await sleep(1500);
     return true;

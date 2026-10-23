@@ -41,11 +41,11 @@ export function messageRepasGere(id: MealType, libelle: string): MessageRepasGer
   const forme = FORME_INTEGREE[id];
   return {
     titre: forme
-      ? `Tu prends toujours ${forme} ?`
-      : `Tu prends toujours la même chose à « ${libelle} » ?`,
+      ? `Tu prends toujours ${forme}\u00A0?`
+      : `Tu prends toujours la même chose à «\u00A0${libelle}\u00A0»\u00A0?`,
     // ⚠️ « Tu pourras » et pas « tu peux » : à l'inscription, le Profil n'existe pas
     // encore — le plan n'est pas généré. Une promesse au présent serait fausse d'une
     // minute (CLAUDE.md §10).
-    message: `Pas besoin de le retirer : tu pourras le régler dans ${CHEMIN_REGLAGE}. Kyroz le comptera dans ton total et calera les autres repas autour.`,
+    message: `Pas besoin de le retirer\u00A0: tu pourras le régler dans ${CHEMIN_REGLAGE}. Kyroz le comptera dans ton total et calera les autres repas autour.`,
   };
 }

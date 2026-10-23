@@ -187,7 +187,7 @@ export default function ReserveScreen() {
 
   const clearAll = () => {
     setConfirm({
-      title: 'Vider la réserve ?',
+      title: 'Vider la réserve\u00A0?',
       message: 'Tous les aliments seront supprimés, au frais comme au sec.',
       cta: 'Vider', danger: true,
       onYes: () => persist([]),

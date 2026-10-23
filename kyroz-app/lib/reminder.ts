@@ -284,7 +284,7 @@ export const CITATIONS: Citation[] = [
   { texte: 'Rien n’est plus fort que l’habitude.', auteur: 'Ovide' },   // L’Art d’aimer II, 345
   { texte: 'Ce que tu répètes devient facile. C’est tout le secret.' },
   { texte: 'Trois mois passent de toute façon. Autant qu’ils comptent.' },
-  { texte: 'Regarde au-dedans : au-dedans est la source du bien.', auteur: 'Marc Aurèle' },   // Pensées VII, 59
+  { texte: 'Regarde au-dedans\u00A0: au-dedans est la source du bien.', auteur: 'Marc Aurèle' },   // Pensées VII, 59
   { texte: 'Manger comme prévu, c’est déjà une victoire de la journée.' },
   { texte: 'Personne ne se transforme en un jour. Tout le monde se transforme en un an.' },
   { texte: 'Il n’est pas de vent favorable pour qui ne sait où il va.', auteur: 'Sénèque' },   // Lettres à Lucilius 71, 3
@@ -298,7 +298,7 @@ export const CITATIONS: Citation[] = [
   { texte: 'Le corps change lentement, puis d’un coup.' },
   { texte: 'L’habitude est une seconde nature.', auteur: 'Cicéron' },   // Des termes extrêmes V, 25, 74
   { texte: 'Un écart ne défait pas une semaine. Il en fait partie.' },
-  { texte: 'Le plus dur est déjà derrière toi : décider quoi manger.' },
+  { texte: 'Le plus dur est déjà derrière toi\u00A0: décider quoi manger.' },
   { texte: 'Ce n’est pas que nous ayons peu de temps, c’est que nous en perdons beaucoup.', auteur: 'Sénèque' },   // De la brièveté de la vie I, 3
   { texte: 'Avance à ton rythme. Le moteur porte la charge, pas toi.' },
   { texte: 'Le progrès n’est pas spectaculaire. Il est régulier.' },
@@ -363,7 +363,7 @@ export function intentFromData(data: unknown): NotificationIntent {
 }
 
 export const WEIGH_IN_MESSAGES: ReminderCopy[] = [
-  { title: 'Ta pesée du jour', body: 'Note ton poids : Kyroz réajuste tes calories et ton plan tout seul.' },
+  { title: 'Ta pesée du jour', body: 'Note ton poids\u00A0: Kyroz réajuste tes calories et ton plan tout seul.' },
   { title: 'Un chiffre, rien de plus', body: 'La pesée sert à caler ton plan, pas à te juger.' },
   { title: 'C’est le jour de la pesée', body: 'Trente secondes, et ton plan reste aligné sur ta progression.' },
 ];

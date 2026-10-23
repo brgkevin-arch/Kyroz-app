@@ -27,7 +27,7 @@ import { usePremium } from '../../hooks/usePremium';
 import { courbe, libelleFenetre, peutReculer, PERIODES, PERIODE_PAR_DEFAUT, Periode } from '../../lib/courbePoids';
 import { todayStamp, frequencyDays } from '../../lib/weight';
 import { FONCTIONS_KYROZ_PLUS } from '../../lib/offreKyrozPlus';
-import { frnum } from '../../lib/units';
+import { frnum, frsigne } from '../../lib/units';
 
 // ── L'onglet Poids (2026-10-21, décision fondateur) ──────────────────────────
 //
@@ -136,7 +136,7 @@ export default function PoidsScreen() {
             <Text style={s.unit}>kg</Text>
           </View>
           <Text style={s.heroSub}>
-            {last ? `Dernière pesée : ${frDate(last.date)}` : 'Pas encore de pesée enregistrée'}
+            {last ? `Dernière pesée\u00A0: ${frDate(last.date)}` : 'Pas encore de pesée enregistrée'}
           </Text>
         </View>
 
@@ -198,7 +198,7 @@ export default function PoidsScreen() {
                       size={Icone.petite} color={t.text}
                     />
                     <Text style={s.ecartTxt}>
-                      {c.ecartKg === 0 ? 'Stable' : `${c.ecartKg > 0 ? '+' : ''}${frnum(c.ecartKg)} kg`}
+                      {c.ecartKg === 0 ? 'Stable' : `${frsigne(c.ecartKg)} kg`}
                     </Text>
                   </View>
                 )}
@@ -221,7 +221,7 @@ export default function PoidsScreen() {
             <Text style={s.vide}>
               {entries.length === 1
                 ? 'Encore une pesée et ta courbe apparaît ici.'
-                : 'Note ta première pesée : Kyroz recale calories, macros et plan à chaque fois.'}
+                : 'Note ta première pesée\u00A0: Kyroz recale calories, macros et plan à chaque fois.'}
             </Text>
           </View>
         )}

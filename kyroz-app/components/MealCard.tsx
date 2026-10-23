@@ -123,10 +123,10 @@ export function MealCard({
           peuvent se cuisiner d'un coup. Promettre « rien à cuisiner » au déjeuner serait
           faux pour qui ne l'a pas fait. */}
       {!isFixed && meal.same_dish_tomorrow && (
-        <Text style={[styles.fixedNote, { color: t.textTertiary }]}>Même plat demain midi : tu peux cuisiner les deux en même temps</Text>
+        <Text style={[styles.fixedNote, { color: t.textTertiary }]}>Même plat demain midi : tu peux cuisiner les deux en même temps</Text>
       )}
       {!isFixed && meal.same_dish_yesterday && (
-        <Text style={[styles.fixedNote, { color: t.textTertiary }]}>Même plat qu'hier soir : déjà prêt si tu l'as cuisiné en double</Text>
+        <Text style={[styles.fixedNote, { color: t.textTertiary }]}>Même plat qu'hier soir : déjà prêt si tu l'as cuisiné en double</Text>
       )}
       {/* Macros : une ligne grise, plus quatre pastilles colorées. Ici il n'y a
           aucune proportion à comparer — c'est le nom du plat qu'on lit. */}
@@ -151,7 +151,7 @@ export function MealCard({
         lacks ? (
           <View style={styles.fridgeRow}>
             <Text style={[styles.fridge, { color: t.textSecondary, flex: 1 }]} numberOfLines={1}>
-              Il te manque : {missing!.join(', ')}
+              Il te manque : {missing!.join(', ')}
             </Text>
             {onShopping && (
               <Presse

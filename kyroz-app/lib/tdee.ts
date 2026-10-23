@@ -347,12 +347,12 @@ export const NEAT_LABEL: Record<NeatLevel, string> = {
   desk: 'Assis la majeure partie de la journée',
   light: 'Assis, mais souvent en déplacement',
   active: 'Debout ou en marche la majeure partie de la journée',
-  physical: 'Travail physique : porter, pousser, monter',
+  physical: 'Travail physique\u00A0: porter, pousser, monter',
 };
 
 export const NEAT_HINT: Record<NeatLevel, string> = {
-  desk: 'Bureau, télétravail, conduite, études. Les courses et le ménage ne changent rien : c\'est ici.',
-  light: 'Tu changes de lieu plusieurs fois par jour : visites, chantiers, réunions, rendez-vous.',
+  desk: 'Bureau, télétravail, conduite, études. Les courses et le ménage ne changent rien\u00A0: c\'est ici.',
+  light: 'Tu changes de lieu plusieurs fois par jour\u00A0: visites, chantiers, réunions, rendez-vous.',
   active: 'Commerce, soins, enseignement, restauration.',
   physical: 'BTP, manutention, agriculture, déménagement.',
 };

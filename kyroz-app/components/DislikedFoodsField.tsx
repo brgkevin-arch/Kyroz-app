@@ -109,13 +109,13 @@ export function DislikedFoodsField({
       {compteBrouillon !== null ? (
         <Text style={{ ...Type.caption, color: compteBrouillon === 0 ? t.textTertiary : t.textSecondary }}>
           {compteBrouillon === 0
-            ? `Aucun ingrédient ne correspond à « ${draft.trim()} » : ce mot n'écartera aucune recette.`
-            : `« ${draft.trim()} » écarte ${compteBrouillon} recette${compteBrouillon > 1 ? 's' : ''} du catalogue.`}
+            ? `Aucun ingrédient ne correspond à «\u00A0${draft.trim()}\u00A0»\u00A0: ce mot n'écartera aucune recette.`
+            : `«\u00A0${draft.trim()}\u00A0» écarte ${compteBrouillon} recette${compteBrouillon > 1 ? 's' : ''} du catalogue.`}
         </Text>
       ) : null}
       {inertes.length ? (
         <Text style={{ ...Type.caption, color: t.textTertiary }}>
-          Sans effet, aucun ingrédient ne correspond : {inertes.join(', ')}.
+          Sans effet, aucun ingrédient ne correspond : {inertes.join(', ')}.
         </Text>
       ) : null}
     </>

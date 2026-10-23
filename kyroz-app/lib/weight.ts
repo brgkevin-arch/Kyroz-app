@@ -487,7 +487,7 @@ export function messageApresPesee(
   if (derniere && derniere.date !== date) {
     return `Ajouté à ton historique. Ton plan suit ta pesée la plus récente (${dateLisible(derniere.date)}).`;
   }
-  if (macroManuel) return 'Macros en mode manuel : le plan garde tes cibles fixées (modifiable dans Profil).';
+  if (macroManuel) return 'Macros en mode manuel\u00A0: le plan garde tes cibles fixées (modifiable dans Profil).';
   return 'Calories, macros et plan ajustés automatiquement.';
 }
 

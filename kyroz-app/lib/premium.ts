@@ -213,7 +213,7 @@ export function canUse(
  */
 export function grandfatheredNotice(reason: AccessReason): string | null {
   return reason === 'grandfathered'
-    ? 'Inclus dans ton compte, à vie : tu étais là avant Kyroz+.'
+    ? 'Inclus dans ton compte, à vie\u00A0: tu étais là avant Kyroz+.'
     : null;
 }
 
@@ -453,14 +453,14 @@ export function paywallBanner(reason: AccessReason): { title: string; body: stri
       return {
         title: "Kyroz+ n'est pas encore en vente",
         body:
-          "Ces deux outils sont actifs dans ton compte aujourd'hui, et ils y resteront : " +
+          "Ces deux outils sont actifs dans ton compte aujourd'hui, et ils y resteront\u00A0: " +
           'les comptes ouverts avant la mise en vente gardent tout, à vie.',
       };
     case 'grandfathered':
       return {
         title: "C'est déjà à toi",
         body:
-          'Inclus dans ton compte, à vie : tu étais là avant Kyroz+. ' +
+          'Inclus dans ton compte, à vie\u00A0: tu étais là avant Kyroz+. ' +
           "Tu n'as rien à faire, et rien à payer.",
       };
     case 'entitled':
@@ -471,7 +471,7 @@ export function paywallBanner(reason: AccessReason): { title: string; body: stri
     case 'locked':
       return {
         title: 'Piloter ton objectif dans le temps',
-        body: 'Ton plan, tes courses et tes recettes ne changent pas : ils restent gratuits.',
+        body: 'Ton plan, tes courses et tes recettes ne changent pas\u00A0: ils restent gratuits.',
       };
   }
 }
