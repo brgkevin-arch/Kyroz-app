@@ -3,7 +3,10 @@ import { Ingredient, Recipe, ShoppingItem, UserProfile } from './types';
 import { getEffectiveRecipes } from './recipes';
 import { RECIPE_INGREDIENTS } from './recipeData';
 import { poidsUnitaire } from './units';
+import { norm, refDuNom } from './nomsAliments';
 import { recipeAllowed } from './planEngine';
+
+export { norm, refDuNom };
 
 // ── La RÉSERVE ───────────────────────────────────────────────────────────────
 // Module isolé : inventaire de ce qu'il reste en cuisine, alimenté à la clôture
@@ -129,22 +132,8 @@ export function isStaple(name: string): boolean {
   return STAPLES.some((s) => n.includes(s));
 }
 
-/**
- * Comparaison de noms d'aliments : sans casse, sans accents, sans ligatures.
- *
- * ⚠️ Exporté le 2026-08-26 — il était seulement PRIVÉ. Les ajouts manuels à la
- * liste de courses (`lib/shoppingAjouts.ts`) comparent des noms saisis au clavier
- * à ceux du plan ; une seconde normalisation aurait fait diverger deux moitiés de
- * la même liste (« Poêlée » ≠ « poelee » d'un côté, égal de l'autre).
- */
-export function norm(name: string): string {
-  return name
-    .trim()
-    .toLowerCase()
-    .normalize('NFD').replace(/[̀-ͯ]/g, '') // retire les accents (é→e…)
-    .replace(/œ/g, 'oe').replace(/æ/g, 'ae')   // ligatures œ/æ → lettres simples
-    .replace(/['‘’]/g, '');      // apostrophes (droites/courbes)
-}
+// `norm` (comparaison de noms) vit dans `lib/nomsAliments.ts` depuis le 2026-10-23 :
+// `lib/units.ts` en a besoin, et l'importer d'ici aurait fait un cycle.
 
 // Un article du garde-manger correspond-il à un ingrédient de recette ?
 // Tolère ligatures (œ↔oe), accents, singulier/pluriel et libellés partiels —
@@ -191,15 +180,7 @@ export function matches(pantryName: string, ingredientName: string): boolean {
 // rangée serait restée fautive jusqu'à ce qu'on la recoche. Personne n'aurait
 // compris pourquoi le bug survivait au correctif.
 
-/** Nom normalisé → `ref` du catalogue. Une seule construction, au chargement. */
-const REF_PAR_NOM: Map<string, string> = new Map(
-  Object.entries(RECIPE_INGREDIENTS).map(([ref, def]) => [norm(def.name), ref] as const),
-);
-
-/** La `ref` catalogue d'un nom, s'il en désigne une EXACTEMENT (sinon `undefined`). */
-export function refDuNom(name: string): string | undefined {
-  return REF_PAR_NOM.get(norm(name));
-}
+// `refDuNom` : `lib/nomsAliments.ts` (même raison que `norm`).
 
 /**
  * Le nom à AFFICHER pour un article : celui du catalogue quand le nom en désigne un.

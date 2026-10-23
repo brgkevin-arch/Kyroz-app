@@ -25,6 +25,7 @@
 import { RECIPE_INGREDIENTS } from './recipeData';
 import { refDuNom } from './pantry';
 import { frnum } from './units';
+import { A_LA_PIECE } from './aLaPiece';
 
 type Contenant =
   | 'paquet' | 'pot' | 'boîte' | 'brique' | 'bouteille' | 'sachet' | 'barquette'
@@ -57,6 +58,9 @@ const f = (contenant: Contenant, ...tailles: number[]): Regle =>
   ({ formats: tailles.map((taille) => ({ contenant, taille })) });
 const fl = (...formats: Format[]): Regle => ({ formats });
 const p = (piece: number, nom: string, pluriel: string): Regle => ({ piece, nom, pluriel });
+const PIECES: Record<string, Regle> = Object.fromEntries(
+  Object.entries(A_LA_PIECE).map(([ref, a]) => [ref, p(a.poids, a.nom, a.pluriel)]),
+);
 
 /**
  * Le format courant de chaque ingrédient du catalogue.
@@ -183,23 +187,9 @@ export const FORMATS: Record<string, Regle> = {
   pain_pita_complet: fl({ contenant: 'paquet', taille: 330, libelle: '6 pains pita' }),
   pomme_de_terre: f('filet', 1000),
 
-  // Fruits et légumes : à la pièce quand ils se vendent à la pièce
-  banane: p(120, 'banane', 'bananes'),
-  avocat: p(150, 'avocat', 'avocats'),
-  pomme: p(150, 'pomme', 'pommes'),
-  kiwi: p(75, 'kiwi', 'kiwis'),
-  mangue: p(250, 'mangue', 'mangues'),
-  ananas: p(500, 'ananas', 'ananas'),
-  courgette: p(200, 'courgette', 'courgettes'),
-  poivron: p(150, 'poivron', 'poivrons'),
-  tomate: p(120, 'tomate', 'tomates'),
-  oignon: p(100, 'oignon', 'oignons'),
-  carotte: p(100, 'carotte', 'carottes'),
-  concombre: p(350, 'concombre', 'concombres'),
-  brocoli: p(350, 'brocoli', 'brocolis'),
-  chou_fleur: p(600, 'chou-fleur', 'choux-fleurs'),
-  salade_verte: p(250, 'salade', 'salades'),
-  patate_douce: p(300, 'patate douce', 'patates douces'),
+  // Fruits et légumes : à la pièce quand ils se vendent à la pièce. La table vit dans
+  // `lib/aLaPiece.ts` depuis le 2026-10-23 : la Réserve et les fiches comptent avec elle.
+  ...PIECES,
   myrtilles: f('barquette', 125),
   framboises: f('barquette', 125),
   fruits_rouges: f('sachet', 500),

@@ -13,7 +13,7 @@ import { PrimaryButton, Chip, Field, Segmented } from '../../components/ui';
 import { animerMiseEnPage } from '../../components/Mouvement';
 import { ActionSheet } from '../../components/ActionSheet';
 import { LigneGlissable } from '../../components/LigneGlissable';
-import { formatQuantity, toBaseUnit } from '../../lib/units';
+import { formatQuantity, quantiteDeSaisie, versStockage } from '../../lib/units';
 import { pushPantry } from '../../lib/sync';
 import { searchFoods } from '../../lib/foods';
 import {
@@ -87,6 +87,9 @@ export default function ReserveScreen() {
   // Formulaire d'édition
   const [editQty, setEditQty] = useState('');
   const [editUnit, setEditUnit] = useState('g');
+  // Ce que la feuille proposait à l'ouverture : enregistrer sans y toucher garde la
+  // quantité exacte (80 g), pas son arrondi en pièces (0.67 × 120 = 80,4 g).
+  const [editInitial, setEditInitial] = useState({ qty: '', unit: 'g' });
   const [editConservation, setEditConservation] = useState<Conservation>('frais');
 
   // Cibles de la visite guidée.
@@ -110,15 +113,18 @@ export default function ReserveScreen() {
   const addManual = async () => {
     const q = parseFloat(qty);
     if (!name.trim() || !(q > 0)) return;
-    const base = toBaseUnit(q, unit);
+    const base = versStockage(name.trim(), q, unit);
     await persist(addOrMerge(items, { name: name.trim(), quantity: base.quantity, unit: base.unit, category: categorize(name) }));
     setName(''); setQty(''); setUnit('g'); setSugDismissed(false); setShowAdd(false);
   };
 
+  // La ligne dit « ⅔ tomate » : la feuille s'ouvre en pièces, pas sur « 80 g » (2026-10-23).
   const openEdit = (it: PantryItem) => {
+    const saisie = quantiteDeSaisie(it.name, it.quantity, it.unit);
     setEditItem(it);
-    setEditQty(String(it.quantity));
-    setEditUnit(it.unit);
+    setEditQty(String(saisie.quantity));
+    setEditUnit(saisie.unit);
+    setEditInitial({ qty: String(saisie.quantity), unit: saisie.unit });
     setEditConservation(conservationDe(it));
   };
 
@@ -146,7 +152,10 @@ export default function ReserveScreen() {
       setEditItem(null);
       return;
     }
-    const base = toBaseUnit(q, editUnit);
+    const inchangee = editQty === editInitial.qty && editUnit === editInitial.unit;
+    const base = inchangee
+      ? { quantity: editItem.quantity, unit: editItem.unit }
+      : versStockage(editItem.name, q, editUnit);
     let next = removeItem(items, editItem.name, editItem.unit);
     next = addOrMerge(next, {
       name: editItem.name, quantity: base.quantity, unit: base.unit,
