@@ -19,6 +19,7 @@ const lire = (...p: string[]) => sansCommentaires(readFileSync(join(RACINE, ...p
 const ONGLET = lire('app', '(tabs)', 'poids.tsx');
 const HISTORIQUE = lire('components', 'HistoriquePesees.tsx');
 const COURBE = lire('components', 'CourbePoids.tsx');
+const APERCU = lire('components', 'ApercuObjectif.tsx');
 
 describe('L’onglet Poids (2026-10-23)', () => {
   it('s’ouvre sur la période par défaut de `courbePoids.ts`, jamais sur une valeur écrite ici', () => {
@@ -40,15 +41,27 @@ describe('L’onglet Poids (2026-10-23)', () => {
     expect(HISTORIQUE).not.toMatch(/t\.(success|warning|danger|error)/);
   });
 
-  it('l’objectif daté est toujours là : Kyroz+ le règle, sans Kyroz+ il porte un cadenas', () => {
+  it('l’objectif daté est toujours là : Kyroz+ le règle, sans Kyroz+ un aperçu flouté et un cadenas', () => {
     // La carte n'est plus réservée aux comptes qui ont DÉJÀ un objectif et Kyroz+.
     expect(ONGLET).not.toMatch(/\{profile\.goal_target && objectifOk && \(/);
-    const carte = ONGLET.match(/\{objectifOk && profile\.goal_target \? \([\s\S]*?<\/Presse>\s*\)\}/)?.[0] ?? '';
-    expect(carte, 'la carte de l’objectif daté a disparu').not.toBe('');
-    expect(carte).toMatch(/onPress=\{objectifOk \? ouvrirObjectif : \(\) => router\.push\('\/kyroz-plus'\)\}/);
-    expect(carte).toMatch(/objectifOk\s*\?[\s\S]{0,120}?chevron-forward[\s\S]{0,120}?:[\s\S]{0,40}?lock-closed/);
+    const bloc = ONGLET.match(/\{objectifOk && profile\.goal_target \? \([\s\S]*?\n        \)\}/)?.[0] ?? '';
+    expect(bloc, 'la carte de l’objectif daté a disparu').not.toBe('');
+    const [, kyrozPlus, gratuit] = bloc.split(/\) : (?:objectifOk \? )?\(/);
+    expect(kyrozPlus, 'Kyroz+ sans objectif : la carte ouvre l’éditeur').toMatch(/onPress=\{ouvrirObjectif\}/);
+    expect(gratuit, 'sans Kyroz+ : la page Kyroz+, jamais l’éditeur').toMatch(/router\.push\('\/kyroz-plus'\)/);
+    expect(gratuit).not.toMatch(/ouvrirObjectif/);
+    expect(gratuit, 'sans Kyroz+ : le vrai aperçu, flouté').toMatch(/<ApercuObjectif\b/);
     // Le texte vendu vient de LA liste vendue, pas d'une copie.
     expect(ONGLET).toMatch(/FONCTIONS_KYROZ_PLUS\.find\(\(f\) => f\.feature === 'dated_goal'\)/);
+  });
+
+  it('l’aperçu est flouté par un filtre SVG, et porte son cadenas', () => {
+    // Un filtre SVG, pas `expo-blur` : une dépendance native couperait la ligne OTA.
+    expect(APERCU).toMatch(/<G filter="url\(#flouObjectif\)">/);
+    expect(APERCU).toMatch(/<FeGaussianBlur stdDeviation=\{FLOU\} \/>/);
+    expect(APERCU).toMatch(/const FLOU = [1-9]/);
+    expect(APERCU).toMatch(/name="lock-closed"/);
+    expect(APERCU).not.toMatch(/expo-blur/);
   });
 
   it('les chiffres de l’axe sont nus : plus de pastille derrière', () => {

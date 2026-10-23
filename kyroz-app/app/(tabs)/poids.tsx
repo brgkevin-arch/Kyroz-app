@@ -19,6 +19,7 @@ import { HistoriquePesees } from '../../components/HistoriquePesees';
 import { ObjectifIcon } from '../../components/Icons';
 import { PhotoCompare } from '../../components/Transformation';
 import { BlocObjectif } from '../../components/DatedGoalCard';
+import { ApercuObjectif } from '../../components/ApercuObjectif';
 import { useProfile } from '../../hooks/useProfile';
 import { useWeightLog } from '../../hooks/useWeightLog';
 import { usePremium } from '../../hooks/usePremium';
@@ -226,28 +227,39 @@ export default function PoidsScreen() {
         {/* L'OBJECTIF DATÉ, À LA PLACE DE L'HISTORIQUE (2026-10-23, décision fondateur :
             « on peut personnaliser l'objectif daté pour les users Kyroz+, et la même chose
             avec un petit cadenas pour les users Free »). Posé : sa carte de suivi. Pas
-            encore posé : de quoi le fixer. Sans Kyroz+ : la même carte, cadenas, et le tap
+            encore posé : de quoi le fixer. Sans Kyroz+ : l'aperçu flouté, un cadenas, et le tap
             ouvre la page Kyroz+ — le verrou de l'ÉDITEUR reste dans le Profil (`openEditor`). */}
         {objectifOk && profile.goal_target ? (
           <View style={s.carte}>
             <BlocObjectif t={t} profile={profile} onPress={ouvrirObjectif} />
           </View>
-        ) : (
+        ) : objectifOk ? (
           <Presse
-            onPress={objectifOk ? ouvrirObjectif : () => router.push('/kyroz-plus')}
-            activeOpacity={OPACITE_PRESSION} accessibilityRole="button"
-            accessibilityLabel={objectifOk ? 'Fixer mon objectif daté' : 'Objectif daté, inclus dans Kyroz+'}
-            style={s.carte}
+            onPress={ouvrirObjectif} activeOpacity={OPACITE_PRESSION} accessibilityRole="button"
+            accessibilityLabel="Fixer mon objectif daté" style={s.carte}
           >
             <View style={s.carteTete}>
               <ObjectifIcon color={t.text} size={Icone.action} />
               <Text style={[s.serie, { flex: 1 }]}>{OBJECTIF_DATE.titre}</Text>
-              {objectifOk
-                ? <Ionicons name="chevron-forward" size={Icone.standard} color={t.textTertiary} />
-                : <Ionicons name="lock-closed" size={Icone.petite} color={t.textTertiary} />}
+              <Ionicons name="chevron-forward" size={Icone.standard} color={t.textTertiary} />
             </View>
             <Text style={s.vide}>{OBJECTIF_DATE.corps}</Text>
-            <Text style={s.note}>{objectifOk ? 'Choisis ton poids cible et ta date.' : 'Inclus dans Kyroz+'}</Text>
+            <Text style={s.note}>Choisis ton poids cible et ta date.</Text>
+          </Presse>
+        ) : (
+          // Sans Kyroz+ : le VRAI aperçu, flouté, un cadenas, le texte en bas (fondateur,
+          // 2026-10-23). Le tap ouvre la page Kyroz+.
+          <Presse
+            onPress={() => router.push('/kyroz-plus')} activeOpacity={OPACITE_PRESSION} accessibilityRole="button"
+            accessibilityLabel="Objectif daté, inclus dans Kyroz+" style={s.carte}
+          >
+            <View style={s.carteTete}>
+              <ObjectifIcon color={t.text} size={Icone.action} />
+              <Text style={[s.serie, { flex: 1 }]}>{OBJECTIF_DATE.titre}</Text>
+            </View>
+            <ApercuObjectif t={t} profile={profile} />
+            <Text style={s.vide}>{OBJECTIF_DATE.corps}</Text>
+            <Text style={s.note}>Inclus dans Kyroz+</Text>
           </Presse>
         )}
 
