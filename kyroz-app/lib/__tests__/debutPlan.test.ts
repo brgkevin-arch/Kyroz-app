@@ -1,4 +1,6 @@
 import { describe, it, expect } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { buildLocalPlan } from '../planEngine';
 import { buildShoppingList } from '../shoppingList';
 import { BUILTIN_SLOTS } from '../mealSlots';
@@ -19,19 +21,42 @@ const poids = (l: ReturnType<typeof buildShoppingList>) =>
   l.items.filter((i) => i.unit === 'g' || i.unit === 'ml').reduce((s, i) => s + i.quantity, 0);
 
 describe('E78 — les choix proposés à la fin de l’inscription', () => {
-  it('mercredi 21 h 45 : « Ce soir » (il reste le dîner), puis « Demain », puis les jours du plan', () => {
+  // Resserrés le 2026-10-23 (fondateur, sur capture de la redite « Lundi 26 / lundi 26
+  // octobre ») : aujourd'hui — « Il reste ton … » ; un autre jour de CETTE semaine, sans
+  // sous-titre ; sinon le premier jour du plan de la semaine suivante.
+  const vue = (o: ReturnType<typeof optionsDeDebut>) => o.map((x) => [x.groupe, x.libelle, x.detail]);
+
+  it('mercredi 21 h 45 : « Ce soir », jeudi et vendredi de cette semaine, puis la semaine prochaine', () => {
     const o = optionsDeDebut(MER_21H45, BUILTIN_SLOTS, SEMAINE);
-    expect(o.map((x) => x.libelle)).toEqual(['Ce soir', 'Demain', 'Vendredi 23', 'Lundi 26', 'Mardi 27', 'Mercredi 28']);
-    expect(o[0].detail).toBe('Encore au menu : dîner');
+    expect(vue(o)).toEqual([
+      ['aujourdhui', 'Ce soir', 'Il reste ton dîner'],
+      ['semaine', 'Demain', ''],
+      ['semaine', 'Vendredi 23', ''],
+      ['suivante', 'La semaine prochaine', 'Lundi 26 octobre'],
+    ]);
     expect(o[0].debut).toEqual({ jour: LUN_DU_MER, minutes: 21 * 60 + 45 });
     expect(o[1].debut).toEqual({ jour: '2026-10-22', minutes: 0 });
-    expect(o[1].detail).toBe('jeudi 22 octobre');
+    expect(o[3].debut).toEqual({ jour: '2026-10-26', minutes: 0 });
   });
 
-  it('le matin, c’est « Aujourd’hui », et toute la journée est encore au menu', () => {
+  it('le matin, c’est « Aujourd’hui », et il reste toute la journée, avec ses possessifs', () => {
     const o = optionsDeDebut(new Date(2026, 9, 21, 8, 30), BUILTIN_SLOTS, SEMAINE);
     expect(o[0].libelle).toBe('Aujourd’hui');
-    expect(o[0].detail).toBe('Encore au menu : petit-déj, déjeuner, collation et dîner');
+    expect(o[0].detail).toBe('Il reste ton petit-déj, ton déjeuner, ta collation et ton dîner');
+  });
+
+  it('aucun jour n’a plus de sous-titre qui répète son nom', () => {
+    const o = optionsDeDebut(MER_21H45, BUILTIN_SLOTS, [0, 1, 2, 3, 4, 5, 6]);
+    expect(o.filter((x) => x.groupe === 'semaine').every((x) => x.detail === '')).toBe(true);
+  });
+
+  it('un créneau créé, de genre inconnu : « ton » devant une voyelle, sinon son nom entre guillemets', () => {
+    const slots = [
+      { id: 'c1', label: 'Encas', hour: 22, minute: 0, pool: 'snack' as const },
+      { id: 'c2', label: 'Pause tardive', hour: 23, minute: 0, pool: 'snack' as const },
+    ];
+    const o = optionsDeDebut(new Date(2026, 9, 21, 21, 30), slots, SEMAINE);
+    expect(o[0].detail).toBe('Il reste ton encas et «\u00A0Pause tardive\u00A0»');
   });
 
   it('plus aucun repas à venir : pas de « Ce soir », on commence au plus tôt demain', () => {
@@ -39,14 +64,32 @@ describe('E78 — les choix proposés à la fin de l’inscription', () => {
     expect(o[0].libelle).toBe('Demain');
   });
 
-  it('un samedi, sur un plan du lundi au vendredi : ni aujourd’hui ni « Demain », lundi d’abord', () => {
+  it('un samedi, sur un plan du lundi au vendredi : seulement la semaine prochaine (pas de question)', () => {
     const o = optionsDeDebut(new Date(2026, 9, 24, 10, 0), BUILTIN_SLOTS, SEMAINE);
-    expect(o[0].libelle).toBe('Lundi 26');
+    expect(vue(o)).toEqual([['suivante', 'La semaine prochaine', 'Lundi 26 octobre']]);
+  });
+
+  it('un dimanche, sur un plan de 7 jours : aujourd’hui, puis la semaine prochaine (demain lundi)', () => {
+    const o = optionsDeDebut(new Date(2026, 9, 25, 10, 0), BUILTIN_SLOTS, [0, 1, 2, 3, 4, 5, 6]);
+    expect(o.map((x) => x.groupe)).toEqual(['aujourdhui', 'suivante']);
+    expect(o[1].detail).toBe('Lundi 26 octobre');
+  });
+
+  it('un plan qui commence le mercredi : la semaine prochaine part du mercredi', () => {
+    const o = optionsDeDebut(new Date(2026, 9, 23, 23, 59), BUILTIN_SLOTS, [3, 4, 5]);
+    expect(vue(o)).toEqual([['suivante', 'La semaine prochaine', 'Mercredi 28 octobre']]);
   });
 
   it('sans jours choisis (comptes d’avant), aucune question', () => {
     expect(optionsDeDebut(MER_21H45, BUILTIN_SLOTS, [])).toEqual([]);
     expect(optionsDeDebut(MER_21H45, BUILTIN_SLOTS, undefined)).toEqual([]);
+  });
+
+  it('l’écran : la grille « Un autre jour » est celle de la semaine, et un choix unique ne se demande pas', () => {
+    const ecran = readFileSync(join(__dirname, '..', '..', 'components', 'FirstPlanReveal.tsx'), 'utf8');
+    expect(ecran).not.toContain('Dans les 7 prochains jours');
+    expect(ecran).toContain("o.groupe === 'semaine'");
+    expect(ecran).toMatch(/optionsDebut\.length === 1\) \{\s*setEtape\('pret'\);\s*void onDebut\(optionsDebut\[0\]\)/);
   });
 
   it('un créneau est « encore à venir » tant que son heure limite n’est pas passée', () => {

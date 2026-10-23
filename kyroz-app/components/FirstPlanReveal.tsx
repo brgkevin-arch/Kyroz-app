@@ -58,13 +58,28 @@ export function FirstPlanReveal({ visible, profile, firstName, previewMeals, opt
   const [envoi, setEnvoi] = useState(false);
   useEffect(() => {
     if (!visible) return;
-    setEtape(optionsDebut.length > 0 ? 'debut' : 'pret');
     setChoix(null);
     setAutreJour(false);
+    // Un seul début possible (un samedi, sur un plan du lundi au vendredi : la semaine
+    // prochaine) : pas de question à une seule réponse, « C'est prêt » dit quand on commence.
+    if (optionsDebut.length === 1) {
+      setEtape('pret');
+      void onDebut(optionsDebut[0]);
+      return;
+    }
+    setEtape(optionsDebut.length > 0 ? 'debut' : 'pret');
   }, [visible]);
-  // Les deux premiers choix en clair (« Ce soir », « Demain »), le reste derrière « Un autre jour ».
-  const principaux = optionsDebut.slice(0, 2);
-  const autres = optionsDebut.slice(2);
+  // 2026-10-23 (fondateur) : aujourd'hui (« Il reste ton dîner »), un autre jour de CETTE
+  // semaine dans une grille, puis la semaine prochaine. Les jours n'ont plus de sous-titre :
+  // « Lundi 26 » au-dessus de « lundi 26 octobre » disait deux fois la même chose.
+  // Un seul jour restant cette semaine se montre en carte : une grille d'un choix n'en est pas une.
+  const semaine = optionsDebut.filter((o) => o.groupe === 'semaine');
+  const principaux = [
+    ...optionsDebut.filter((o) => o.groupe === 'aujourdhui'),
+    ...(semaine.length === 1 ? semaine : []),
+  ];
+  const autres = semaine.length > 1 ? semaine : [];
+  const suivantes = optionsDebut.filter((o) => o.groupe === 'suivante');
   const retenu = optionsDebut.find((o) => o.debut.jour === choix) ?? null;
   const continuer = async () => {
     if (!retenu) return;
@@ -125,7 +140,7 @@ export function FirstPlanReveal({ visible, profile, firstName, previewMeals, opt
                   key={o.debut.jour}
                   t={t}
                   title={o.libelle}
-                  subtitle={o.detail}
+                  subtitle={o.detail || undefined}
                   selected={choix === o.debut.jour}
                   onPress={() => { setChoix(o.debut.jour); setAutreJour(false); }}
                 />
@@ -134,7 +149,7 @@ export function FirstPlanReveal({ visible, profile, firstName, previewMeals, opt
                 <OptionCard
                   t={t}
                   title="Un autre jour"
-                  subtitle="Dans les 7 prochains jours"
+                  subtitle="Cette semaine"
                   selected={autreJour}
                   onPress={() => { setAutreJour(true); setChoix(null); }}
                 />
@@ -147,6 +162,16 @@ export function FirstPlanReveal({ visible, profile, firstName, previewMeals, opt
                   onChoisir={(v) => setChoix(v)}
                 />
               )}
+              {suivantes.map((o) => (
+                <OptionCard
+                  key={o.debut.jour}
+                  t={t}
+                  title={o.libelle}
+                  subtitle={o.detail}
+                  selected={choix === o.debut.jour}
+                  onPress={() => { setChoix(o.debut.jour); setAutreJour(false); }}
+                />
+              ))}
             </View>
             <View style={{ height: 18 }} />
             <View style={{ alignSelf: 'stretch' }}>

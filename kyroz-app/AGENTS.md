@@ -389,8 +389,20 @@ qu'ils étaient périmés.
      d'E80 ne bouge pas d'un arrêt (figé par `repliTitre.test.ts`, vu rougir par mutation) ;
    - **typographie — ACCORD, PR À PART APRÈS la fusion de #376 ET de #390** : espaces
      insécables devant `: ; ? ! »` et après `«` (437 dans 66 fichiers), avec un garde-fou ;
-   - « Quand veux-tu commencer ? » : l'option « Lundi 26 » a pour sous-titre « lundi 26
-     octobre » (redite) — capture envoyée au fondateur, en attente de son avis.
+   - ✅ **« Quand veux-tu commencer ? » — CORRIGÉ dans #376** (fondateur, sur la capture de la
+     redite « Lundi 26 / lundi 26 octobre » : *« Enlève le sous-titre du jour. Si l'user commence
+     aujourd'hui : écris "Il reste ton …, …". Un autre jour et il choisit le jour qui lui convient
+     dans la semaine. Sinon son plan commencera au premier jour du plan de la semaine
+     d'après »*). Trois cartes : « Ce soir » / « Aujourd'hui » — *« Il reste ton dîner »*,
+     *« Il reste ton petit-déj, ton déjeuner, ta collation et ton dîner »* ; « Un autre jour »
+     (« Cette semaine ») ouvre les jours du plan de demain à DIMANCHE, sans sous-titre ;
+     « La semaine prochaine » — son premier jour du plan, daté (« Lundi 26 octobre »). *Avant* :
+     « Demain » et 7 jours glissants, chacun sous-titré de sa date. Un créneau créé, de genre
+     inconnu : « ton » devant une voyelle (« ton encas »), sinon son nom entre guillemets — pas
+     de « ta goûter ». Un seul jour restant cette semaine se montre en carte ; un seul début
+     possible (samedi, plan lundi → vendredi) ne se demande plus : « C'est prêt » dit
+     « Tu commences lundi 26 octobre. ». Vu au navigateur (inscription neuve, mercredi 21 h 45
+     et samedi 10 h). Garde-fou : `debutPlan.test.ts`, vu rougir par 2 mutations.
 ➡️ Avancement : tenu ici, ligne par ligne, au fil des validations. **Au 2026-10-21** : point 1
    codé + essai posé (ligne 1) ; **point 2 codé et vu au navigateur le 2026-10-22** (semaine
    suivante + pesée, niveau 2 des restes après l'OTA) ; **point 3 mesuré, fermé et validé le
@@ -2057,7 +2069,7 @@ produit en suspens — il ne reste qu'à coder.
   · inscrit le **lundi** : 20 repas comptés dont 4 passés → **9,2 kg au lieu de 7,5 (+22 %)**, 5 lignes n'existent que pour ce soir ;
   · inscrit le **mercredi** : 12 repas dont 4 passés (un tiers) → **5,6 kg au lieu de 4,1 (+36 %)**, 11 lignes rien que pour ce soir (filet mignon 205 g, saumon fumé 100 g…).
   ➡️ Le fondateur a ses idées : les recueillir avant de proposer ; à livrer avec #376 (même zone : `coursesDepuis.ts`, `semainePlan.ts`). Tout correctif se mesure sur un lundi ET un milieu de semaine, à plusieurs heures (19 h, 21 h 45).
-  ✅ **Décision fondateur (2026-10-19)** : à la fin de l'inscription, AVANT « C'est prêt », Kyroz demande **« Quand veux-tu commencer ? »** — « Ce soir » / « Aujourd'hui » (s'il reste un repas : la collation et le dîner à 19 h 30), « Demain », « Un autre jour » (les jours du plan des 7 prochains jours). Puis « C'est prêt » (« Tu commences jeudi 22 octobre. », l'aperçu montre le premier jour vécu), puis la visite. Une fois, au premier plan ; les comptes existants ne voient rien changer.
+  ✅ **Décision fondateur (2026-10-19)** : à la fin de l'inscription, AVANT « C'est prêt », Kyroz demande **« Quand veux-tu commencer ? »** — « Ce soir » / « Aujourd'hui » (s'il reste un repas : la collation et le dîner à 19 h 30), « Demain », « Un autre jour » (les jours du plan des 7 prochains jours). 🔄 **Resserré le 2026-10-23** (fondateur) : « Ce soir » / « Aujourd'hui » (« Il reste ton dîner »), « Un autre jour » (les jours du plan de CETTE semaine, sans sous-titre), « La semaine prochaine » (son premier jour du plan) — détail au point 8 des « À peaufiner ». Puis « C'est prêt » (« Tu commences jeudi 22 octobre. », l'aperçu montre le premier jour vécu), puis la visite. Une fois, au premier plan ; les comptes existants ne voient rien changer.
   **Comment** : le début EST `@kyroz:debutSuivi` (`{ jour, minutes }`, `fixerDebutSuivi`) — un seul objet pour l'auto-coche, la liste et l'écran. Un début à venir fait partir `week_start_date` de ce jour-là (`lib/debutPlan.ts::semaineDuDebut`, y compris aux régénérations d'ici là) : liste, dates du bandeau et renouvellement suivent sans rien d'autre. Les repas d'avant le début (jours antérieurs, ou heure limite passée au moment du « Ce soir ») ne s'affichent pas et ne s'achètent pas (`repasDepuisLeDebut`) ; l'auto-coche et le solde de la veille ne touchent à rien avant le jour du début. Une seule `Modal` pour les deux pages (`FirstPlanReveal`, iOS refuse d'en enchaîner deux).
   **Mesuré au moteur** (profil de test, lun → ven) : mercredi 21 h 45 « Ce soir » → **5,8 → 4,8 kg, 44 → 36 lignes** ; lundi 21 h 45 → 9,9 → 8,8 kg. Garde-fou : `debutPlan.test.ts` (12 cas, 2 mutations rouges). **Vu à l'écran** (web, 375 pt, lundi 19 h 30) : « Ce soir » → Plan avec collation + dîner et « Les repas d'avant ton début ne sont pas comptés » ; « Jeudi 22 » → Plan ouvert sur le jour 4, lundi affiche « Ton plan commence jeudi 22 octobre. », Courses « À partir de jeudi, le jour où tu commences. ». ⚠️ Non vu au simulateur iOS.
   ⚠️ **Reste à trancher** : le chiffre du jour (« 0 / 2 314 kcal ») reste celui d'une journée entière sur un jour d'avant le début et le soir du « Ce soir ». Et l'effet du samedi d'E76 (premier plan de 2 jours) n'arrive plus que si l'on choisit « Aujourd'hui » un samedi.

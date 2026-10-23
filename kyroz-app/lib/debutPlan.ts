@@ -11,9 +11,10 @@ import { dateLocale, datesDuPlan, joursEcoules } from './semainePlan';
  * au lieu de 4,1, onze lignes rien que pour ce soir-là).
  *
  * ➡️ La décision : à la fin de l'inscription, AVANT « C'est prêt », Kyroz demande quand on
- * commence. « Ce soir » (ou « Aujourd'hui ») garde les repas qui restent ; un autre jour fait
- * partir le plan ET la liste de ce jour-là. La question ne se pose qu'une fois, au premier
- * plan : les comptes existants ne voient rien changer.
+ * commence. « Ce soir » (ou « Aujourd'hui ») garde les repas qui restent ; un autre jour de la
+ * semaine, ou le premier jour du plan de la semaine suivante, fait partir le plan ET la liste
+ * de ce jour-là (choix resserrés le 2026-10-23, `optionsDeDebut`). La question ne se pose
+ * qu'une fois, au premier plan : les comptes existants ne voient rien changer.
  *
  * ⚠️ LE DÉBUT EST LE MÊME OBJET QUE `@kyroz:debutSuivi` (lib/repasAuto.ts), pas un second :
  * `{ jour, minutes }` = le jour où l'on commence et, ce jour-là, l'heure à partir de
@@ -50,15 +51,16 @@ export const HEURE_DU_SOIR = 17;
 export interface OptionDebut {
   /** Le début qu'enregistre ce choix. */
   debut: DebutDuSuivi;
-  /** « Ce soir », « Demain », « Samedi 25 ». */
+  /** « Ce soir », « Demain », « Samedi 25 », « La semaine prochaine ». */
   libelle: string;
-  /** « Il reste le dîner », « jeudi 23 octobre ». */
+  /** « Il reste ton dîner » pour aujourd'hui, la date pour la semaine prochaine ; vide pour un jour de cette semaine. */
   detail: string;
+  /** Où l'écran le range : la carte d'aujourd'hui, la grille « Un autre jour », la dernière carte. */
+  groupe: 'aujourdhui' | 'semaine' | 'suivante';
 }
 
 /**
- * « dîner », « collation et dîner ». Sans article, à dessein : un créneau peut être créé par
- * l'utilisateur (« Shaker post-training »), et son genre ne se devine pas.
+ * « dîner », « collation et dîner ». Sans article : `avecPossessif` le pose avant.
  */
 function enumerer(noms: string[]): string {
   if (noms.length <= 1) return noms[0] ?? '';
@@ -66,6 +68,23 @@ function enumerer(noms: string[]): string {
 }
 
 const minuscule = (s: string) => s.charAt(0).toLowerCase() + s.slice(1);
+
+/** Le genre des noms de repas courants, pour « ton dîner », « ta collation ». */
+const POSSESSIF: Record<string, 'ton' | 'ta'> = {
+  'petit-dej': 'ton', 'petit-dejeuner': 'ton', dejeuner: 'ton', diner: 'ton', collation: 'ta',
+  gouter: 'ton', souper: 'ton', brunch: 'ton', snack: 'ton', shaker: 'ton', 'casse-croute': 'ton',
+};
+
+/**
+ * « ton dîner », « ta collation ». Un créneau créé par l'utilisateur (« Pause du matin ») a un
+ * genre qu'on ne devine pas : devant une voyelle « ton » vaut pour les deux (« ton encas »,
+ * « ton envie ») ; sinon son nom passe entre guillemets, sans article, plutôt qu'avec le mauvais.
+ */
+function avecPossessif(libelle: string): string {
+  const n = libelle.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  const possessif = POSSESSIF[n] ?? (/^[aeiouy]/.test(n) ? 'ton' : null);
+  return possessif ? `${possessif} ${minuscule(libelle.trim())}` : `«\u00A0${libelle.trim()}\u00A0»`;
+}
 
 /**
  * Les créneaux du jour encore à venir à `minutes` : ceux dont l'heure limite n'est pas
@@ -78,10 +97,17 @@ export function creneauxRestants(slots: readonly MealSlot[], minutes: number): M
     .filter((s) => (limites.get(s.id) ?? 0) > minutes);
 }
 
+const LUNDI = 1;
+const enMajuscule = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+
 /**
- * Les choix proposés, dans l'ordre : aujourd'hui (s'il reste un repas et que c'est un jour
- * du plan), puis chaque jour du plan des 7 prochains jours. Le premier jour à venir s'appelle
- * « Demain » quand c'est demain.
+ * Les choix proposés (décision fondateur du 2026-10-23, sur capture de la redite « Lundi 26 /
+ * lundi 26 octobre ») :
+ *  - **aujourd'hui**, s'il reste un repas et que c'est un jour du plan — « Il reste ton dîner » ;
+ *  - **un autre jour de CETTE semaine** (jusqu'au dimanche), au choix, sans sous-titre : le nom
+ *    du jour suffit, la date en dessous le répétait ;
+ *  - **la semaine prochaine** : son premier jour du plan, daté en sous-titre.
+ * Le premier jour à venir s'appelle « Demain » quand c'est demain.
  * `weekdays` : les jours du plan (`getDay`, 0 = dimanche), déjà limités au nombre de jours
  * du plan. Vide = pas de question (comptes d'avant les jours choisis : on ne sait pas dater).
  */
@@ -100,20 +126,31 @@ export function optionsDeDebut(
       out.push({
         debut: { jour: dateLocale(maintenant), minutes },
         libelle: maintenant.getHours() >= HEURE_DU_SOIR ? 'Ce soir' : 'Aujourd’hui',
-        detail: `Encore au menu : ${enumerer(restants.map((s) => minuscule(libelleDe(s))))}`,
+        detail: `Il reste ${enumerer(restants.map((s) => avecPossessif(libelleDe(s))))}`,
+        groupe: 'aujourdhui',
       });
     }
   }
-  for (let i = 1; i <= 7; i++) {
-    const d = new Date(maintenant.getFullYear(), maintenant.getMonth(), maintenant.getDate() + i);
+  const jourDans = (i: number) => new Date(maintenant.getFullYear(), maintenant.getMonth(), maintenant.getDate() + i);
+  // Cette semaine : de demain à dimanche.
+  let i = 1;
+  for (; jourDans(i).getDay() !== LUNDI; i++) {
+    const d = jourDans(i);
+    if (!weekdays.includes(d.getDay())) continue;
+    out.push({
+      debut: { jour: dateLocale(d), minutes: 0 },
+      libelle: i === 1 ? 'Demain' : `${enMajuscule(JOURS[d.getDay()])} ${d.getDate()}`,
+      detail: '',
+      groupe: 'semaine',
+    });
+  }
+  // La semaine prochaine : son premier jour du plan.
+  for (let k = i; k < i + 7; k++) {
+    const d = jourDans(k);
     if (!weekdays.includes(d.getDay())) continue;
     const jour = dateLocale(d);
-    const nom = JOURS[d.getDay()];
-    out.push({
-      debut: { jour, minutes: 0 },
-      libelle: i === 1 ? 'Demain' : `${nom.charAt(0).toUpperCase()}${nom.slice(1)} ${d.getDate()}`,
-      detail: dateEnLettres(jour),
-    });
+    out.push({ debut: { jour, minutes: 0 }, libelle: 'La semaine prochaine', detail: enMajuscule(dateEnLettres(jour)), groupe: 'suivante' });
+    break;
   }
   return out;
 }
