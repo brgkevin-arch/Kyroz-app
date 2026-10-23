@@ -20,28 +20,51 @@ const RAYON: Record<string, string> = {
   laitiers: 'Produits laitiers & œufs', autres: 'Autres',
 };
 
-/** Les propositions (avis du 2026-10-23), à valider par le fondateur. */
+/**
+ * Les propositions, à valider par le fondateur. RÈGLE (fondateur, 2026-10-23 : « tu ne mets
+ * pas une banane au frigo ») : **au frais = au frigo** ; **au sec = tout le reste** (placard,
+ * corbeille, à l'abri de la lumière). Chaque ligne dit sa source (cf. SOURCES plus bas).
+ * Dans le doute (marques qui vendent l'un ou l'autre), le frigo : un produit du rayon frais
+ * oublié au placard est un risque, l'inverse non — sauf pour ce que le froid abîme.
+ */
 const PROPOSE: Record<string, { rangement?: Conservation; rayon?: string; pourquoi: string }> = {
-  tofu_ferme: { rangement: 'frais', pourquoi: 'vendu au rayon frais' },
-  tofu_fume: { rangement: 'frais', pourquoi: 'vendu au rayon frais' },
-  tofu_soyeux: { rangement: 'frais', pourquoi: 'vendu au rayon frais' },
-  tempeh: { rangement: 'frais', pourquoi: 'vendu au rayon frais' },
-  seitan: { rangement: 'frais', pourquoi: 'vendu au rayon frais' },
-  boulette_vegetale: { rangement: 'frais', pourquoi: 'rayon frais, comme les autres similis' },
-  galette_vegetale: { rangement: 'frais', pourquoi: 'rayon frais, comme les autres similis' },
-  lardons_vegetaux: { rangement: 'frais', pourquoi: 'rayon frais, comme les autres similis' },
-  merguez_vegetale: { rangement: 'frais', pourquoi: 'rayon frais, comme les autres similis' },
-  nuggets_vegetal: { rangement: 'frais', pourquoi: 'rayon frais, comme les autres similis' },
-  saucisse_vegetale: { rangement: 'frais', pourquoi: 'rayon frais, comme les autres similis' },
+  // Ce que le froid abîme : corbeille ou placard (Interfel, Aprifel).
+  banane: { rangement: 'sec', pourquoi: 'corbeille : au frigo elle noircit et perd son goût [1]' },
+  tomate: { rangement: 'sec', pourquoi: 'température ambiante : le froid la rend farineuse [1][2]' },
+  avocat: { rangement: 'sec', pourquoi: 'température ambiante tant qu\'il est entier [1]' },
+  ananas: { rangement: 'sec', pourquoi: 'air ambiant, il craint le froid (< 7 °C) [1]' },
+  mangue: { rangement: 'sec', pourquoi: 'mûrit à l\'air libre, en corbeille [1]' },
+  pomme: { rangement: 'sec', pourquoi: 'corbeille, 7 à 8 jours à l\'air ambiant [1]' },
+  pomme_de_terre: { rangement: 'sec', pourquoi: 'endroit frais et sec, à l\'abri de la lumière [1]' },
+  patate_douce: { rangement: 'sec', pourquoi: 'au sec, comme la pomme de terre [1]' },
+  oignon: { rangement: 'sec', pourquoi: 'endroit sombre et aéré [1]' },
+  lentilles_corail: { rangement: 'sec', rayon: 'féculents', pourquoi: 'lentilles sèches ; et « corail » contient « ail », d\'où le rayon Légumes' },
+  // Vendus au rayon frais : le frigo.
+  tofu_ferme: { rangement: 'frais', pourquoi: 'rayon frais [4]' },
+  tofu_fume: { rangement: 'frais', pourquoi: 'rayon frais [4]' },
+  tempeh: { rangement: 'frais', pourquoi: 'frigo (certaines marques bio le vendent pasteurisé, au frigo une fois ouvert) [4]' },
+  seitan: { rangement: 'frais', pourquoi: 'frigo (même remarque que le tempeh) [4]' },
+  boulette_vegetale: { rangement: 'frais', pourquoi: 'rayon frais, comme les autres similis déjà au frais' },
+  galette_vegetale: { rangement: 'frais', pourquoi: 'rayon frais, comme les autres similis déjà au frais' },
+  lardons_vegetaux: { rangement: 'frais', pourquoi: 'rayon frais, comme les autres similis déjà au frais' },
+  merguez_vegetale: { rangement: 'frais', pourquoi: 'rayon frais, comme les autres similis déjà au frais' },
+  nuggets_vegetal: { rangement: 'frais', pourquoi: 'rayon frais, comme les autres similis déjà au frais' },
+  saucisse_vegetale: { rangement: 'frais', pourquoi: 'rayon frais, comme les autres similis déjà au frais' },
   chorizo_vegetal: { rangement: 'frais', rayon: 'viandes', pourquoi: 'rayon frais ; et « chorizo » contient « riz », d\'où le rayon Féculents' },
   falafel: { rangement: 'frais', pourquoi: 'prêts à consommer : rayon traiteur frais' },
-  pomme_de_terre: { rangement: 'sec', pourquoi: 'se garde des semaines au placard, pas au frigo' },
-  patate_douce: { rangement: 'sec', pourquoi: 'se garde des semaines au placard, pas au frigo' },
-  oignon: { rangement: 'sec', pourquoi: 'se garde des semaines au placard, pas au frigo' },
-  lentilles_corail: { rangement: 'sec', rayon: 'féculents', pourquoi: 'lentilles sèches ; et « corail » contient « ail », d\'où le rayon Légumes' },
-  lait_demi_ecreme: { rangement: 'sec', pourquoi: 'brique UHT, au placard tant qu\'elle est fermée — comme le lait d\'amande et le lait de coco' },
-  creme_soja: { rangement: 'sec', pourquoi: 'brique UHT, au placard tant qu\'elle est fermée — comme le lait d\'amande et le lait de coco' },
+  // Briques UHT : au placard tant qu'elles sont fermées (À TRANCHER, cf. la question du doc).
+  lait_demi_ecreme: { rangement: 'sec', pourquoi: 'brique UHT fermée : placard (frigo une fois ouverte) — comme le lait d\'amande et le lait de coco' },
+  creme_soja: { rangement: 'sec', pourquoi: 'brique UHT fermée : placard (frigo une fois ouverte) — comme le lait d\'amande et le lait de coco' },
 };
+
+/** Les sources citées par les propositions et le tableau. */
+const SOURCES = [
+  '[1] Interfel, lesfruitsetlegumesfrais.com — fiches « choisir et conserver » (banane, avocat, ananas, mangue, pomme, kiwi, raisin, framboise, myrtille, concombre, poivron, carotte, brocoli, chou-fleur, épinard, asperge, champignon, pomme de terre, patate douce, oignon, betterave).',
+  '[2] Ministère de l\'Agriculture, « Comment bien conserver ses légumes ? » (agriculture.gouv.fr) — la tomate garde mieux son goût à l\'air libre ; la plupart des légumes au bac à légumes.',
+  '[3] ANSES (rapporté par Allodocteurs) — des œufs vendus à température ambiante n\'ont pas besoin du frigo ; choisir l\'un ou l\'autre et s\'y tenir.',
+  '[4] Fiches produit Celnat (Greenweez) — tempeh et seitan : « une fois ouvert, à conserver au réfrigérateur entre 0 °C et 4 °C ».',
+  '[5] Mori-Nu — tofu soyeux en brique aseptique : pas de frigo avant ouverture.',
+];
 
 const usage = new Map<string, number>();
 for (const r of RAW_RECIPES as { ingredients?: { ref: string }[] }[]) {
@@ -89,13 +112,24 @@ const doc = `# Le rangement de la Réserve, aliment par aliment (point 5, 2026-1
 > **${lignes.length} aliments** (servis par au moins une recette, hors fonds de placard) ·
 > **${nbPropose} corrections proposées**, en attente du fondateur.
 
-## La règle proposée
+## La règle (fondateur, 2026-10-23)
 
-- **Au frais** : ce qui va au frigo ou au congélateur, et les fruits et légumes qui se
-  mangent dans la semaine (la corbeille compte avec le frais).
-- **Au sec** : le placard — ce qui tient des semaines, paquet fermé. La Réserve reçoit des
-  paquets entiers et fermés à « Courses terminées » : c'est leur place À CE MOMENT-LÀ.
+- **Au frais = au frigo.** *« Tu ne mets pas une banane au frigo. Rares sont les fruits qui y
+  vont. »* Chaque aliment est rangé là où les sources ci-dessous le mettent.
+- **Au sec = tout le reste** : placard, corbeille à fruits, endroit sombre et aéré.
+- Les **surgelés** (edamame, fruits rouges, mélange wok, petits pois, vendus en sachet
+  surgelé) restent au frais : le congélateur n'a pas de case à lui, le froid va avec le froid.
+- Dans le doute (une marque le vend au frais, une autre non), le frigo : un produit du rayon
+  frais oublié au placard est un risque, l'inverse non.
 - Toujours corrigeable d'une touche dans la Réserve, et la correction l'emporte.
+
+### À trancher : les briques UHT et les pots fermés
+
+Lait demi-écrémé, crème de soja, lait d'amande, lait de coco, tofu soyeux en brique [5],
+pesto, sirop d'érable : **placard tant que c'est fermé, frigo une fois ouvert**. La Réserve
+reçoit des paquets fermés à « Courses terminées ». Proposé : **au sec pour tous** (aujourd'hui
+le lait et la crème de soja sont au frais, les cinq autres au sec — deux rangements pour le
+même cas).
 
 ${table('frais')}
 
@@ -104,6 +138,17 @@ ${table('sec')}
 ### Jamais en Réserve
 
 Fonds de placard, supposés toujours là (\`isStaple\`) : ${placard.join(', ')}.
+
+## Sources
+
+${SOURCES.map((x) => `- ${x}`).join('\n')}
+
+Œufs : laissés au frais. Vendus à température ambiante en France, ils n'ont pas besoin du
+frigo, mais ils peuvent y aller tant qu'on ne les en sort pas [3] — c'est l'usage le plus
+courant. Kiwi et raisin restent au frais : au bac à légumes selon Interfel [1] (le kiwi mûrit
+en corbeille, il se garde ensuite au frigo). Courgette : les fiches d'Interfel divergent
+(« endroit frais et sec », « moins d'une semaine au frais ») ; laissée au frais, comme le
+concombre et le poivron (bac à légumes) [1].
 `;
 
 writeFileSync(join(__dirname, '..', 'docs', '2026-10-23-rangement-reserve.md'), doc);

@@ -309,9 +309,13 @@ qu'ils étaient périmés.
 5. **Réserve** : vérifier aliment par aliment le rangement frais / sec.
    ⏳ **Inventaire fait le 2026-10-23, EN ATTENTE DU FONDATEUR** —
    `docs/2026-10-23-rangement-reserve.md`, généré depuis le code
-   (`npx tsx scripts/gen-rangement-reserve.ts`) : 129 aliments, **19 corrections proposées**
-   (13 → au frais : tofus, tempeh, seitan, similis, falafels ; 6 → au sec : pomme de terre,
-   patate douce, oignon, lentilles corail, lait UHT, crème de soja), plus **2 rayons faux**
+   (`npx tsx scripts/gen-rangement-reserve.ts`) : 129 aliments. Ma première règle (« la
+   corbeille compte avec le frais ») est REFUSÉE par le fondateur : **au frais = au frigo**
+   (« tu ne mets pas une banane au frigo »), chaque aliment rangé d'après des sources
+   (Interfel surtout, citées dans le doc). **24 corrections proposées** : 12 → au frais
+   (tofu ferme et fumé, tempeh, seitan, 7 similis, falafels), 12 → au sec (banane, tomate,
+   avocat, ananas, mangue, pomme, pomme de terre, patate douce, oignon, lentilles corail, et
+   — à trancher — lait UHT et crème de soja, briques fermées), plus **2 rayons faux**
    dans la liste de courses aussi : `categorize` cherche ses mots-clés n'importe où dans le
    mot, donc « corail » attrape « ail » (lentilles → Légumes) et « chorizo » attrape « riz »
    (chorizo végétal → Féculents). Rien n'est touché avant sa réponse.
@@ -329,7 +333,7 @@ qu'ils étaient périmés.
    codé + essai posé (ligne 1) ; **point 2 codé et vu au navigateur le 2026-10-22** (semaine
    suivante + pesée, niveau 2 des restes après l'OTA) ; **point 3 mesuré, fermé et validé le
    2026-10-22** ; **point 4 : codé, 15 des 16 phrases retirées, le n° 8 à re-trancher**
-   (2026-10-22, session cloud) ; **point 5 : inventaire fait, 19 corrections à trancher**
+   (2026-10-22, session cloud) ; **point 5 : inventaire fait, 24 corrections à trancher**
    (2026-10-23) ; point 6 fusionné dans le 2 ; point 7 (glisser pour supprimer) après.
    ⚠️ #376 porte TOUT (plan daté, « Quand veux-tu commencer ? », seuils, thon, page Kyroz+,
    CGU révisées le 20 octobre — date à reporter si la livraison glisse) ; elle est à jour de
