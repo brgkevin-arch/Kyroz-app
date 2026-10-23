@@ -12,6 +12,7 @@ import { Sheet } from '../../components/Sheet';
 import { useDialog } from '../../components/Dialog';
 import { ShoppingHistory } from '../../components/ShoppingHistory';
 import { ActionSheet } from '../../components/ActionSheet';
+import { LigneGlissable } from '../../components/LigneGlissable';
 import { PrimaryButton, Chip, Field } from '../../components/ui';
 import { MealPlan, ShoppingItem, ShoppingList } from '../../lib/types';
 import { buildShoppingList } from '../../lib/shoppingList';
@@ -74,12 +75,16 @@ export default function CoursesScreen() {
   // Ce que la liste couvre, dit à l'écran. Posé là où le plan est LU (`load`), parce que
   // cet écran ne garde pas le plan en état — il le relit à chaque venue sur l'onglet.
   const [depart, setDepart] = useState('');
-  const { confirm, choose } = useDialog();
+  const { choose } = useDialog();
   const [list, setList] = useState<ShoppingList | null>(null);
   // Articles écartés (`lib/shoppingRemoved.ts`). ⚠️ Ils vivent HORS de `list` :
   // le cache de la liste est effacé par `plan.tsx` à chaque `persistPlan`, donc
   // une suppression rangée dedans se déferait toute seule.
   const [ecartes, setEcartes] = useState<string[]>([]);
+  // Glisser vers la gauche pour retirer (2026-10-23, le geste de la Réserve) : une seule
+  // ligne ouverte à la fois, et le défilement coupé le temps d'un glissement.
+  const [ligneOuverte, setLigneOuverte] = useState<string | null>(null);
+  const [glisseEnCours, setGlisseEnCours] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [hideChecked, setHideChecked] = useState(false);
   const [history, setHistory] = useState<ShoppingTrip[]>([]);
@@ -215,30 +220,19 @@ export default function CoursesScreen() {
   //
   // On le décoche au passage, pour qu'un article rétabli plus tard ne revienne pas
   // coché d'un achat qui n'a pas eu lieu.
+  //
+  // Le geste est un GLISSEMENT vers la gauche depuis le 2026-10-23 (il était un appui long
+  // suivi d'une confirmation) : le geste d'Apple, celui de la Réserve, et sans dialogue — un
+  // article du plan retiré se rétablit (« Rétablir », sous les commandes).
+  // 🔴 UN AJOUT MANUEL NE S'ÉCARTE PAS, IL SE SUPPRIME : rien ne peut le refaire à la place
+  // de celui qui l'a tapé, et « Rétablir » ne le ramène pas.
   const ecarterArticle = async (item: ShoppingItem) => {
-    // 🔴 UN AJOUT MANUEL NE S'ÉCARTE PAS, IL SE SUPPRIME. Le message ci-dessous
-    // promet « tu le retrouveras en tirant la liste vers le bas » — c'est vrai
-    // d'un article du plan, que la liste sait refaire, et FAUX d'un article que
-    // l'utilisateur a tapé lui-même : rien ne peut le deviner à sa place. Deux
-    // portées différentes derrière le même appui long, donc deux phrases.
+    animerMiseEnPage();
+    setLigneOuverte(null);
     if (item.manuel) {
-      const oui = await confirm({
-        title: `Supprimer ${nomAffiche(item.name)} ?`,
-        message: "Tu l'as ajouté toi-même, donc il ne reviendra pas tout seul.",
-        confirmLabel: 'Supprimer',
-        destructive: true,
-      });
-      if (!oui) return;
       await persistAjouts(retirerAjout(ajouts, item.name));
       return;
     }
-    const ok = await confirm({
-      title: `Retirer ${nomAffiche(item.name)} ?`,
-      message: 'Il quitte ta liste de courses. Ton plan de repas ne change pas : tu le retrouveras en tirant la liste vers le bas.',
-      confirmLabel: 'Retirer',
-      destructive: true,
-    });
-    if (!ok) return;
     if (item.checked) await toggle(item);
     const suivants = ecarter(ecartes, item.name);
     setEcartes(suivants);
@@ -745,14 +739,11 @@ export default function CoursesScreen() {
           </View>
         )}
 
-        {/* 🔴 UNE PHRASE D'AIDE EST UNE AFFIRMATION SUR LE CODE. Celle-ci a déjà été
-            fausse deux fois — « il part direct dans ton frigo » quand le cochage a
-            cessé de remplir le stock, puis quand ce suivi est devenu optionnel.
-            Depuis le 2026-10-22 (fondateur, point 4 : « l'app tourne en silence »), elle
-            ne dit plus que le seul geste qui ne se voit pas ; « Coche ce que tu prends,
-            puis « Courses terminées » range le tout dans ta réserve, paquets entiers »
-            est retiré. */}
-        <Text style={s.hint}>Appui long pour retirer un article.</Text>
+        {/* Plus de phrase d'aide sous les commandes (2026-10-23) : elle disait le seul geste
+            qui ne se voyait pas, « Appui long pour retirer un article ». Retirer se fait
+            désormais en GLISSANT la ligne vers la gauche, le geste d'Apple, qu'on n'explique
+            pas plus qu'iOS ne l'explique. (Elle avait menti deux fois avant : « il part
+            direct dans ton frigo ».) */}
     </View>
   );
 
@@ -770,6 +761,8 @@ export default function CoursesScreen() {
         // demandent tes repas… ») est RETIRÉE le 2026-10-22 (fondateur, point 4 : « l'app
         // tourne en silence ») : elle racontait le calcul, la ligne dit déjà quoi prendre.
         {...repli.scrollProps}
+        scrollEnabled={!glisseEnCours}
+        onScrollBeginDrag={() => setLigneOuverte(null)}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={t.textTertiary} progressViewOffset={repli.haut} />}
         renderSectionHeader={({ section }) => (
           <View style={s.section}>
@@ -792,30 +785,26 @@ export default function CoursesScreen() {
           // manuel ou un aliment sans format, qui gardent leur quantité seule.
           const achat = achatPour(item);
           return (
-            <Presse
-              style={[
-                s.row,
-                first && { borderTopLeftRadius: Radius.card, borderTopRightRadius: Radius.card },
-                last && { borderBottomLeftRadius: Radius.card, borderBottomRightRadius: Radius.card },
-                !last && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.line },
-              ]}
-              onPress={() => toggle(item)}
+            // Les coins de la carte sont posés par la ligne glissable (premiere / derniere),
+            // qui rogne aussi le rouge qu'elle découvre.
+            <LigneGlissable
+              libelle="Retirer"
+              ouverte={ligneOuverte === item.name}
+              onOuvrir={() => setLigneOuverte(item.name)}
+              onFermer={() => setLigneOuverte((o) => (o === item.name ? null : o))}
+              onGlisse={setGlisseEnCours}
+              onSupprimer={() => ecarterArticle(item)}
+              premiere={first}
+              derniere={last}
+              styleLigne={[s.row, !last && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.line }]}
+              onTouche={() => (ligneOuverte ? setLigneOuverte(null) : toggle(item))}
               // Le geste le plus RÉPÉTÉ de l'app : on coche une trentaine
               // d'articles d'affilée, en magasin, souvent sans regarder l'écran.
               // D'où `choix` et non `validation` : `selectionAsync` est le tic
               // léger du sélecteur iOS, celui qu'on peut sentir trente fois de
               // suite. Un retour de succès à chaque ligne serait épuisant — c'est
               // la même raison qui interdit un retour par défaut sur `Presse`.
-              retour="choix"
-              // ⚠️ `onLongPress`, PAS un balayage : un glissement passe par le
-              // système de responder et se vérifie au simulateur uniquement (§5,
-              // « un GESTE ne se vérifie pas en web »). L'appui long, lui, n'est
-              // qu'un délai posé sur le press — il marche des deux côtés et se
-              // teste ici. Il n'est pas découvrable pour autant : d'où la note
-              // sous les contrôles ET une bulle dans la visite guidée.
-              onLongPress={() => ecarterArticle(item)}
-              delayLongPress={400}
-              activeOpacity={OPACITE_PRESSION}
+              retourTouche="choix"
             >
               {/* Pastille RONDE et pleine : une case à cocher carrée est un objet de
                   formulaire, or ici on ne remplit pas un formulaire, on fait ses courses. */}
@@ -837,7 +826,7 @@ export default function CoursesScreen() {
                   <Text style={[s.qty, item.checked && { color: t.textTertiary }]} numberOfLines={1}>{formatQuantity(item.name, item.quantity, item.unit)}</Text>
                 )}
               </View>
-            </Presse>
+            </LigneGlissable>
           );
         }}
       />
@@ -885,7 +874,6 @@ function makeStyles(t: ThemePalette) {
     retires: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: Spacing.md, paddingTop: Spacing.md },
     retiresTxt: { ...Type.caption, color: t.textTertiary, flex: 1 },
     retiresLien: { ...Type.captionStrong, color: t.accent, minHeight: CIBLE_TACTILE_MIN, textAlignVertical: 'center', lineHeight: CIBLE_TACTILE_MIN },
-    hint: { ...Type.caption, color: t.textTertiary, lineHeight: 18, paddingTop: Spacing.md },
     // Note de pied présente dans la maquette et absente de l'app : elle dit d'où
     // sortent les quantités, ce qu'aucun autre élément de l'écran n'explique.
 

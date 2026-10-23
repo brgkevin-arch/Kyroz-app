@@ -24,6 +24,7 @@ const RETIREES: [string[], string][] = [
   [['app', '(tabs)', 'courses.tsx'], 'Depuis tes dernières courses'],
   [['app', '(tabs)', 'courses.tsx'], 'range le tout dans ta réserve'],
   [['app', '(tabs)', 'courses.tsx'], 'ne rejoindra pas ta réserve'],
+  [['app', '(tabs)', 'courses.tsx'], 'Appui long pour retirer'],
   [['app', '(tabs)', 'courses.tsx'], 'La liste réapparaîtra'],
   [['app', '(tabs)', 'courses.tsx'], 'Ton plan de repas, lui, n'],
   [['lib', 'coursesDepuis.ts'], 'le jour où tu commences'],

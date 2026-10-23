@@ -8,6 +8,7 @@ import {
 } from '../lib/motion';
 import { reduceMotionActif } from '../lib/reduceMotion';
 import { retour } from '../lib/retourHaptique';
+import type { RoleHaptique } from '../lib/haptique';
 
 // ── Glisser une ligne vers la gauche pour la supprimer (2026-10-23) ──────────
 //
@@ -44,6 +45,10 @@ interface Props {
   styleLigne: StyleProp<ViewStyle>;
   /** Toucher la ligne (hors glissement). */
   onTouche: () => void;
+  /** Le retour au toucher du tap, s'il en a un (cocher un article : `choix`). */
+  retourTouche?: RoleHaptique;
+  /** Le mot du bouton : « Supprimer » par défaut ; « Retirer » quand l'objet peut revenir. */
+  libelle?: string;
   /** Ce que fait « Supprimer » — le bouton comme le glissement long. */
   onSupprimer: () => void;
   /** Le bouton est-il ouvert ? Une seule ligne l'est à la fois : l'écran le tient. */
@@ -57,7 +62,10 @@ interface Props {
   derniere?: boolean;
 }
 
-export function LigneGlissable({ children, styleLigne, onTouche, onSupprimer, ouverte, onOuvrir, onFermer, onGlisse, premiere, derniere }: Props) {
+export function LigneGlissable({
+  children, styleLigne, onTouche, retourTouche, libelle = 'Supprimer', onSupprimer, ouverte, onOuvrir, onFermer, onGlisse,
+  premiere, derniere,
+}: Props) {
   const t = useTheme();
   const s = useMemo(() => makeStyles(t), [t]);
   const x = useRef(new Animated.Value(0)).current;
@@ -174,12 +182,12 @@ export function LigneGlissable({ children, styleLigne, onTouche, onSupprimer, ou
       <Presse
         style={[StyleSheet.absoluteFill, s.fond]}
         onPress={() => amener(-largeur.current, 0, supprimer)}
-        accessibilityLabel="Supprimer"
+        accessibilityLabel={libelle}
         importantForAccessibility="no-hide-descendants"
         accessibilityElementsHidden
       >
         <Animated.View style={[s.zoneLibelle, { transform: [{ translateX: suivi }] }]}>
-          <Text style={s.libelle}>Supprimer</Text>
+          <Text style={s.libelle}>{libelle}</Text>
         </Animated.View>
       </Presse>
       </Animated.View>
@@ -188,13 +196,14 @@ export function LigneGlissable({ children, styleLigne, onTouche, onSupprimer, ou
       <Animated.View style={[s.ligne, { transform: [{ translateX: x }] }]}>
         <Presse
           style={styleLigne}
+          retour={retourTouche}
           onPressIn={() => { vientDeGlisser.current = false; }}
           onPress={() => {
             if (vientDeGlisser.current) { vientDeGlisser.current = false; return; }
             rappels.current.onTouche();
           }}
           // VoiceOver ne glisse pas : la suppression lui est offerte comme une action.
-          accessibilityActions={[{ name: 'supprimer', label: 'Supprimer' }]}
+          accessibilityActions={[{ name: 'supprimer', label: libelle }]}
           onAccessibilityAction={(e) => { if (e.nativeEvent.actionName === 'supprimer') supprimer(); }}
         >
           {children}

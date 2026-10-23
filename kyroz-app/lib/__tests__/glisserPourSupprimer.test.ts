@@ -70,7 +70,7 @@ describe('le composant tient les pièges de `Sheet.tsx`', () => {
   });
 
   it('VoiceOver a son chemin : une action « Supprimer » sur la ligne', () => {
-    expect(ligne).toContain("accessibilityActions={[{ name: 'supprimer', label: 'Supprimer' }]}");
+    expect(ligne).toContain("accessibilityActions={[{ name: 'supprimer', label: libelle }]}");
   });
 
   it('le seuil de suppression se SENT (déclic) au moment où il est franchi', () => {
@@ -99,5 +99,35 @@ describe('la Réserve s’en sert', () => {
 
   it('descendre la quantité à zéro supprime toujours', () => {
     expect(reserve).toMatch(/if \(q === 0\) \{\s*await persist\(removeItem\(items, editItem\.name, editItem\.unit\)\)/);
+  });
+});
+
+describe('les Courses s’en servent aussi (2026-10-23)', () => {
+  const courses = lire('app', '(tabs)', 'courses.tsx');
+
+  it('chaque article est une ligne glissable ; le bouton dit « Retirer » (un article du plan se rétablit)', () => {
+    expect(courses).toContain('<LigneGlissable');
+    expect(courses).toContain('libelle="Retirer"');
+    expect(courses).toContain('onSupprimer={() => ecarterArticle(item)}');
+  });
+
+  it('l’appui long et sa confirmation sont partis : le glissement retire sans dialogue', () => {
+    expect(courses).not.toContain('onLongPress');
+    const bloc = courses.slice(courses.indexOf('const ecarterArticle = async'), courses.indexOf('const retablirTout'));
+    expect(bloc).not.toContain('confirm(');
+    // Un ajout manuel se supprime, un article du plan s'écarte (et se rétablit).
+    expect(bloc).toMatch(/if \(item\.manuel\) \{\s*await persistAjouts\(retirerAjout\(ajouts, item\.name\)\);\s*return;/);
+    expect(bloc).toContain('ecarter(ecartes, item.name)');
+  });
+
+  it('toucher coche (avec son tic), sauf si une ligne est ouverte : il la referme', () => {
+    expect(courses).toContain('onTouche={() => (ligneOuverte ? setLigneOuverte(null) : toggle(item))}');
+    expect(courses).toContain('retourTouche="choix"');
+  });
+
+  it('le défilement est coupé pendant un glissement, et défiler referme la ligne ouverte', () => {
+    expect(courses).toContain('scrollEnabled={!glisseEnCours}');
+    expect(courses).toContain('onGlisse={setGlisseEnCours}');
+    expect(courses).toContain('onScrollBeginDrag={() => setLigneOuverte(null)}');
   });
 });

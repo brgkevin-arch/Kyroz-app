@@ -352,7 +352,12 @@ qu'ils étaient périmés.
    Vu au navigateur (souris) : glissement court → bouton ; tap → supprimé ; glissement long
    → supprimé ; trop court → rien ; tap après → referme, puis ouvre la fiche. **Non vu au
    doigt** : conflit avec le défilement vertical, ressenti du ressort, déclic — au simulateur.
-   Ensuite, même geste dans Courses (aujourd'hui l'appui long) — à trancher avec lui.
+   ✅ **Et dans Courses, le 2026-10-23** (« go faire cela pour la liste de courses aussi ») :
+   le glissement REMPLACE l'appui long et sa confirmation ; le bouton dit **« Retirer »**
+   (un article du plan se rétablit par « Rétablir » ; un ajout manuel, lui, est supprimé) ;
+   toucher coche toujours, avec son tic `choix` ; l'aide « Appui long pour retirer un
+   article » part avec l'appui long. Vu au navigateur : retirer, glissement long, cocher,
+   rétablir. Même validation au simulateur que la Réserve.
 ➡️ Avancement : tenu ici, ligne par ligne, au fil des validations. **Au 2026-10-21** : point 1
    codé + essai posé (ligne 1) ; **point 2 codé et vu au navigateur le 2026-10-22** (semaine
    suivante + pesée, niveau 2 des restes après l'OTA) ; **point 3 mesuré, fermé et validé le

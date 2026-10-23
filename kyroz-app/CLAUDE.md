@@ -554,7 +554,8 @@ OUTPUT         → Plan + liste de courses + recettes
       ⚠️ Un nom = une ligne : le nom est la clé de la liste, la cible du cochage et
       l'identité d'un écarté. Un ajout homonyme d'un article du plan est refusé (message
       DANS la feuille, jamais un dialogue — modale sur modale = rien sur iOS) ; s'il
-      s'agit d'un article ÉCARTÉ, le retaper le RÉTABLIT. Et l'appui long ne dit pas la
+      s'agit d'un article ÉCARTÉ, le retaper le RÉTABLIT. Et le retrait (un GLISSEMENT vers la
+      gauche depuis le 2026-10-23, un appui long avant) ne dit pas la
       même chose selon l'origine : un article du plan est masqué (« tu le retrouveras en
       tirant »), un ajout manuel est SUPPRIMÉ — le promettre de retour serait faux.
 - [x] Clôture des courses (« Courses terminées ») + historique des listes — LOCAL-ONLY
