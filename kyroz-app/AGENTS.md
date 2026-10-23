@@ -205,7 +205,7 @@ qu'ils étaient périmés.
    demande.
 
 **▶️ À peaufiner AVANT la 62ᵉ OTA — demandé le 2026-10-20, UN PAR UN, chacun validé avant le suivant**
-*(Passation cloud du 2026-10-22 : `docs/2026-10-22-passation-session-cloud.md`. Point 3 livré, **pas encore validé** par le fondateur.)*
+*(Passation cloud du 2026-10-22 : `docs/2026-10-22-passation-session-cloud.md`. Point 3 validé le 2026-10-22.)*
 1. **Une page Kyroz+ dans le parcours d'arrivée**, avec abonnement direct (modèle montré par le
    fondateur : la page d'essai de Wikiloc — logo, « 14 jours offerts », frise « Aujourd'hui → … »,
    gros bouton, « Restaurer les achats », croix pour fermer). ✅ **CODÉ le 2026-10-20 dans #376**
@@ -407,10 +407,11 @@ qu'ils étaient périmés.
 ➡️ Avancement : tenu ici, ligne par ligne, au fil des validations. **Au 2026-10-21** : point 1
    codé + essai posé (ligne 1) ; **point 2 codé et vu au navigateur le 2026-10-22** (semaine
    suivante + pesée, niveau 2 des restes après l'OTA) ; **point 3 mesuré, fermé et validé le
-   2026-10-22** ; **point 4 : codé, 15 des 16 phrases retirées, le n° 8 à re-trancher**
-   (2026-10-22, session cloud) ; **point 5 : validé et codé**
+   2026-10-22** ; **point 4 : codé, les 16 phrases retirées** (le n° 8 avec le
+   glissement, 2026-10-23) ; **point 5 : validé et codé**
    (2026-10-23) ; point 6 fusionné dans le 2 ; **point 7 (glisser pour supprimer) codé le
-   2026-10-23, à valider au simulateur**.
+   2026-10-23, à valider au simulateur** ; **point 8 (tour de l'app) : tout corrigé sauf la
+   typographie, PR à part** (2026-10-23).
    ⚠️ #376 porte TOUT (plan daté, « Quand veux-tu commencer ? », seuils, thon, page Kyroz+,
    CGU révisées le 20 octobre — date à reporter si la livraison glisse) ; elle est à jour de
    `main` (61ᵉ OTA = Liquid Glass) et FUSIONNABLE ; la livraison sera la **62ᵉ OTA**, avec le
