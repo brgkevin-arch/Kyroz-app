@@ -39,6 +39,13 @@ export interface LigneTicket {
 }
 
 const PRIX = /(-?\d+[.,]\d{2})\s*€?\s*(?:[A-Z0-9])?\s*$/;
+/**
+ * Un EN-TÊTE de rayon, même mal lu par la reconnaissance de texte d'une photo : « >> CREMERIE »
+ * devient « 22 CREMERLE L.S », « >> TRAITEUR » « 2>RAEUR LS » (mesuré le 2026-10-24 sur un vrai
+ * ticket). Lu comme un article, « CREMERLE » se rapprochait de « Crème de soja ».
+ */
+const ENTETE = /^\s*(?:>>|»|2>|>2|22\s|>\s)\s*(.+)$/;
+const RAYONS = /\b(EPICERIE|LEGUMES|FRUITS|CREMERI|TRAITEUR|BOUCHERIE|CHARCUTERIE|SURGELE|BOULANGERIE|LIQUIDE|SAURISSERIE|ULTRAS?|STAND|DECOUPE|BOISSONS?|POISSONNERIE|PATISSERIE|CONFISERIE|PARFUMERIE|HYGIENE|ENTRETIEN|DROGUERIE|CAISSE)\b/i;
 const MULTIPLE = /^\s*(\d+)\s*[Xx]\s*\d+[.,]\d{2}\s*€?/;
 
 /**
@@ -53,8 +60,9 @@ export function lireTicket(texte: string): LigneTicket[] {
     const l = brute.replace(/^\s*\*\s*/, '').trim();
     if (!l) continue;
     if (/^(total|sous[- ]total|reste [àa] payer|montant)\b/i.test(l)) break;
-    const entete = l.match(/^>>\s*(.+)$/);
-    if (entete) { rayon = entete[1].trim(); continue; }
+    const entete = l.match(ENTETE);
+    if (entete && !PRIX.test(l)) { rayon = entete[1].trim(); continue; }
+    if (!PRIX.test(l) && RAYONS.test(l) && l.split(/\s+/).length <= 4 && l === l.toUpperCase()) { rayon = l; continue; }
     const multiple = l.match(MULTIPLE);
     if (multiple) {
       const derniere = lignes[lignes.length - 1];
