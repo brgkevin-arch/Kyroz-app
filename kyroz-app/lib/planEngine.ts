@@ -14,7 +14,10 @@ import { bankedDailyTargets, offsetsForPlan, BankResult } from './calorieBank';
 import { RYTHME_HEBDOMADAIRE_ACTIF } from './featureFlags';
 import { dailyBudgets } from './dailyBudget';
 import { recipeContainsFood } from './avoidance';
-import { datesDuPlan } from './semainePlan';
+import { datesDuPlan, positionSemaine } from './semainePlan';
+import { dureeDe, tientJusquau } from './dureeDeVie';
+import { FORMATS, achatPour } from './formatsVendus';
+import { RECIPE_INGREDIENTS } from './recipeData';
 
 // ── Moteur de génération de plan local ──────────────────────────────────────
 // Respecte : nombre de jours, repas/jour, variété, préférences alimentaires.
@@ -1037,6 +1040,151 @@ export function rotationRegistreActive(profile: UserProfile): boolean {
  */
 const PART_FIT_TOL = 0.04;
 
+/**
+ * FINIR CE QU'ON ACHÈTE (2026-10-24). Fondateur : *« que le moteur soit diversifié, mais optimisé
+ * pour finir la semaine avec le moins de restes possible, et se rattraper la semaine d'après pour
+ * le peu qui reste ; pas refaire les mêmes plats, mais la base avec les choses qui vont être hors
+ * DLC en priorité »*. L'app n'en dit rien : elle choisit.
+ *
+ * Le moteur suit ce qu'il y a À FINIR, aliment périssable par aliment (`lib/dureeDeVie.ts`) :
+ *  · les restes de la semaine d'avant (`Reste`, `lib/restesSemaine.ts`) ;
+ *  · le reste de chaque paquet que la semaine ENTAME (format vendu, `lib/formatsVendus.ts`),
+ *    jusqu'au jour où il ne tient plus — compté depuis les courses, la veille du premier jour.
+ * Deux leviers, mesurés (`scripts/mesure-restes.ts`, 480 semaines) :
+ *  1. au choix de chaque plat, un BONUS pour ce qui finit le plus de ce qui tourne le plus tôt
+ *     (grammes repris ÷ jours qui restent), dans le score, comme les fibres — pas un filtre ;
+ *  2. la semaine tirée, le surplus de chaque paquet de LÉGUME va dans les plats qui s'en servent
+ *     déjà, tant qu'il tient (`remplirLesPaquets`) : jamais un paquet de plus.
+ * 🔴 UN FILTRE FAISAIT −26 % DE JETÉ, ET IL A ÉTÉ ÉCARTÉ (2026-10-24). Appliqué en dur après les
+ * autres règles, il cassait 7 décisions déjà prises : part de poulet promise (46 % au lieu de
+ * 48), part végétale du végétarien, rotation des petits-déjeuners, fibres en sèche (25 g au lieu
+ * de 32), « Régénérer » qui se voit, réglage « répétitif ». En bonus, au poids où toute la suite
+ * reste verte (0,0003 ; à 0,0005, le plancher protéique et les fibres rougissent), le moteur fait
+ * 365 → 327 g jetés et 1 274 → 1 144 g à congeler par semaine. Le reste est affaire d'achat et de
+ * catalogue (10 recettes sur 541 portent du chou-fleur), pas de sélection.
+ */
+/** Le bonus d'un plat qui finit ce qui tourne : par gramme repris ÷ (1 + jours qui restent), plafonné. */
+/** `remplir` : le levier 2 (coupé seulement par les tests, pour mesurer ce qu'il change). */
+export const RESTES_REGLAGE = { w: 0.0003, max: 0.06, remplir: true };
+/** Un légume ou un fruit qui finit son paquet : jusqu'à 200 g de plus par plat ; le reste, jusqu'au double. */
+const REMPLIR_LEGUME_MAX_G = 200;
+/** …ni ses protéines de plus que ça : un skyr en plus ne doit pas faire exploser la journée (`mealProteinFloor`). */
+const REMPLIR_PROT_TOL = 2;
+/** En dessous, rien ne vaut d'être déplacé (une pincée). 14 g de crevettes, si. */
+const REMPLIR_MIN_G = 5;
+/** Les ajouts d'une journée ne déplacent pas son total de plus que ça (l'écart au jour en dépend). */
+const REMPLIR_KCAL_TOL = 15;
+/** En dessous, un reste ne compte plus (une pincée de roquette n'oriente pas une semaine). */
+const RESTES_MIN_G = 20;
+
+/** Un reste de la semaine d'avant : ce qu'il en reste (g) et le dernier jour du plan où il tient. */
+export interface Reste { g: number; jusquAu: number }
+
+/** Ce qu'il y a à finir aujourd'hui pour un aliment : les grammes, et les jours qui lui restent. */
+interface AFinir { g: number; jours: number }
+
+/** Le plus petit paquet vendu d'un aliment PÉRISSABLE (ce qu'on entame), sinon `undefined`. */
+function paquetEntame(ref: string): number | undefined {
+  if (!dureeDe(ref)) return undefined;
+  const r = FORMATS[ref];
+  return !r ? undefined : 'piece' in r ? r.piece : Math.min(...r.formats.map((f) => f.taille));
+}
+
+/** Ce qu'un plat finirait, pondéré par l'urgence (un légume compte avec sa part en plus). */
+function finit(ingredients: Ingredient[], aFinir: ReadonlyMap<string, AFinir>): number {
+  let t = 0;
+  for (const i of ingredients) {
+    const f = i.ref ? aFinir.get(i.ref) : undefined;
+    if (!f) continue;
+    t += Math.min(i.quantity_g, f.g) / (1 + f.jours);
+  }
+  return t;
+}
+
+/**
+ * TOUT CE QUI EST ACHETÉ SE CUISINE DANS LA SEMAINE (2026-10-24). Fondateur : *« c'est ridicule de
+ * laisser 67 g de concombre au frigo, ça ne va pas faire grossir de le manger dans la semaine ;
+ * personne ne fera un repas le lundi d'après avec 14 g de crevettes ou 28 g de feta : cette
+ * quantité doit rentrer dans les plats cuisinés de la semaine »*.
+ * La semaine tirée, chaque aliment PÉRISSABLE (`lib/dureeDeVie.ts`) s'achète au format vendu :
+ * le surplus du paquet se RÉPARTIT entre les plats de la semaine qui s'en servent déjà. Le plat
+ * garde ses calories (à `REMPLIR_KCAL_TOL` près) et ses protéines : le reste de l'assiette
+ * s'ajuste. S'il ne reste plus propre, il garde sa quantité. Jamais au-delà du paquet, donc
+ * jamais un paquet de plus. Viande, poisson et charcuterie (2 jours au plus une fois ouverts) :
+ * seulement dans les plats qui suivent l'ouverture de près. L'ingrédient ajouté devient FIXE
+ * dans la recette du repas, pour que le resserrage, une pesée ou un échange le retrouvent.
+ */
+/** Les fibres d'une liste d'ingrédients adaptés (g), lues dans la table du catalogue. */
+function fibresDe(ingredients: Ingredient[]): number {
+  return ingredients.reduce((t, i) => {
+    const f = i.ref ? (RECIPE_INGREDIENTS[i.ref] as { fiber_per100g?: number } | undefined)?.fiber_per100g : undefined;
+    return t + (f ? (f * i.quantity_g) / 100 : 0);
+  }, 0);
+}
+
+function remplirLesPaquets(meals: Meal[], age: (d: number) => number): void {
+  // L'écart que les ajouts ont déjà fait au total de chaque jour : il reste sous `REMPLIR_KCAL_TOL`.
+  const derive = new Map<number, number>();
+  const deriveProt = new Map<number, number>();
+  const parRef = new Map<string, Set<Meal>>();
+  for (const m of meals) {
+    if (m.fixed) continue;
+    for (const i of m.adapted_ingredients ?? []) {
+      if (i.ref && dureeDe(i.ref)) parRef.set(i.ref, (parRef.get(i.ref) ?? new Set()).add(m));
+    }
+  }
+  for (const [ref, ensemble] of parRef) {
+    const ing = RECIPE_INGREDIENTS[ref];
+    const duree = dureeDe(ref)!;
+    const qte = (m: Meal) => (m.adapted_ingredients ?? []).filter((i) => i.ref === ref).reduce((t, i) => t + i.quantity_g, 0);
+    const ms = [...ensemble].sort((a, b) => a.day - b.day);
+    const besoin = ms.reduce((t, m) => t + qte(m), 0);
+    const achat = ing ? achatPour({ name: ing.name, quantity: besoin, unit: ing.unit }) : null;
+    let surplus = achat ? achat.total - besoin : 0;
+    if (surplus < REMPLIR_MIN_G) continue;
+    const ouvert = age(ms[0].day);
+    const limite = duree.entame && duree.entame[1] <= 2 ? ouvert + duree.entame[1] : Infinity;
+    const eligibles = ms.filter((m) => age(m.day) <= limite);
+    eligibles.forEach((m, n) => {
+      if (surplus < REMPLIR_MIN_G) return;
+      const q = qte(m);
+      const role = (m.adapted_ingredients ?? []).find((i) => i.ref === ref)?.macro_role;
+      const plafond = role === 'vegetable' || role === 'fruit' ? REMPLIR_LEGUME_MAX_G : q;
+      const plus = Math.round(Math.min(plafond, surplus / (eligibles.length - n)));
+      if (plus < REMPLIR_MIN_G) return;
+      let pose = false;
+      const recette = { ...m.recipe, ingredients: m.recipe.ingredients.map((i) => {
+        if (i.ref !== ref || pose) return i;
+        pose = true;
+        const adapte = (m.adapted_ingredients ?? []).find((x) => x.ref === ref)?.quantity_g ?? i.quantity_g;
+        return { ...i, quantity_g: adapte + plus, scalable: false };
+      }) };
+      const a = adaptRecipe(recette, {
+        kcalMeal: m.macros.kcal, proteinMeal: m.macros.protein_g, carbMeal: m.macros.carbs_g, fatMeal: m.macros.fat_g,
+      });
+      // Le plat garde SES macros (pas une protéine de moins), et sa JOURNÉE aussi : l'écart cumulé des
+      // ajouts au total du jour reste sous 15 kcal, sinon la précision du jour s'use plat après plat.
+      const ecart = (derive.get(m.day) ?? 0) + a.macros.kcal - m.macros.kcal;
+      const ecartProt = (deriveProt.get(m.day) ?? 0) + a.macros.protein_g - m.macros.protein_g;
+      // Et pas une fibre de moins : en sèche, les fibres sont visées (`FIBER_SELECT_W`), et un laitage
+      // ajouté faisait retirer des flocons d'avoine à l'adaptation.
+      if (a.flags.some((f) => FLAG_AUDIENCE[f] === 'user') || Math.abs(ecart) > REMPLIR_KCAL_TOL
+        || a.macros.protein_g < m.macros.protein_g - 1 || ecartProt > REMPLIR_PROT_TOL
+        || fibresDe(a.ingredients) < fibresDe(m.adapted_ingredients ?? []) - 0.2) return;
+      const ajoute = a.ingredients.filter((i) => i.ref === ref).reduce((t, i) => t + i.quantity_g, 0) - q;
+      if (ajoute <= 0 || ajoute > surplus + 1) return;
+      derive.set(m.day, ecart);
+      deriveProt.set(m.day, ecartProt);
+      m.recipe = recette;
+      m.adapted_ingredients = a.ingredients;
+      m.macros = a.macros;
+      m.adapt_flags = a.flags.length ? a.flags : undefined;
+      m.adapt_gap = a.gap;
+      surplus -= ajoute;
+    });
+  }
+}
+
 function selectMealAdapted(
   pool: Recipe[],
   target: AdaptTarget,
@@ -1058,6 +1206,7 @@ function selectMealAdapted(
   fiberStrong: boolean,
   goalDir: number,
   couchesPart: ((r: Recipe) => boolean)[] = [],
+  aFinir?: ReadonlyMap<string, AFinir>,
 ): AdaptedChoice {
   const tous: AdaptedChoice[] = pool
     .map((r) => {
@@ -1128,7 +1277,6 @@ function selectMealAdapted(
     const dansLeGout = candidates.filter((c) => goutMatch.has(c.recipe.id));
     if (dansLeGout.some(propre)) candidates = dansLeGout;
   }
-
   // Rotation intra-semaine par SCORE EFFECTIF : une recette déjà servie voit son
   // score monter de `VARIETY_STEP` par utilisation (son fit réel est inchangé) → elle
   // sort de la bande et cède la place à une recette fraîche de qualité comparable.
@@ -1180,8 +1328,12 @@ function selectMealAdapted(
     if (enRetraitIds.has(c.recipe.id)) return regUseMax;
     return registreUsage[registres.get(c.recipe.id) ?? ''] ?? 0;
   };
+  // FINIR CE QU'ON ACHÈTE : un bonus, pas un filtre — comme les fibres, il entre dans le score et
+  // cède devant les règles (parts, goût, registre, fibres en sèche, variété du « Régénérer »).
+  const finitOf = (c: AdaptedChoice) => (aFinir && aFinir.size > 0 && propre(c) ? finit(c.ingredients, aFinir) : 0);
   const effOf = (c: AdaptedChoice) =>
-    c.score - fiberW * c.fiber + step * (usage[c.recipe.id] ?? 0) + famW * famUse(c) + regW * regUse(c);
+    c.score - fiberW * c.fiber + step * (usage[c.recipe.id] ?? 0) + famW * famUse(c) + regW * regUse(c)
+    - Math.min(RESTES_REGLAGE.w * finitOf(c), RESTES_REGLAGE.max);
   candidates.sort((a, b) => effOf(a) - effOf(b) || a.recipe.id.localeCompare(b.recipe.id));
 
   const minEff = effOf(candidates[0]);
@@ -1667,8 +1819,51 @@ function fixedMealToMeal(fm: FixedMeal, day: number, slot: MealSlot, isRest: boo
  * qu'on cuisine (`lib/semaineSuivante.ts::ciblesSeulement`).
  * ⚠️ Pas `rebalanceDay` : mesuré sur 36 semaines, il recale sans resserrer ni lisser —
  * écart de calories 0,56 → 0,89 % et drapeaux 30 → 63, dès une pesée de −0,5 kg.
+ *
+ * `restes` (2026-10-24) : les restes de la semaine d'avant, chacun avec le dernier jour où il
+ * tient (`lib/restesSemaine.ts`). Absent, le plan est exactement celui d'avant.
  */
-export function buildLocalPlan(profile: UserProfile, seed: number = 0, imposes?: ReadonlyMap<string, Meal>): MealPlan {
+export function buildLocalPlan(
+  profile: UserProfile,
+  seed: number = 0,
+  imposes?: ReadonlyMap<string, Meal>,
+  restes?: ReadonlyMap<string, Reste>,
+): MealPlan {
+  // FINIR CE QU'ON ACHÈTE (cf. `RESTES_REGLAGE`). L'âge de chaque jour, compté depuis les
+  // courses (la veille du premier jour) : un plan lundi-mercredi-vendredi a 1, 3 et 5 jours.
+  const joursDuPlan = (profile.plan_weekdays?.length ? profile.plan_weekdays : [1, 2, 3, 4, 5, 6, 0]);
+  const age = (d: number) => {
+    const wd = joursDuPlan[d - 1];
+    return wd === undefined ? d : ((positionSemaine(wd) - positionSemaine(joursDuPlan[0]) + 7) % 7) + 1;
+  };
+  // Par aliment, des LOTS : ce qu'il en reste et l'âge où il ne tient plus. Les restes de la
+  // semaine d'avant d'abord (`Reste.jusquAu` est un jour du plan), puis chaque paquet entamé.
+  const lots = new Map<string, { g: number; limite: number }[]>();
+  for (const [ref, r] of restes ?? []) if (r.g >= RESTES_MIN_G && r.jusquAu >= 1) lots.set(ref, [{ g: r.g, limite: age(r.jusquAu) }]);
+  const aFinirLe = (d: number): ReadonlyMap<string, AFinir> | undefined => {
+    const m = new Map<string, AFinir>();
+    for (const [ref, ls] of lots) {
+      const vivants = ls.filter((l) => l.g >= RESTES_MIN_G && l.limite >= age(d));
+      if (vivants.length === 0) continue;
+      m.set(ref, { g: vivants.reduce((t, l) => t + l.g, 0), jours: Math.min(...vivants.map((l) => l.limite)) - age(d) });
+    }
+    return m.size > 0 ? m : undefined;
+  };
+  // Un plat servi puise dans les lots qui tiennent (le plus pressé d'abord) ; ce qui manque
+  // ENTAME des paquets, dont le reste tient jusqu'à `tientJusquau`.
+  const puiser = (d: number, ingredients: Ingredient[]) => {
+    for (const i of ingredients) {
+      if (!i.ref) continue;
+      let q = i.quantity_g;
+      const ls = (lots.get(i.ref) ?? []).filter((l) => l.limite >= age(d)).sort((a, b) => a.limite - b.limite);
+      for (const l of ls) { const pris = Math.min(l.g, q); l.g -= pris; q -= pris; }
+      const taille = paquetEntame(i.ref);
+      if (taille && q > 0) {
+        const reste = Math.ceil(q / taille) * taille - q;
+        lots.set(i.ref, [...ls.filter((l) => l.g > 0), { g: reste, limite: tientJusquau(dureeDe(i.ref)!, age(d)) }]);
+      } else lots.set(i.ref, ls.filter((l) => l.g > 0));
+    }
+  };
   const days = Math.min(Math.max(profile.plan_days, 1), 7);
 
   // Créneaux retenus par l'utilisateur, dans l'ordre CHRONOLOGIQUE. `activeSlots`
@@ -1948,7 +2143,9 @@ export function buildLocalPlan(profile: UserProfile, seed: number = 0, imposes?:
         variety, preferredIds, enRetraitIds, maxUsageRepetitif, goutMatch, goutImpose, exclusions,
         objectives, sportBuckets,
         seed, fiberStrong, goalDir, couchesPart,
+        aFinirLe(d),
       );
+      puiser(d, choice.ingredients);
       if (principal && partsVisees) {
         const sortes = sortesDe(choice.recipe);
         let compte = false;
@@ -2016,6 +2213,8 @@ export function buildLocalPlan(profile: UserProfile, seed: number = 0, imposes?:
     const dayActualKcal = dayMeals.reduce((s, m) => s + m.macros.kcal, 0);
     weekDeficitKcal += cibleDuJour - dayActualKcal;
   }
+
+  if (RESTES_REGLAGE.remplir) remplirLesPaquets(meals, age);
 
   return {
     id: `plan-${Date.now()}`,

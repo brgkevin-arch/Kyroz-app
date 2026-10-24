@@ -23,7 +23,7 @@
 // stocké de plus dans la liste ni dans la réserve, donc aucune migration.
 
 import { RECIPE_INGREDIENTS } from './recipeData';
-import { refDuNom } from './pantry';
+import { refDuNom } from './nomsAliments';
 import { frnum } from './units';
 import { A_LA_PIECE } from './aLaPiece';
 
