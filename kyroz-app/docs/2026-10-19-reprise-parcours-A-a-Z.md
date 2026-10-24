@@ -132,23 +132,35 @@ Profil n'est plus un onglet depuis le 2026-10-21 (E81) : on l'ouvre par la bulle
 8. **« Régénérer mon plan »**, qui remplace toute la semaine, est posé entre les réglages et
    Kyroz+.
 
-### Ce que je propose (à trancher)
+### Ce que le fondateur a tranché (2026-10-24)
 
-P1 à P5 sont **prototypés sur la branche `claude/beautiful-mayer-8eldew`** (captures avant /
-après dans la conversation du 2026-10-24), rien n'est fusionné.
+Mon premier jet (P1 à P5 : prénom en tête, carte des cibles, valeurs lisibles, carte Kyroz+,
+« Régénérer » en dernier) a été codé **sans qu'il l'ait demandé** — il voulait d'abord en
+parler. Remplacé par ce qui suit, discuté puis validé (« go a ») :
 
-| # | Proposition | Coût |
-|---|---|---|
-| P1 | Le prénom en grand en tête d'écran ; rien s'il n'y en a pas | petit |
-| P2 | Une seule carte « Cibles » : « 2 183 kcal par jour », l'écart écrit (« 300 kcal sous ta dépense, qui est de 2 483 kcal »), la barre en trois nuances et la ligne de macros du Plan | petit |
-| P3 | Des valeurs qui disent ce qui est réglé : « Omnivore · 3 aliments évités », « Calculées par Kyroz » / « Ta répartition », « 5 jours · 4 repas · Soir plus copieux », « Avec Kyroz+ » | petit |
-| P4 | Sans abonnement, Kyroz+ devient une carte : ses deux fonctions (textes du 2026-10-23, lus dans `FONCTIONS_KYROZ_PLUS`) et un bouton « Découvrir Kyroz+ » ; abonné, la ligne reste | petit |
-| P5 | « Régénérer mon plan » en dernier | petit |
-| P6 | Lever les doublons de titres (constat 6) — non prototypé : touche une décision du 2026-09-21 | petit |
-| P7 | Macros du Plan ≠ cibles du Profil (constat 4) : à traiter au segment 8 | — |
+- **Quatre encadrés, dans cet ordre : Toi · Kyroz+ · Objectifs · Repas**, inspirés d'une
+  référence d'une autre app qu'il a montrée (avatar, prénom, une ligne de résumé).
+- **« Plus léger »** : l'écran ne porte qu'une ligne de résumé par encadré. **En touchant
+  un encadré, on a toutes les infos qu'on peut modifier.**
+- **Façon A** (choisie contre B, « tout modifiable directement ») : la feuille LISTE chaque
+  réglage avec sa valeur ; une ligne ouvre son réglage dans la même feuille, avec une
+  flèche retour. « Enregistrer » ramène à la liste.
+
+Ce qui en découle, et que j'ai choisi sans qu'on en parle (à revoir s'il le faut) :
+- avatar = l'initiale du prénom (l'icône de la bulle du Plan sans prénom) — pas de photo ;
+- « Au quotidien » et « Sport » vivent dans Toi ; le régime dans Repas ;
+- les cibles (kcal, macros, écart à la dépense) sont en tête de la feuille Objectifs, avec
+  la barre en trois nuances du Plan ; l'encadré n'en garde que les kcal ;
+- pour un abonné, l'encadré Kyroz+ dit « Abonnement actif » (pas de badge) ; pas d'icônes
+  dans les encadrés ; petit titre « Profil » inchangé ; « Régénérer mon plan » en bas ;
+- la ligne « Poids » ouvre directement la pesée (sa seule porte d'entrée).
+
+Le constat 4 (macros du Plan ≠ cibles du Profil) reste pour le segment 8.
 
 ## Journal du chantier
 
 - 2026-10-19 — découpage posé, segment 1 audité. En attente des arbitrages du fondateur.
-- 2026-10-24 — segment 12 (Profil) ouvert à la demande du fondateur : 8 constats, P1 à P5
-  prototypés sur `claude/beautiful-mayer-8eldew`. En attente de ses arbitrages.
+- 2026-10-24 — segment 12 (Profil) ouvert à la demande du fondateur : 8 constats. Un premier
+  jet codé trop tôt, puis la version discutée : quatre encadrés légers, une feuille-liste par
+  encadré (façon A). Codée sur `claude/beautiful-mayer-8eldew`, vue sur le web ; reste à la
+  voir sur iPhone.

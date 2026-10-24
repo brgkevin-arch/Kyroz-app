@@ -569,6 +569,20 @@ export async function runOnboarding(page, p = DEFAULT_PERSONA) {
  * (le bouton « Enregistrer », lui, écrirait dans le profil).
  * La feuille occupe 94 % de la hauteur : le fond n'est cliquable qu'en haut.
  */
+/**
+ * Ouvre un encadré du Profil (Toi, Objectifs, Repas) — sa feuille liste les réglages.
+ * 🔴 Depuis le 2026-10-24, les lignes de réglage ne sont plus sur l'écran : elles vivent
+ * dans la feuille de leur encadré. On vise le BOUTON par son étiquette, parce que
+ * l'encadré Toi affiche le prénom, pas « Toi ».
+ */
+export async function ouvrirEncadre(page, nom) {
+  const b = page.getByRole('button', { name: nom, exact: true }).first();
+  if (!(await b.isVisible({ timeout: 3000 }).catch(() => false))) return false;
+  await b.click().catch(() => {});
+  await sleep(1200);
+  return true;
+}
+
 export async function closeSheet(page) {
   await page.mouse.click(PHONE.width / 2, 16).catch(() => {});
   await sleep(700);

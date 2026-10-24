@@ -184,13 +184,19 @@ const ANCRES: Ancre[] = [
   // « Enregistrer » vit dans la feuille de saisie, pas dans le Profil.
   { quoi: 'geste de pesée', texte: 'Ajouter une pesée', dans: 'app/(tabs)/poids.tsx', script: 'test/qa-deep.mjs' },
   { quoi: 'enregistrement d\'une pesée', texte: 'Enregistrer', dans: 'components/WeightCheckin.tsx', script: 'test/qa-deep.mjs' },
-  { quoi: 'sous-écran Informations', texte: 'Informations', dans: 'app/profil.tsx', script: 'test/qa-deep.mjs' },
-  { quoi: 'sous-écran Sport & activité', texte: 'Sport & activité', dans: 'app/profil.tsx', script: 'test/qa-settings.mjs' },
-  { quoi: 'sous-écran Objectif', texte: 'Objectif', dans: 'app/profil.tsx', script: 'test/qa-settings.mjs' },
-  { quoi: 'sous-écran Objectif daté', texte: 'Objectif daté', dans: 'app/profil.tsx', script: 'test/qa-deep.mjs' },
-  { quoi: 'sous-écran Calories & macros', texte: 'Calories & macros', dans: 'app/profil.tsx', script: 'test/qa-settings.mjs' },
-  { quoi: 'sous-écran Préférences alimentaires', texte: 'Préférences alimentaires', dans: 'app/profil.tsx', script: 'test/qa-settings.mjs' },
-  { quoi: 'sous-écran Paramètres des repas', texte: 'Paramètres des repas', dans: 'app/profil.tsx', script: 'test/qa-settings.mjs' },
+  // 🔴 Depuis le 2026-10-24, un réglage s'atteint par son ENCADRÉ (Toi, Objectifs, Repas),
+  // puis par sa ligne dans la feuille. Les encadrés sont visés par leur étiquette
+  // d'accessibilité (`ouvrirEncadre`) : celui de Toi AFFICHE le prénom.
+  { quoi: 'encadré Toi', texte: 'Toi', dans: 'app/profil.tsx', motif: 'etiquette="Toi"', cherche: "'Toi'", script: 'test/qa-deep.mjs' },
+  { quoi: 'encadré Objectifs', texte: 'Objectifs', dans: 'app/profil.tsx', motif: 'titre="Objectifs"', cherche: "'Objectifs'", script: 'test/qa-settings.mjs' },
+  { quoi: 'encadré Repas', texte: 'Repas', dans: 'app/profil.tsx', motif: 'titre="Repas"', cherche: "'Repas'", script: 'test/qa-settings.mjs' },
+  { quoi: 'ligne Prénom', texte: 'Prénom', dans: 'app/profil.tsx', motif: 'label="Prénom"', script: 'test/qa-deep.mjs' },
+  { quoi: 'ligne Au quotidien', texte: 'Au quotidien', dans: 'app/profil.tsx', motif: 'label="Au quotidien"', script: 'test/qa-settings.mjs' },
+  { quoi: 'ligne Objectif', texte: 'Objectif', dans: 'app/profil.tsx', motif: 'label="Objectif"', script: 'test/qa-settings.mjs' },
+  { quoi: 'ligne Objectif daté', texte: 'Objectif daté', dans: 'app/profil.tsx', motif: 'label="Objectif daté"', script: 'test/qa-deep.mjs' },
+  { quoi: 'ligne Calories & macros', texte: 'Calories & macros', dans: 'app/profil.tsx', motif: 'label="Calories & macros"', script: 'test/qa-settings.mjs' },
+  { quoi: 'ligne Régime', texte: 'Régime', dans: 'app/profil.tsx', motif: 'label="Régime"', script: 'test/qa-settings.mjs' },
+  { quoi: 'ligne Jours du plan', texte: 'Jours du plan', dans: 'app/profil.tsx', motif: 'label="Jours du plan"', script: 'test/qa-settings.mjs' },
 ];
 
 /**

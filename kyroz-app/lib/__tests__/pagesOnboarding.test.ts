@@ -55,9 +55,9 @@ describe('les pages de l’inscription', () => {
 });
 
 describe('la dernière page renvoie vers un réglage qui EXISTE', () => {
-  // « Tu pourras le régler dans Profil → Paramètres des repas » est une affirmation sur
+  // « Tu pourras le régler dans Profil → Repas → Gérés par toi » est une affirmation sur
   // le code (CLAUDE.md §10) : la section « Repas que tu gères toi-même » doit vivre dans
-  // l'éditeur que la ligne « Paramètres des repas » du Profil ouvre.
+  // l'éditeur que la ligne « Gérés par toi » de la feuille Repas ouvre (2026-10-24).
   const profil = sansCommentaires(readFileSync(join(RACINE, 'app/profil.tsx'), 'utf8'));
 
   it('la phrase est servie à la première DÉCOCHE, et une seule fois', () => {
@@ -73,13 +73,14 @@ describe('la dernière page renvoie vers un réglage qui EXISTE', () => {
 
   it('le chemin cité par la boîte est écrit à UN endroit', () => {
     const repasGere = readFileSync(join(RACINE, 'lib/repasGere.ts'), 'utf8');
-    expect(repasGere).toContain("export const CHEMIN_REGLAGE = 'Profil → Paramètres des repas';");
+    expect(repasGere).toContain("export const CHEMIN_REGLAGE = 'Profil → Repas → Gérés par toi';");
     expect(repasGere).toContain('${CHEMIN_REGLAGE}');
   });
 
   it('le Profil a bien la ligne ET la section qu’elle promet', () => {
-    expect(profil).toMatch(/<MenuRow[^>]*label="Paramètres des repas"/);
-    expect(profil).toMatch(/title="Paramètres des repas"[\s\S]*Repas que tu gères toi-même/);
+    expect(profil).toMatch(/titre="Repas"/);
+    expect(profil).toMatch(/<Ligne[^\n]*label="Gérés par toi"[^\n]*onOuvrir\('meals', 'fixes'\)/);
+    expect(profil).toMatch(/montreRepas\('fixes'\)[\s\S]*Repas que tu gères toi-même/);
     expect(profil).toContain("'Je gère'");
   });
 });

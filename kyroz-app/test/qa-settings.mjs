@@ -7,7 +7,7 @@
 
 import { chromium } from 'playwright';
 import { existsSync } from 'node:fs';
-import { SHOT, STATE, PHONE, HEADLESS, sleep, ensureDirs, open, tap, bootToPlan, closeSheet, goToProfil, neutralizeFirstRun, bilanPannes } from './_harness.mjs';
+import { SHOT, STATE, PHONE, HEADLESS, sleep, ensureDirs, open, tap, bootToPlan, closeSheet, goToProfil, ouvrirEncadre, neutralizeFirstRun, bilanPannes } from './_harness.mjs';
 
 ensureDirs();
 
@@ -37,15 +37,18 @@ if (!onPlan) {
 if (!haveState) await context.storageState({ path: STATE });
 await sleep(1200);
 
+// [encadré, ligne de sa feuille, nom de capture] — depuis le 2026-10-24, un réglage
+// s'atteint en ouvrant son encadré, puis sa ligne.
 const subs = [
-  ['Objectif', 'objectif'],
-  ['Sport & activité', 'sport'],
-  ['Calories & macros', 'macros'],
-  ['Préférences alimentaires', 'preferences'],
-  ['Paramètres des repas', 'repas'],
+  ['Objectifs', 'Objectif', 'objectif'],
+  ['Toi', 'Au quotidien', 'sport'],
+  ['Objectifs', 'Calories & macros', 'macros'],
+  ['Repas', 'Régime', 'preferences'],
+  ['Repas', 'Jours du plan', 'repas'],
 ];
-for (const [label, key] of subs) {
+for (const [encadre, label, key] of subs) {
   await goToProfil(page);
+  if (!(await ouvrirEncadre(page, encadre))) { console.log('ENCADRÉ INTROUVABLE : ' + encadre); continue; }
   if (await tap(page, label, { exact: true, timeout: 3000 })) {
     await sleep(1600);
     await snap('E-' + key);
