@@ -1066,10 +1066,13 @@ const PART_FIT_TOL = 0.04;
 /** Le bonus d'un plat qui finit ce qui tourne : par gramme repris ÷ (1 + jours qui restent), plafonné. */
 /** `remplir` : le levier 2 (coupé seulement par les tests, pour mesurer ce qu'il change). */
 export const RESTES_REGLAGE = { w: 0.0003, max: 0.06, remplir: true };
-/** Un légume qu'on remplit : au plus ×2 sa quantité de recette, et pas plus de 150 g de plus. */
-const RESTES_LEGUME_FOIS = 2;
-const RESTES_LEGUME_PLUS_G = 150;
-/** Un plat dont on remplit le légume garde ses calories à ce près (l'écart au jour en dépend). */
+/** Un légume ou un fruit qui finit son paquet : jusqu'à 200 g de plus par plat ; le reste, jusqu'au double. */
+const REMPLIR_LEGUME_MAX_G = 200;
+/** …ni ses protéines de plus que ça : un skyr en plus ne doit pas faire exploser la journée (`mealProteinFloor`). */
+const REMPLIR_PROT_TOL = 2;
+/** En dessous, rien ne vaut d'être déplacé (une pincée). 14 g de crevettes, si. */
+const REMPLIR_MIN_G = 5;
+/** Les ajouts d'une journée ne déplacent pas son total de plus que ça (l'écart au jour en dépend). */
 const REMPLIR_KCAL_TOL = 15;
 /** En dessous, un reste ne compte plus (une pincée de roquette n'oriente pas une semaine). */
 const RESTES_MIN_G = 20;
@@ -1093,61 +1096,92 @@ function finit(ingredients: Ingredient[], aFinir: ReadonlyMap<string, AFinir>): 
   for (const i of ingredients) {
     const f = i.ref ? aFinir.get(i.ref) : undefined;
     if (!f) continue;
-    const q = i.macro_role === 'vegetable'
-      ? Math.min(i.quantity_g * RESTES_LEGUME_FOIS, i.quantity_g + RESTES_LEGUME_PLUS_G) : i.quantity_g;
-    t += Math.min(q, f.g) / (1 + f.jours);
+    t += Math.min(i.quantity_g, f.g) / (1 + f.jours);
   }
   return t;
 }
 
 /**
- * REMPLIR LES PAQUETS QU'ON ACHÈTE DE TOUTE FAÇON (2026-10-24). La semaine tirée, chaque LÉGUME
- * périssable s'achète au format vendu : un chou-fleur entier pour 150 g de recette. Ce surplus
- * part dans les plats qui s'en servent déjà, tant qu'il tient (`lib/dureeDeVie.ts`) : au plus
- * ×2 la quantité de la recette et +150 g par plat, jamais au-delà du paquet — donc jamais un
- * paquet de plus. Le plat est ré-adapté à ses propres macros ; s'il n'est plus propre, il reste
- * tel quel. La recette du repas porte la nouvelle quantité, pour que le resserrage, une pesée ou
- * un échange la retrouvent.
+ * TOUT CE QUI EST ACHETÉ SE CUISINE DANS LA SEMAINE (2026-10-24). Fondateur : *« c'est ridicule de
+ * laisser 67 g de concombre au frigo, ça ne va pas faire grossir de le manger dans la semaine ;
+ * personne ne fera un repas le lundi d'après avec 14 g de crevettes ou 28 g de feta : cette
+ * quantité doit rentrer dans les plats cuisinés de la semaine »*.
+ * La semaine tirée, chaque aliment PÉRISSABLE (`lib/dureeDeVie.ts`) s'achète au format vendu :
+ * le surplus du paquet se RÉPARTIT entre les plats de la semaine qui s'en servent déjà. Le plat
+ * garde ses calories (à `REMPLIR_KCAL_TOL` près) et ses protéines : le reste de l'assiette
+ * s'ajuste. S'il ne reste plus propre, il garde sa quantité. Jamais au-delà du paquet, donc
+ * jamais un paquet de plus. Viande, poisson et charcuterie (2 jours au plus une fois ouverts) :
+ * seulement dans les plats qui suivent l'ouverture de près. L'ingrédient ajouté devient FIXE
+ * dans la recette du repas, pour que le resserrage, une pesée ou un échange le retrouvent.
  */
+/** Les fibres d'une liste d'ingrédients adaptés (g), lues dans la table du catalogue. */
+function fibresDe(ingredients: Ingredient[]): number {
+  return ingredients.reduce((t, i) => {
+    const f = i.ref ? (RECIPE_INGREDIENTS[i.ref] as { fiber_per100g?: number } | undefined)?.fiber_per100g : undefined;
+    return t + (f ? (f * i.quantity_g) / 100 : 0);
+  }, 0);
+}
+
 function remplirLesPaquets(meals: Meal[], age: (d: number) => number): void {
-  const parRef = new Map<string, Meal[]>();
+  // L'écart que les ajouts ont déjà fait au total de chaque jour : il reste sous `REMPLIR_KCAL_TOL`.
+  const derive = new Map<number, number>();
+  const deriveProt = new Map<number, number>();
+  const parRef = new Map<string, Set<Meal>>();
   for (const m of meals) {
     if (m.fixed) continue;
     for (const i of m.adapted_ingredients ?? []) {
-      if (i.ref && i.macro_role === 'vegetable' && dureeDe(i.ref)) parRef.set(i.ref, [...(parRef.get(i.ref) ?? []), m]);
+      if (i.ref && dureeDe(i.ref)) parRef.set(i.ref, (parRef.get(i.ref) ?? new Set()).add(m));
     }
   }
-  for (const [ref, ms] of parRef) {
+  for (const [ref, ensemble] of parRef) {
     const ing = RECIPE_INGREDIENTS[ref];
+    const duree = dureeDe(ref)!;
     const qte = (m: Meal) => (m.adapted_ingredients ?? []).filter((i) => i.ref === ref).reduce((t, i) => t + i.quantity_g, 0);
+    const ms = [...ensemble].sort((a, b) => a.day - b.day);
     const besoin = ms.reduce((t, m) => t + qte(m), 0);
     const achat = ing ? achatPour({ name: ing.name, quantity: besoin, unit: ing.unit }) : null;
     let surplus = achat ? achat.total - besoin : 0;
-    if (surplus < RESTES_MIN_G) continue;
-    const limite = tientJusquau(dureeDe(ref)!, Infinity);
-    for (const m of [...new Set(ms)].sort((a, b) => a.day - b.day)) {
-      if (age(m.day) > limite || surplus < RESTES_MIN_G) break;
+    if (surplus < REMPLIR_MIN_G) continue;
+    const ouvert = age(ms[0].day);
+    const limite = duree.entame && duree.entame[1] <= 2 ? ouvert + duree.entame[1] : Infinity;
+    const eligibles = ms.filter((m) => age(m.day) <= limite);
+    eligibles.forEach((m, n) => {
+      if (surplus < REMPLIR_MIN_G) return;
       const q = qte(m);
-      const plus = Math.min(surplus, q * (RESTES_LEGUME_FOIS - 1), RESTES_LEGUME_PLUS_G);
-      if (plus < RESTES_MIN_G) continue;
-      const facteur = (q + plus) / q;
-      const recette = { ...m.recipe, ingredients: m.recipe.ingredients.map((i) => (i.ref === ref
-        ? { ...i, quantity_g: Math.round((i.quantity_g * facteur) / 5) * 5 } : i)) };
+      const role = (m.adapted_ingredients ?? []).find((i) => i.ref === ref)?.macro_role;
+      const plafond = role === 'vegetable' || role === 'fruit' ? REMPLIR_LEGUME_MAX_G : q;
+      const plus = Math.round(Math.min(plafond, surplus / (eligibles.length - n)));
+      if (plus < REMPLIR_MIN_G) return;
+      let pose = false;
+      const recette = { ...m.recipe, ingredients: m.recipe.ingredients.map((i) => {
+        if (i.ref !== ref || pose) return i;
+        pose = true;
+        const adapte = (m.adapted_ingredients ?? []).find((x) => x.ref === ref)?.quantity_g ?? i.quantity_g;
+        return { ...i, quantity_g: adapte + plus, scalable: false };
+      }) };
       const a = adaptRecipe(recette, {
         kcalMeal: m.macros.kcal, proteinMeal: m.macros.protein_g, carbMeal: m.macros.carbs_g, fatMeal: m.macros.fat_g,
       });
-      // Le plat garde SES macros : à 15 kcal près, et pas une protéine de moins.
-      if (a.flags.some((f) => FLAG_AUDIENCE[f] === 'user')
-        || Math.abs(a.macros.kcal - m.macros.kcal) > REMPLIR_KCAL_TOL || a.macros.protein_g < m.macros.protein_g - 1) continue;
+      // Le plat garde SES macros (pas une protéine de moins), et sa JOURNÉE aussi : l'écart cumulé des
+      // ajouts au total du jour reste sous 15 kcal, sinon la précision du jour s'use plat après plat.
+      const ecart = (derive.get(m.day) ?? 0) + a.macros.kcal - m.macros.kcal;
+      const ecartProt = (deriveProt.get(m.day) ?? 0) + a.macros.protein_g - m.macros.protein_g;
+      // Et pas une fibre de moins : en sèche, les fibres sont visées (`FIBER_SELECT_W`), et un laitage
+      // ajouté faisait retirer des flocons d'avoine à l'adaptation.
+      if (a.flags.some((f) => FLAG_AUDIENCE[f] === 'user') || Math.abs(ecart) > REMPLIR_KCAL_TOL
+        || a.macros.protein_g < m.macros.protein_g - 1 || ecartProt > REMPLIR_PROT_TOL
+        || fibresDe(a.ingredients) < fibresDe(m.adapted_ingredients ?? []) - 0.2) return;
       const ajoute = a.ingredients.filter((i) => i.ref === ref).reduce((t, i) => t + i.quantity_g, 0) - q;
-      if (ajoute <= 0 || ajoute > surplus) continue;
+      if (ajoute <= 0 || ajoute > surplus + 1) return;
+      derive.set(m.day, ecart);
+      deriveProt.set(m.day, ecartProt);
       m.recipe = recette;
       m.adapted_ingredients = a.ingredients;
       m.macros = a.macros;
       m.adapt_flags = a.flags.length ? a.flags : undefined;
       m.adapt_gap = a.gap;
       surplus -= ajoute;
-    }
+    });
   }
 }
 

@@ -7,9 +7,9 @@ import { RECIPE_INGREDIENTS } from '../recipeData';
 import type { MealPlan, UserProfile } from '../types';
 
 /**
- * FINIR CE QU'ON ACHÈTE (2026-10-24, « optimisé pour finir la semaine avec le moins de restes
- * possible ») : le surplus d'un paquet de légume part dans les plats qui s'en servent déjà —
- * jamais un paquet de plus — et un reste de la semaine d'avant fait servir cet aliment en priorité.
+ * FINIR CE QU'ON ACHÈTE (2026-10-24, « tout ce qui est acheté se cuisine dans la semaine ») : le
+ * surplus d'un paquet périssable part dans les plats qui s'en servent déjà — jamais un paquet de
+ * plus, la journée à 15 kcal près — et un reste de la semaine d'avant fait servir cet aliment.
  */
 const profil = (g: Partial<UserProfile>, regimes: string[] = []): UserProfile => recalcProfile({
   id: 't', sex: 'female', weight_kg: 68, height_cm: 168, age: 35, goal: 'maintain', ...g,
@@ -21,11 +21,11 @@ const profil = (g: Partial<UserProfile>, regimes: string[] = []): UserProfile =>
 } as unknown as UserProfile);
 const PROFILS = [profil({}), profil({ sex: 'male', weight_kg: 85, height_cm: 180, goal: 'cut' } as Partial<UserProfile>), profil({}, ['vegetarian'])];
 
-/** Par légume périssable : le besoin de la semaine et ce que la liste ferait acheter. */
-function legumes(plan: MealPlan) {
+/** Par aliment périssable : le besoin de la semaine et ce que la liste ferait acheter. */
+function perissables(plan: MealPlan) {
   const besoin = new Map<string, number>();
   for (const m of plan.meals) for (const i of m.adapted_ingredients ?? m.recipe.ingredients) {
-    if (i.ref && dureeDe(i.ref) && i.macro_role === 'vegetable') besoin.set(i.ref, (besoin.get(i.ref) ?? 0) + i.quantity_g);
+    if (i.ref && dureeDe(i.ref)) besoin.set(i.ref, (besoin.get(i.ref) ?? 0) + i.quantity_g);
   }
   return [...besoin].map(([ref, q]) => ({ ref, besoin: q, achat: achatPour({ name: RECIPE_INGREDIENTS[ref].name, quantity: q, unit: RECIPE_INGREDIENTS[ref].unit })?.total ?? q }));
 }
@@ -37,9 +37,9 @@ describe('finir ce qu\'on achète', () => {
     let surplusAvant = 0, surplusApres = 0;
     for (const p of PROFILS) for (const seed of [0, 1, 2, 3]) {
       RESTES_REGLAGE.remplir = false;
-      const sans = new Map(legumes(buildLocalPlan(p, seed)).map((l) => [l.ref, l]));
+      const sans = new Map(perissables(buildLocalPlan(p, seed)).map((l) => [l.ref, l]));
       RESTES_REGLAGE.remplir = true;
-      for (const l of legumes(buildLocalPlan(p, seed))) {
+      for (const l of perissables(buildLocalPlan(p, seed))) {
         const s = sans.get(l.ref)!;
         expect(l.achat, `${l.ref} (seed ${seed})`).toBeLessThanOrEqual(s.achat);
         surplusAvant += s.achat - s.besoin;
@@ -47,6 +47,19 @@ describe('finir ce qu\'on achète', () => {
       }
     }
     expect(surplusApres).toBeLessThan(surplusAvant * 0.9);
+  });
+
+  it('les ajouts ne déplacent pas une journée de plus de 15 kcal', () => {
+    for (const p of PROFILS) for (const seed of [0, 1, 2]) {
+      RESTES_REGLAGE.remplir = false;
+      const sans = buildLocalPlan(p, seed);
+      RESTES_REGLAGE.remplir = true;
+      const avec = buildLocalPlan(p, seed);
+      for (let d = 1; d <= avec.days; d++) {
+        const jour = (pl: MealPlan) => pl.meals.filter((m) => m.day === d).reduce((t, m) => t + m.macros.kcal, 0);
+        expect(Math.abs(jour(avec) - jour(sans)), `jour ${d}, seed ${seed}`).toBeLessThanOrEqual(15.5);
+      }
+    }
   });
 
   it('un reste de la semaine d\'avant fait servir cet aliment plus souvent', () => {

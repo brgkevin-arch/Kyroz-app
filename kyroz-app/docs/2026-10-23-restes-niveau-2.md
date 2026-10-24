@@ -118,6 +118,54 @@ Vérifiés par 7 mutations au total, 7 rouges.
 **Pas de hausse d'`ENGINE_VERSION`** : aucun plan en cours ne se re-tire, donc ce qui a été acheté
 reste ce qu'on cuisine. La logique arrive avec chaque nouveau plan (renouvellement, inscription).
 
+## 2026-10-24, soir : « tout ce qui est acheté se cuisine dans la semaine »
+
+> Fondateur : *« c'est ridicule de laisser 67 g de concombre au frigo, ça ne va pas faire grossir de
+> le manger dans la semaine ; personne ne fera un repas le lundi d'après avec 14 g de crevettes ou
+> 28 g de feta : cette quantité doit rentrer dans les plats cuisinés de la semaine »*.
+
+Codé (`remplirLesPaquets`) : le surplus de CHAQUE paquet périssable, pas seulement les légumes, se
+répartit entre les plats de la semaine qui s'en servent déjà. Le paquet n'est jamais dépassé.
+Viande, poisson et charcuterie ne vont que dans les plats proches de l'ouverture. L'ajout devient
+fixe dans la recette du repas.
+
+Les gardes ont toutes été posées APRÈS une mesure qui les exigeait :
+
+| Garde | Ce qui se passait sans elle |
+|---|---|
+| La journée reste à 15 kcal près de ce qu'elle était | écart au jour 0,73 → 1,09 % |
+| Pas plus de 2 g de protéines en plus par jour | un jour à 125 % de la cible protéique (`mealProteinFloor`, borne 122 %) |
+| Pas une fibre de moins dans le plat | fibres en sèche 32,29 g pour 32,3 attendus (`variety`) |
+
+| Par semaine (480 semaines) | Moteur d'origine | Légumes seuls | **Tout le périssable** |
+|---|---|---|---|
+| Jeté | 365 g | 327 g | **292 g (−20 %)** |
+| À congeler | 1 274 g | 1 144 g | **1 079 g (−15 %)** |
+| Drapeaux / 9 600 repas | 11 | 8 | 5 |
+| Écart au jour | 0,57 % | 0,73 % | 0,78 % |
+
+Essayé, puis écarté :
+- **Sans les gardes**, on descend à 242 g jetés, mais l'écart au jour passe à 1,09 % et la borne
+  protéique rougit.
+- **Laisser un jour sous sa cible prendre jusqu'à 110 % de protéines** donne 274 g, mais casse le
+  stress-test 20 profils.
+
+**Ce qui reste jeté (292 g) :**
+
+| Aliment | Jeté par semaine | Pourquoi |
+|---|---|---|
+| Yaourt de soja protéiné | 110 g | 440 g de besoin font acheter 2 pots de 400 g. L'absorber, c'est ~30 g de protéines en plus dans la semaine. |
+| Concombre | 52 g | |
+| Feta | 30 g | 60 g de plus dans un plat, c'est ~160 kcal : trop pour rester dans ses calories. |
+| Œufs | 25 g | Défaut de la mesure : ils tiennent 3 semaines. |
+| Salade | 22 g | |
+| Roquette | 18 g | |
+| Cottage cheese | 14 g | |
+| Crevettes | 14 g | Fenêtre d'ouverture trop courte entre deux plats. |
+
+Aller plus loin demande de choisir : relâcher la précision (calories, protéines), arrondir
+l'achat AU-DESSOUS quand on dépasse à peine un pot, ou changer de format.
+
 ## Vu en passant (constats, pas des demandes)
 
 - **La réserve ne connaît pas la péremption.** Un reste de viande de dix jours y figure toujours,
