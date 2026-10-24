@@ -87,6 +87,7 @@ import { getRecipeById } from '../lib/recipes';
 import SportsEditor from '../components/SportsEditor';
 import { FixedMealSheet } from '../components/FixedMealSheet';
 import { frnum, frsigne } from '../lib/units';
+import { FONCTIONS_KYROZ_PLUS } from '../lib/offreKyrozPlus';
 
 // ── Options ──────────────────────────────────────────────────────────────────
 // `cut_aggressive` retiré le 2026-07-29 (cf. lib/syncGuard.ts::normalizeGoal) : il
@@ -590,16 +591,26 @@ export default function ProfilScreen() {
             iPhone, « kcal en moyenne » passait sur deux lignes et les chiffres se
             serraient. Les quatre nombres se lisent ensemble — ils décrivent UNE
             journée — donc ils tiennent dans un seul bloc, alignés à gauche. */}
+        {/* Le prénom ouvre l'écran (proposition du 2026-10-24) : on y entre par la bulle de
+            profil du Plan, et rien ne disait « toi ». Il était lu ici sans être affiché. */}
+        {!!prenom && <Text style={s.prenom}>{prenom}</Text>}
+
+        {/* Cibles et dépense dans UNE carte (proposition du 2026-10-24), avec la grammaire
+            du Plan : gros chiffre, barre en trois nuances, ligne des macros. L'écart à la
+            dépense est écrit, au lieu d'être à soustraire de tête entre deux cartes. */}
         <SectionTitle t={t}>Cibles</SectionTitle>
         <View style={s.cibles}>
-          <View style={s.ciblesLigne}>
-            <Cible t={t} v={profile.target_kcal} l="kcal" />
-            <Cible t={t} v={profile.target_protein_g} l="protéines" u=" g" />
+          <View>
+            <View style={s.kcalLigne}>
+              <Text style={s.kcalV}>{profile.target_kcal.toLocaleString('fr-FR')}</Text>
+              <Text style={s.kcalU}> kcal par jour</Text>
+            </View>
+            <Text style={s.ecart}>{ecartDepense(profile.target_kcal, profile.tdee_kcal)}</Text>
           </View>
-          <View style={s.ciblesLigne}>
-            <Cible t={t} v={profile.target_carbs_g} l="glucides" u=" g" />
-            <Cible t={t} v={profile.target_fat_g} l="lipides" u=" g" />
-          </View>
+          <BarreMacros t={t} p={profile.target_protein_g} c={profile.target_carbs_g} f={profile.target_fat_g} />
+          <Text style={s.legende}>
+            {profile.target_protein_g} g de protéines · {profile.target_carbs_g} g de glucides · {profile.target_fat_g} g de lipides
+          </Text>
         </View>
 
         {/* 🔴 DEUX PARAGRAPHES ONT ÉTÉ RETIRÉS ICI le 2026-08-14 (décision
@@ -628,10 +639,6 @@ export default function ProfilScreen() {
             en avant-dernier, elle aurait fait remonter l'écran de tout en bas vers
             le haut, puis redescendre. Une bulle qui déplace l'écran à contresens de
             sa propre progression se lit comme un bug, pas comme une visite. */}
-        <View style={s.tdee}>
-          <Text style={s.tdeeL}>Ta dépense par jour, pour garder ton poids</Text>
-          <Text style={s.tdeeV}>{profile.tdee_kcal.toLocaleString('fr-FR')} kcal</Text>
-        </View>
 
         {/* Réglages — TOI d'abord (corps, sport, objectif), TON PLAN ensuite. Dix
             lignes d'affilée étaient un mur : les couper en deux blocs nommés donne
@@ -670,17 +677,17 @@ export default function ProfilScreen() {
         <SectionTitle t={t}>Objectif</SectionTitle>
         <View style={s.menu}>
           <MenuRow t={t} label="Objectif" value={goalLabel(profile.goal)} onPress={() => setEditor('goal')} />
-          <MenuRow t={t} label="Objectif daté" value={profile.goal_target ? `${frnum(profile.goal_target.target_weight_kg)} kg · ${formatFR(profile.goal_target.target_date)}` : (premium.can('dated_goal') ? 'Aucun' : 'Inclus dans Kyroz+')} onPress={() => openEditor('dated_goal')} />
-          <MenuRow t={t} label="Calories & macros" value={profile.macro_mode === 'percent' ? 'Perso %' : 'Calculées'} onPress={() => setEditor('macros')} last />
+          <MenuRow t={t} label="Objectif daté" value={profile.goal_target ? `${frnum(profile.goal_target.target_weight_kg)} kg · ${formatFR(profile.goal_target.target_date)}` : (premium.can('dated_goal') ? 'Aucun' : 'Avec Kyroz+')} onPress={() => openEditor('dated_goal')} />
+          <MenuRow t={t} label="Calories & macros" value={profile.macro_mode === 'percent' ? 'Ta répartition' : 'Calculées par Kyroz'} onPress={() => setEditor('macros')} last />
         </View>
 
         <SectionTitle t={t}>Repas</SectionTitle>
         <View style={s.menu}>
-          <MenuRow t={t} label="Préférences alimentaires" value={profile.dietary_restrictions.length || profile.disliked_foods.length || profile.hidden_recipes?.length ? 'Personnalisées' : 'Aucune'} onPress={() => setEditor('prefs')} />
+          <MenuRow t={t} label="Préférences alimentaires" value={prefsResume(profile)} onPress={() => setEditor('prefs')} />
           {/* ⚠️ `last` CALCULÉ, pas écrit en dur : les deux lignes qui suivaient sont
               éteintes (cf. lib/featureFlags.ts). Sans ça, le bloc se termine par un
               séparateur qui pend dans le vide — déjà corrigé une fois le 2026-08-18. */}
-          <MenuRow t={t} label="Paramètres des repas" value={`${profile.plan_days} j · ${(profile.meals?.length || 4)} repas · ${emphasisResume(profile)}`} onPress={() => setEditor('meals')} last={!RYTHME_HEBDOMADAIRE_ACTIF && !PARCOURS_HORS_PLAN_ACTIF} />
+          <MenuRow t={t} label="Paramètres des repas" value={repasResume(profile)} onPress={() => setEditor('meals')} last={!RYTHME_HEBDOMADAIRE_ACTIF && !PARCOURS_HORS_PLAN_ACTIF} />
           {/* Le rythme PRÉVOIT un jour plus copieux, l'historique CONSTATE un écart
               subi : la paire se lit toute seule, d'où le voisinage.
               ⚠️ Plus aucun verrou premium ici depuis le 2026-08-18 (cf. `lib/premium.ts`) :
@@ -701,19 +708,42 @@ export default function ProfilScreen() {
             réglages : elle ne se règle pas, elle se déclenche. Bouton discret
             (`t.card`), pas l'accent — sinon il deviendrait l'élément le plus criard
             de l'écran, devant la pesée qui est l'entrée réellement quotidienne. */}
-        <Presse onPress={regenPlan} activeOpacity={OPACITE_PRESSION} accessibilityRole="button"
-          style={s.actionBtn}>
-          <Text style={s.actionTxt}>Régénérer mon plan</Text>
-        </Presse>
-
         {/* Kyroz+ — hors chapitre et en dernier. Ce n'est pas un réglage : c'est une
             offre, et une offre se range là où elle se vend, à deux lignes des deux 💎
             qu'elle débloque. Elle reste une LIGNE tant que « tout est déjà ouvert » :
             une carte promotionnelle de 100 px qui ne vend rien est du bruit. Elle
-            deviendra une carte le jour où le paywall s'allumera, pas avant. */}
-        <View style={s.menu}>
-          <MenuRow t={t} label="Kyroz+" value={KYROZ_PLUS_VALEUR[premium.reason]} onPress={() => router.push('/kyroz-plus')} last />
-        </View>
+            deviendra une carte le jour où le paywall s'allumera, pas avant.
+            ➡️ Le paywall est allumé depuis le 2026-08-27 : sans abonnement, la ligne devient
+            la carte annoncée (proposition du 2026-10-24), avec ce qu'elle débloque — lu dans
+            `FONCTIONS_KYROZ_PLUS`, la source unique de ce que Kyroz+ vend. */}
+        {premium.reason === 'locked' ? (
+          <Presse onPress={() => router.push('/kyroz-plus')} activeOpacity={OPACITE_PRESSION} accessibilityRole="button" style={s.offre}>
+            <Text style={s.offreTitre}>Kyroz+</Text>
+            {FONCTIONS_KYROZ_PLUS.map((f) => (
+              <View key={f.feature} style={s.offreLigne}>
+                <Ionicons name={f.icone as any} size={Icone.standard} color={t.textSecondary} />
+                <View style={{ flex: 1 }}>
+                  <Text style={s.offreNom}>{f.titre}</Text>
+                  <Text style={s.offreCorps}>{f.corps}</Text>
+                </View>
+              </View>
+            ))}
+            <View style={s.offreBtn}>
+              <Text style={s.offreBtnTxt}>Découvrir Kyroz+</Text>
+            </View>
+          </Presse>
+        ) : (
+          <View style={s.menu}>
+            <MenuRow t={t} label="Kyroz+" value={KYROZ_PLUS_VALEUR[premium.reason]} onPress={() => router.push('/kyroz-plus')} last />
+          </View>
+        )}
+
+        {/* L'action qui remplace toute la semaine passe en dernier (proposition du
+            2026-10-24) : elle ne s'intercale plus entre les réglages et l'offre. */}
+        <Presse onPress={regenPlan} activeOpacity={OPACITE_PRESSION} accessibilityRole="button"
+          style={s.actionBtn}>
+          <Text style={s.actionTxt}>Régénérer mon plan</Text>
+        </Presse>
 
       </ScrollView>
 
@@ -902,21 +932,49 @@ export default function ProfilScreen() {
 // partout est un rôle qui n'a pas de nom » (CLAUDE.md §8) — sur le composant le
 // plus employé de l'app, donc l'endroit où une divergence se verrait le moins.
 
-// ⚠️ Plus de prop `c` (couleur) : les quatre macros portaient quatre teintes,
-// alors qu'il n'y a rien à comparer entre quatre boîtes côte à côte. Même encre
-// pour les quatre — cf. la note en tête de constants/theme.ts.
-// Une cible dans la grille 2 × 2 : le nombre, puis son unité dessous. Plus de carte
-// par case — c'est la carte parente qui les tient toutes les quatre.
-// ⚠️ `toLocaleString('fr-FR')` sur les kcal : « 2513 » se lit mal, « 2 513 » se lit.
-// C'est le même format que la ligne TDEE juste en dessous, et deux formats différents
-// pour deux nombres de calories sur le même écran, ça se voit.
-function Cible({ t, v, l, u = '' }: { t: ThemePalette; v: number; l: string; u?: string }) {
+// ⚠️ La grille 2 × 2 des cibles (`Cible`) est partie avec la proposition du 2026-10-24 :
+// une seule ligne de macros, sous une barre, comme sur le Plan. Les quatre nombres
+// restent à la même encre — rien à comparer entre eux (cf. la note en tête de theme.ts).
+// La barre des macros en trois nuances, comme sur le Plan (`MacroBar`), sans son compteur.
+function BarreMacros({ t, p, c, f }: { t: ThemePalette; p: number; c: number; f: number }) {
+  const total = p * 4 + c * 4 + f * 9 || 1;
   return (
-    <View style={{ flex: 1, gap: Spacing.xs }}>
-      <Text style={{ ...Type.h2, letterSpacing: -0.5, color: t.text }}>{v.toLocaleString('fr-FR')}{u}</Text>
-      <Text style={{ ...Type.caption, color: t.textSecondary }}>{l}</Text>
+    <View style={{ flexDirection: 'row', height: 8, borderRadius: 4, overflow: 'hidden', backgroundColor: t.fill }}>
+      <View style={{ flex: (p * 4) / total, backgroundColor: t.protein }} />
+      <View style={{ flex: (c * 4) / total, backgroundColor: t.carbs }} />
+      <View style={{ flex: (f * 9) / total, backgroundColor: t.fat }} />
     </View>
   );
+}
+
+/** L'écart entre la cible et la dépense, écrit plutôt qu'à soustraire de tête. */
+function ecartDepense(cible: number, depense: number): string {
+  const d = depense - cible;
+  const dep = `${depense.toLocaleString('fr-FR')} kcal`;
+  if (Math.abs(d) < 20) return `Autant que ta dépense (${dep})\u00A0: tu gardes ton poids`;
+  return d > 0
+    ? `${d.toLocaleString('fr-FR')} kcal sous ta dépense, qui est de ${dep}`
+    : `${(-d).toLocaleString('fr-FR')} kcal au-dessus de ta dépense, qui est de ${dep}`;
+}
+
+/** « Omnivore · 3 aliments évités » plutôt que « Personnalisées ». */
+function prefsResume(p: UserProfile): string {
+  const regimes = p.dietary_restrictions.map((r) => RESTRICTION_LABELS[r]).filter(Boolean);
+  const parts = [regimes.length ? regimes.join(', ') : 'Omnivore'];
+  const n = p.disliked_foods.length;
+  if (n) parts.push(`${n} aliment${n > 1 ? 's' : ''} évité${n > 1 ? 's' : ''}`);
+  const h = p.hidden_recipes?.length ?? 0;
+  if (h) parts.push(`${h} recette${h > 1 ? 's' : ''} masquée${h > 1 ? 's' : ''}`);
+  return parts.join(' · ');
+}
+
+/** « 5 jours · 4 repas · Soir plus copieux » plutôt que « 5 j · 4 repas · Équilibré ». */
+function repasResume(p: UserProfile): string {
+  const jours = p.plan_days;
+  const parts = [`${jours} jour${jours > 1 ? 's' : ''}`, `${p.meals?.length || 4} repas`];
+  const ids = emphasisIds(p.meal_emphasis, Array.isArray(p.meals) ? p.meals : []);
+  if (ids.length) parts.push(`${ids.map((e) => EMPHASIS_MOMENT[e] ?? slotLabel(knownSlots(p), e)).join(' et ')} plus copieux`);
+  return parts.join(' · ');
 }
 
 // ── Coquille d'éditeur (en-tête + scroll + bouton) ───────────────────────────
@@ -2011,14 +2069,23 @@ function makeStyles(t: ThemePalette) {
     sub: { ...Type.bodySmall, color: t.textSecondary, lineHeight: 19 },
     cibles: {
       backgroundColor: t.card, borderRadius: Radius.card,
-      padding: Spacing.xl, gap: Spacing.xl,
+      padding: Spacing.xl, gap: Spacing.lg,
     },
-    ciblesLigne: { flexDirection: 'row', gap: Spacing.md },
+    prenom: { ...Type.display, color: t.text, marginTop: Spacing.sm },
+    kcalLigne: { flexDirection: 'row', alignItems: 'baseline' },
+    kcalV: { ...Type.hero, color: t.text },
+    kcalU: { ...Type.h3, color: t.textTertiary },
+    ecart: { ...Type.bodySmall, color: t.textSecondary, lineHeight: 19, marginTop: Spacing.xs },
+    legende: { ...Type.bodySmall, color: t.textSecondary, lineHeight: 19 },
+    offre: { backgroundColor: t.card, borderRadius: Radius.card, padding: Spacing.xl, gap: Spacing.lg },
+    offreTitre: { ...Type.h2, color: t.text },
+    offreLigne: { flexDirection: 'row', gap: Spacing.md, alignItems: 'flex-start' },
+    offreNom: { ...Type.bodyStrong, color: t.text },
+    offreCorps: { ...Type.bodySmall, color: t.textSecondary, lineHeight: 19, marginTop: Spacing.xs },
+    offreBtn: { alignItems: 'center', justifyContent: 'center', minHeight: CIBLE_TACTILE_MIN, borderRadius: Radius.button, backgroundColor: t.accent, marginTop: Spacing.xs },
+    offreBtnTxt: { ...Type.label, color: t.onAccent },
     menu: { backgroundColor: t.card, borderRadius: Radius.card, paddingHorizontal: Spacing.lg },
-    tdee: { backgroundColor: t.card, borderRadius: Radius.card, padding: Spacing.lg, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: Spacing.md },
     floorNote: { ...Type.caption, color: t.textSecondary, lineHeight: 18, marginTop: -Spacing.xs },
-    tdeeL: { ...Type.bodySmall, flex: 1, color: t.textSecondary, lineHeight: 19 },
-    tdeeV: { ...Type.h3, flexShrink: 0, color: t.text },
     // Bouton d'action pleine largeur, sur le patron de « Se déconnecter » : fond de
     // carte et non l'accent — une action de repli ne doit pas crier plus fort que la
     // pesée, qui est la vraie entrée quotidienne de l'écran.

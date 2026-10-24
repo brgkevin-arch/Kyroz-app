@@ -89,6 +89,66 @@ adresse » (code à 6 chiffres) → questionnaire.** Trois écrans avant la prem
 | P7 | Connexion : « Ton mot de passe » ; « E-mail » partout | petit |
 | P8 | Sur iPhone : Apple EN HAUT, l'e-mail en dessous | petit (à vérifier au simulateur) |
 
+## Segment 12 — Profil (contenu et visuel)
+
+*Ouvert le 2026-10-24 à la demande du fondateur (« on va retravailler le contenu et le
+visuel du profil »), avant les segments 2 à 11. Regardé sur le web au format iPhone
+(393 pt), clair et sombre, avec le persona des scripts (Marc, sèche, sans Kyroz+). Le
+Profil n'est plus un onglet depuis le 2026-10-21 (E81) : on l'ouvre par la bulle en haut
+à droite du Plan, et le poids est parti dans l'onglet Poids.*
+
+### Constats
+
+**A. Ce que l'écran dit de toi**
+
+1. **Rien ne dit « toi ».** On entre par une bulle de profil et l'écran s'ouvre sur quatre
+   chiffres. Le prénom est lu par l'écran (`useFirstName`) et n'est affiché nulle part.
+
+**B. Les cibles**
+
+2. **La cible et la dépense sont dans deux cartes, sans le lien.** « 2 183 kcal » en haut,
+   « 2 483 kcal » dans la carte suivante : les 300 kcal de déficit sont à soustraire de
+   tête, alors que c'est ce qui explique la cible.
+3. **Deux grammaires pour la même chose.** Ici une grille 2 × 2 de chiffres ; sur le Plan,
+   un gros chiffre, une barre en trois nuances et une ligne de macros.
+4. **Le Plan et le Profil n'affichent pas les mêmes macros.** Le Plan montre ce qui est
+   servi ce jour-là (162 / 215 / 65 g), le Profil la cible (164 / 213 / 75 g) : 10 g de
+   lipides d'écart, sans un mot. La cause est sur le Plan (segment 8) ; c'est ici qu'on la voit.
+
+**C. Les réglages**
+
+5. **Les valeurs ne disent pas ce qui est réglé.** « Personnalisées » s'affiche dès qu'un
+   régime est enregistré, « omnivore » compris, donc pour presque tout le monde ;
+   « Calculées » ; « 5 j » ; et « Équilibré » veut dire ici « aucun repas plus copieux »,
+   alors que c'est aussi le nom d'un niveau de variété.
+6. **Les titres se répètent** : « Infos › Informations », « Objectif › Objectif ». Les titres
+   de chapitre sont une décision du 2026-09-21 (`profilSection.test.ts`) : pas touchés.
+
+**D. Kyroz+ et l'action**
+
+7. **Kyroz+ est une ligne « En savoir plus » qui ne dit pas ce qu'elle apporte.** Le code
+   prévoyait d'en faire une carte « le jour où le paywall s'allumera » ; il est allumé depuis
+   le 2026-08-27, et la carte n'est jamais venue.
+8. **« Régénérer mon plan »**, qui remplace toute la semaine, est posé entre les réglages et
+   Kyroz+.
+
+### Ce que je propose (à trancher)
+
+P1 à P5 sont **prototypés sur la branche `claude/beautiful-mayer-8eldew`** (captures avant /
+après dans la conversation du 2026-10-24), rien n'est fusionné.
+
+| # | Proposition | Coût |
+|---|---|---|
+| P1 | Le prénom en grand en tête d'écran ; rien s'il n'y en a pas | petit |
+| P2 | Une seule carte « Cibles » : « 2 183 kcal par jour », l'écart écrit (« 300 kcal sous ta dépense, qui est de 2 483 kcal »), la barre en trois nuances et la ligne de macros du Plan | petit |
+| P3 | Des valeurs qui disent ce qui est réglé : « Omnivore · 3 aliments évités », « Calculées par Kyroz » / « Ta répartition », « 5 jours · 4 repas · Soir plus copieux », « Avec Kyroz+ » | petit |
+| P4 | Sans abonnement, Kyroz+ devient une carte : ses deux fonctions (textes du 2026-10-23, lus dans `FONCTIONS_KYROZ_PLUS`) et un bouton « Découvrir Kyroz+ » ; abonné, la ligne reste | petit |
+| P5 | « Régénérer mon plan » en dernier | petit |
+| P6 | Lever les doublons de titres (constat 6) — non prototypé : touche une décision du 2026-09-21 | petit |
+| P7 | Macros du Plan ≠ cibles du Profil (constat 4) : à traiter au segment 8 | — |
+
 ## Journal du chantier
 
 - 2026-10-19 — découpage posé, segment 1 audité. En attente des arbitrages du fondateur.
+- 2026-10-24 — segment 12 (Profil) ouvert à la demande du fondateur : 8 constats, P1 à P5
+  prototypés sur `claude/beautiful-mayer-8eldew`. En attente de ses arbitrages.

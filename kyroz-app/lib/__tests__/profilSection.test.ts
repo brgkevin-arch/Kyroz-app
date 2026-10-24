@@ -226,7 +226,9 @@ describe('Profil — la visite guidée descend l’écran, elle ne fait pas d’
     // le premier bloc » : VERT, quel que soit l'ordre réel de l'écran. Un test qui
     // se repère sur l'outil d'un AUTRE mécanisme meurt avec lui, en silence.
     // ➡️ On se repère désormais sur le LIBELLÉ affiché, qui est le sujet du test.
-    const tdee = SRC_PROFIL.indexOf('Ta dépense par jour, pour garder ton poids');
+    // ⚠️ Depuis la proposition du 2026-10-24, la dépense est DANS la carte des cibles,
+    // écrite comme un écart (`ecartDepense`) : c'est l'appel qu'on repère.
+    const tdee = SRC_PROFIL.indexOf('ecartDepense(profile.target_kcal, profile.tdee_kcal)');
     expect(tdee, 'le libellé de la dépense estimée est introuvable — le repère a bougé').toBeGreaterThan(0);
     // ⚠️ Le repère suit le RENOMMAGE du 2026-09-21 (« TOI » → « Infos ») : un test
     // qui se repère sur un libellé doit suivre le libellé, sinon il mesure le vide —
