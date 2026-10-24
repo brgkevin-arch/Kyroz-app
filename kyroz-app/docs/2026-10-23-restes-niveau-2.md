@@ -4,8 +4,8 @@
 > pour APRÈS la 62ᵉ OTA. Repris le 2026-10-24 : *« je veux que l'user ne jette rien, pas de
 > gâchis »*, avec *« une table sourcée et plus précise pour les DLC »*, et *« il congèle ce qu'il
 > peut, on ne pourra pas tout sauver »*.
-> **Statut : mesuré avec la table sourcée (`docs/2026-10-24-duree-de-vie.md`), branche
-> `claude/restes-niveau-2`, en attente d'arbitrage. Rien n'est fusionné ni branché dans l'app.**
+> **Statut (2026-10-24, après-midi) : codé et branché sur la branche `claude/restes-niveau-2`,
+> suite verte (2 937 / 206). Pas fusionné, pas publié. La table des durées de vie est à valider.**
 
 ## ⚠️ Ce qui a changé depuis la version du 2026-10-23
 
@@ -60,26 +60,63 @@ semaines avec un quasi-doublon 3 → 3 à 4 %.
 5. **Le levier le plus fort mesuré est l'ACHAT.** Les quatre légumes courants en surgelé
    retirent 27 % de ce qu'il faut congeler, et 21 % de ce qui serait cuisiné trop tard.
 
-## À trancher par le fondateur
+## 2026-10-24, après-midi : ce que le fondateur a tranché, et ce qui est codé
 
-1. **Valider la table des durées de vie** (`docs/2026-10-24-duree-de-vie.md`), en particulier le
-   défaut non sourcé de 7 jours pour les similis fermés.
-2. **Le niveau 2** : le brancher pour −10 % (gain faible, sans coût mesuré), ou le laisser.
-3. **Le prochain levier**, parmi ceux mesurés ou repérés :
-   - l'achat : surgelé quand ça existe, ou des formats plus petits ;
-   - ce qui ne se congèle pas : des recettes qui finissent le concombre, la salade, le pot ;
-   - **dire quoi congeler, et quand**, à « Courses terminées » : à rebours de « l'app tourne en
-     silence », donc à sa décision.
+> *« Tant que le moteur fait partir en priorité ce qu'il reste du plan de la veille, c'est déjà très
+> bien. Il faudrait que le moteur soit diversifié oui, mais optimisé pour finir la semaine avec le
+> moins de restes possible, et se rattraper sur la semaine d'après pour le peu qui va rester. Pas
+> refaire les mêmes plats, mais la base doit être avec les choses qui vont être hors DLC en prio.
+> On ne dit pas quoi congeler. »*
 
-## Ce qui est sur la branche
+Codé sur la branche (`lib/planEngine.ts`, `lib/restesSemaine.ts`, `lib/planSuivant.ts`) :
+1. **Le moteur suit ce qu'il y a à finir.** Ce sont les restes de la semaine d'avant, et le reste
+   de chaque paquet que la semaine entame, chacun jusqu'au jour où il tient. À chaque repas, un
+   **bonus** va aux plats qui finissent le plus de ce qui tourne le plus tôt.
+2. **La semaine tirée, le surplus de chaque paquet de légume** va dans les plats qui s'en servent
+   déjà, tant qu'il tient. Il y a deux garde-fous : jamais un paquet de plus, et le plat garde ses
+   calories à 15 kcal près. Mesuré : 14 % des repas ont un peu plus de légume (+60 g en médiane,
+   +145 g au plus : carottes 80 → 140 g, brocoli 80 → 160 g).
+3. **À « Courses terminées », la semaine suivante est tirée avec les restes** de la semaine en
+   cours : réserve moins repas restants, chaque aliment jusqu'au jour où il tient.
+4. **Rien n'est affiché.** L'app ne dit pas quoi congeler.
 
-- `lib/dureeDeVie.ts` : la table, 57 aliments, 13 sources. Garde-fou `dureeDeVie.test.ts`,
-  vérifié par 3 mutations (3 rouges).
-- `lib/planEngine.ts` : `buildLocalPlan(…, restes)`. Sans restes, le moteur est **identique** à
-  `main` : aucun plan en cours ne se re-tirerait.
-- `lib/restesSemaine.ts` : ce que la semaine suivante doit reprendre, et jusqu'à quel jour.
-  **Non branché** dans l'app (`planSuivant.ts`).
-- `scripts/mesure-restes.ts` (la mesure) et `scripts/gen-duree-de-vie.ts` (la fiche).
+| Par semaine (480 semaines) | Avant | Après |
+|---|---|---|
+| Jeté | 365 g | **327 g (−10 %)** |
+| À congeler | 1 274 g | **1 144 g (−10 %)** |
+| Drapeaux / 9 600 repas | 11 | 8 |
+| Écart au jour | 0,57 % | 0,73 % |
+| Semaines avec un quasi-doublon | 3 % | 3 % |
+| Frais acheté | 4 322 g | 4 524 g (+5 % : plus de légumes mangés) |
+
+🔴 **Un filtre faisait −26 % de jeté, et il est écarté.** Appliqué en dur, il cassait 7 décisions
+déjà prises :
+- la part de poulet promise (46 % au lieu de 48) ;
+- la part végétale du végétarien ;
+- la rotation des petits-déjeuners ;
+- les fibres en sèche (25 g au lieu de 32) ;
+- un « Régénérer » qui se voit ;
+- le réglage « répétitif » ;
+- le plancher protéique.
+
+En bonus, le poids retenu (0,0003) est le plus haut où toute la suite reste verte. À 0,0005, le
+plancher protéique et les fibres en sèche rougissent.
+
+**Ce que le moteur ne peut pas faire seul** : il n'a pas le choix. Sur 541 recettes, 10 portent du
+chou-fleur, 8 du raisin, 12 des asperges. Le gros des restes reste un chou-fleur entier, une
+barquette de raisin, une botte d'asperges. Les leviers suivants sont l'achat (surgelé, formats
+plus petits) et le catalogue (des recettes qui finissent l'unité).
+
+**Garde-fous** :
+- `finirLesPaquets.test.ts` : jamais un paquet de plus, le surplus baisse, un reste fait servir
+  l'aliment, et une carte vide ne change rien ;
+- `restesSemaine.test.ts` : ce qui tient, la déduction, la borne la plus courte ;
+- `dureeDeVie.test.ts`.
+
+Vérifiés par 7 mutations au total, 7 rouges.
+
+**Pas de hausse d'`ENGINE_VERSION`** : aucun plan en cours ne se re-tire, donc ce qui a été acheté
+reste ce qu'on cuisine. La logique arrive avec chaque nouveau plan (renouvellement, inscription).
 
 ## Vu en passant (constats, pas des demandes)
 

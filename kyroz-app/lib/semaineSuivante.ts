@@ -1,5 +1,5 @@
 import type { Meal, MealPlan, UserProfile } from './types';
-import { buildLocalPlan, nextPlanSeed, profileSignature } from './planEngine';
+import { buildLocalPlan, nextPlanSeed, profileSignature, type Reste } from './planEngine';
 import { ENGINE_NOTICE_MIN_DELTA } from './tdee';
 import { datesDuPlan, semaineEcoulee } from './semainePlan';
 import { repasACompter } from './coursesDepuis';
@@ -106,12 +106,18 @@ export function doitPreparer(
   return repasACompter(plan, weekdays, derniereCloture, maintenant).apresCourses;
 }
 
-/** Tire la semaine suivante : un NOUVEAU tirage (comme un renouvellement), daté de son début. */
-export function preparer(profile: UserProfile, courant: MealPlan, seedCourant: number, maintenant: Date): SemaineSuivante | null {
+/**
+ * Tire la semaine suivante : un NOUVEAU tirage (comme un renouvellement), daté de son début.
+ * `restes` (2026-10-24, « ne rien jeter ») : ce qui restera de la semaine en cours, chaque
+ * aliment jusqu'au jour où il tient (`lib/restesSemaine.ts`) — le moteur les reprend en priorité.
+ */
+export function preparer(
+  profile: UserProfile, courant: MealPlan, seedCourant: number, maintenant: Date, restes?: ReadonlyMap<string, Reste>,
+): SemaineSuivante | null {
   const debut = debutDeLaSuivante(courant, profile.plan_weekdays);
   if (!debut) return null;
   const seed = nextPlanSeed(String(seedCourant), true);
-  const p = buildLocalPlan(profile, seed);
+  const p = buildLocalPlan(profile, seed, undefined, restes);
   return { seed, plan: { ...p, week_start_date: debut, prepare_le: maintenant.toISOString() } };
 }
 
@@ -127,6 +133,7 @@ export function aligner(
   courant: MealPlan,
   suivante: SemaineSuivante,
   aujourdHui: string,
+  restes?: ReadonlyMap<string, Reste>,
 ): SemaineSuivante | null {
   const debut = debutDeLaSuivante(courant, profile.plan_weekdays);
   if (!debut) return null;
@@ -138,7 +145,7 @@ export function aligner(
   if (memeDebut && ciblesSeulement(suivante.plan.profile_sig, sig)) {
     return { seed: suivante.seed, plan: memesRecettes(profile, suivante.plan, suivante.seed) };
   }
-  const p = buildLocalPlan(profile, suivante.seed);
+  const p = buildLocalPlan(profile, suivante.seed, undefined, restes);
   return { seed: suivante.seed, plan: { ...p, week_start_date: debut, prepare_le: suivante.plan.prepare_le } };
 }
 
