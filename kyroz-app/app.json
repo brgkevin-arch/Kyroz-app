@@ -107,8 +107,8 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "Kyroz accède à tes photos pour tes photos de progression et pour lire tes tickets de caisse (tout reste sur ton téléphone).",
-          "cameraPermission": "Kyroz utilise l'appareil photo pour tes photos de progression et pour lire tes tickets de caisse (tout reste sur ton téléphone).",
+          "photosPermission": "Pour tes photos de progression et tes tickets de caisse. Rien ne quitte ton téléphone.",
+          "cameraPermission": "Pour photographier ta progression et tes tickets de caisse. Rien ne quitte ton téléphone.",
           "microphonePermission": false
         }
       ],
