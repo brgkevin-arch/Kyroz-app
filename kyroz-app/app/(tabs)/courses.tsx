@@ -28,6 +28,8 @@ import { formatQuantity, toBaseUnit } from '../../lib/units';
 import { searchFoods } from '../../lib/foods';
 import { loadPantry, savePantry, addOrMerge, isStaple, nomAffiche } from '../../lib/pantry';
 import { achatALaPiece, quantiteRangee } from '../../lib/formatsVendus';
+import { clotureAvecTicket, lireTicket, rapprocher, type Rangement } from '../../lib/ticketCaisse';
+import { lecteurDisponible, lireTicketDepuis, type SourceTicket } from '../../lib/lecteurTicket';
 import {
   ShoppingTrip, loadHistory, saveHistory, recordTrip, removeTrip, historySummary, newestFirst,
 } from '../../lib/shoppingHistory';
@@ -323,8 +325,56 @@ export default function CoursesScreen() {
   // recalculent pas, donc rien ne les ferait partir de la liste — même achetés.
   const terminer = async () => {
     if (closing) return;
-    const tous = fusionner(list?.items ?? [], ajouts);
+    let tous = fusionner(list?.items ?? [], ajouts);
     if (tous.length === 0) return;
+    let ajoutsVus = ajouts;
+    // ⓪ LE TICKET EST LA CLÔTURE (2026-10-24, E84, règle validée par le fondateur) — seulement
+    // si l'iPhone sait lire un ticket (`lib/lecteurTicket.ts` : absent du build (22), donc cette
+    // branche dort jusqu'au prochain build). Le ticket coche ce qu'il retrouve, et ce qui entre en
+    // réserve est ce qu'il dit (`lib/ticketCaisse.ts`) ; sans lui, rien ne change.
+    let parTicket: Rangement[] | null = null;
+    if (lecteurDisponible()) {
+      const voie = await choose<'ticket' | 'sans'>({
+        title: 'Terminer les courses\u00A0?',
+        options: [{ label: 'Avec mon ticket', value: 'ticket' }, { label: 'Sans ticket', value: 'sans' }],
+      });
+      if (voie === null) return;
+      if (voie === 'ticket') {
+        const source = await choose<SourceTicket>({
+          title: 'Ton ticket',
+          options: [
+            { label: 'Le ticket de mon appli (PDF)', value: 'pdf' },
+            { label: 'Prendre une photo', value: 'photo' },
+            { label: 'Choisir une image', value: 'image' },
+          ],
+        });
+        if (source === null) return;
+        let texte: string | null = null;
+        try { texte = await lireTicketDepuis(source); } catch { texte = ''; }
+        if (texte === null) return;
+        const visibles = tous.filter(visible);
+        const coches = new Set(visibles.filter((i) => i.checked).map((i) => i.name));
+        const trouves = rapprocher(lireTicket(texte), visibles);
+        const lu = clotureAvecTicket(visibles, coches, trouves);
+        const k = lu.rangements.length;
+        const ok = await choose<'ranger' | 'sans'>(trouves.size > 0 ? {
+          title: 'Ranger dans ta réserve\u00A0?',
+          message: `${k} article${k > 1 ? 's' : ''} de ta liste${k > 1 ? ' vont' : ' va'} dans ta réserve.`,
+          options: [{ label: 'Ranger', value: 'ranger' }],
+        } : {
+          title: 'Ticket illisible',
+          message: 'Aucun article de ta liste n\u2019a été retrouvé sur ce ticket.',
+          options: [{ label: 'Terminer sans ticket', value: 'sans' }],
+        });
+        if (ok === null) return;
+        if (ok === 'ranger') {
+          parTicket = lu.rangements;
+          const achetes = new Set(lu.achetes);
+          tous = tous.map((i) => (achetes.has(i.name) ? { ...i, checked: true } : i));
+          ajoutsVus = ajouts.map((a) => (achetes.has(a.name) ? { ...a, checked: true } : a));
+        }
+      }
+    }
     const restants = tous.filter((i) => visible(i) && !i.checked);
     // Ce qui n'est pas coché n'est pas acheté. On ne se contente plus de le DIRE
     // avant de les garder d'office : les deux issues sont légitimes et
@@ -356,11 +406,13 @@ export default function CoursesScreen() {
       // Le ranger quand même y poserait une ligne à 0 g — un chiffre inventé, et un
       // stock inventé fait disparaître des articles de la liste suivante.
       const achetes = tous.filter((i) => visible(i) && i.checked && !isStaple(i.name) && i.quantity > 0);
-      if (achetes.length) {
+      // Avec un ticket, ce qui entre est ce qu'il dit (lu, besoin du vrac, ou paquet estimé).
+      const aRanger = parTicket
+        ? parTicket.filter((r) => !isStaple(r.name)).map(({ name, quantity, unit, category }) => ({ name, quantity, unit, category }))
+        : achetes.map((it) => ({ name: it.name, quantity: quantiteRangee(it), unit: it.unit, category: it.category }));
+      if (aRanger.length) {
         let pantry = await loadPantry();
-        for (const it of achetes) {
-          pantry = addOrMerge(pantry, { name: it.name, quantity: quantiteRangee(it), unit: it.unit, category: it.category });
-        }
+        for (const it of aRanger) pantry = addOrMerge(pantry, it);
         await savePantry(pantry);
         pushPantry(pantry);
       }
@@ -377,7 +429,7 @@ export default function CoursesScreen() {
       await AsyncStorage.removeItem(LIST_KEY);
       // Les ajouts cochés ont été achetés : ils quittent la liste (et viennent
       // d'entrer en réserve à l'étape ①). Les autres suivent le choix ci-dessus.
-      await saveAjouts(ajoutsApresCloture(ajouts, sort));
+      await saveAjouts(ajoutsApresCloture(ajoutsVus, sort));
       // ⚠️ Les écartés se rejouent APRÈS le recalcul, et c'est tout le mécanisme :
       // vider le cache fait revenir les non-cochés depuis le plan (les cochés, eux,
       // viennent d'entrer en réserve à l'étape ① et en sont donc déduits). Pour qu'un

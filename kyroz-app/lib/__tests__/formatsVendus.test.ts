@@ -166,7 +166,9 @@ describe('format vendu : l’écran Courses s’en sert', () => {
 
   it('« Courses terminées » range le format vendu, pas le besoin', () => {
     const bloc = courses.slice(courses.indexOf('const terminer = async'));
-    expect(bloc).toMatch(/addOrMerge\(pantry, \{ name: it\.name, quantity: quantiteRangee\(it\)/);
+    // Sans ticket, le paquet estimé ; avec un ticket (E84), ce que le ticket dit (`ticketCaisse.test.ts`).
+    expect(bloc).toMatch(/achetes\.map\(\(it\) => \(\{ name: it\.name, quantity: quantiteRangee\(it\)/);
+    expect(bloc).toMatch(/for \(const it of aRanger\) pantry = addOrMerge\(pantry, it\)/);
   });
 
   it('la ligne dit le BESOIN, une seule quantité ; seule la pièce dit combien en prendre (2026-10-24)', () => {
