@@ -166,6 +166,39 @@ Essayé, puis écarté :
 Aller plus loin demande de choisir : relâcher la précision (calories, protéines), arrondir
 l'achat AU-DESSOUS quand on dépasse à peine un pot, ou changer de format.
 
+## 2026-10-24, soir : arrondir au paquet inférieur — mesuré, écarté
+
+> Fondateur : *« quand le besoin dépasse à peine un pot (yaourt soja, feta…), arrondis l'achat au
+> pot inférieur et réduis légèrement les recettes ; mesure d'abord ce que ça change »*.
+
+**Mesuré d'abord** (besoins d'origine, 240 semaines) :
+
+| Seuil de dépassement | Cas par semaine | Achat évité | Recettes réduites |
+|---|---|---|---|
+| +15 % | 0,8 | 161 g | 26 g |
+| +20 % | 1,2 | 233 g | 45 g |
+| +25 % | 1,4 | 270 g | 59 g |
+
+En tête : yaourt de soja, épinards, skyr, seitan, poulet.
+
+**Codé, puis mesuré dans le moteur (480 semaines)** : jeté 292 → **289 g** à +15 % (289 aussi à
++20 et +25 %), achat −11 g. Sur 196 cas candidats :
+
+| Motif | Cas |
+|---|---|
+| Le plat passait sous sa cible de protéines (on réduit justement sa protéine) | 94 refusés |
+| Fibres | 37 refusés |
+| Journée hors des 15 kcal | 35 refusés |
+| Appliqués | 30 |
+
+En tolérant 10 % de protéines en moins, on obtient 286 g jetés, mais **61 repas mal calibrés au
+lieu de 5**.
+
+➡️ **Écarté, et retiré du moteur.** Le yaourt de soja ne se perd pas « à peine au-dessus d'un pot » :
+ses besoins vont de 255 à 2 030 g par semaine, et il se perd surtout les semaines SOUS un pot
+(255–355 g pour 400 g). C'est une question de format (existe-t-il un pot individuel ?), pas
+d'arrondi.
+
 ## Vu en passant (constats, pas des demandes)
 
 - **La réserve ne connaît pas la péremption.** Un reste de viande de dix jours y figure toujours,
