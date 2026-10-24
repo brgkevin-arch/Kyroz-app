@@ -27,7 +27,7 @@ import { useProfile } from '../../hooks/useProfile';
 import { formatQuantity, toBaseUnit } from '../../lib/units';
 import { searchFoods } from '../../lib/foods';
 import { loadPantry, savePantry, addOrMerge, isStaple, nomAffiche } from '../../lib/pantry';
-import { achatPour, quantiteRangee } from '../../lib/formatsVendus';
+import { achatALaPiece, quantiteRangee } from '../../lib/formatsVendus';
 import {
   ShoppingTrip, loadHistory, saveHistory, recordTrip, removeTrip, historySummary, newestFirst,
 } from '../../lib/shoppingHistory';
@@ -346,10 +346,12 @@ export default function CoursesScreen() {
     }
     setClosing(true);
     try {
-      // ① Les achats rejoignent la réserve, au FORMAT VENDU (2026-10-02, décision
-      // fondateur) : le paquet entier, pas le besoin. 320 g de riz demandés pour un
-      // paquet de 500 g, ce sont 500 g au placard ; ranger 320 faisait racheter les
-      // 180 qui restent (`lib/formatsVendus.ts`). Un ajout manuel garde SA quantité.
+      // ① Les achats rejoignent la réserve, au PAQUET ESTIMÉ (2026-10-02, confirmé le
+      // 2026-10-24 quand la liste est revenue au besoin en grammes) : la liste dit « 320 g
+      // de riz », la personne prend un paquet de 500 g, ce sont 500 g au placard ; ranger
+      // 320 faisait racheter les 180 qui restent (`lib/formatsVendus.ts`). Le ticket de
+      // caisse, quand il viendra, remplacera l'estimation par le vrai. Un ajout manuel
+      // garde SA quantité.
       // ⚠️ `quantity > 0` : un ajout manuel n'a souvent AUCUNE quantité (« café »).
       // Le ranger quand même y poserait une ligne à 0 g — un chiffre inventé, et un
       // stock inventé fait disparaître des articles de la liste suivante.
@@ -781,9 +783,10 @@ export default function CoursesScreen() {
           // Le tout premier article de la liste entière (1re ligne du 1er rayon),
           // pas le premier de chaque section.
           const premierDeLaListe = first && section.cat === sections[0]?.cat;
-          // Ce qu'on prend en magasin (`lib/formatsVendus.ts`) ; `null` pour un ajout
-          // manuel ou un aliment sans format, qui gardent leur quantité seule.
-          const achat = achatPour(item);
+          // LE BESOIN, pas le paquet (2026-10-24, fondateur : « on lui dit qu'il lui faut
+          // 650 g de bœuf, il achète au plus proche »). Seul ce qui se vend à la pièce dit
+          // combien en prendre (« 2 courgettes ») : on n'achète pas ⅔ de tomate.
+          const pieces = achatALaPiece(item);
           return (
             // Les coins de la carte sont posés par la ligne glissable (premiere / derniere),
             // qui rogne aussi le rouge qu'elle découvre.
@@ -813,14 +816,15 @@ export default function CoursesScreen() {
               </View>
               <View style={s.texte}>
                 <Text style={[s.name, item.checked && { textDecorationLine: 'line-through', color: t.textTertiary }]} numberOfLines={1}>{nomAffiche(item.name)}</Text>
-                {/* « 1 pot de 250 g » : ce qu'on prend en rayon, rien d'autre. Le besoin
-                    des repas (« · il t'en faut 5 g ») est retiré le 2026-10-22 : inutile à
-                    qui fait ses courses (fondateur, point 4). Un ajout manuel n'a souvent pas
-                    de quantité : `formatQuantity` rendrait « 0 g », un chiffre faux là où un
-                    blanc dit la vérité. */}
-                {achat ? (
+                {/* « 650 g » : le besoin de la semaine, réserve déduite ; la personne prend ce
+                    qui s'en approche en rayon. Le paquet (« 1 pot de 250 g », 2026-10-02) n'est
+                    plus affiché depuis le 2026-10-24 (décision fondateur) ; c'est lui qui entre
+                    en réserve à la clôture (`quantiteRangee`), faute de savoir ce qui a été pris.
+                    Un ajout manuel n'a souvent pas de quantité : `formatQuantity` rendrait
+                    « 0 g », un chiffre faux là où un blanc dit la vérité. */}
+                {pieces ? (
                   <Text style={[s.qty, item.checked && { color: t.textTertiary }]} numberOfLines={1}>
-                    {achat.libelle}
+                    {pieces.libelle}
                   </Text>
                 ) : item.quantity > SANS_QUANTITE && (
                   <Text style={[s.qty, item.checked && { color: t.textTertiary }]} numberOfLines={1}>{formatQuantity(item.name, item.quantity, item.unit)}</Text>

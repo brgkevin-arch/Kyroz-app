@@ -271,6 +271,21 @@ export function achatPour(article: Article): Achat | null {
 }
 
 /**
+ * Ce que la LIGNE de la liste affiche (2026-10-24, décision fondateur : « on lui dit qu'il lui
+ * faut 650 g de bœuf, il achète au plus proche »). Le BESOIN, pas le paquet : au poids ou au
+ * volume, ses grammes ; à la pièce, le nombre de pièces à prendre (« 2 courgettes »), parce
+ * qu'on n'achète pas ⅔ de tomate. `null` = la ligne n'a rien de vendu à la pièce : à
+ * l'appelant d'afficher le besoin (`formatQuantity`).
+ * ⚠️ Ce qui ENTRE en réserve, lui, reste le paquet estimé (`quantiteRangee`) : sans ticket, on
+ * ne sait pas ce qui a été pris, et ranger le seul besoin ferait racheter le reste du paquet.
+ */
+export function achatALaPiece(article: Article): Achat | null {
+  const ref = refDuNom(article.name);
+  const regle = ref ? FORMATS[ref] : undefined;
+  return regle && 'piece' in regle ? achatPour(article) : null;
+}
+
+/**
  * Ce qui entre en réserve à « Courses terminées ». Jamais MOINS que le besoin : à la
  * tolérance près, un format peut le frôler par en dessous, et une réserve inférieure
  * au besoin ferait revenir l'article sur la liste suivante pour quelques grammes.

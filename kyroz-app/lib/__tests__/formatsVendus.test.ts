@@ -12,7 +12,8 @@ import { DietaryRestriction } from '../types';
 /**
  * ── Le format vendu (2026-10-02, décision fondateur « Liste + réserve ») ────
  *
- * La liste montre ce qu’on prend en magasin, la réserve reçoit le paquet ENTIER.
+ * La réserve reçoit le paquet ENTIER. La liste, elle, montre le BESOIN depuis le 2026-10-24
+ * (décision fondateur, `listeEnGrammes.test.ts`) ; seule la pièce dit combien en prendre.
  * Trois propriétés tiennent la promesse, et chacune a son bloc :
  *   1. chaque ingrédient du catalogue a un format, ou une raison écrite de ne pas en avoir ;
  *   2. le format choisi couvre le besoin, avec le moins de surplus possible ;
@@ -168,12 +169,13 @@ describe('format vendu : l’écran Courses s’en sert', () => {
     expect(bloc).toMatch(/addOrMerge\(pantry, \{ name: it\.name, quantity: quantiteRangee\(it\)/);
   });
 
-  it('chaque ligne dit ce qu’on prend en magasin, et rien d’autre (point 4, 2026-10-22)', () => {
-    // « 1 pot de 250 g · il t’en faut 5 g » : la seconde moitié est retirée, « l’app tourne en
-    // silence » (fondateur). L’achat ne porte plus que ce qu’on prend et ce qui entre en réserve,
-    // et la ligne de l’écran se ferme juste après le libellé.
-    expect(courses).toContain('achatPour(item)');
-    expect(courses).toMatch(/\{achat\.libelle\}\s*<\/Text>/);
+  it('la ligne dit le BESOIN, une seule quantité ; seule la pièce dit combien en prendre (2026-10-24)', () => {
+    // Le 2026-10-22, la ligne disait le paquet (« 1 pot de 250 g ») et plus le besoin
+    // (« · il t’en faut 5 g », retiré : « l’app tourne en silence »). Le 2026-10-24, le
+    // fondateur revient au besoin : « on lui dit qu’il lui faut 650 g de bœuf, il achète au plus
+    // proche » (`listeEnGrammes.test.ts`). Toujours UNE quantité par ligne, jamais les deux.
+    expect(courses).not.toContain('achatPour(item)');
+    expect(courses).toMatch(/\{pieces\.libelle\}\s*<\/Text>/);
     expect(Object.keys(achatPour(article('beurre_amande', 5)) ?? {}).sort()).toEqual(['libelle', 'total']);
     expect(Object.keys(achatPour(article('avocat', 75)) ?? {}).sort()).toEqual(['libelle', 'total']);
   });
