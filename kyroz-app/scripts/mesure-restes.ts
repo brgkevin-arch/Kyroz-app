@@ -1,26 +1,29 @@
 /**
- * LES RESTES DE PAQUETS D'UNE SEMAINE À L'AUTRE (2026-10-23, « niveau 2 des restes »).
+ * LES RESTES DE PAQUETS D'UNE SEMAINE À L'AUTRE (« niveau 2 », 2026-10-23 et 24).
  *
- * Question : le plan suivant devrait-il CHOISIR ses premières recettes avec ce qui reste des
- * paquets de la semaine (les 120 g de poulet en trop) ? Avant de toucher au moteur, mesurer
- * (1) combien de FRAIS reste en fin de semaine et (2) combien la semaine suivante en
- * consomme DÉJÀ, par hasard, telle que le moteur la tire aujourd'hui.
+ * Fondateur : *« je veux que l'user ne jette rien »* — *« il congèle ce qu'il peut »*. Mesure ce
+ * que devient le périssable acheté sur la liste de Kyroz : repris à temps par la semaine
+ * suivante, à congeler, ou jeté — AVANT (la semaine suivante ignore les restes) et APRÈS (elle
+ * les reprend tant qu'ils tiennent, `lib/restesSemaine.ts`).
  *
- * Le circuit simulé est celui de l'app : liste = besoin − réserve (`buildShoppingList`, seuil
- * par aliment), achat au format vendu (`quantiteRangee`), tous les repas cuisinés
- * (`deductIngredients`), la semaine suivante tirée sur le tirage suivant (`nextPlanSeed`).
+ * Le circuit est celui de l'app, jour par jour et daté : courses la veille du premier jour
+ * (liste = besoin − réserve, seuil par aliment, format vendu), tous les repas cuisinés. Ce qui
+ * tient se lit dans `lib/dureeDeVie.ts` (borne basse des sources). Un reste pas repris à temps
+ * part au congélateur s'il se congèle, sinon à la poubelle ; dans les deux cas il quitte le frigo.
+ * ⚠️ La réserve de l'app, elle, ne connaît pas la péremption : elle garderait le reste.
  *
  * Lancer : `npx tsx scripts/mesure-restes.ts` (pas de ligne `npm run`, cf. CLAUDE.md §2).
  */
-import { RESTES, buildLocalPlan, dayTargetKcal, familyKey, mealIngredients } from '../lib/planEngine';
-import { poidsUnitaire } from '../lib/units';
+import { buildLocalPlan, dayTargetKcal, familyKey, mealIngredients, type Reste } from '../lib/planEngine';
 import { recalcProfile } from '../lib/tdee';
 import { buildShoppingList } from '../lib/shoppingList';
-import { FORMATS, quantiteRangee } from '../lib/formatsVendus';
-import { RECIPE_INGREDIENTS } from '../lib/recipeData';
+import { quantiteRangee } from '../lib/formatsVendus';
 import { sousLeSeuil } from '../lib/seuilAchat';
-import { addOrMerge, categorize, conservationDe, deductIngredients, isStaple, type PantryItem } from '../lib/pantry';
+import { addOrMerge, categorize, deductIngredients, type PantryItem } from '../lib/pantry';
 import { refDuNom } from '../lib/nomsAliments';
+import { datesDuPlan, joursEcoules } from '../lib/semainePlan';
+import { dureeDe, tientJusquau } from '../lib/dureeDeVie';
+import { restesAReprendre } from '../lib/restesSemaine';
 import type { MealPlan, UserProfile } from '../lib/types';
 
 const GABARITS = [
@@ -32,6 +35,9 @@ const GABARITS = [
 const REGIMES = [[], ['vegetarian'], ['vegan'], ['pescatarian'], ['gluten_free']];
 const FORMES: [number, number[]][] = [[7, [1, 2, 3, 4, 5, 6, 0]], [5, [1, 2, 3, 4, 5]], [3, [1, 3, 5]]];
 const DEBUTS = [0, 4];
+const SEMAINES = 5;
+/** Un lundi : la semaine w commence 7 × w jours plus tard, les courses se font la veille. */
+const LUNDI = new Date(2026, 10, 2);
 
 export function profil(g: (typeof GABARITS)[number], r: string[], days: number, wd: number[]): UserProfile {
   return recalcProfile({
@@ -42,6 +48,12 @@ export function profil(g: (typeof GABARITS)[number], r: string[], days: number, 
     dietary_restrictions: r, disliked_foods: [], preferred_proteins: [],
   } as unknown as UserProfile);
 }
+
+const date = (decalage: number) => {
+  const d = new Date(LUNDI);
+  d.setDate(d.getDate() + decalage);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+};
 
 /** Les courses d'une semaine : la liste (réserve déduite, seuil appliqué), achetée au format. */
 export function acheter(plan: MealPlan, reserve: PantryItem[]): PantryItem[] {
@@ -63,69 +75,23 @@ export function cuisiner(plan: MealPlan, reserve: PantryItem[], jours?: (d: numb
 }
 
 const total = (s: PantryItem[]) => s.reduce((t, i) => t + (i.unit === 'pièce' ? 0 : i.quantity), 0);
-/** Rangés « au frais » mais vendus SURGELÉS (`docs/2026-10-23-rangement-reserve.md`) : ils ne se perdent pas en une semaine. */
-export const SURGELES = new Set(['edamame', 'fruits_rouges', 'legumes_wok', 'petits_pois']);
-// Et si le chou-fleur et les haricots verts s'achetaient surgelés (`--si-surgeles`) ?
-if (process.argv.includes('--si-surgeles')) for (const r of ['chou_fleur', 'haricots_verts']) SURGELES.add(r);
-/** Le périssable : au frais, hors surgelés et fonds de placard. Les pièces (une courgette) sont comptées à part. */
+/** Le périssable : ce que `lib/dureeDeVie.ts` connaît (ni sec, ni surgelé, ni fond de placard). Les pièces à part. */
 export const perissable = (s: PantryItem[]) => s.filter((i) => {
   const ref = refDuNom(i.name);
-  return !isStaple(i.name) && conservationDe(i) === 'frais' && i.unit !== 'pièce' && !(ref && SURGELES.has(ref));
+  return !!ref && !!dureeDe(ref) && i.unit !== 'pièce';
 });
 
-/** Ce qu'un stock devient une fois un plan cuisiné : la part reprise, et ce qui reste. */
-function reprendre(plan: MealPlan, stock: PantryItem[], jours?: (d: number) => boolean) {
-  const reste = cuisiner(plan, stock, jours);
-  return { repris: total(stock) - total(reste), reste };
-}
-
-export type Tirage = (p: UserProfile, seed: number, restes: PantryItem[]) => MealPlan;
-export interface Bilan {
-  semaines: number; achete: number; restes: number; repris: number; repris2j: number; jete: number;
-  repas: number; drapeaux: number; jours: number; ecart: number; doublons: number;
-  /** Repris AVANT de tourner (`DELAI`), et ce qui a tourné, par famille. */
-  semainesClone: number;
-  aTemps: number; parFamille: Record<string, { restes: number; jete: number }>;
-  parAliment: Record<string, { fois: number; g: number; jete: number }>;
-}
-
-/** Les restes tels que le moteur les lit : grammes par `ref` (une pièce convertie à son poids). */
-export function restesDuMoteur(restes: PantryItem[]): Map<string, number> {
-  const m = new Map<string, number>();
-  for (const it of restes) {
-    const ref = refDuNom(it.name);
-    if (!ref) continue;
-    const g = it.unit === 'pièce' ? it.quantity * (poidsUnitaire(it.name) ?? 0) : it.quantity;
-    if (g > 0) m.set(ref, (m.get(ref) ?? 0) + g);
-  }
-  return m;
-}
-
-/**
- * Combien de jours du plan suivant un reste tient encore — HYPOTHÈSE de mesure, prudente, pas une
- * règle d'hygiène : il a été acheté au début de la semaine qui s'achève. Viande et poisson
- * (similis compris) : le 1er jour, et c'est généreux ; tofu, tempeh, seitan : 3 ; fruits et
- * légumes : 4 ; laitages et œufs : la semaine.
- */
-export const DELAI: Record<string, number> = { viandes: 1, autres: 3, 'légumes': 4, laitiers: 7, 'féculents': 7 };
-const delai = (it: PantryItem) => DELAI[categorize(it.name)] ?? 7;
-/** La même hypothèse, lue par le moteur : combien de jours un reste (ou un paquet ouvert) tient encore. */
-export const tientRef = (ref: string) => {
-  const ing = RECIPE_INGREDIENTS[ref];
-  return ing ? DELAI[categorize(ing.name)] ?? 7 : 7;
-};
-
-/** Le plus petit paquet d'un aliment PÉRISSABLE (ce qu'on ouvre), ou rien pour le reste. */
-export function paquetPerissable(ref: string): number | undefined {
-  const regle = FORMATS[ref];
-  const ing = RECIPE_INGREDIENTS[ref];
-  if (!regle || !ing || SURGELES.has(ref)) return undefined;
-  if (perissable([{ name: ing.name, quantity: 1, unit: ing.unit, category: categorize(ing.name) }]).length === 0) return undefined;
-  return 'piece' in regle ? regle.piece : Math.min(...regle.formats.map((f) => f.taille));
-}
-
 const DRAPEAUX = new Set(['over_target_kcal', 'under_target_kcal', 'protein_below_target']);
-/** La qualité du plan, mesurée comme `scripts/mesure-variete.ts` : drapeaux, écart au jour, quasi-doublons. */
+
+export interface Bilan {
+  semaines: number; achete: number; restes: number; repris: number; congeler: number; jete: number;
+  /** Cuisiné APRÈS sa durée de vie (emballage fermé) : à congeler dès les courses. */
+  tropTard: number; tropTardCongelable: number; parTropTard: Record<string, number>;
+  repas: number; drapeaux: number; jours: number; ecart: number; doublons: number; semainesClone: number;
+  parFamille: Record<string, { restes: number; congeler: number; jete: number }>;
+  parAliment: Record<string, { fois: number; g: number; congeler: number; jete: number }>;
+}
+
 function qualite(b: Bilan, p: UserProfile, plan: MealPlan) {
   const kcal: Record<number, number> = {};
   const familles = new Map<string, Set<string>>();
@@ -147,44 +113,76 @@ function qualite(b: Bilan, p: UserProfile, plan: MealPlan) {
   if (clone) b.semainesClone++;
 }
 
+/** Le jour (depuis les courses) où un plan entame un aliment. */
+function premierUsage(plan: MealPlan, wd: number[], achat: string, ref: string): number {
+  const dates = datesDuPlan(plan, wd)!;
+  let premier = Infinity;
+  for (const m of plan.meals) {
+    const age = joursEcoules(achat, dates[m.day - 1]) ?? Infinity;
+    if (age < premier && mealIngredients(m).some((i) => (i.ref ?? refDuNom(i.name)) === ref)) premier = age;
+  }
+  return premier;
+}
+
 /**
- * Plusieurs semaines d'affilée, comme dans l'app. Chaque semaine : courses (réserve déduite),
- * tous les repas cuisinés. Un reste PÉRISSABLE que la semaine suivante ne reprend pas est jeté
- * à la fin de celle-ci (une semaine de frigo de plus) — sans ça, la réserve simulée le
- * garderait à vie et le compterait deux fois.
- * ⚠️ L'app, elle, le garde : la réserve ne connaît pas la péremption.
+ * Plusieurs semaines d'affilée. `viserRestes` : la semaine suivante reçoit-elle les restes ?
+ * Le sort de chaque reste est mesuré INDÉPENDAMMENT du moteur : repris seulement les jours où il
+ * tient encore (même table), le reste congelé s'il se congèle, sinon jeté.
  */
-export function simuler(tirer: Tirage, semaines = 5): Bilan {
-  const b: Bilan = { semaines: 0, achete: 0, restes: 0, repris: 0, repris2j: 0, jete: 0, repas: 0, drapeaux: 0, jours: 0, ecart: 0, doublons: 0, semainesClone: 0, aTemps: 0, parFamille: {}, parAliment: {} };
+export function simuler(viserRestes: boolean): Bilan {
+  const b: Bilan = {
+    semaines: 0, achete: 0, restes: 0, repris: 0, congeler: 0, jete: 0, tropTard: 0, tropTardCongelable: 0, parTropTard: {},
+    repas: 0, drapeaux: 0, jours: 0, ecart: 0, doublons: 0, semainesClone: 0, parFamille: {}, parAliment: {},
+  };
   for (const g of GABARITS) for (const r of REGIMES) for (const [days, wd] of FORMES) for (const d0 of DEBUTS) {
     const p = profil(g, r, days, wd);
     let reserve: PantryItem[] = [];
-    for (let w = 0; w < semaines; w++) {
-      // Les restes de la semaine d'avant, tels qu'on les connaît à « Courses terminées ».
-      const restes = perissable(reserve);
-      const plan = tirer(p, d0 + w, restes);
+    let precedent: { plan: MealPlan; achat: string } | null = null;
+    let viser: Map<string, Reste> | undefined;
+    for (let w = 0; w < SEMAINES; w++) {
+      const achat = date(7 * w - 1);
+      const plan = { ...buildLocalPlan(p, d0 + w, undefined, viserRestes ? viser : undefined), week_start_date: date(7 * w) };
+      const dates = datesDuPlan(plan, wd)!;
+      // Les restes de la semaine d'avant, et jusqu'à quel jour de CE plan chacun tient.
+      const restes = precedent ? perissable(reserve).map((it) => {
+        const ref = refDuNom(it.name)!;
+        const duree = dureeDe(ref)!;
+        const limite = tientJusquau(duree, premierUsage(precedent!.plan, wd, precedent!.achat, ref));
+        let jusquAu = 0;
+        dates.forEach((dt, i) => { if ((joursEcoules(precedent!.achat, dt) ?? Infinity) <= limite) jusquAu = i + 1; });
+        return { it, jusquAu, congelable: duree.congeler === true };
+      }) : [];
       const avant = total(perissable(reserve));
       const pleine = acheter(plan, reserve);
+      // À « Courses terminées » : la semaine suivante se prépare avec ce qui restera de celle-ci.
+      viser = restesAReprendre(pleine, plan, plan.meals, achat, { week_start_date: date(7 * (w + 1)), days }, wd);
       reserve = cuisiner(plan, pleine);
-      // Premier entré, premier sorti : le plan mange d'abord les restes.
-      const { repris, reste: perime } = reprendre(plan, restes);
-      for (const it of perime) reserve = deductIngredients(reserve, [{ name: it.name, quantity_g: it.quantity, unit: it.unit }]);
+      // Le sort des restes d'avant : repris les jours où ils tiennent (premier entré, premier sorti).
+      for (const { it, jusquAu, congelable } of restes) {
+        const reste = total(cuisiner(plan, [it], (d) => d <= jusquAu));
+        reserve = deductIngredients(reserve, [{ name: it.name, quantity_g: reste, unit: it.unit }]);
+        const f = (b.parFamille[categorize(it.name)] ??= { restes: 0, congeler: 0, jete: 0 });
+        const a = (b.parAliment[it.name] ??= { fois: 0, g: 0, congeler: 0, jete: 0 });
+        f.restes += it.quantity; a.fois++; a.g += it.quantity;
+        b.restes += it.quantity; b.repris += it.quantity - reste;
+        if (congelable) { b.congeler += reste; f.congeler += reste; a.congeler += reste; }
+        else { b.jete += reste; f.jete += reste; a.jete += reste; }
+      }
+      precedent = { plan, achat };
       if (w === 0) continue; // réserve vide au départ : pas de restes à reprendre
       b.semaines++;
-      qualite(b, p, plan);
-      b.achete += total(perissable(pleine)) - avant;
-      b.restes += total(restes);
-      b.repris += repris;
-      b.repris2j += reprendre(plan, restes, (d) => d <= 2).repris; // les jours du plan partent de 1
-      b.jete += total(perime);
-      for (const it of restes) {
-        const repriseATemps = reprendre(plan, [it], (d) => d <= delai(it)).repris;
-        b.aTemps += repriseATemps;
-        const f = (b.parFamille[categorize(it.name)] ??= { restes: 0, jete: 0 });
-        f.restes += it.quantity; f.jete += it.quantity - repriseATemps;
-        const e = (b.parAliment[it.name] ??= { fois: 0, g: 0, jete: 0 });
-        e.fois++; e.g += it.quantity; e.jete += total(perime.filter((x) => x.name === it.name));
+      for (const m of plan.meals) {
+        const age = joursEcoules(achat, dates[m.day - 1]) ?? 0;
+        for (const i of mealIngredients(m)) {
+          const duree = dureeDe(i.ref ?? refDuNom(i.name) ?? '');
+          if (!duree || age <= tientJusquau(duree, Infinity) || i.unit === 'pièce') continue;
+          b.tropTard += i.quantity_g;
+          if (duree.congeler === true) b.tropTardCongelable += i.quantity_g;
+          b.parTropTard[i.name] = (b.parTropTard[i.name] ?? 0) + i.quantity_g;
+        }
       }
+      b.achete += total(perissable(pleine)) - avant;
+      qualite(b, p, plan);
     }
   }
   return b;
@@ -193,45 +191,31 @@ export function simuler(tirer: Tirage, semaines = 5): Bilan {
 export const pc = (a: number, b: number) => `${Math.round((100 * a) / b)} %`;
 export function resumer(b: Bilan, log: (s: string) => void) {
   const n = b.semaines;
-  log(`${n} semaines (${GABARITS.length} gabarits × ${REGIMES.length} régimes × ${FORMES.length} formes × ${DEBUTS.length} tirages × 4)`);
+  log(`${n} semaines (${GABARITS.length} gabarits × ${REGIMES.length} régimes × ${FORMES.length} formes × ${DEBUTS.length} tirages × ${SEMAINES - 1})`);
   log(`périssable acheté : ${Math.round(b.achete / n)} g par semaine (hors surgelés, hors pièces)`);
-  log(`restes de la semaine d'avant : ${Math.round(b.restes / n)} g`);
-  log(`  repris par le plan : ${pc(b.repris, b.restes)} — sur ses 2 premiers jours : ${pc(b.repris2j, b.restes)}`);
-  log(`  jetés : ${Math.round(b.jete / n)} g par semaine, soit ${pc(b.jete, b.achete)} du périssable acheté`);
-  log(`  repris AVANT de tourner (viande 1 j, tofu 3 j, légumes 4 j, laitages 7 j) : ${pc(b.aTemps, b.restes)} — donc jetés : ${Math.round((b.restes - b.aTemps) / n)} g par semaine, ${pc(b.restes - b.aTemps, b.achete)} du périssable acheté`);
-  log(`  par famille (reste → jeté, g par semaine) : ${Object.entries(b.parFamille).sort((a, c) => c[1].jete - a[1].jete).map(([k, v]) => `${k} ${Math.round(v.restes / n)} → ${Math.round(v.jete / n)}`).join(' · ')}`);
-  log(`qualité : ${b.drapeaux} drapeaux sur ${b.repas} repas · écart au jour ${(100 * b.ecart / b.jours).toFixed(2)} % · ${b.doublons} quasi-doublons (${(100 * b.doublons / b.repas).toFixed(1)} % des repas, ${pc(b.semainesClone, n)} des semaines)`);
+  log(`restes de la semaine d'avant : ${Math.round(b.restes / n)} g — repris à temps ${pc(b.repris, b.restes)}`);
+  log(`  à congeler : ${Math.round(b.congeler / n)} g par semaine · JETÉS : ${Math.round(b.jete / n)} g, soit ${pc(b.jete, b.achete)} du périssable acheté`);
+  log(`  par famille (reste → à congeler / jeté, g par semaine) : ${Object.entries(b.parFamille).sort((a, c) => c[1].jete - a[1].jete).map(([k, v]) => `${k} ${Math.round(v.restes / n)} → ${Math.round(v.congeler / n)} / ${Math.round(v.jete / n)}`).join(' · ')}`);
+  log(`  cuisiné APRÈS sa durée de vie (fermé, depuis les courses) : ${Math.round(b.tropTard / n)} g par semaine, dont ${pc(b.tropTardCongelable, b.tropTard)} congelable — en tête : ${Object.entries(b.parTropTard).sort((a, c) => c[1] - a[1]).slice(0, 6).map(([k, v]) => `${k} ${Math.round(v / n)} g`).join(', ')}`);
+  log(`qualité : ${b.drapeaux} drapeaux sur ${b.repas} repas · écart au jour ${(100 * b.ecart / b.jours).toFixed(2)} % · quasi-doublons ${(100 * b.doublons / b.repas).toFixed(1)} % des repas, ${pc(b.semainesClone, n)} des semaines`);
 }
 
 if (process.argv[1]?.endsWith('mesure-restes.ts')) {
   const log = console.log;
   console.log = () => {};
   console.warn = () => {};
-  const actuel = simuler((p, seed) => buildLocalPlan(p, seed));
+  const avant = simuler(false);
+  const apres = simuler(true);
   log('— AVANT : la semaine suivante ignore les restes —');
-  resumer(actuel, log);
-  const balayage = process.argv.includes('--balayage');
-  const reglages = balayage
-    ? [
-      { jours: 7, ouvertJours: 0, famille: 'stricte' as const, duree: false },
-      { jours: 7, ouvertJours: 7, famille: 'stricte' as const, duree: false },
-      { jours: 7, ouvertJours: 0, famille: 'stricte' as const, duree: true },
-      { jours: 7, ouvertJours: 7, famille: 'stricte' as const, duree: true },
-      { jours: 7, ouvertJours: 7, famille: 'preferee' as const, duree: true },
-    ].map((r) => ({ ...RESTES, ...r }))
-    : [{ ...RESTES }];
-  for (const r of reglages) {
-    Object.assign(RESTES, r);
-    const duree = 'duree' in r && r.duree ? tientRef : undefined;
-    const b = simuler((p, seed, restes) => buildLocalPlan(p, seed, undefined, restesDuMoteur(restes), r.ouvertJours > 0 ? paquetPerissable : undefined, duree));
-    log(`— APRÈS : restes de la semaine d'avant visés ${r.jours} j · paquets ouverts finis dans les ${r.ouvertJours} j · famille ${r.famille}${'duree' in r && r.duree ? ' · durée de vie' : ''} —`);
-    resumer(b, log);
-    if (!balayage) {
-      log('ce qui part encore à la poubelle (fois en reste, reste moyen, jeté moyen ; avant → après) :');
-      for (const [nom, v] of Object.entries(actuel.parAliment).sort((a, c) => c[1].jete - a[1].jete).slice(0, 15)) {
-        const w = b.parAliment[nom];
-        log(`  ${nom} : ${Math.round(v.jete / v.fois)} g → ${w ? Math.round(w.jete / w.fois) : 0} g (${v.fois} → ${w?.fois ?? 0} fois)`);
-      }
-    }
+  resumer(avant, log);
+  log('— APRÈS (niveau 2) : la semaine suivante les reprend tant qu\'ils tiennent —');
+  resumer(apres, log);
+
+  log('ce qui part encore à la poubelle ou au congélateur, par aliment (g par fois ; avant → après) :');
+  const cle = (v: { congeler: number; jete: number }) => v.congeler + v.jete;
+  for (const [nom, v] of Object.entries(avant.parAliment).sort((a, c) => cle(c[1]) - cle(a[1])).slice(0, 20)) {
+    const w = apres.parAliment[nom];
+    const f = (x?: { fois: number; congeler: number; jete: number }) => x ? `${Math.round(x.jete / x.fois)} jeté + ${Math.round(x.congeler / x.fois)} congelé` : '—';
+    log(`  ${nom} : ${f(v)} → ${f(w)}`);
   }
 }
