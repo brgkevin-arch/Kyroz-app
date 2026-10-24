@@ -157,6 +157,11 @@ describe('l\'écran Courses : le ticket dort tant que l\'iPhone ne sait pas le l
     expect(bloc.indexOf('if (lecteurDisponible())')).toBeLessThan(bloc.indexOf("label: 'Avec mon ticket'"));
   });
 
+  it('pas de récapitulatif : ce que le ticket dit se range sans écran de confirmation (fondateur, 2026-10-24)', () => {
+    expect(bloc).not.toContain('Ranger dans ta réserve');
+    expect(bloc).toContain("title: 'Ticket illisible'");
+  });
+
   it('avec un ticket, la réserve reçoit ce qu\'il dit — une seule écriture par sortie', () => {
     expect(bloc).toMatch(/const aRanger = parTicket\s*\?/);
     expect(bloc.match(/savePantry\(/g)).toHaveLength(1);

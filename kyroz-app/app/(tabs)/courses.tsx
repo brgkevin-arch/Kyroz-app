@@ -356,18 +356,16 @@ export default function CoursesScreen() {
         const coches = new Set(visibles.filter((i) => i.checked).map((i) => i.name));
         const trouves = rapprocher(lireTicket(texte), visibles);
         const lu = clotureAvecTicket(visibles, coches, trouves);
-        const k = lu.rangements.length;
-        const ok = await choose<'ranger' | 'sans'>(trouves.size > 0 ? {
-          title: 'Ranger dans ta réserve\u00A0?',
-          message: `${k} article${k > 1 ? 's' : ''} de ta liste${k > 1 ? ' vont' : ' va'} dans ta réserve.`,
-          options: [{ label: 'Ranger', value: 'ranger' }],
-        } : {
-          title: 'Ticket illisible',
-          message: 'Aucun article de ta liste n\u2019a été retrouvé sur ce ticket.',
-          options: [{ label: 'Terminer sans ticket', value: 'sans' }],
-        });
-        if (ok === null) return;
-        if (ok === 'ranger') {
+        // Pas de récapitulatif (décision fondateur, 2026-10-24) : ce que le ticket dit se range.
+        // Seul un ticket qui ne retrouve RIEN de la liste se dit — sinon l'échec serait muet.
+        if (trouves.size === 0) {
+          const suite = await choose<'sans'>({
+            title: 'Ticket illisible',
+            message: 'Aucun article de ta liste n\u2019a été retrouvé sur ce ticket.',
+            options: [{ label: 'Terminer sans ticket', value: 'sans' }],
+          });
+          if (suite === null) return;
+        } else {
           parTicket = lu.rangements;
           const achetes = new Set(lu.achetes);
           tous = tous.map((i) => (achetes.has(i.name) ? { ...i, checked: true } : i));
