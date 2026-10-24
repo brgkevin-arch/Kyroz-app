@@ -69,6 +69,22 @@ describe('lire un ticket', () => {
   });
 });
 
+describe('lire un ticket PHOTOGRAPHIÉ (reconnaissance de texte)', () => {
+  // Mal lus, tels que la reconnaissance de texte les a rendus sur un vrai ticket (2026-10-24).
+  const PHOTO = `
+>> FRUITS LEGUMES
+CONCOMBRE   0.99
+2>RAEUR LS
+22 CREMERLE L.S
+TROMAGE DE BREBLS LS8 1RANCHE   2.21
+`;
+  it('un en-tête de rayon mal lu n\'est jamais un article', () => {
+    const lignes = lireTicket(PHOTO);
+    expect(lignes.map((l) => l.libelle)).toEqual(['CONCOMBRE', 'TROMAGE DE BREBLS LS8 1RANCHE']);
+    expect(rapprocher(lignes, [art('Crème de soja', 200, 'ml')]).size).toBe(0);
+  });
+});
+
 describe('rapprocher le ticket de la liste', () => {
   const lignes = lireTicket(TICKET);
   const liste = [
