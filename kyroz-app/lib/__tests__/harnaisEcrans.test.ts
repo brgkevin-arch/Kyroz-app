@@ -192,9 +192,7 @@ const ANCRES: Ancre[] = [
   { quoi: 'encadré Repas', texte: 'Repas', dans: 'app/profil.tsx', motif: 'titre="Repas"', cherche: "'Repas'", script: 'test/qa-settings.mjs' },
   { quoi: 'ligne Prénom', texte: 'Prénom', dans: 'app/profil.tsx', motif: 'label="Prénom"', script: 'test/qa-deep.mjs' },
   { quoi: 'ligne Au quotidien', texte: 'Au quotidien', dans: 'app/profil.tsx', motif: 'label="Au quotidien"', script: 'test/qa-settings.mjs' },
-  { quoi: 'ligne Objectif', texte: 'Objectif', dans: 'app/profil.tsx', motif: 'label="Objectif"', script: 'test/qa-settings.mjs' },
   { quoi: 'ligne Objectif daté', texte: 'Objectif daté', dans: 'app/profil.tsx', motif: 'label="Objectif daté"', script: 'test/qa-deep.mjs' },
-  { quoi: 'ligne Calories & macros', texte: 'Calories & macros', dans: 'app/profil.tsx', motif: 'label="Calories & macros"', script: 'test/qa-settings.mjs' },
   { quoi: 'ligne Régime', texte: 'Régime', dans: 'app/profil.tsx', motif: 'label="Régime"', script: 'test/qa-settings.mjs' },
   { quoi: 'ligne Jours du plan', texte: 'Jours du plan', dans: 'app/profil.tsx', motif: 'label="Jours du plan"', script: 'test/qa-settings.mjs' },
 ];

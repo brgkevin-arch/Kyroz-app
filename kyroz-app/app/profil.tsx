@@ -917,17 +917,6 @@ export default function ProfilScreen() {
 // une seule ligne de macros, sous une barre, comme sur le Plan. Les quatre nombres
 // restent à la même encre — rien à comparer entre eux (cf. la note en tête de theme.ts).
 // La barre des macros en trois nuances, comme sur le Plan (`MacroBar`), sans son compteur.
-function BarreMacros({ t, p, c, f }: { t: ThemePalette; p: number; c: number; f: number }) {
-  const total = p * 4 + c * 4 + f * 9 || 1;
-  return (
-    <View style={{ flexDirection: 'row', height: 8, borderRadius: 4, overflow: 'hidden', backgroundColor: t.fill }}>
-      <View style={{ flex: (p * 4) / total, backgroundColor: t.protein }} />
-      <View style={{ flex: (c * 4) / total, backgroundColor: t.carbs }} />
-      <View style={{ flex: (f * 9) / total, backgroundColor: t.fat }} />
-    </View>
-  );
-}
-
 /** L'écart entre la cible et la dépense, écrit plutôt qu'à soustraire de tête. */
 function ecartDepense(cible: number, depense: number): string {
   const d = depense - cible;
@@ -1080,9 +1069,17 @@ function ListeObjectifs({ t, profile, datedGoalOuvert, onOuvrir, dragHandlers, s
   const gt = profile.goal_target;
   return (
     <ListeShell t={t} titre="Objectifs" dragHandlers={dragHandlers} sheetScrollProps={sheetScrollProps}>
-      {/* Les cibles et la dépense, avec la grammaire du Plan : gros chiffre, barre en
-          trois nuances, ligne des macros. L'écart à la dépense est ÉCRIT. */}
-      <View style={s.cibles}>
+      {/* L'OBJECTIF EN GROS, et dessous ce qu'il sert : calories, dépense, macros — sans
+          la barre du Plan (décision fondateur, 2026-10-25). La carte entière ouvre le choix
+          de l'objectif : l'écrire une seconde fois dans une ligne aurait doublé « Sèche ».
+          ⚠️ Plus de ligne « Calories & macros » : la répartition se règle depuis
+          « Ma répartition (%) » du Plan, qui ouvre le même éditeur (lien direct). */}
+      <Presse onPress={() => onOuvrir('goal')} activeOpacity={OPACITE_PRESSION} accessibilityRole="button"
+        accessibilityLabel={`Objectif\u00A0: ${goalLabel(profile.goal)}. Changer d'objectif`} style={s.cibles}>
+        <View style={s.objectifLigne}>
+          <Text style={s.objectifNom}>{goalLabel(profile.goal)}</Text>
+          <Ionicons name="chevron-forward" size={Icone.standard} color={t.textTertiary} />
+        </View>
         <View>
           <View style={s.kcalLigne}>
             <Text style={s.kcalV}>{profile.target_kcal.toLocaleString('fr-FR')}</Text>
@@ -1090,15 +1087,17 @@ function ListeObjectifs({ t, profile, datedGoalOuvert, onOuvrir, dragHandlers, s
           </View>
           <Text style={s.ecart}>{ecartDepense(profile.target_kcal, profile.tdee_kcal)}</Text>
         </View>
-        <BarreMacros t={t} p={profile.target_protein_g} c={profile.target_carbs_g} f={profile.target_fat_g} />
-        <Text style={s.legende}>
-          {profile.target_protein_g} g de protéines · {profile.target_carbs_g} g de glucides · {profile.target_fat_g} g de lipides
-        </Text>
-      </View>
+        <View style={s.macros}>
+          {([['Protéines', profile.target_protein_g], ['Glucides', profile.target_carbs_g], ['Lipides', profile.target_fat_g]] as const).map(([nom, g]) => (
+            <View key={nom} style={s.macro}>
+              <Text style={s.macroV}>{g} g</Text>
+              <Text style={s.macroN}>{nom}</Text>
+            </View>
+          ))}
+        </View>
+      </Presse>
       <Bloc t={t}>
-        <Ligne t={t} label="Objectif" valeur={goalLabel(profile.goal)} onPress={() => onOuvrir('goal')} />
-        <Ligne t={t} label="Objectif daté" valeur={gt ? `${frnum(gt.target_weight_kg)} kg · ${formatFR(gt.target_date)}` : (datedGoalOuvert ? 'Aucun' : 'Avec Kyroz+')} onPress={() => onOuvrir('dated_goal')} />
-        <Ligne t={t} label="Calories & macros" valeur={profile.macro_mode === 'percent' ? 'Ta répartition' : 'Par Kyroz'} onPress={() => onOuvrir('macros')} last />
+        <Ligne t={t} label="Objectif daté" valeur={gt ? `${frnum(gt.target_weight_kg)} kg · ${formatFR(gt.target_date)}` : (datedGoalOuvert ? 'Aucun' : 'Avec Kyroz+')} onPress={() => onOuvrir('dated_goal')} last />
       </Bloc>
     </ListeShell>
   );
@@ -2274,9 +2273,15 @@ function makeStyles(t: ThemePalette) {
       backgroundColor: t.card, borderRadius: Radius.card,
       padding: Spacing.xl, gap: Spacing.lg,
     },
+    objectifLigne: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+    objectifNom: { ...Type.display, color: t.text },
     kcalLigne: { flexDirection: 'row', alignItems: 'baseline' },
-    kcalV: { ...Type.hero, color: t.text },
+    kcalV: { ...Type.h1, color: t.text },
     kcalU: { ...Type.h3, color: t.textTertiary },
+    macros: { flexDirection: 'row', gap: Spacing.sm },
+    macro: { flex: 1, backgroundColor: t.fill, borderRadius: Radius.sm, padding: Spacing.md, gap: Spacing.xs },
+    macroV: { ...Type.h3, color: t.text },
+    macroN: { ...Type.caption, color: t.textSecondary },
     ecart: { ...Type.bodySmall, color: t.textSecondary, lineHeight: 19, marginTop: Spacing.xs },
     legende: { ...Type.bodySmall, color: t.textSecondary, lineHeight: 19 },
     floorNote: { ...Type.caption, color: t.textSecondary, lineHeight: 18, marginTop: -Spacing.xs },

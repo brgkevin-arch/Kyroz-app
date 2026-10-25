@@ -40,9 +40,8 @@ await sleep(1200);
 // [encadré, ligne de sa feuille, nom de capture] — depuis le 2026-10-24, un réglage
 // s'atteint en ouvrant son encadré, puis sa ligne.
 const subs = [
-  ['Objectifs', 'Objectif', 'objectif'],
+  ['Objectifs', 'Objectif daté', 'objectif-date'],
   ['Toi', 'Au quotidien', 'sport'],
-  ['Objectifs', 'Calories & macros', 'macros'],
   ['Repas', 'Régime', 'preferences'],
   ['Repas', 'Jours du plan', 'repas'],
 ];

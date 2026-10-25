@@ -85,7 +85,7 @@ await goToProfil(page); await snap('D-profil');
 // [encadré, ligne de sa feuille] — libellés réels de app/profil.tsx (2026-10-24).
 const subs = [
   ['Toi', 'Prénom'], ['Toi', 'Au quotidien'],
-  ['Objectifs', 'Objectif'], ['Objectifs', 'Objectif daté'], ['Objectifs', 'Calories & macros'],
+  ['Objectifs', 'Objectif daté'],
   ['Repas', 'Régime'], ['Repas', 'Jours du plan'],
 ];
 for (const [encadre, sub] of subs) {
