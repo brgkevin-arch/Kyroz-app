@@ -86,7 +86,7 @@ await goToProfil(page); await snap('D-profil');
 const subs = [
   ['Toi', 'Prénom'], ['Toi', 'Au quotidien'],
   ['Objectifs', 'Objectif daté'],
-  ['Repas', 'Régime'], ['Repas', 'Jours du plan'],
+  ['Repas', 'Aliments évités'], ['Repas', 'Plus copieux'],
 ];
 for (const [encadre, sub] of subs) {
   await goToProfil(page);

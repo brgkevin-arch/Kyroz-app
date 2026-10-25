@@ -42,8 +42,8 @@ await sleep(1200);
 const subs = [
   ['Objectifs', 'Objectif daté', 'objectif-date'],
   ['Toi', 'Au quotidien', 'sport'],
-  ['Repas', 'Régime', 'preferences'],
-  ['Repas', 'Jours du plan', 'repas'],
+  ['Repas', 'Aliments évités', 'preferences'],
+  ['Repas', 'Plus copieux', 'repas'],
 ];
 for (const [encadre, label, key] of subs) {
   await goToProfil(page);

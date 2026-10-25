@@ -38,7 +38,7 @@ import { useTour, resetAllTours } from '../components/GuidedTour';
 import { BodyFatPicker } from '../components/BodyFatPicker';
 import { DislikedFoodsField } from '../components/DislikedFoodsField';
 import { ProteinesParRegime } from '../components/ProteinesParRegime';
-import { cocheesValides } from '../lib/partsProteines';
+import { cocheesValides, sortesCochees, LIBELLE_SORTE } from '../lib/partsProteines';
 import { marquerPreferencesRevues } from '../lib/revuePreferences';
 import { basculerRegime } from '../lib/regime';
 import { MacroSplit } from '../components/MacroSplit';
@@ -49,7 +49,7 @@ import { useFirstName, saveFirstName } from '../lib/profileName';
 import { ProtectionIcon, RepasLibreIcon, ProfilIcon } from '../components/Icons';
 import { MealSlotsPicker } from '../components/MealSlotsPicker';
 import { NeatPicker } from '../components/NeatPicker';
-import { BUILTIN_SLOTS, knownSlots, slotLabel } from '../lib/mealSlots';
+import { BUILTIN_SLOTS, knownSlots, slotLabel, activeSlots, formatSlotTime } from '../lib/mealSlots';
 import { useProfile } from '../hooks/useProfile';
 import { useWeightLog } from '../hooks/useWeightLog';
 import { useOffPlanJournal } from '../hooks/useOffPlanJournal';
@@ -795,6 +795,7 @@ export default function ProfilScreen() {
         {groupe === 'repas' && !editor && (
           <ListeRepas t={t} profile={profile} ecarts={journalSummary(journal.entries)}
             onOuvrir={(k, sec) => openEditor(k, sec, true)}
+            onJours={(jours) => saveProfile({ ...profile, plan_weekdays: orderedWeekdays(jours), plan_days: jours.length })}
             onEcarts={() => { setApresEditeur('ecarts'); setGroupe(null); }} />
         )}
         {editor === 'info' && <InfoEditor t={t} profile={profile} onSave={save} section={section as InfoSection} onBack={depuisListe ? retourListe : undefined} onWeighIn={() => { setApresEditeur('peser'); setGroupe(null); }} onPoids={enregistrerPoids} />}
@@ -1103,29 +1104,82 @@ function ListeObjectifs({ t, profile, datedGoalOuvert, onOuvrir, dragHandlers, s
   );
 }
 
-function ListeRepas({ t, profile, ecarts, onOuvrir, onEcarts, dragHandlers, sheetScrollProps }: ListeProps & {
-  ecarts: string; onOuvrir: (k: EditorKey, s?: Section) => void; onEcarts: () => void;
+function ListeRepas({ t, profile, ecarts, onOuvrir, onJours, onEcarts, dragHandlers, sheetScrollProps }: ListeProps & {
+  ecarts: string; onOuvrir: (k: EditorKey, s?: Section) => void; onJours: (jours: number[]) => void; onEcarts: () => void;
 }) {
+  // 🔴 UNE FEUILLE QUI MONTRE, PAS UNE LISTE QUI DÉCRIT (décision fondateur, 2026-10-25 :
+  // « ne pas faire un copier-coller de l'onboarding, une belle présentation »). La journée
+  // est dessinée avec ses heures, la semaine se touche directement, les goûts se lisent en
+  // pastilles. Les éditeurs derrière restent ceux d'avant : ils portent les vérifications.
   const [repasAuto] = useRepasAuto();
   const gout = (g: string | null | undefined) => GOUT_CHOIX.find((c) => c.value === (goutLu(g) ?? 'egal'))?.label ?? 'Peu importe';
-  const evites = profile.disliked_foods.length;
   const masquees = profile.hidden_recipes?.length ?? 0;
   const jours = servedWeekdays(profile.plan_weekdays, Math.min(Math.max(profile.plan_days ?? 7, 1), 7));
-  const fixes = Object.keys(profile.fixed_meals ?? {}).length;
+  const creneaux = activeSlots(profile);
+  const copieux = emphasisIds(profile.meal_emphasis, creneaux.map((c) => c.id));
+  const fixes = profile.fixed_meals ?? {};
+  const sortes = sortesCochees(profile);
+  // La semaine se règle SANS changer d'écran : un toucher enregistre. Jamais zéro jour —
+  // un plan sans jour n'est pas un plan, et le dernier jour allumé ne s'éteint donc pas.
+  const basculerJour = (v: number) => {
+    const next = jours.includes(v) ? jours.filter((x) => x !== v) : [...jours, v];
+    if (next.length >= 1) onJours(next);
+  };
   return (
     <ListeShell t={t} titre="Repas" dragHandlers={dragHandlers} sheetScrollProps={sheetScrollProps}>
+      <SectionLabel t={t}>Ta journée</SectionLabel>
       <Bloc t={t}>
-        <Ligne t={t} label="Régime" valeur={regimeResume(profile)} onPress={() => onOuvrir('prefs', 'regime')} />
-        <Ligne t={t} label="Petit-déjeuner" valeur={gout(profile.gout_petit_dej)} onPress={() => onOuvrir('prefs', 'gouts')} />
-        <Ligne t={t} label="Collations" valeur={gout(profile.gout_collation)} onPress={() => onOuvrir('prefs', 'gouts')} />
-        <Ligne t={t} label="Aliments évités" valeur={evites ? `${evites}` : 'Aucun'} onPress={() => onOuvrir('prefs', 'evites')} last={masquees === 0} />
+        {creneaux.map((c) => (
+          <Presse key={c.id} onPress={() => onOuvrir('meals', 'repas')} activeOpacity={OPACITE_PRESSION} accessibilityRole="button"
+            accessibilityLabel={`${c.label}, ${formatSlotTime(c)}`}
+            style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.md, minHeight: CIBLE_TACTILE_MIN, paddingVertical: Spacing.md, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.line }}>
+            <Text style={{ ...Type.bodySmallStrong, color: t.textSecondary, width: 52, fontVariant: ['tabular-nums'] }}>{formatSlotTime(c)}</Text>
+            <Text style={{ ...Type.body, color: t.text, flex: 1 }} numberOfLines={1}>{c.label}</Text>
+            {copieux.includes(c.id) && <Pastille t={t} label="Copieux" />}
+            {fixes[c.id] && <Pastille t={t} label="Géré par toi" />}
+            <Ionicons name="chevron-forward" size={Icone.standard} color={t.textTertiary} />
+          </Presse>
+        ))}
+        <Ligne t={t} label="Plus copieux" valeur={emphasisResume(profile)} onPress={() => onOuvrir('meals', 'copieux')} />
+        <Ligne t={t} label="Gérés par toi" valeur={Object.keys(fixes).length ? `${Object.keys(fixes).length}` : 'Aucun'} onPress={() => onOuvrir('meals', 'fixes')} last />
+      </Bloc>
+
+      <SectionLabel t={t}>Ta semaine</SectionLabel>
+      <RangeeJours t={t} choisis={jours} onChoisir={basculerJour} />
+
+      <SectionLabel t={t}>Tes goûts</SectionLabel>
+      <Bloc t={t}>
+        <Presse onPress={() => onOuvrir('prefs', 'regime')} activeOpacity={OPACITE_PRESSION} accessibilityRole="button"
+          accessibilityLabel={`Régime, ${regimeResume(profile)}`}
+          style={{ paddingVertical: Spacing.md, gap: Spacing.sm, minHeight: CIBLE_TACTILE_MIN, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.line }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <Text style={{ ...Type.bodyStrong, color: t.text, flex: 1 }}>{regimeResume(profile)}</Text>
+            <Ionicons name="chevron-forward" size={Icone.standard} color={t.textTertiary} />
+          </View>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.xs }}>
+            {sortes.length ? sortes.map((so) => <Pastille key={so} t={t} label={LIBELLE_SORTE[so]} />) : <Pastille t={t} label="Toutes les protéines" />}
+          </View>
+        </Presse>
+        <Presse onPress={() => onOuvrir('prefs', 'evites')} activeOpacity={OPACITE_PRESSION} accessibilityRole="button"
+          accessibilityLabel={`Aliments évités, ${profile.disliked_foods.length || 'aucun'}`}
+          style={{ paddingVertical: Spacing.md, gap: Spacing.sm, minHeight: CIBLE_TACTILE_MIN, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.line }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <Text style={{ ...Type.body, color: t.text, flex: 1 }}>Aliments évités</Text>
+            {profile.disliked_foods.length === 0 && <Text style={{ ...Type.body, color: t.textSecondary }}>Aucun</Text>}
+            <Ionicons name="chevron-forward" size={Icone.standard} color={t.textTertiary} />
+          </View>
+          {profile.disliked_foods.length > 0 && (
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.xs }}>
+              {profile.disliked_foods.map((f) => <Pastille key={f} t={t} label={f} />)}
+            </View>
+          )}
+        </Presse>
+        <Ligne t={t} label="Matin" valeur={gout(profile.gout_petit_dej)} onPress={() => onOuvrir('prefs', 'gouts')} />
+        <Ligne t={t} label="Collations" valeur={gout(profile.gout_collation)} onPress={() => onOuvrir('prefs', 'gouts')} last={masquees === 0} />
         {masquees > 0 && <Ligne t={t} label="Recettes masquées" valeur={`${masquees}`} onPress={() => onOuvrir('prefs', 'masquees')} last />}
       </Bloc>
+
       <Bloc t={t}>
-        <Ligne t={t} label="Jours du plan" valeur={jours.length >= 7 ? 'Tous les jours' : WEEKDAY_OPTS.filter((o) => jours.includes(o.val)).map((o) => o.label).join(', ')} onPress={() => onOuvrir('meals', 'jours')} />
-        <Ligne t={t} label="Repas par jour" valeur={`${profile.meals?.length || 4}`} onPress={() => onOuvrir('meals', 'repas')} />
-        <Ligne t={t} label="Plus copieux" valeur={emphasisResume(profile)} onPress={() => onOuvrir('meals', 'copieux')} />
-        <Ligne t={t} label="Gérés par toi" valeur={fixes ? `${fixes}` : 'Aucun'} onPress={() => onOuvrir('meals', 'fixes')} />
         <Ligne t={t} label="Repas cochés" valeur={repasAuto ? 'Automatiquement' : 'À la main'} onPress={() => onOuvrir('meals', 'auto')} />
         <Ligne t={t} label="Variété" valeur={VARIETY_LABELS[profile.variety]} onPress={() => onOuvrir('meals', 'variete')} last={!RYTHME_HEBDOMADAIRE_ACTIF && !PARCOURS_HORS_PLAN_ACTIF} />
         {RYTHME_HEBDOMADAIRE_ACTIF && <Ligne t={t} label="Jours plus copieux" valeur={bankResume(profile)} onPress={() => onOuvrir('calorie_bank')} last={!PARCOURS_HORS_PLAN_ACTIF} />}
@@ -1133,6 +1187,15 @@ function ListeRepas({ t, profile, ecarts, onOuvrir, onEcarts, dragHandlers, shee
         {PARCOURS_HORS_PLAN_ACTIF && <Ligne t={t} label="Écarts passés" valeur={ecarts} onPress={onEcarts} last />}
       </Bloc>
     </ListeShell>
+  );
+}
+
+/** Une étiquette qu'on LIT (pas un bouton) : ce qui est choisi, sans rien ouvrir. */
+function Pastille({ t, label }: { t: ThemePalette; label: string }) {
+  return (
+    <View style={{ backgroundColor: t.fill, borderRadius: Radius.pill, paddingHorizontal: Spacing.sm, paddingVertical: Spacing.xs }}>
+      <Text style={{ ...Type.caption, color: t.textSecondary }} numberOfLines={1}>{label}</Text>
+    </View>
   );
 }
 
