@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Image, ImageSourcePropType } from 'react-native';
 import { Presse } from './Presse';
 import { ThemePalette, Radius, Type, Spacing, Trait, CIBLE_TACTILE_MIN, OPACITE_PRESSION } from '../constants/theme';
-import { Chip, Field } from './ui';
+import { Field, GrilleChoix } from './ui';
 import { BodyFatSource, Sex } from '../lib/types';
 import {
   BF_CHART_MAX, bodyFatBounds, bodyFatConcern, fatFreeMassKg,
@@ -244,18 +244,14 @@ export function BodyFatPicker({ t, sex, value, source, onChange, body }: Props) 
           <Text style={{ color: t.text, ...Type.bodySmallStrong }}>
             Ce chiffre, tu l'as mesuré ?
           </Text>
-          <View style={styles.wrap}>
-            <Chip
-              t={t} label="Oui, avec un appareil"
-              selected={source === 'measured'}
-              onPress={() => onChange(value, source === 'measured' ? undefined : 'measured')}
-            />
-            <Chip
-              t={t} label="Non, c'est une estimation"
-              selected={source === 'estimated'}
-              onPress={() => onChange(value, source === 'estimated' ? undefined : 'estimated')}
-            />
-          </View>
+          {/* Une réponse par ligne, sur toute la largeur (2026-10-25). Toucher la réponse
+              choisie la retire : on peut revenir à « pas répondu ». */}
+          <GrilleChoix<'measured' | 'estimated'>
+            t={t} vertical
+            options={[{ label: 'Oui, avec un appareil', value: 'measured' }, { label: "Non, c'est une estimation", value: 'estimated' }]}
+            estChoisi={(v) => source === v}
+            onChoisir={(v) => onChange(value, source === v ? undefined : v)}
+          />
           <Text style={{ color: t.textSecondary, ...Type.caption, lineHeight: 17 }}>
             {source === 'measured'
               ? 'Balance à impédance, pince à plis, DEXA. Kyroz s\'appuiera dessus pour calculer ta dépense.'
@@ -305,7 +301,6 @@ export function BodyFatPicker({ t, sex, value, source, onChange, body }: Props) 
 
 const styles = StyleSheet.create({
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },
-  wrap: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },
   cell: {
     width: '48%',
     flexGrow: 1,

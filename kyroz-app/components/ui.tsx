@@ -91,20 +91,23 @@ export function Chip({
  * alignée sur la colonne de gauche, au lieu de s'étirer sur toute la ligne.
  */
 export function GrilleChoix<T extends string | number>({
-  t, options, estChoisi, onChoisir, pleineLargeur,
+  t, options, estChoisi, onChoisir, pleineLargeur, vertical,
 }: {
   t: ThemePalette;
   options: readonly { label: string; value: T }[];
   estChoisi: (v: T) => boolean;
   onChoisir: (v: T) => void;
   pleineLargeur?: { label: string; selected: boolean; onPress: () => void };
+  /** Une case par ligne, sur toute la largeur (demande fondateur, 2026-10-25) : pour les
+   *  libellés longs ou les listes de plus de deux réponses, qui s'enroulaient en pastilles. */
+  vertical?: boolean;
 }) {
   return (
     <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm }}>
       {options.map((o) => (
-        <CaseChoix key={String(o.value)} t={t} label={o.label} selected={estChoisi(o.value)} onPress={() => onChoisir(o.value)} />
+        <CaseChoix key={String(o.value)} t={t} label={o.label} selected={estChoisi(o.value)} onPress={() => onChoisir(o.value)} large={vertical} />
       ))}
-      {options.length % 2 === 1 && <View style={{ flexBasis: '40%', flexGrow: 1 }} />}
+      {!vertical && options.length % 2 === 1 && <View style={{ flexBasis: '40%', flexGrow: 1 }} />}
       {pleineLargeur && (
         <CaseChoix t={t} label={pleineLargeur.label} selected={pleineLargeur.selected} onPress={pleineLargeur.onPress} large />
       )}

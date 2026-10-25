@@ -12,7 +12,7 @@ import { ThemeMode, useThemeMode, setThemeMode } from '../lib/themeMode';
 import { ACCENTS, ACCENT_IDS, useAccentId, setAccentId, readableOn } from '../lib/accentColor';
 import { DISCLAIMER } from '../constants/legal';
 import { CIQUAL_ATTRIBUTION } from '../lib/foods';
-import { Card, PrimaryButton, Chip, OptionCard, Field, SectionLabel, Segmented, clavierScrollProps, GrilleChoix } from '../components/ui';
+import { Card, PrimaryButton, Chip, OptionCard, Field, SectionLabel, clavierScrollProps, GrilleChoix } from '../components/ui';
 import { RangeeJours } from '../components/RangeeJours';
 import { MesureField } from '../components/MesureField';
 import { GOUT_CHOIX, goutEnregistre, goutLu, type GoutChoix } from '../lib/gout';
@@ -948,7 +948,7 @@ function regimeResume(p: UserProfile): string {
 }
 
 // Le titre de l'éditeur ouvert sur une seule de ses parties : le nom de la ligne touchée.
-const TITRES_INFO: Record<InfoSection, string> = { prenom: 'Prénom', sexe: 'Sexe', age: 'Date de naissance', poids: 'Poids', taille: 'Taille', gras: 'Masse grasse' };
+const TITRES_INFO: Record<InfoSection, string> = { prenom: 'Prénom', sexe: 'Genre', age: 'Date de naissance', poids: 'Poids', taille: 'Taille', gras: 'Masse grasse' };
 const TITRES_SPORT: Record<SportSection, string> = { quotidien: 'Au quotidien', seances: 'Sport' };
 const TITRES_PREF: Record<PrefSection, string> = { regime: 'Régime', gouts: 'Goûts', evites: 'Aliments évités', masquees: 'Recettes masquées' };
 const TITRES_REPAS: Record<RepasSection, string> = {
@@ -1045,7 +1045,7 @@ function ListeToi({ t, profile, prenom, onOuvrir, dragHandlers, sheetScrollProps
     <ListeShell t={t} titre="Toi" dragHandlers={dragHandlers} sheetScrollProps={sheetScrollProps}>
       <Bloc t={t}>
         <Ligne t={t} label="Prénom" valeur={prenom || 'À ajouter'} onPress={() => onOuvrir('info', 'prenom')} />
-        <Ligne t={t} label="Sexe" valeur={SEX_LABELS[profile.sex]} onPress={() => onOuvrir('info', 'sexe')} />
+        <Ligne t={t} label="Genre" valeur={SEX_LABELS[profile.sex]} onPress={() => onOuvrir('info', 'sexe')} />
         <Ligne t={t} label="Âge" valeur={`${ageDe(profile)} ans`} onPress={() => onOuvrir('info', 'age')} />
         {/* Une roulette, comme la taille — et l'enregistrer AJOUTE une pesée du jour
             (`enregistrerPoids`) : la courbe et le profil restent d'accord. */}
@@ -1965,7 +1965,7 @@ function MacroEditor({ t, profile, onSave, dragHandlers, sheetScrollProps, onBac
 
   return (
     <EditorShell t={t} title="Calories & macros" onSave={submit} dragHandlers={dragHandlers} sheetScrollProps={sheetScrollProps} onBack={onBack}>
-      <Segmented<'auto' | 'percent'> t={t} options={[{ label: 'Calculées', value: 'auto' }, { label: 'Perso %', value: 'percent' }]} value={mode} onChange={setMode} />
+      <GrilleChoix<'auto' | 'percent'> t={t} options={[{ label: 'Calculées', value: 'auto' }, { label: 'Perso %', value: 'percent' }]} estChoisi={(v) => v === mode} onChoisir={setMode} />
       {mode === 'auto' ? (
         <Card t={t} style={{ gap: Spacing.md }}>
           <Row t={t} l="Objectif calorique" v={`${auto.target_kcal} kcal`} strong />
@@ -2222,10 +2222,11 @@ function MealsEditor({ t, profile, onSave, dragHandlers, sheetScrollProps, onBac
           déclenchent l'auto-coche. */}
       {montreRepas('auto') && (<>
       {!section && <SectionLabel t={t}>Repas cochés automatiquement</SectionLabel>}
-      <Segmented<'on' | 'off'>
+      {/* Deux cases sur toute la largeur, comme le genre (2026-10-25). */}
+      <GrilleChoix<'on' | 'off'>
         t={t}
-        value={repasAuto ? 'on' : 'off'}
-        onChange={(v) => setRepasAuto(v === 'on')}
+        estChoisi={(v) => (v === 'on') === repasAuto}
+        onChoisir={(v) => setRepasAuto(v === 'on')}
         options={[{ label: 'Automatique', value: 'on' }, { label: 'À la main', value: 'off' }]}
       />
       <Text style={{ ...Type.caption, color: t.textTertiary, lineHeight: 17, marginTop: -Spacing.sm }}>
@@ -2282,8 +2283,11 @@ function MealsEditor({ t, profile, onSave, dragHandlers, sheetScrollProps, onBac
 
       {montreRepas('copieux') && (<>
       {!section && <SectionLabel t={t}>Tu manges plus à quel moment ?</SectionLabel>}
-      <View style={styles.wrap}>
-        {emphasisOpts.map((e) => <Chip key={e.val} t={t} label={e.label} selected={emphasis.includes(e.val)} onPress={() => togEmphasis(e.val)} />)}
+      {/* En colonne, sur toute la largeur (2026-10-25) : quatre moments et « Équilibré »
+          s'enroulaient en pastilles sur deux lignes inégales. */}
+      <GrilleChoix t={t} vertical options={emphasisOpts.map((e) => ({ label: e.label, value: e.val }))}
+        estChoisi={(v) => emphasis.includes(v)} onChoisir={togEmphasis}
+        pleineLargeur={{ label: 'Équilibré', selected: emphasis.length === 0, onPress: () => setEmphasis([]) }} />
         {/* « Équilibré » n'est PAS un état caché : c'est la même donnée (liste vide),
             rendue visible — exactement l'argument de la puce « Aucun » des jours de
             repos, deux sections plus haut. Sans elle, l'écran affiche quatre puces
@@ -2291,8 +2295,7 @@ function MealsEditor({ t, profile, onSave, dragHandlers, sheetScrollProps, onBac
             ⚠️ Tout cocher revient au même résultat (le moteur multiplie alors chaque
             poids par le même facteur, cf. `computeDistribution`) — mais ça se dit en
             un tap au lieu de quatre. */}
-        <Chip t={t} label="Équilibré" selected={emphasis.length === 0} onPress={() => setEmphasis([])} />
-      </View>
+
       </>)}
       {montreRepas('variete') && (<>
       {!section && <SectionLabel t={t}>Variété</SectionLabel>}
