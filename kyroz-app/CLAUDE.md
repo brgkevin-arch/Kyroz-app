@@ -2190,17 +2190,31 @@ courbe**, 7 durées écrites à la main, zéro entrée dans `theme.ts`.
 
 | Rôle | Ressort | Amortissement · réponse |
 |---|---|---|
-| déplacement, retour à sa place | `RESSORT.pose` | 1 · 0,4 s — **aucun dépassement** |
+| déplacement, retour à sa place | `RESSORT.pose` | 0,8 · 0,4 s — **léger dépassement (~1,5 %)** |
 | feuille et tiroir | `RESSORT.feuille` | 0,8 · 0,3 s |
 | l'appui d'un doigt | `RESSORT.appui` | 1 · 0,16 s |
 | le relâchement | `RESSORT.relache` | 0,72 · 0,32 s |
 | le « pop » des célébrations | `RESSORT.fete` | 0,55 · 0,45 s |
 
-⚠️ **LE REBOND SE MÉRITE.** Il n'est légitime que si le geste PORTAIT un élan — une
-feuille qu'on jette, un doigt qui part. Sur une surface qui apparaît sans qu'on l'ait
-poussée, un dépassement se lit comme un défaut. D'où `pose` à 1, qui est le défaut.
-La seule exception sans geste est `fete` : un moment rare a droit à son budget de
-plaisir, et c'est une décision, pas une dérive.
+🔴 **DIRECTION DU FONDATEUR, 2026-10-25 — elle REMPLACE « le rebond se mérite » et
+« `Easing.out` partout » (2026-08-10)** :
+1. **Entrées : easing OUT** — ça part vite et ralentit en arrivant (`COURBE.entree`).
+2. **Sorties : easing IN** — ça part doucement et accélère en partant (`COURBE.sortie`).
+3. **Interface : ressort, LÉGER dépassement** — `pose` passe de 1 à **0,8** (~1,5 % du
+   trajet : on le sent, on ne le voit pas rebondir ; `depassement()` le chiffre).
+4. **Rien de linéaire** — les confettis tombaient en `linear`, ils tombent en `COURBE.chute`
+   (`in(quad)`, la gravité accélère).
+
+Arbitrages du même jour : **l'appui reste à 1** (un bouton qui dépasse en s'enfonçant
+paraît mou sous le doigt ; c'est le relâchement qui rend l'élan) · **une sortie JETÉE au
+doigt garde son ressort et la vitesse du doigt** (c'est le doigt qui accélère) — seule la
+fermeture au TAP passe en `COURBE.sortie` (`components/Mouvement.tsx::sortirVers`) · `fete`
+reste le seul dépassement franc · « Réduire les animations » retire toujours tout
+dépassement.
+➡️ **Les courbes ne s'écrivent QUE dans `components/Mouvement.tsx`** (`COURBE`,
+`courbeVers(visible)` pour un fondu qui va et vient). `Easing.` ailleurs fait rougir
+`mouvementDA.test.ts` — comme un fondu d'opacité vers 0 posé sur la courbe d'entrée, un
+`linear`, ou un `pose` qui ne dépasse plus.
 
 ⚠️ **Une DURÉE ne convient que si personne ne peut attraper l'objet pendant qu'elle
 tourne** (`DUREE.instant` 160 · `court` 200 · `moyen` 260 · `entree` 550 · `fete` 2200).
@@ -2219,7 +2233,8 @@ que `collapsingTitle.ts`, `accentColor.ts` et `tours.ts`.
    la destination la plus proche de ce point, puis passe la vitesse au ressort. Avant :
    `vy > 0.4` tranchait, et la sortie durait 240 ms fixes — effleurée ou balancée, pareil.
 2. **Toute `Animated.timing` déclare sa courbe.** Sans `easing`, RN applique `easeInOut`,
-   donc un démarrage LENT. `Easing.out` partout — sauf une chute libre, qui ne ralentit pas.
+   donc un démarrage LENT. `COURBE.entree` pour ce qui arrive, `COURBE.sortie` pour ce qui
+   part (règle du 2026-10-25 ci-dessus).
 3. **Un ressort part de la valeur COURANTE.** Poser la valeur de départ avant de lancer
    l'animation rend l'ouverture non interruptible : rattraper une feuille la fait sauter.
 4. **Les bords résistent** (`caoutchouc`) au lieu de ne rien faire.
@@ -2322,9 +2337,11 @@ dizaines de fois par jour — iOS ne l'anime pas non plus) · la case à cocher 
 Courses (trente fois d'affilée en magasin ; le retour haptique `choix` fait déjà
 le travail, et `Presse` enfonce déjà).
 
-➡️ **Garde-fou : `lib/__tests__/mouvementDA.test.ts`** (14 cas, vérifié par 3 mutations) —
-aucune durée en dur, aucune `timing` sans courbe, aucun `bounciness`/`speed`/`tension`/
-`friction`, plus les propriétés des décisions du geste.
+➡️ **Garde-fou : `lib/__tests__/mouvementDA.test.ts`** (19 cas ; 3 mutations en 2026-08,
+6 de plus le 2026-10-25, toutes rouges) — aucune durée en dur, aucune `timing` sans courbe,
+aucun `bounciness`/`speed`/`tension`/`friction`, les propriétés des décisions du geste, et
+depuis le 2026-10-25 : courbes nommées seulement, entrée out / sortie in (LayoutAnimation
+comprise), rien de linéaire, `pose` entre 0,5 et 3 % de dépassement, appui à 0.
 ⚠️ **Et il a fallu rebrancher `espacementDA`** : il cherchait les pressables par
 `TouchableOpacity|Pressable|TouchableHighlight` et ne reconnaissait plus **aucun** bouton
 de l'app après la migration — **vert, et aveugle**. *Un garde-fou nommé d'après une

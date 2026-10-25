@@ -45,17 +45,20 @@ export interface Ressort {
 }
 
 /**
- * Les trois ressorts de l'app. Ce sont les valeurs qu'Apple publie pour ces
- * gestes-là, pas des réglages à l'œil.
+ * Les ressorts de l'app.
  *
- * ⚠️ LE REBOND SE MÉRITE. Il n'est légitime que si le geste PORTAIT un élan —
- * une feuille qu'on jette, un doigt qui part. Sur une surface qui apparaît sans
- * qu'on l'ait poussée, un dépassement se lit comme un défaut. D'où `pose` en
- * amortissement 1 : c'est le défaut, et il couvre la majorité des cas.
+ * 🔴 DIRECTION DU FONDATEUR, 2026-10-25 — elle REMPLACE « le rebond se mérite »
+ * (2026-08-10) : *entrées en easing out, sorties en easing in, l'interface en
+ * ressort avec un LÉGER dépassement, rien de linéaire.* D'où `pose` à 0,8 et non
+ * plus 1 : ce qui se déplace dans l'interface (curseur d'un sélecteur, anneau de
+ * la visite, ligne qui revient, feuille relâchée) dépasse d'environ 1,5 % et
+ * revient — on le sent, on ne le voit pas rebondir (`depassement` ci-dessous).
+ * ⚠️ L'APPUI RESTE À 1, c'est une décision du même jour : un bouton qui dépasse en
+ * s'enfonçant paraît mou sous le doigt. C'est le relâchement qui rend l'élan.
  */
 export const RESSORT = {
-  /** Déplacement, repositionnement, retour à sa place. Aucun dépassement. */
-  pose: { amortissement: 1, reponse: 0.4 } as Ressort,
+  /** Déplacement, repositionnement, retour à sa place. Léger dépassement (~1,5 %). */
+  pose: { amortissement: 0.8, reponse: 0.4 } as Ressort,
   /** Feuille et tiroir — le geste a un élan, il a droit à son rebond. */
   feuille: { amortissement: 0.8, reponse: 0.3 } as Ressort,
   /** L'appui d'un doigt : très court, et il ne dépasse pas en s'enfonçant. */
@@ -136,6 +139,17 @@ export const DUREE = {
 
 /** L'échelle d'un élément pressé. 0,97 : perceptible, jamais spectaculaire. */
 export const ECHELLE_APPUI = 0.97;
+
+/**
+ * Le DÉPASSEMENT d'un ressort lâché sans vitesse, en part du trajet (0,015 =
+ * 1,5 %). Formule exacte d'un oscillateur sous-amorti : e^(−ζπ / √(1−ζ²)).
+ * C'est ce qui permet d'écrire « léger » comme un nombre, et de le tester.
+ */
+export function depassement(r: Ressort): number {
+  if (r.amortissement >= 1) return 0;
+  const z = r.amortissement;
+  return Math.exp((-z * Math.PI) / Math.sqrt(1 - z * z));
+}
 
 // ── Conversion vers `Animated.spring` de React Native ────────────────────────
 //

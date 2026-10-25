@@ -3,7 +3,7 @@ import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import {
   RESSORT, DUREE, ECHELLE_APPUI, ressortRN, vitesseDepuisPan,
-  projection, caoutchouc, decisionFeuille, dureeReduite, ressortReduit,
+  projection, caoutchouc, decisionFeuille, dureeReduite, ressortReduit, depassement,
 } from '../motion';
 
 // ── Pourquoi ce test existe ─────────────────────────────────────────────────
@@ -239,5 +239,105 @@ describe('Mouvement — « Réduire les animations » réduit sans supprimer', (
   it('l’échelle d’appui reste perceptible sans être spectaculaire', () => {
     expect(ECHELLE_APPUI).toBeLessThan(1);
     expect(ECHELLE_APPUI).toBeGreaterThanOrEqual(0.95);
+  });
+});
+
+// ── Direction du fondateur, 2026-10-25 ──────────────────────────────────────
+//
+// « Entrées : easing out. Sorties : easing in. Interface : ressort, léger
+// dépassement. Rien de linéaire. » Elle remplace « le rebond se mérite » et
+// « `Easing.out` partout » (2026-08-10). Une règle qu'aucun test ne compte se
+// déclare tenue toute seule — d'où les cinq cas ci-dessous.
+
+const MOUVEMENT = 'components/Mouvement.tsx';
+
+/** Ce que vaut chaque `easing:` des `Animated.timing` d'un code. */
+function courbesDe(code: string): { valeur: string; bloc: string; pos: number }[] {
+  const out: { valeur: string; bloc: string; pos: number }[] = [];
+  for (const debut of positionsDe(code, 'Animated.timing(')) {
+    const bloc = appelComplet(code, debut + 'Animated.timing'.length);
+    const m = bloc.match(/easing:\s*([^,}\n]+(?:\([^)]*\))?)/);
+    if (m) out.push({ valeur: m[1].trim(), bloc, pos: debut });
+  }
+  return out;
+}
+
+/** Une opacité qui s'éteint : c'est TOUJOURS une sortie (un décalage vers 0, lui, est une arrivée). */
+function fonduVersZeroAvecEntree(bloc: string): boolean {
+  return /^\(\s*(\w*(opac|fond|fade|backdrop|presence)\w*)\s*,/i.test(bloc)
+    && /toValue:\s*0\b/.test(bloc)
+    && /easing:\s*COURBE\.entree/.test(bloc);
+}
+
+describe('Mouvement — entrée out, sortie in, rien de linéaire (2026-10-25)', () => {
+  it('les courbes ne s’écrivent qu’à un endroit, et elles disent la règle', () => {
+    const hors: string[] = [];
+    for (const f of FICHIERS) {
+      if (f.chemin === MOUVEMENT) continue;
+      for (const m of f.code.matchAll(/\bEasing\./g)) {
+        hors.push(`${f.chemin}:${f.code.slice(0, m.index).split('\n').length}`);
+      }
+    }
+    expect(hors, 'passer par COURBE / courbeVers (components/Mouvement.tsx)').toEqual([]);
+
+    const mvt = FICHIERS.find((f) => f.chemin === MOUVEMENT)!.code;
+    expect(mvt).toMatch(/entree:\s*Easing\.out\(/);
+    expect(mvt).toMatch(/sortie:\s*Easing\.in\(/);
+    expect(mvt).toMatch(/chute:\s*Easing\.in\(/);
+    // LayoutAnimation : ce qui arrive et bouge part vite ; ce qui part accélère.
+    expect(mvt).toMatch(/create:\s*\{\s*type:\s*'easeOut'/);
+    expect(mvt).toMatch(/update:\s*\{\s*type:\s*'easeOut'/);
+    expect(mvt).toMatch(/delete:\s*\{\s*type:\s*'easeIn'/);
+  });
+
+  it('rien de linéaire', () => {
+    const lineaires: string[] = [];
+    for (const f of FICHIERS) {
+      for (const m of f.code.matchAll(/Easing\.linear|type:\s*'linear'|easeInEaseOut|Easing\.inOut/g)) {
+        lineaires.push(`${f.chemin}:${f.code.slice(0, m.index).split('\n').length} → ${m[0]}`);
+      }
+    }
+    expect(lineaires).toEqual([]);
+  });
+
+  it('chaque timing prend une courbe nommée', () => {
+    const autres: string[] = [];
+    for (const f of FICHIERS) {
+      if (f.chemin === MOUVEMENT) continue;
+      for (const c of courbesDe(f.code)) {
+        if (!/^(COURBE\.(entree|sortie|chute)|courbeVers\(.*\))$/.test(c.valeur)) {
+          autres.push(`${f.chemin}:${f.code.slice(0, c.pos).split('\n').length} → ${c.valeur}`);
+        }
+      }
+    }
+    expect(autres).toEqual([]);
+  });
+
+  it('un fondu qui s’éteint sort en easing in', () => {
+    const fautifs: string[] = [];
+    for (const f of FICHIERS) {
+      for (const c of courbesDe(f.code)) {
+        if (fonduVersZeroAvecEntree(c.bloc)) fautifs.push(`${f.chemin}:${f.code.slice(0, c.pos).split('\n').length}`);
+      }
+    }
+    expect(fautifs, 'une opacité vers 0 est une SORTIE → COURBE.sortie ou courbeVers(…)').toEqual([]);
+    // La sonde sait dire NON, et OUI.
+    expect(fonduVersZeroAvecEntree('(backdrop, { toValue: 0, easing: COURBE.entree })')).toBe(true);
+    expect(fonduVersZeroAvecEntree('(backdrop, { toValue: 0, easing: COURBE.sortie })')).toBe(false);
+    expect(fonduVersZeroAvecEntree('(lift, { toValue: 0, easing: COURBE.entree })')).toBe(false);
+  });
+
+  it('l’interface dépasse LÉGÈREMENT ; l’appui reste ferme', () => {
+    expect(depassement({ amortissement: 1, reponse: 0.4 })).toBe(0);
+    // ζ 0,8 → ~1,5 % : on le sent, on ne le voit pas rebondir.
+    expect(depassement(RESSORT.pose)).toBeGreaterThan(0.005);
+    expect(depassement(RESSORT.pose)).toBeLessThan(0.03);
+    expect(depassement(RESSORT.appui)).toBe(0);
+    // La fête reste le seul dépassement franc.
+    for (const [nom, r] of Object.entries(RESSORT)) {
+      if (nom !== 'fete') expect(depassement(r), nom).toBeLessThan(depassement(RESSORT.fete));
+    }
+    // « Réduire les animations » retire toujours le dépassement.
+    expect(depassement(ressortReduit(RESSORT.pose, true))).toBe(0);
   });
 });

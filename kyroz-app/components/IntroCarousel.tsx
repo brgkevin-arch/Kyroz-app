@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, Image, useWindowDimensions, Animated, Easing,
+  View, Text, StyleSheet, ScrollView, Image, useWindowDimensions, Animated,
   type NativeSyntheticEvent, type NativeScrollEvent, type ImageSourcePropType, type LayoutChangeEvent,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -11,6 +11,7 @@ import { PrimaryButton } from './ui';
 import { Presse } from './Presse';
 import { useReduceMotion } from '../lib/reduceMotion';
 import { DUREE, dureeReduite } from '../lib/motion';
+import { COURBE } from './Mouvement';
 import { tailleApercu, RATIO_ECRAN } from '../lib/apercuIntro';
 
 // ── CE QUE KYROZ FAIT, MONTRÉ AVANT DE DEMANDER QUOI QUE CE SOIT ─────────────
@@ -126,9 +127,11 @@ export function IntroCarousel({ onTermine }: { onTermine: () => void }) {
     Animated.timing(sortie, {
       toValue: 1,
       duration: dureeReduite(DUREE.court, reduire),
-      // `Easing.out` : l'écran part vite puis s'apaise. `Easing.in` retarderait
-      // l'instant exact que l'œil regarde — le départ.
-      easing: Easing.out(Easing.cubic),
+      // `COURBE.sortie` : l'écran part doucement puis accélère — c'est une SORTIE
+      // (direction du fondateur, 2026-10-25). Jusque-là `Easing.out`, au motif
+      // qu'`Easing.in` « retarderait l'instant que l'œil regarde, le départ » ;
+      // la règle tranche désormais pour toute l'app : ce qui part accélère.
+      easing: COURBE.sortie,
       useNativeDriver: true,
     }).start(({ finished }) => {
       // 🔴 ON PASSE LA MAIN MÊME SI L'ANIMATION EST INTERROMPUE. `finished` est faux
