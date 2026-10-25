@@ -2211,6 +2211,10 @@ doigt garde son ressort et la vitesse du doigt** (c'est le doigt qui accélère)
 fermeture au TAP passe en `COURBE.sortie` (`components/Mouvement.tsx::sortirVers`) · `fete`
 reste le seul dépassement franc · « Réduire les animations » retire toujours tout
 dépassement.
+⚠️ **Une seule courbe n'est pas à nous : celle du CLAVIER** (`components/Clavier.ts`,
+`LayoutAnimation.Types.keyboard`). Le contenu suit le clavier d'iOS avec la courbe et la
+durée que le système fournit — lui en imposer une autre décollerait le champ du clavier
+pendant tout le trajet. Ce n'est ni une entrée ni une sortie de l'app, c'est un suivi.
 ➡️ **Les courbes ne s'écrivent QUE dans `components/Mouvement.tsx`** (`COURBE`,
 `courbeVers(visible)` pour un fondu qui va et vient). `Easing.` ailleurs fait rougir
 `mouvementDA.test.ts` — comme un fondu d'opacité vers 0 posé sur la courbe d'entrée, un
