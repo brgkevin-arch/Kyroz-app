@@ -1,10 +1,11 @@
 import React, { useEffect, useRef } from 'react';
-import { Modal, View, Text, StyleSheet, Animated, Easing, Pressable } from 'react-native';
+import { Modal, View, Text, StyleSheet, Animated, Pressable } from 'react-native';
 import { useTheme, Radius, Spacing, Type, Trait , Icone } from '../constants/theme';
 import { PrimaryButton } from './ui';
 import { AnniversaireIcon } from './Icons';
 import { RESSORT, DUREE, ressortRN, ressortReduit, dureeReduite } from '../lib/motion';
 import { reduceMotionActif } from '../lib/reduceMotion';
+import { COURBE } from './Mouvement';
 import { useModaleRecensee } from '../lib/modalesPresentees';
 
 interface Props {
@@ -74,17 +75,17 @@ export function BirthdayCelebration({ age, firstName, onClose }: Props) {
       Animated.timing(opacity, {
         toValue: 1,
         duration: dureeReduite(DUREE.moyen, reduire),
-        easing: Easing.out(Easing.quad),
+        easing: COURBE.entree,
         useNativeDriver: true,
       }),
       ...(reduire ? [] : [
-        // `Easing.linear` est ici le BON choix, contrairement au reste de l'app :
-        // une chute libre ne ralentit pas en arrivant. La règle « ease-out
-        // partout » vaut pour ce qui se pose, pas pour ce qui tombe.
+        // Une chute ne ralentit pas en arrivant — et elle ne va pas non plus à
+        // vitesse constante : elle ACCÉLÈRE. C'était `Easing.linear` jusqu'au
+        // 2026-10-25 (« rien de linéaire », direction du fondateur).
         Animated.timing(chute, {
           toValue: 1,
           duration: DUREE.fete,
-          easing: Easing.linear,
+          easing: COURBE.chute,
           useNativeDriver: true,
         }),
       ]),

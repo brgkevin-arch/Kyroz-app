@@ -3,7 +3,7 @@ import { Presse } from '../../components/Presse';
 import { JOURS_PLAN_PAR_DEFAUT, lireBrouillon, ecrireBrouillon, effacerBrouillon, type OnboardingDraft } from '../../lib/onboardingDraft';
 import { GOUT_CHOIX, goutEnregistre, type GoutChoix } from '../../lib/gout';
 import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity, Animated, Easing, AppState,
+  View, Text, StyleSheet, ScrollView, TouchableOpacity, Animated, AppState,
   type LayoutChangeEvent,
 } from 'react-native';
 import { DUREE, RESSORT, dureeReduite } from '../../lib/motion';
@@ -38,7 +38,7 @@ import {
 import { MealSlotsPicker } from '../../components/MealSlotsPicker';
 import { NeatPicker } from '../../components/NeatPicker';
 import { MesureField } from '../../components/MesureField';
-import { Jauge } from '../../components/Mouvement';
+import { COURBE, Jauge, courbeVers } from '../../components/Mouvement';
 import { BlocCascade } from '../../components/Cascade';
 import { knownSlots, slotLabel } from '../../lib/mealSlots';
 import { messageRepasGere } from '../../lib/repasGere';
@@ -583,7 +583,7 @@ export default function Onboarding() {
     Animated.timing(opaciteFleche, {
       toValue: resteDessous ? 1 : 0,
       duration: dureeReduite(DUREE.court, reduceMotionActif()),
-      easing: Easing.out(Easing.quad),
+      easing: courbeVers(resteDessous),
       useNativeDriver: true,
     }).start();
   }, [resteDessous, opaciteFleche]);
@@ -1140,11 +1140,11 @@ function NameStep({ t, value, onChange, venuDApple }: { t: ThemePalette; value: 
     const reduire = reduceMotionActif();
     if (reduire) lift.setValue(0);
     Animated.parallel([
-      Animated.timing(fade, { toValue: 1, duration: dureeReduite(DUREE.entree, reduire), easing: Easing.out(Easing.cubic), useNativeDriver: true }),
+      Animated.timing(fade, { toValue: 1, duration: dureeReduite(DUREE.entree, reduire), easing: COURBE.entree, useNativeDriver: true }),
       ...(reduire ? [] : [
-        Animated.timing(lift, { toValue: 0, duration: DUREE.entree, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
+        Animated.timing(lift, { toValue: 0, duration: DUREE.entree, easing: COURBE.entree, useNativeDriver: true }),
       ]),
-      Animated.timing(field, { toValue: 1, duration: dureeReduite(DUREE.entree, reduire), delay: reduire ? 0 : 320, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
+      Animated.timing(field, { toValue: 1, duration: dureeReduite(DUREE.entree, reduire), delay: reduire ? 0 : 320, easing: COURBE.entree, useNativeDriver: true }),
     ]).start();
   }, [fade, lift, field]);
 

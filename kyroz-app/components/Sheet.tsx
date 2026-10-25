@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
   Modal, View, StyleSheet, Animated, PanResponder, useWindowDimensions,
-  Pressable, Platform, Easing, ScrollView,
+  Pressable, Platform, ScrollView,
 } from 'react-native';
 import { useTheme, Radius, Spacing } from '../constants/theme';
 import { useLayout } from '../constants/layout';
@@ -10,6 +10,7 @@ import {
   vitesseDepuisPan, caoutchouc, decisionFeuille,
 } from '../lib/motion';
 import { useReduceMotion, reduceMotionActif } from '../lib/reduceMotion';
+import { COURBE, sortirVers } from './Mouvement';
 import { retour } from '../lib/retourHaptique';
 import { useModaleRecensee } from '../lib/modalesPresentees';
 import { useHauteurClavier, rendreSaisieVisible } from './Clavier';
@@ -139,13 +140,13 @@ export function Sheet({ visible, onClose, children, onClosed }: Props) {
           ...ressortRN(ressortReduit(RESSORT.feuille, reduire)),
         }),
         // Le fond n'est pas saisissable au doigt : une durée y est légitime.
-        // `Easing.out` — une entrée démarre vite et ralentit en arrivant. Sans
+        // `COURBE.entree` — une entrée démarre vite et ralentit en arrivant. Sans
         // courbe déclarée, RN applique `easeInOut`, donc un départ LENT : c'est
         // ce que faisaient les 12 `timing` du code d'avant.
         Animated.timing(backdrop, {
           toValue: 1,
           duration: dureeReduite(DUREE.court, reduire),
-          easing: Easing.out(Easing.quad),
+          easing: COURBE.entree,
           useNativeDriver: true,
         }),
       ]).start();
@@ -167,18 +168,13 @@ export function Sheet({ visible, onClose, children, onClosed }: Props) {
         onClosedRef.current?.();
       };
       Animated.parallel([
-        Animated.spring(ty, {
-          toValue: screenH,
-          useNativeDriver: true,
-          // La vitesse du doigt devient la vitesse d'ENTRÉE du ressort : plus
-          // aucune couture entre le glissement et l'animation.
-          velocity: v,
-          ...ressortRN(ressortReduit(RESSORT.feuille, reduire)),
-        }),
+        // Jetée : la vitesse du doigt devient celle du ressort, sans couture.
+        // Fermée au tap : elle part doucement et accélère (`sortirVers`).
+        sortirVers(ty, screenH, v, reduire),
         Animated.timing(backdrop, {
           toValue: 0,
           duration: dureeReduite(DUREE.moyen, reduire),
-          easing: Easing.out(Easing.quad),
+          easing: COURBE.sortie,
           useNativeDriver: true,
         }),
       ]).start(demonter);

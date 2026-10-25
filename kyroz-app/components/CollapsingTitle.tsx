@@ -1,12 +1,13 @@
 import React, { useRef } from 'react';
 import {
   Animated, LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent,
-  Platform, StyleSheet, Text, View, Easing, type StyleProp, type ViewStyle,
+  Platform, StyleSheet, Text, View, type StyleProp, type ViewStyle,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Defs, LinearGradient, Stop, Rect } from 'react-native-svg';
 import { DUREE, dureeReduite } from '../lib/motion';
 import { reduceMotionActif } from '../lib/reduceMotion';
+import { courbeVers } from './Mouvement';
 import { ThemePalette, Type, Spacing } from '../constants/theme';
 import {
   COMPACT_BAR_H, SEUIL_PAR_DEFAUT, seuilRepli, paddingHautDecale,
@@ -121,7 +122,8 @@ export function useCollapsingTitle(): Collapsing {
     Animated.timing(opacity, {
       toValue: doitEtreVisible ? 1 : 0,
       duration: dureeReduite(DUREE.instant, reduceMotionActif()),
-      easing: Easing.out(Easing.quad),
+      // Il apparaît en entrée, il s'efface en sortie (direction du 2026-10-25).
+      easing: courbeVers(doitEtreVisible),
       useNativeDriver: true,
     }).start();
   };

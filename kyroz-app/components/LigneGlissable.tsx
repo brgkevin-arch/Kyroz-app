@@ -7,6 +7,7 @@ import {
   decisionGlissement, seuilSuppressionFranchi,
 } from '../lib/motion';
 import { reduceMotionActif } from '../lib/reduceMotion';
+import { sortirVers } from './Mouvement';
 import { retour } from '../lib/retourHaptique';
 import type { RoleHaptique } from '../lib/haptique';
 
@@ -97,6 +98,12 @@ export function LigneGlissable({
     }).start(fin);
   };
 
+  // Le bouton « Supprimer » touché : la ligne n'a aucun élan à prolonger, elle part
+  // doucement et accélère — la même sortie qu'une feuille fermée au tap.
+  const sortir = () => {
+    sortirVers(x, -largeur.current, 0, reduceMotionActif()).start(supprimer);
+  };
+
   const supprimer = () => {
     if (supprimee.current) return;
     supprimee.current = true;
@@ -181,7 +188,7 @@ export function LigneGlissable({
       <Animated.View style={[StyleSheet.absoluteFill, { opacity: presenceFond }]}>
       <Presse
         style={[StyleSheet.absoluteFill, s.fond]}
-        onPress={() => amener(-largeur.current, 0, supprimer)}
+        onPress={sortir}
         accessibilityLabel={libelle}
         importantForAccessibility="no-hide-descendants"
         accessibilityElementsHidden

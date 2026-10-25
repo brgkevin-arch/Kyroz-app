@@ -1,6 +1,6 @@
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import {
-  Animated, Easing, View, Text, StyleSheet, Modal, Pressable, TouchableOpacity, useWindowDimensions, ViewStyle, Platform,
+  Animated, View, Text, StyleSheet, Modal, Pressable, TouchableOpacity, useWindowDimensions, ViewStyle, Platform,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
@@ -10,6 +10,7 @@ import { TourStep, TOURS, FormeCible, ONGLETS, Onglet, TourId, VU_PAR_HERITAGE }
 import { Cadre, dejaVisible, memeCadre, ESSAIS_MESURE, PAS_MESURE_MS, MARGE_VISIBLE } from '../lib/visee';
 import { RESSORT, DUREE, ressortRN, ressortReduit, dureeReduite } from '../lib/motion';
 import { useReduceMotion } from '../lib/reduceMotion';
+import { COURBE } from './Mouvement';
 import { quandAucuneModale } from '../lib/modalesPresentees';
 import { retraitOnglets, centreOnglet } from '../lib/barreOnglets';
 import { useFormeBarre } from '../hooks/useFormeBarre';
@@ -619,9 +620,10 @@ function Spotlight({
   // yeux à chaque bulle. C'est la seule animation de l'app dont le rôle soit
   // d'EXPLIQUER, et le tutoriel est justement le moment où on a le droit.
   //
-  // ⚠️ `RESSORT.pose`, donc AUCUN dépassement : le rebond se mérite, et personne
-  // n'a lancé cet anneau du doigt. Un anneau qui dépasserait sa cible puis
-  // reviendrait dessus se lirait comme une hésitation du tutoriel.
+  // ⚠️ `RESSORT.pose` : depuis la direction du 2026-10-25 (« interface : ressort,
+  // léger dépassement »), l'anneau dépasse sa cible d'environ 1,5 % et revient.
+  // Avant, `pose` était à 1 au motif qu'un dépassement franc se lirait comme une
+  // hésitation du tutoriel — c'est pourquoi il reste LÉGER (amortissement 0,8).
   // ⚠️ Le RAYON voyage avec la position : sans lui, l'anneau glisse en pilule
   // puis claque en carte à l'arrivée — deux mouvements pour une transition.
   // ⚠️ `useNativeDriver: false` est ici obligatoire (position, taille et rayon
@@ -684,7 +686,7 @@ function Spotlight({
     Animated.timing(fondu, {
       toValue: 1,
       duration: dureeReduite(DUREE.court, reduire),
-      easing: Easing.out(Easing.cubic),
+      easing: COURBE.entree,
       useNativeDriver: true,
     }).start();
   }, [index, reduire, fondu]);
@@ -893,8 +895,8 @@ function CarteVisite({
     fondu.setValue(0);
     decale.setValue(reduire ? 0 : sens * Spacing.md);
     Animated.parallel([
-      Animated.timing(fondu, { toValue: 1, duration: dureeReduite(DUREE.court, reduire), easing: Easing.out(Easing.cubic), useNativeDriver: true }),
-      Animated.timing(decale, { toValue: 0, duration: DUREE.court, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
+      Animated.timing(fondu, { toValue: 1, duration: dureeReduite(DUREE.court, reduire), easing: COURBE.entree, useNativeDriver: true }),
+      Animated.timing(decale, { toValue: 0, duration: DUREE.court, easing: COURBE.entree, useNativeDriver: true }),
     ]).start();
   }, [index, reduire, fondu, decale]);
 

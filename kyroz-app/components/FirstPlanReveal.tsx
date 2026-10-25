@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Modal, View, Text, StyleSheet, Animated, ScrollView, Easing } from 'react-native';
+import { Modal, View, Text, StyleSheet, Animated, ScrollView } from 'react-native';
 import { RESSORT, DUREE, ressortRN, ressortReduit, dureeReduite } from '../lib/motion';
 import { reduceMotionActif } from '../lib/reduceMotion';
+import { COURBE } from './Mouvement';
 import { useModaleRecensee } from '../lib/modalesPresentees';
 import { useTheme, Radius, Spacing, Type, ThemePalette, Trait , Icone } from '../constants/theme';
 import { PrimaryButton, SectionLabel, OptionCard, GrilleChoix } from './ui';
@@ -103,7 +104,7 @@ export function FirstPlanReveal({ visible, profile, firstName, previewMeals, opt
         Animated.timing(opacity, {
           toValue: 1,
           duration: dureeReduite(DUREE.moyen, reduire),
-          easing: Easing.out(Easing.quad),
+          easing: COURBE.entree,
           useNativeDriver: true,
         }),
       ]).start();

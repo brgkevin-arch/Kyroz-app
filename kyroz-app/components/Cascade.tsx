@@ -1,12 +1,14 @@
 import React, { Children, Fragment, cloneElement, isValidElement, useEffect, useRef } from 'react';
-import { Animated, Easing, StyleProp, StyleSheet, View, ViewStyle, LayoutChangeEvent } from 'react-native';
+import { Animated, StyleProp, StyleSheet, View, ViewStyle, LayoutChangeEvent } from 'react-native';
 import { CASCADE, DUREE, RESSORT, delaiCascade, dureeReduite, ressortReduit, ressortRN } from '../lib/motion';
 import { reduceMotionActif } from '../lib/reduceMotion';
+import { COURBE } from './Mouvement';
 
 /**
  * Un élément qui ENTRE : fondu + légère montée (ou descente quand on revient en
- * arrière), au montage. Le déplacement est un ressort `pose` — aucun dépassement,
- * rien n'a été lancé par un doigt — et l'opacité un fondu `Easing.out`.
+ * arrière), au montage. Le déplacement est un ressort `pose` — léger dépassement
+ * depuis le 2026-10-25 (~0,2 point sur 14 : imperceptible ici) — et l'opacité un
+ * fondu `COURBE.entree`.
  *
  * ⚠️ Réduire les animations : on garde le fondu (il INFORME), on retire le
  * glissement (il DÉPLACE). Lu au montage via `reduceMotionActif`, qui suit le
@@ -32,7 +34,7 @@ export function Apparition({
         toValue: 1,
         duration: dureeReduite(DUREE.moyen, reduire),
         delay: delai,
-        easing: Easing.out(Easing.cubic),
+        easing: COURBE.entree,
         useNativeDriver: true,
       }),
       Animated.spring(decalage, {

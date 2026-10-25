@@ -3,8 +3,9 @@ import { Presse } from '../../components/Presse';
 import { retour } from '../../lib/retourHaptique';
 import {
   View, Text, StyleSheet, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView,
-  Animated, Easing,
+  Animated,
 } from 'react-native';
+import { COURBE } from '../../components/Mouvement';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -76,7 +77,7 @@ export default function LoginScreen() {
     Animated.timing(entree, {
       toValue: 1,
       duration: dureeReduite(DUREE.moyen, reduire),
-      easing: Easing.out(Easing.cubic),
+      easing: COURBE.entree,
       useNativeDriver: true,
     }).start();
   }, [vientDeLIntro, entree, reduire]);

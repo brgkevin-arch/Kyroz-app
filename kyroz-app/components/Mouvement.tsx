@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, Easing, LayoutAnimation, Platform, StyleProp, UIManager, ViewStyle } from 'react-native';
-import { DUREE, dureeReduite, ressortReduit, ressortRN, type Ressort } from '../lib/motion';
+import { DUREE, RESSORT, dureeReduite, ressortReduit, ressortRN, type Ressort } from '../lib/motion';
 import { reduceMotionActif, useReduceMotion } from '../lib/reduceMotion';
 
 // ── Ce qui APPARAÎT, DISPARAÎT ou SE DÉPLACE dans une liste ──────────────────
@@ -32,6 +32,67 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
+// ── Les COURBES de l'app — le seul fichier qui écrit `Easing.` ──────────────
+//
+// 🔴 Direction du fondateur, 2026-10-25 : **ce qui ENTRE démarre vite et ralentit
+// en arrivant (easing out) ; ce qui SORT démarre lentement et accélère en partant
+// (easing in) ; rien de linéaire.** Avant, `Easing.out` valait partout, sorties
+// comprises : une feuille fermée au tap freinait en partant, comme si elle hésitait
+// à quitter l'écran. Une sortie qui accélère dit « c'est fini », sans retenir l'œil.
+// ⚠️ Une sortie JETÉE AU DOIGT n'est pas concernée : elle garde son ressort et la
+// vitesse du doigt (`lib/motion.ts::decisionFeuille`) — c'est le doigt qui accélère.
+// ➡️ Compté par `lib/__tests__/mouvementDA.test.ts` : aucun `Easing.` hors d'ici,
+// aucun fondu vers 0 avec la courbe d'entrée, aucun linéaire.
+export const COURBE = {
+  /** Ce qui arrive ou se pose : part vite, ralentit en arrivant. */
+  entree: Easing.out(Easing.cubic),
+  /** Ce qui part ou s'efface : part doucement, accélère en partant. */
+  sortie: Easing.in(Easing.cubic),
+  /**
+   * Les confettis d'anniversaire. Ils étaient LINÉAIRES (« une chute ne ralentit
+   * pas ») ; une chute ne va pas non plus à vitesse constante — elle ACCÉLÈRE.
+   * `in(quad)` est la gravité, et le linéaire disparaît de l'app.
+   */
+  chute: Easing.in(Easing.quad),
+} as const;
+
+/** La courbe d'un fondu qui va et vient : entrée s'il apparaît, sortie s'il s'efface. */
+export function courbeVers(visible: boolean): (t: number) => number {
+  return visible ? COURBE.entree : COURBE.sortie;
+}
+
+/**
+ * La SORTIE d'une feuille (`Sheet`, `ActionSheet`) ou d'une ligne supprimée
+ * (`LigneGlissable`) vers `cible`, hors de l'écran.
+ *
+ * Deux chemins, et c'est la direction du 2026-10-25 appliquée telle quelle :
+ * • **jetée au doigt** (`vitesse` ≠ 0) — le ressort reçoit la vitesse du doigt et
+ *   la prolonge : c'est le geste qui accélère, une courbe imposée la jetterait ;
+ * • **fermée au tap** (fond, bouton, choix) — aucune vitesse à prolonger : elle
+ *   part doucement et accélère (`COURBE.sortie`). Avant, le même ressort que
+ *   l'ouverture la faisait FREINER en partant.
+ * ⚠️ Les deux partent de la valeur COURANTE : rouvrir une feuille en train de
+ * sortir l'arrête là où elle est, sans saut.
+ */
+export function sortirVers(
+  valeur: Animated.Value, cible: number, vitesse: number, reduire: boolean,
+): Animated.CompositeAnimation {
+  if (vitesse !== 0) {
+    return Animated.spring(valeur, {
+      toValue: cible,
+      useNativeDriver: true,
+      velocity: vitesse,
+      ...ressortRN(ressortReduit(RESSORT.feuille, reduire)),
+    });
+  }
+  return Animated.timing(valeur, {
+    toValue: cible,
+    duration: dureeReduite(DUREE.moyen, reduire),
+    easing: COURBE.sortie,
+    useNativeDriver: true,
+  });
+}
+
 /**
  * Arme une transition sur le PROCHAIN changement de mise en page.
  * À appeler juste AVANT le `setState` qui fait bouger l'écran.
@@ -45,10 +106,10 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
  * `dureeReduite` le raccourcit. Couper net laisserait la personne sans le
  * moindre signe que son geste a été pris.
  *
- * 🔴 `easeOut` et non `easeInEaseOut` : sans courbe déclarée, un départ LENT est
- * le défaut le plus répandu et le plus invisible du mouvement — c'est le
- * diagnostic qui a valu 12 `Animated.timing` sur 16 lors de la passe. Une
- * transition qui répond à un doigt part vite et se pose ; elle n'hésite pas.
+ * 🔴 `easeOut` pour ce qui arrive et bouge, `easeIn` pour ce qui part — jamais
+ * `easeInEaseOut` : sans courbe déclarée, un départ LENT sur une entrée est le
+ * défaut le plus répandu et le plus invisible du mouvement — c'est le
+ * diagnostic qui a valu 12 `Animated.timing` sur 16 lors de la passe.
  */
 export function animerMiseEnPage(duree: number = DUREE.court): void {
   const reduire = reduceMotionActif();
@@ -61,9 +122,10 @@ export function animerMiseEnPage(duree: number = DUREE.court): void {
     // du travail — sans elle, le bloc apparaît en fondu pendant que tout le
     // reste téléporte autour.
     update: { type: 'easeOut' },
-    // Ce qui PART : même chemin qu'à l'arrivée. Une surface qui entre en fondu
-    // et sort d'un coup se lit comme une panne, pas comme une sortie.
-    delete: { type: 'easeOut', property: 'opacity' },
+    // Ce qui PART : un fondu aussi — une surface qui entre en fondu et sort d'un
+    // coup se lit comme une panne. Mais en `easeIn` : une sortie accélère en
+    // partant (direction du 2026-10-25).
+    delete: { type: 'easeIn', property: 'opacity' },
   });
 }
 
@@ -110,7 +172,7 @@ export function Jauge({
       duration: dureeReduite(DUREE.instant, reduire),
       // Sans courbe, React Native applique `easeInOut`, donc un départ LENT :
       // le défaut le plus répandu du mouvement, et le plus invisible.
-      easing: Easing.out(Easing.cubic),
+      easing: COURBE.entree,
       useNativeDriver: true,
     }).start();
   }, [part, reduire, valeur, ressort]);

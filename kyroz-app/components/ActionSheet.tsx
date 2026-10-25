@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
-  Modal, View, StyleSheet, Animated, PanResponder, Pressable, Easing, useWindowDimensions,
+  Modal, View, StyleSheet, Animated, PanResponder, Pressable, useWindowDimensions,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme, Spacing, Fond, Radius } from '../constants/theme';
@@ -11,6 +11,7 @@ import {
   vitesseDepuisPan, caoutchouc, decisionFeuille,
 } from '../lib/motion';
 import { useReduceMotion, reduceMotionActif } from '../lib/reduceMotion';
+import { COURBE, sortirVers } from './Mouvement';
 import { retour } from '../lib/retourHaptique';
 import { useModaleRecensee } from '../lib/modalesPresentees';
 import { useHauteurClavier } from './Clavier';
@@ -128,7 +129,7 @@ export function ActionSheet({ visible, onClose, children }: Props) {
         Animated.timing(backdrop, {
           toValue: 1,
           duration: dureeReduite(DUREE.court, reduire),
-          easing: Easing.out(Easing.quad),
+          easing: COURBE.entree,
           useNativeDriver: true,
         }),
       ]).start();
@@ -142,16 +143,12 @@ export function ActionSheet({ visible, onClose, children }: Props) {
         setRender(false);
       };
       Animated.parallel([
-        Animated.spring(ty, {
-          toValue: 700,
-          useNativeDriver: true,
-          velocity: v,
-          ...ressortRN(ressortReduit(RESSORT.feuille, reduire)),
-        }),
+        // Jetée ou fermée au tap : même règle que `Sheet` (`sortirVers`).
+        sortirVers(ty, 700, v, reduire),
         Animated.timing(backdrop, {
           toValue: 0,
           duration: dureeReduite(DUREE.court, reduire),
-          easing: Easing.out(Easing.quad),
+          easing: COURBE.sortie,
           useNativeDriver: true,
         }),
       ]).start(demonter);
