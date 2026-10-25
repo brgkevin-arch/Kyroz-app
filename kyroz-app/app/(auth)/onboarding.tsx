@@ -16,9 +16,7 @@ import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useTheme, ThemePalette, Spacing, Radius, Type, CIBLE_TACTILE_MIN, Trait, Icone, OPACITE_PRESSION } from '../../constants/theme';
 import { useLayout } from '../../constants/layout';
-import {
-  PrimaryButton, Chip, OptionCard, Field, SectionLabel, Intitule, GrilleChoix, Segmented, Card, clavierScrollProps,
-} from '../../components/ui';
+import { PrimaryButton, Chip, OptionCard, Field, SectionLabel, Intitule, GrilleChoix, Card, clavierScrollProps, Choix } from '../../components/ui';
 import { BodyFatPicker } from '../../components/BodyFatPicker';
 import { useDialog } from '../../components/Dialog';
 import { BirthDateField } from '../../components/BirthDateField';
@@ -824,7 +822,7 @@ export default function Onboarding() {
                 ⚠️ C'est un dévoilement, PAS une étape de plus : les quatre champs
                 restent dans la même étape 2, donc `TOTAL_STEPS` ne bouge pas et le
                 brouillon (`lireBrouillon`) se relit tel quel. */}
-            <Segmented
+            <Choix
               t={t}
               options={[{ label: 'Homme', value: 'male' }, { label: 'Femme', value: 'female' }]}
               value={sex}

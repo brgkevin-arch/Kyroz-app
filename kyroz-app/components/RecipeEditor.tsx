@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity } from 
 import { Presse } from './Presse';
 import { Ionicons } from '@expo/vector-icons';
 import { ThemePalette, Radius, Spacing, Type, CIBLE_TACTILE_MIN, Trait, Icone, OPACITE_PRESSION } from '../constants/theme';
-import { Field, PrimaryButton, Segmented, clavierScrollProps } from './ui';
+import { Field, PrimaryButton, clavierScrollProps, Choix } from './ui';
 import { Recipe, Ingredient } from '../lib/types';
 import { searchFoods, recipeMacrosPerPortion } from '../lib/foods';
 import { AvertissementIcon } from './Icons';
@@ -165,7 +165,7 @@ export function RecipeEditor({ t, recipe, isCustom, onSave, onReset, onCancel, d
         </Presse>
 
         <Text style={s.section}>MACROS / PORTION</Text>
-        <Segmented
+        <Choix
           t={t}
           options={[{ label: 'Auto (ingrédients)', value: 'auto' }, { label: 'Manuel', value: 'manual' }]}
           value={macroMode} onChange={setMacroMode}

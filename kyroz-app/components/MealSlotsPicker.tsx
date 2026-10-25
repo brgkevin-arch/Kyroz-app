@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity } from 'react-native';
 import { Presse } from './Presse';
 import { Ionicons } from '@expo/vector-icons';
 import { ThemePalette, Radius, Type, Spacing, Trait, Icone, CIBLE_TACTILE_MIN, OPACITE_PRESSION } from '../constants/theme';
-import { Field, Segmented, PrimaryButton } from './ui';
+import { Field, PrimaryButton, Choix } from './ui';
 import { IconeRepas } from './Icons';
 import { MealPool, MealSlot, MealType } from '../lib/types';
 import {
@@ -215,7 +215,7 @@ function SlotForm({
       </View>
       <View style={{ gap: Spacing.sm }}>
         <Text style={{ ...Type.captionStrong, color: t.textSecondary }}>Kyroz y sert plutôt</Text>
-        <Segmented t={t} options={POOL_OPTS} value={pool} onChange={setPool} />
+        <Choix t={t} options={POOL_OPTS} value={pool} onChange={setPool} />
         <Text style={{ ...Type.caption, color: t.textTertiary, lineHeight: 18 }}>
           C'est le vivier de recettes dans lequel Kyroz pioche pour ce créneau, et la
           taille de portion qu'il y vise.

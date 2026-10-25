@@ -1,7 +1,7 @@
 import React from 'react';
 import { View } from 'react-native';
 import { ThemePalette, Spacing } from '../constants/theme';
-import { Chip, GrilleChoix, Intitule, SectionLabel } from './ui';
+import { GrilleChoix, Intitule, SectionLabel } from './ui';
 import { LIBELLE_SORTE, VALEUR_SORTE, regimeChoisi, sortesProposees } from '../lib/partsProteines';
 import type { DietaryRestriction } from '../lib/types';
 
@@ -29,8 +29,7 @@ export function ProteinesParRegime({
   /** À l'inscription : casse de phrase, et plus de phrase d'explication dessous
    *  (décision fondateur, 2026-09-22). Le Profil garde les capitales et l'explication. */
   intitule?: 'capitales' | 'phrase';
-  /** À l'inscription : la grille rectangulaire (`ui.tsx::GrilleChoix`, 2026-09-22),
-   *  « Peu importe » en case pleine largeur. Le Profil garde ses pastilles. */
+  /** Ignoré depuis le 2026-10-25 : une seule DA de sélection, partout (`GrilleChoix`). */
   grille?: boolean;
 }) {
   if (masquerSansRegime && !regimeChoisi(restrictions)) return null;
@@ -45,25 +44,13 @@ export function ProteinesParRegime({
           Protéines préférées
         </SectionLabel>
       )}
-      {grille ? (
-        <GrilleChoix
-          t={t}
-          options={sortes.map((s) => ({ label: LIBELLE_SORTE[s], value: VALEUR_SORTE[s] }))}
-          estChoisi={(v) => valeurs.includes(v)}
-          onChoisir={basculer}
-          pleineLargeur={peuImporte && { label: 'Peu importe', selected: peuImporte.selected, onPress: peuImporte.onToggle }}
-        />
-      ) : (
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm }}>
-        {sortes.map((s) => (
-          <Chip
-            key={s} t={t} label={LIBELLE_SORTE[s]} selected={valeurs.includes(VALEUR_SORTE[s])}
-            onPress={() => basculer(VALEUR_SORTE[s])}
-          />
-        ))}
-        {peuImporte && <Chip t={t} label="Peu importe" selected={peuImporte.selected} onPress={peuImporte.onToggle} />}
-      </View>
-      )}
+      <GrilleChoix
+        t={t}
+        options={sortes.map((s) => ({ label: LIBELLE_SORTE[s], value: VALEUR_SORTE[s] }))}
+        estChoisi={(v) => valeurs.includes(v)}
+        onChoisir={basculer}
+        pleineLargeur={peuImporte && { label: 'Peu importe', selected: peuImporte.selected, onPress: peuImporte.onToggle }}
+      />
     </>
   );
 }

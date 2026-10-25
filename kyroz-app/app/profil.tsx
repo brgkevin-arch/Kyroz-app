@@ -1013,6 +1013,7 @@ function ListeShell({ t, titre, children, dragHandlers, sheetScrollProps }: { t:
       <ScrollView
         contentContainerStyle={{ padding: Spacing.xxl, paddingTop: Spacing.md, paddingBottom: Spacing.xxxl, gap: Spacing.lg }}
         showsVerticalScrollIndicator={false}
+        {...clavierScrollProps}
         {...(sheetScrollProps ?? {})}
       >
         {children}
@@ -2285,7 +2286,7 @@ function MealsEditor({ t, profile, onSave, dragHandlers, sheetScrollProps, onBac
       {!section && <SectionLabel t={t}>Tu manges plus à quel moment ?</SectionLabel>}
       {/* En colonne, sur toute la largeur (2026-10-25) : quatre moments et « Équilibré »
           s'enroulaient en pastilles sur deux lignes inégales. */}
-      <GrilleChoix t={t} vertical options={emphasisOpts.map((e) => ({ label: e.label, value: e.val }))}
+      <GrilleChoix t={t} options={emphasisOpts.map((e) => ({ label: e.label, value: e.val }))}
         estChoisi={(v) => emphasis.includes(v)} onChoisir={togEmphasis}
         pleineLargeur={{ label: 'Équilibré', selected: emphasis.length === 0, onPress: () => setEmphasis([]) }} />
         {/* « Équilibré » n'est PAS un état caché : c'est la même donnée (liste vide),

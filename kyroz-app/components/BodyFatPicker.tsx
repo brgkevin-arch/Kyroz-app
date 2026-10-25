@@ -247,7 +247,7 @@ export function BodyFatPicker({ t, sex, value, source, onChange, body }: Props) 
           {/* Une réponse par ligne, sur toute la largeur (2026-10-25). Toucher la réponse
               choisie la retire : on peut revenir à « pas répondu ». */}
           <GrilleChoix<'measured' | 'estimated'>
-            t={t} vertical
+            t={t}
             options={[{ label: 'Oui, avec un appareil', value: 'measured' }, { label: "Non, c'est une estimation", value: 'estimated' }]}
             estChoisi={(v) => source === v}
             onChoisir={(v) => onChange(value, source === v ? undefined : v)}
