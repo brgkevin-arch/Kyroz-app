@@ -6,6 +6,7 @@ import { Presse } from './Presse';
 import { DureeIcon } from './Icons';
 import { useDialog } from './Dialog';
 import { ReminderTimeField } from './ReminderTimeField';
+import { useHauteurClavier } from './Clavier';
 import { useReminder } from '../hooks/useReminder';
 import { remindersSupported } from '../lib/notifications';
 import { useModaleRecensee } from '../lib/modalesPresentees';
@@ -50,6 +51,9 @@ export function ReminderOffer({ visible, onClose }: Props) {
   // c'est la différence entre proposer et régler.
   const [time, setTime] = useState<ReminderTime>(DEFAULT_REMINDER_TIME);
   const [enCours, setEnCours] = useState(false);
+  // L'heure se tape au pavé numérique : la carte se recentre AU-DESSUS du clavier,
+  // sinon « Activer le rappel » finit dessous (components/Clavier.ts).
+  const clavier = useHauteurClavier();
   // Recensée tant qu'elle est à l'écran : une visite guidée attend qu'elle soit partie (lib/modalesPresentees.ts).
   useModaleRecensee(visible);
 
@@ -73,7 +77,7 @@ export function ReminderOffer({ visible, onClose }: Props) {
     // fondrait par-dessus la sortie du reveal qui vient de se fermer — deux
     // fondus enchaînés sur la même zone se lisent comme un à-coup.
     <Modal visible transparent animationType="none" onRequestClose={onClose}>
-      <View style={s.root}>
+      <View style={[s.root, clavier > 0 && { paddingBottom: clavier + Spacing.xl }]}>
         <View style={s.card}>
           <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
             {/* `fete` et non `vide` : ce n'est pas le décor d'un écran creux, c'est

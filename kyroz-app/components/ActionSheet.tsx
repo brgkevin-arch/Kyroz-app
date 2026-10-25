@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
-  Modal, View, StyleSheet, Animated, PanResponder, Pressable,
+  Modal, View, StyleSheet, Animated, PanResponder, Pressable, useWindowDimensions,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme, Spacing, Fond, Radius } from '../constants/theme';
 import Materiau, { useVerre } from './Materiau';
 import { useLayout } from '../constants/layout';
@@ -13,6 +14,7 @@ import { useReduceMotion, reduceMotionActif } from '../lib/reduceMotion';
 import { COURBE, sortirVers } from './Mouvement';
 import { retour } from '../lib/retourHaptique';
 import { useModaleRecensee } from '../lib/modalesPresentees';
+import { useHauteurClavier } from './Clavier';
 
 interface Props {
   visible: boolean;
@@ -61,6 +63,21 @@ export function ActionSheet({ visible, onClose, children }: Props) {
   const layout = useLayout();
   // Relu à chaque rendu : « Réduire la transparence » bascule pendant que l'app tourne.
   const verre = useVerre();
+  // La place que le clavier recouvre : la feuille se pose AU-DESSUS (components/Clavier.ts).
+  const clavier = useHauteurClavier();
+  const { height: ecranH } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
+  const [hauteurFeuille, setHauteurFeuille] = useState(0);
+  // ⚠️ La remontée est BORNÉE : le haut de la feuille ne passe jamais sous la barre
+  // d'état. Mesuré au simulateur sur « Ajouter un aliment » (Réserve) : quand les
+  // suggestions s'ouvrent, la feuille dépasse la place libre au-dessus du clavier,
+  // et la remonter entière faisait sortir de l'écran le champ même qu'on tape. Le
+  // haut (ce qu'on écrit) passe avant le bas : le temps de la liste, le bouton reste
+  // sous les touches ; une suggestion choisie, la feuille raccourcit et remonte entière.
+  const decolle = verre ? MARGE_VERRE : 0;
+  const remontee = clavier > 0
+    ? Math.max(0, Math.min(clavier, ecranH - insets.top - Spacing.sm - decolle - hauteurFeuille))
+    : 0;
   const [render, setRender] = useState(visible);
   // Recensée tant qu'elle est à l'écran : une visite guidée attend qu'elle soit partie (lib/modalesPresentees.ts).
   useModaleRecensee(render);
@@ -225,7 +242,10 @@ export function ActionSheet({ visible, onClose, children }: Props) {
 
   return (
     <Modal visible transparent animationType="none" onRequestClose={onClose}>
-      <View style={styles.root}>
+      {/* 🔴 Le clavier ne recouvre JAMAIS la feuille (2026-10-25, signalé sur
+          « Ajouter un article » des Courses : quantité et bouton sous le clavier).
+          Le fond, lui, reste plein écran : il est en absolu, hors de ce rembourrage. */}
+      <View style={[styles.root, { paddingBottom: remontee }]}>
         <Pressable style={StyleSheet.absoluteFill} onPress={onClose}>
           <Animated.View style={[styles.backdrop, { opacity: backdrop }]} />
         </Pressable>
@@ -235,12 +255,16 @@ export function ActionSheet({ visible, onClose, children }: Props) {
             bords, arrondie en haut seulement. C'est ce qui autorise l'OTA. */}
         <Animated.View
           {...pan.panHandlers}
+          onLayout={(e) => setHauteurFeuille(e.nativeEvent.layout.height)}
           style={[
             styles.sheet,
             verre ? styles.sheetVerre : [styles.sheetPeinte, { backgroundColor: t.card }],
             { transform: [{ translateY: ty }] },
             layout.sheet,
             layout.isTablet && (verre ? styles.sheetVerreTablette : styles.sheetTablet),
+            // Le menton dégage la barre d'accueil ; posée sur le clavier, elle n'en a
+            // plus, et 40 pt de vide entre le bouton et les touches se lisent comme un trou.
+            clavier > 0 && styles.sheetSurClavier,
           ]}
         >
           {/* Le verre se rend DERRIÈRE le contenu, à la forme de la feuille. */}
@@ -269,5 +293,6 @@ const styles = StyleSheet.create({
     paddingBottom: Fond.feuille - MARGE_VERRE,
   },
   sheetVerreTablette: { marginBottom: Spacing.xxl },
+  sheetSurClavier: { paddingBottom: Spacing.lg },
   handle: { width: 44, height: 5, borderRadius: 3, alignSelf: 'center', marginBottom: Spacing.sm },
 });
