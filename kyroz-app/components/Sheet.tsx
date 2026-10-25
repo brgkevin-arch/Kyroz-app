@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
   Modal, View, StyleSheet, Animated, PanResponder, useWindowDimensions,
-  Pressable, Platform, Easing,
+  Pressable, Platform, Easing, ScrollView,
 } from 'react-native';
 import { useTheme, Radius, Spacing } from '../constants/theme';
 import { useLayout } from '../constants/layout';
@@ -12,6 +12,7 @@ import {
 import { useReduceMotion, reduceMotionActif } from '../lib/reduceMotion';
 import { retour } from '../lib/retourHaptique';
 import { useModaleRecensee } from '../lib/modalesPresentees';
+import { useHauteurClavier, rendreSaisieVisible } from './Clavier';
 
 interface Props {
   visible: boolean;
@@ -84,6 +85,13 @@ export function Sheet({ visible, onClose, children, onClosed }: Props) {
   visibleRef.current = visible;
 
   const reduire = useReduceMotion();
+
+  // La place que le clavier recouvre : le contenu de la feuille — champ ET bouton
+  // posé sous son défilement — s'arrête au-dessus (components/Clavier.ts).
+  const clavier = useHauteurClavier();
+  // Le défilement de l'enfant, reçu par `sheetScrollProps` : c'est lui qu'on fait
+  // défiler pour ramener le champ actif en vue, une fois la feuille rétrécie.
+  const defilement = useRef<ScrollView | null>(null);
 
   // 🔴 LA VITESSE DU DOIGT VOYAGEAIT JUSQU'ICI PUIS ÉTAIT JETÉE.
   // `onPanResponderRelease` lisait `g.vy` pour décider *si* on ferme, appelait
@@ -291,6 +299,12 @@ export function Sheet({ visible, onClose, children, onClosed }: Props) {
   const dragging = useRef(false);
 
   const sheetScrollProps = {
+    ref: defilement,
+    // ⚠️ Écrase le `true` de `clavierScrollProps` (l'enfant étale ces props-ci en
+    // DERNIER) : la feuille rétrécit déjà au-dessus du clavier, l'inset natif le
+    // compterait une seconde fois — et sur le cadre d'avant, donc faux. C'est
+    // `rendreSaisieVisible` qui remonte le champ, après la mise en page.
+    automaticallyAdjustKeyboardInsets: false,
     scrollEventThrottle: 16,
     onScrollBeginDrag: () => { dragging.current = true; },
     onScroll: (e: any) => {
@@ -355,6 +369,12 @@ export function Sheet({ visible, onClose, children, onClosed }: Props) {
             { backgroundColor: t.bg, transform: [{ translateY: ty }] },
             layout.sheet,
             layout.isTablet && styles.sheetTablet,
+            // 🔴 Le clavier ne recouvre JAMAIS le contenu (2026-10-25) : les éditeurs
+            // du Profil posent « Enregistrer » SOUS leur défilement, et il finissait
+            // sous le clavier. La feuille garde sa hauteur et son fond — c'est son
+            // contenu qui s'arrête au-dessus des touches. Sur tablette elle est déjà
+            // décollée du bas de `Spacing.xxl`, qui ne se recompte pas.
+            clavier > 0 && { paddingBottom: Math.max(0, clavier - (layout.isTablet ? Spacing.xxl : 0)) },
           ]}
         >
           {/* Poignée — grande zone de drag (toute la bande haute, pas juste l'encoche) */}
@@ -362,7 +382,16 @@ export function Sheet({ visible, onClose, children, onClosed }: Props) {
             <View style={[styles.handle, { backgroundColor: t.lineStrong }]} />
           </View>
 
-          <View style={{ flex: 1 }}>{child}</View>
+          {/* Une fois rétréci (ou agrandi : clavier alphabétique → numérique), le
+              champ actif peut être sous le bord visible : on le ramène, sur le cadre
+              RÉEL. ⚠️ Sur CE conteneur, pas sur la feuille : elle garde sa hauteur, son
+              `onLayout` ne repart donc pas quand le clavier monte. */}
+          <View
+            style={{ flex: 1 }}
+            onLayout={() => { if (clavier > 0) rendreSaisieVisible(defilement.current); }}
+          >
+            {child}
+          </View>
         </Animated.View>
       </View>
     </Modal>

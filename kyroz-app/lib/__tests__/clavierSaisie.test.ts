@@ -46,7 +46,7 @@ const DISPENSES: Record<string, string> = {
   'app/(tabs)/recettes.tsx':
     "la recherche est dans l'EN-TÊTE, hors du défilement ; le seul ScrollView de l'écran est horizontal (les filtres)",
   'app/(tabs)/reserve.tsx':
-    "les champs vivent dans des ActionSheet ancrées en bas, pas dans le ScrollView de l'écran — autre mécanisme, à traiter à part",
+    "les champs vivent dans des ActionSheet ancrées en bas, pas dans le ScrollView de l'écran — c'est la feuille qui suit le clavier (clavierFeuilles.test.ts)",
 };
 
 // ⚠️ On exige le SPREAD, pas le nom. Première version : /clavierScrollProps/ —
