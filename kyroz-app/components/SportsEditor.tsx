@@ -12,7 +12,9 @@ import {
 // Valeurs par défaut à l'ajout d'un sport (cohérentes avec la cible : ~3×/sem, 1h).
 const DEFAULT_SESSIONS = 3;
 const DEFAULT_MINUTES = 60;
-const MINUTE_STEP = 15;
+// Pas de 5 min (demande fondateur, 2026-10-25) : une séance de 50 ou 70 min ne se
+// déclarait pas — on arrondissait au quart d'heure, et la dépense avec.
+const MINUTE_STEP = 5;
 
 type Props = {
   sports: SportSession[];

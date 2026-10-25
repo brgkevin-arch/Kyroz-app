@@ -192,7 +192,7 @@ const GROUPE_DE: Record<EditorKey, Groupe> = {
 // taille »), pas l'éditeur entier. L'éditeur garde tout son brouillon et toutes ses
 // vérifications : il n'AFFICHE que la partie demandée, et `undefined` les montre toutes
 // (deep-link, carte d'alerte).
-type InfoSection = 'prenom' | 'sexe' | 'age' | 'taille' | 'gras';
+type InfoSection = 'prenom' | 'sexe' | 'age' | 'poids' | 'taille' | 'gras';
 type SportSection = 'quotidien' | 'seances';
 type PrefSection = 'regime' | 'gouts' | 'evites' | 'masquees';
 type RepasSection = 'jours' | 'repas' | 'fixes' | 'copieux' | 'auto' | 'variete';
@@ -261,7 +261,7 @@ export default function ProfilScreen() {
   // 🔴 LE SUIVI DU POIDS A QUITTÉ CET ÉCRAN le 2026-10-21 (décision fondateur) : il est
   // devenu l'onglet « Poids » (`app/(tabs)/poids.tsx`), et le Profil s'ouvre depuis une
   // bulle en haut à droite du Plan. Les pesées ne servent plus ici qu'au rappel.
-  const { entries: weightEntries } = useWeightLog();
+  const { entries: weightEntries, logWeight } = useWeightLog();
   // Dernière pesée connue : elle sert à ré-armer la notification ET à déduire le jour
   // de rendez-vous quand aucun n'a été choisi. Une seule lecture, deux usages.
   const dernierePesee = weightEntries[weightEntries.length - 1]?.date ?? null;
@@ -317,6 +317,14 @@ export default function ProfilScreen() {
   const [reglages, setReglages] = useState(false);
 
   const retourListe = () => { setEditor(null); setSection(undefined); };
+  // Le poids corrigé dans la liste « Toi » devient une PESÉE DU JOUR, sans le dire
+  // (décision fondateur, 2026-10-25) : c'est la seule écriture qui garde la courbe et
+  // le profil d'accord — un champ qui ne recalerait que le profil referait le défaut
+  // du 2026-08-10 (cf. InfoEditor). `logWeight` recale le profil lui-même.
+  const enregistrerPoids = async (kg: number) => {
+    if (profile && kg !== profile.weight_kg) await logWeight(kg);
+    if (depuisListe) retourListe(); else setGroupe(null);
+  };
   const save = async (updated: UserProfile) => {
     await saveProfile(updated);
     if (depuisListe) retourListe(); else setGroupe(null);
@@ -346,11 +354,18 @@ export default function ProfilScreen() {
   // premier rendu, où aucune feuille n'est ouverte.
   const groupeRef = useRef<Groupe | null>(null);
   groupeRef.current = groupe;
+  // Ouvert par un lien direct (Plan, onglet Poids) : refermer la feuille RAMÈNE à
+  // l'écran d'où l'on venait. Sans ça, « Ma répartition (%) » laissait sur le Profil,
+  // une page que la personne n'avait jamais demandée (signalé le 2026-10-25).
+  const lienDirectRef = useRef(false);
   const openEditor = (key: EditorKey, sec?: Section, depuisLaListe = false) => {
     const feature = EDITEURS_PREMIUM[key];
     if (feature && !premiumRef.current.can(feature)) {
       // Depuis une feuille : la page Kyroz+ attend qu'elle soit DÉMONTÉE (`onClosed`).
-      if (groupeRef.current) { setApresEditeur('kyrozplus'); setGroupe(null); } else router.push('/kyroz-plus');
+      // Depuis un lien direct : elle REMPLACE le Profil, pour que son retour ramène d'où l'on vient.
+      if (groupeRef.current) { setApresEditeur('kyrozplus'); setGroupe(null); }
+      else if (lienDirectRef.current) { lienDirectRef.current = false; router.replace('/kyroz-plus'); }
+      else router.push('/kyroz-plus');
       return;
     }
     setEditor(key);
@@ -363,7 +378,7 @@ export default function ProfilScreen() {
   // l'éditeur demandé au focus, via un drapeau (même principe que REROLL_KEY).
   useFocusEffect(useCallback(() => {
     AsyncStorage.getItem('@kyroz:openEditor').then((v) => {
-      if (v) { AsyncStorage.removeItem('@kyroz:openEditor'); openEditor(v as EditorKey); }
+      if (v) { AsyncStorage.removeItem('@kyroz:openEditor'); lienDirectRef.current = true; openEditor(v as EditorKey); }
     });
   }, []));
 
@@ -381,7 +396,10 @@ export default function ProfilScreen() {
     });
     if (!ok) return;
     await AsyncStorage.setItem('@kyroz:planReroll', '1');
-    router.push('/(tabs)/plan');
+    // RETOUR au Plan, pas un Plan de plus : le Profil est poussé par-dessus les onglets,
+    // et `push` empilait Plan → Profil → Plan — le retour suivant ramenait au Profil.
+    // Le drapeau est lu au focus du Plan, que le retour déclenche.
+    if (router.canGoBack()) router.back(); else router.replace('/(tabs)/plan');
   };
 
   // Déconnexion : couper la session NE redirige pas tout seul l'écran déjà monté
@@ -747,9 +765,12 @@ export default function ProfilScreen() {
         visible={groupe !== null}
         onClose={() => setGroupe(null)}
         onClosed={() => {
+          const lienDirect = lienDirectRef.current;
+          lienDirectRef.current = false;
           if (apresEditeur === 'peser') setWeighIn(true);
-          if (apresEditeur === 'kyrozplus') router.push('/kyroz-plus');
+          if (apresEditeur === 'kyrozplus') { if (lienDirect) router.replace('/kyroz-plus'); else router.push('/kyroz-plus'); }
           if (apresEditeur === 'ecarts') openOffPlan();
+          if (lienDirect && apresEditeur === null) { if (router.canGoBack()) router.back(); else router.replace('/(tabs)/plan'); }
           setApresEditeur(null);
           retourListe();
           setDepuisListe(false);
@@ -765,7 +786,7 @@ export default function ProfilScreen() {
         {groupe === 'toi' && !editor && (
           <ListeToi t={t} profile={profile} prenom={prenom}
             onOuvrir={(k, sec) => openEditor(k, sec, true)}
-            onPeser={() => { setApresEditeur('peser'); setGroupe(null); }} />
+ />
         )}
         {groupe === 'objectifs' && !editor && (
           <ListeObjectifs t={t} profile={profile} datedGoalOuvert={premium.can('dated_goal')}
@@ -776,7 +797,7 @@ export default function ProfilScreen() {
             onOuvrir={(k, sec) => openEditor(k, sec, true)}
             onEcarts={() => { setApresEditeur('ecarts'); setGroupe(null); }} />
         )}
-        {editor === 'info' && <InfoEditor t={t} profile={profile} onSave={save} section={section as InfoSection} onBack={depuisListe ? retourListe : undefined} onWeighIn={() => { setApresEditeur('peser'); setGroupe(null); }} />}
+        {editor === 'info' && <InfoEditor t={t} profile={profile} onSave={save} section={section as InfoSection} onBack={depuisListe ? retourListe : undefined} onWeighIn={() => { setApresEditeur('peser'); setGroupe(null); }} onPoids={enregistrerPoids} />}
         {editor === 'sports' && <SportsProfileEditor t={t} profile={profile} onSave={save} section={section as SportSection} onBack={depuisListe ? retourListe : undefined} />}
         {editor === 'goal' && <GoalEditor t={t} profile={profile} onSave={save} onBack={depuisListe ? retourListe : undefined} />}
         {editor === 'dated_goal' && <DatedGoalEditor t={t} profile={profile} onSave={save} onBack={depuisListe ? retourListe : undefined} />}
@@ -937,7 +958,7 @@ function regimeResume(p: UserProfile): string {
 }
 
 // Le titre de l'éditeur ouvert sur une seule de ses parties : le nom de la ligne touchée.
-const TITRES_INFO: Record<InfoSection, string> = { prenom: 'Prénom', sexe: 'Sexe', age: 'Date de naissance', taille: 'Taille', gras: 'Masse grasse' };
+const TITRES_INFO: Record<InfoSection, string> = { prenom: 'Prénom', sexe: 'Sexe', age: 'Date de naissance', poids: 'Poids', taille: 'Taille', gras: 'Masse grasse' };
 const TITRES_SPORT: Record<SportSection, string> = { quotidien: 'Au quotidien', seances: 'Sport' };
 const TITRES_PREF: Record<PrefSection, string> = { regime: 'Régime', gouts: 'Goûts', evites: 'Aliments évités', masquees: 'Recettes masquées' };
 const TITRES_REPAS: Record<RepasSection, string> = {
@@ -1026,8 +1047,8 @@ function Ligne({ t, label, valeur, onPress, last }: { t: ThemePalette; label: st
   );
 }
 
-function ListeToi({ t, profile, prenom, onOuvrir, onPeser, dragHandlers, sheetScrollProps }: ListeProps & {
-  prenom: string; onOuvrir: (k: EditorKey, s: Section) => void; onPeser: () => void;
+function ListeToi({ t, profile, prenom, onOuvrir, dragHandlers, sheetScrollProps }: ListeProps & {
+  prenom: string; onOuvrir: (k: EditorKey, s: Section) => void;
 }) {
   const seances = totalSessionsPerWeek(profile.sports);
   return (
@@ -1036,8 +1057,9 @@ function ListeToi({ t, profile, prenom, onOuvrir, onPeser, dragHandlers, sheetSc
         <Ligne t={t} label="Prénom" valeur={prenom || 'À ajouter'} onPress={() => onOuvrir('info', 'prenom')} />
         <Ligne t={t} label="Sexe" valeur={SEX_LABELS[profile.sex]} onPress={() => onOuvrir('info', 'sexe')} />
         <Ligne t={t} label="Âge" valeur={`${ageDe(profile)} ans`} onPress={() => onOuvrir('info', 'age')} />
-        {/* Le poids n'a qu'UNE porte d'entrée, la pesée : elle tient l'historique. */}
-        <Ligne t={t} label="Poids" valeur={`${frnum(profile.weight_kg)} kg`} onPress={onPeser} />
+        {/* Une roulette, comme la taille — et l'enregistrer AJOUTE une pesée du jour
+            (`enregistrerPoids`) : la courbe et le profil restent d'accord. */}
+        <Ligne t={t} label="Poids" valeur={`${frnum(profile.weight_kg)} kg`} onPress={() => onOuvrir('info', 'poids')} />
         <Ligne t={t} label="Taille" valeur={`${profile.height_cm} cm`} onPress={() => onOuvrir('info', 'taille')} />
         <Ligne t={t} label="Masse grasse" valeur={profile.body_fat_pct != null ? `${frnum(profile.body_fat_pct)} %` : 'Non renseignée'} onPress={() => onOuvrir('info', 'gras')} last />
       </Bloc>
@@ -1142,7 +1164,7 @@ function EditorShell({
 type EditorProps = { t: ThemePalette; profile: UserProfile; onSave: (p: UserProfile) => void; dragHandlers?: any; sheetScrollProps?: any; onBack?: () => void };
 
 // ── Éditeurs ─────────────────────────────────────────────────────────────────
-function InfoEditor({ t, profile, onSave, onWeighIn, dragHandlers, sheetScrollProps, onBack, section }: EditorProps & { onWeighIn: () => void; section?: InfoSection }) {
+function InfoEditor({ t, profile, onSave, onWeighIn, onPoids, dragHandlers, sheetScrollProps, onBack, section }: EditorProps & { onWeighIn: () => void; onPoids: (kg: number) => void; section?: InfoSection }) {
   // Prénom — LOCAL à l'appareil, hors profil synchronisé (cf. lib/profileName.ts).
   // Il ne s'écrivait qu'à l'onboarding : un compte antérieur à cette étape restait
   // sur « Ton plan » sans aucun recours. Il vit ici désormais.
@@ -1169,6 +1191,10 @@ function InfoEditor({ t, profile, onSave, onWeighIn, dragHandlers, sheetScrollPr
   // daté lit la même série : il continuait de projeter depuis un poids abandonné.
   // ➡️ Une donnée qui alimente une SÉRIE ne se corrige pas par un champ qui ignore
   // la série. Le poids devient une ligne de renvoi vers son unique porte d'entrée.
+  // ➕ Depuis le 2026-10-25, la partie « Poids » (ouverte depuis la liste) a sa roulette —
+  // mais elle n'écrit PAS le profil : elle passe par `onPoids`, c'est-à-dire par une pesée,
+  // donc par la série. Le défaut décrit ci-dessus reste fermé.
+  const [poids, setPoids] = useState(String(profile.weight_kg));
   const [height, setHeight] = useState(String(profile.height_cm));
   const [bodyFat, setBodyFat] = useState<number | undefined>(profile.body_fat_pct);
   const [bodyFatSource, setBodyFatSource] = useState<BodyFatSource | undefined>(profile.body_fat_source);
@@ -1199,7 +1225,11 @@ function InfoEditor({ t, profile, onSave, onWeighIn, dragHandlers, sheetScrollPr
   // `sports`), et withRecalc recalcule le TDEE avec le nouveau poids/%MG.
   // Le prénom part avant le profil : il vit dans son propre store, `onSave` ne le
   // porte pas. Vide = on efface la salutation, ce qui est un choix légitime.
-  const submit = () => { if (valid) { saveFirstName(prenom); onSave(withRecalc(draft)); } };
+  const poidsN = parseFloat(poids);
+  const submit = () => {
+    if (section === 'poids') { if (poidsN >= WEIGHT_BOUNDS[0] && poidsN <= WEIGHT_BOUNDS[1]) onPoids(poidsN); return; }
+    if (valid) { saveFirstName(prenom); onSave(withRecalc(draft)); }
+  };
   const montre = (x: InfoSection) => !section || section === x;
   return (
     <EditorShell t={t} title={section ? TITRES_INFO[section] : 'Informations'} onSave={submit} canSave={valid} dragHandlers={dragHandlers} sheetScrollProps={sheetScrollProps} onBack={onBack}>
@@ -1218,7 +1248,12 @@ function InfoEditor({ t, profile, onSave, onWeighIn, dragHandlers, sheetScrollPr
       {/* Même correction que l'étape 1 de l'onboarding (2026-08-12) : le placeholder
           reprend le libellé au lieu de suggérer « Kévin », le prénom du fondateur. */}
       {montre('prenom') && <Field t={t} label="Prénom" value={prenom} onChangeText={setPrenom} placeholder="Ton prénom" autoCapitalize="words" />}
-      {montre('sexe') && <Segmented t={t} options={[{ label: 'Homme', value: 'male' }, { label: 'Femme', value: 'female' }]} value={sex} onChange={setSex} />}
+      {/* Des cases, comme le régime et les autres choix des feuilles (demande fondateur,
+          2026-10-25) — plus le sélecteur segmenté, seul de son espèce dans la liste « Toi ». */}
+      {montre('sexe') && (
+        <GrilleChoix t={t} options={[{ label: 'Homme', value: 'male' as Sex }, { label: 'Femme', value: 'female' as Sex }]}
+          estChoisi={(v) => sex === v} onChoisir={setSex} />
+      )}
       {/* Pas de titre de section ici : le champ porte déjà « Date de naissance », et
           l'éditeur l'affichait deux fois de suite (relevé le 2026-09-30). */}
       {montre('age') && <BirthDateField t={t} value={birthDate} onChange={setBirthDate} fallbackAge={profile.birth_date ? undefined : profile.age} />}
@@ -1243,6 +1278,7 @@ function InfoEditor({ t, profile, onSave, onWeighIn, dragHandlers, sheetScrollPr
       </>)}
       {/* À la roulette, comme à l'inscription (2026-09-30) : le même chiffre ne se saisit
           pas au clavier ici et à la molette là-bas. */}
+      {section === 'poids' && <MesureField t={t} mesure="poids" value={poids} onChange={setPoids} sex={sex} />}
       {montre('taille') && <MesureField t={t} mesure="taille" value={height} onChange={setHeight} sex={sex} />}
       {montre('gras') && (<>
       {!section && <SectionLabel t={t}>Masse grasse (optionnel)</SectionLabel>}
