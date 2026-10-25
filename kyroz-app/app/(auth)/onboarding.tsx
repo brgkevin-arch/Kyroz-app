@@ -9,7 +9,8 @@ import {
 import { DUREE, RESSORT, dureeReduite } from '../../lib/motion';
 import { resteAScroller } from '../../lib/apercuIntro';
 import { reduceMotionActif } from '../../lib/reduceMotion';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useHauteurClavier, rendreSaisieVisible } from '../../components/Clavier';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -158,6 +159,11 @@ export default function Onboarding() {
   const t = useTheme();
   const s = useMemo(() => makeStyles(t), [t]);
   const layout = useLayout();
+  // 🔴 Le pied « Continuer » est posé SOUS le défilement : sans ça, le clavier le
+  // recouvrait (prénom, poids, taille…). L'écran s'arrête au-dessus des touches ;
+  // la barre d'accueil, que le clavier couvre, ne se recompte pas (components/Clavier.ts).
+  const clavier = useHauteurClavier();
+  const insets = useSafeAreaInsets();
   const router = useRouter();
   const { saveProfile } = useProfile();
   const { notify } = useDialog();
@@ -773,7 +779,7 @@ export default function Onboarding() {
   if (!brouillonLu) return null;
 
   return (
-    <SafeAreaView style={s.safe} edges={['top', 'bottom']}>
+    <SafeAreaView style={[s.safe, clavier > 0 && { paddingBottom: Math.max(0, clavier - insets.bottom) }]} edges={['top', 'bottom']}>
       <StatusBar style={t.scheme === 'dark' ? 'light' : 'dark'} />
 
       {/* Header : retour + progression */}
@@ -789,8 +795,14 @@ export default function Onboarding() {
         ref={defilement}
         contentContainerStyle={[s.content, layout.content]}
         {...clavierScrollProps}
+        // L'écran rétrécit déjà au-dessus du clavier : l'inset natif le compterait
+        // deux fois. On ramène le champ actif nous-mêmes, sur le cadre réel.
+        automaticallyAdjustKeyboardInsets={false}
         showsVerticalScrollIndicator={false}
-        onLayout={(e) => setHauteurVue(e.nativeEvent.layout.height)}
+        onLayout={(e) => {
+          setHauteurVue(e.nativeEvent.layout.height);
+          if (clavier > 0) rendreSaisieVisible(defilement.current);
+        }}
         onContentSizeChange={(_, h) => setHauteurContenu(h)}
         onScroll={(e) => {
           setPosition(e.nativeEvent.contentOffset.y);
