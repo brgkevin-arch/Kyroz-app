@@ -157,6 +157,23 @@ Ce qui en découle, et que j'ai choisi sans qu'on en parle (à revoir s'il le fa
 
 Le constat 4 (macros du Plan ≠ cibles du Profil) reste pour le segment 8.
 
+### Retouches sur iPhone et clôture (2026-10-25 → 26) — ✅ CLOS, publié en 63ᵉ OTA
+
+Vu au simulateur iPhone, puis retouché à la demande du fondateur, dans #406 :
+- les liens directs (« Ma répartition (%) », carte des protéines du Plan, objectif daté de
+  l'onglet Poids) ramènent à l'écran d'origine en fermant ; « Régénérer » revient au Plan ;
+- « Sexe » devient **« Genre »**, en choix comme le reste ; le **poids** a sa roulette et
+  l'enregistrer ajoute une pesée du jour, sans le dire ; le sport avance par **5 min** ;
+- **feuille Objectifs** : l'objectif en gros, puis kcal, écart à la dépense et trois cases
+  de macros, sans la barre ; la carte ouvre le choix de l'objectif ; plus de ligne
+  « Calories & macros » ;
+- **feuille Repas** : « Ta journée » (chaque repas et son heure, étiquettes Copieux / Géré
+  par toi), « Ta semaine » (les jours se touchent, enregistrement immédiat, jamais zéro jour),
+  « Tes goûts » (régime, protéines et aliments évités en pastilles) ;
+- **une seule DA de sélection** pour toute l'app : la carte au rond coché (CLAUDE.md §8).
+Les choix « non validés » de la liste ci-dessus sont restés tels quels : le fondateur ne les
+a pas remis en cause. Suites dans d'autres sessions : polices (#412, #415), fondu (#411).
+
 ## Journal du chantier
 
 - 2026-10-19 — découpage posé, segment 1 audité. En attente des arbitrages du fondateur.
@@ -164,3 +181,5 @@ Le constat 4 (macros du Plan ≠ cibles du Profil) reste pour le segment 8.
   jet codé trop tôt, puis la version discutée : quatre encadrés légers, une feuille-liste par
   encadré (façon A). Codée sur `claude/beautiful-mayer-8eldew`, vue sur le web ; reste à la
   voir sur iPhone.
+- 2026-10-25/26 — segment 12 vu au simulateur iPhone, retouché (cf. « Retouches sur iPhone
+  et clôture »), fusionné (#406) et publié en 63ᵉ OTA. **Segment 12 CLOS.**
