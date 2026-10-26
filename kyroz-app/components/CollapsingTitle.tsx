@@ -182,8 +182,14 @@ export function CompactTitleBar({
       importantForAccessibility="no-hide-descendants"
       style={[styles.haut, { height: haut + COMPACT_BAR_H + DEBORD_FONDU }]}
     >
-      {/* Toujours là : au repos rien ne passe dessous, il ne se voit pas. */}
-      {haut > 0 && <Fondu couleur={t.bg} hauteur={haut} arrets={FONDU_BARRE_ETAT} />}
+      {/* Toujours là : au repos rien ne passe dessous, il ne se voit pas.
+          🔴 Il s'EFFACE quand le titre compact apparaît (2026-10-26) : les deux fondus
+          empilés faisaient une bande claire entre deux sombres. Un seul à la fois. */}
+      {haut > 0 && (
+        <Animated.View style={[StyleSheet.absoluteFill, { opacity: opacity.interpolate({ inputRange: [0, 1], outputRange: [1, 0] }) }]}>
+          <Fondu couleur={t.bg} hauteur={haut} arrets={FONDU_BARRE_ETAT} />
+        </Animated.View>
+      )}
       <Animated.View style={[StyleSheet.absoluteFill, { opacity }]}>
         {/* Au navigateur, rien sous la barre ne justifie le fondu d'iOS : elle est pleine. */}
         <Fondu

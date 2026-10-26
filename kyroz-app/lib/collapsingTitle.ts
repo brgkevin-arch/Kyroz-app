@@ -71,12 +71,21 @@ export const FONDU_BARRE_ETAT = [
 ] as const;
 
 export const FONDU_TITRE = [
-  { a: 0, opacite: 0.5 },
-  { a: 0.42, opacite: 0.5 },
-  { a: 0.52, opacite: 0.68 },
-  { a: 0.8, opacite: 0.58 },
+  { a: 0, opacite: 0.72 },
+  { a: 0.46, opacite: 0.66 },
+  { a: 0.62, opacite: 0.62 },
+  { a: 0.85, opacite: 0.45 },
   { a: 1, opacite: 0 },
 ] as const;
+
+// 🔴 2026-10-26 (fondateur, sur iPhone : « séparé en deux — ça se fond, puis plus sombre,
+// puis ça se refond »). Le fondu du titre s'AJOUTAIT à celui de la barre d'état : sous
+// l'heure, ~72 % en haut, ~52 % à la jonction (le fondu de l'heure s'éteint, celui du titre
+// valait 50 %), puis ~68 % derrière le titre, puis le fondu — une bande claire coincée
+// entre deux sombres. Désormais : le fondu de l'heure s'efface quand celui du titre apparaît
+// (`CompactTitleBar`), et celui-ci ne fait que DESCENDRE du haut vers le bas. Derrière le
+// titre (a ≈ 0,46 → 0,85), 66 → 45 % : la même lisibilité moyenne qu'avant (50 → 68 %).
+// ➡️ Invariant compté (`repliTitre.test.ts`) : aucun arrêt plus opaque que celui du dessus.
 
 // ℹ️ Réglé AU PIXEL le 2026-10-19 sur iPhone 17 (bande de l'heure 0–62 pt, bande du
 // titre 62–114, soit a ≈ 0,46 → 0,85 sur 134 pt). Première passe à 1/0,92 : le contenu

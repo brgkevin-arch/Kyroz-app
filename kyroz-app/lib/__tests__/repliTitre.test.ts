@@ -136,14 +136,19 @@ describe('Le titre compact au navigateur (2026-10-23)', () => {
     expect(FONDU_TITRE_WEB[FONDU_TITRE_WEB.length - 1]).toEqual({ a: 1, opacite: 0 });
   });
 
-  it('sur iPhone, le fondu validé au simulateur ne bouge pas d’un arrêt (E80)', () => {
-    expect(FONDU_TITRE).toEqual([
-      { a: 0, opacite: 0.5 },
-      { a: 0.42, opacite: 0.5 },
-      { a: 0.52, opacite: 0.68 },
-      { a: 0.8, opacite: 0.58 },
-      { a: 1, opacite: 0 },
-    ]);
+  // 🔴 2026-10-26 : l'ancien fondu remontait à 68 % derrière le titre, après un creux à 50 %
+  // — le fondateur voyait le haut « séparé en deux ». Un fondu ne fait que s'éclaircir.
+  it('sur iPhone, le fondu du titre ne fait que s’éclaircir du haut vers le bas', () => {
+    for (let i = 1; i < FONDU_TITRE.length; i++) {
+      expect(FONDU_TITRE[i].a, `arrêt ${i}`).toBeGreaterThan(FONDU_TITRE[i - 1].a);
+      expect(FONDU_TITRE[i].opacite, `arrêt ${FONDU_TITRE[i].a}`).toBeLessThanOrEqual(FONDU_TITRE[i - 1].opacite);
+    }
+    expect(FONDU_TITRE[FONDU_TITRE.length - 1]).toEqual({ a: 1, opacite: 0 });
+  });
+
+  it('le fondu de l’heure s’efface quand celui du titre apparaît — jamais les deux empilés', () => {
+    const src = sansCommentaires(readFileSync(join(RACINE, 'components', 'CollapsingTitle.tsx'), 'utf8'));
+    expect(src).toMatch(/opacity\.interpolate\(\{ inputRange: \[0, 1\], outputRange: \[1, 0\] \}\)[\s\S]{0,120}FONDU_BARRE_ETAT/);
   });
 
   it('la barre pleine est réservée au navigateur sans barre d’état dessous', () => {
