@@ -1,5 +1,5 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ScrollView, TextInput } from 'react-native';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ScrollView, TextInput, InteractionManager } from 'react-native';
 import { Presse } from '../../components/Presse';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -89,9 +89,20 @@ export default function RecettesScreen() {
   // ⚠️ `profile` est passé à `cookableRecipes` — il écarte le régime et les aliments
   // évités, avec le prédicat du moteur de plan. Sans lui, cet écran proposait du poulet
   // à un végétarien pendant que le plan tenait sa promesse.
+  // 🔴 ET ELLE SE PRÉPARE EN FOND, une fois l'écran posé (2026-10-26). Calculée à
+  // l'appui sur « Réalisable », elle passait AVANT le changement de vue : mesuré au
+  // simulateur, 430 ms entre l'appui et le premier mouvement. `runAfterInteractions`
+  // attend que l'ouverture de l'onglet soit finie ; ensuite la bascule ne coûte plus
+  // que le rendu de la liste.
+  const [couvertureEnFond, setCouvertureEnFond] = useState(false);
+  useEffect(() => {
+    const tache = InteractionManager.runAfterInteractions(() => setCouvertureEnFond(true));
+    return () => tache.cancel();
+  }, []);
+  const besoinCouverture = vueListe === 'reserve' || couvertureEnFond;
   const couverture = useMemo(
-    () => (vueListe === 'reserve' ? cookableRecipes(reserve, profile) : null),
-    [vueListe, reserve, profile],
+    () => (besoinCouverture ? cookableRecipes(reserve, profile) : null),
+    [besoinCouverture, reserve, profile],
   );
   const pretes = useMemo(() => couverture?.filter((c) => c.missing.length === 0) ?? [], [couverture]);
   const presque = useMemo(
@@ -151,7 +162,9 @@ export default function RecettesScreen() {
   // filtre. Un chiffre affiché est celui qui sera servi (CLAUDE.md §10).
   const [paliers, setPaliers] = useState(0);
   const [tout, setTout] = useState(false);
-  const cle = `${vueListe}·${tag}·${q}·${recipes.length}·${parReserve.length}`;
+  // ⚠️ `parReserve` ne compte QUE sous « Réalisable » : préparée en fond, la couverture
+  // arrive pendant qu'on lit le Catalogue, et replierait ses paliers sans raison.
+  const cle = `${vueListe}·${tag}·${q}·${recipes.length}·${surReserve ? parReserve.length : 0}`;
   const cleVue = useRef(cle);
   if (cleVue.current !== cle) { cleVue.current = cle; if (paliers !== 0) setPaliers(0); if (tout) setTout(false); if (voirAutres) setVoirAutres(false); }
 
@@ -221,7 +234,11 @@ export default function RecettesScreen() {
           <Segmented<VueRecettes>
             t={t}
             value={vueListe}
-            onChange={(v) => { animerMiseEnPage(); setVueListe(v); }}
+            // Changer de vue = la nouvelle liste, d'un coup, comme un onglet d'iOS (2026-10-26).
+            // Le fondu de mise en page qui l'accompagnait gardait l'ancienne liste 200 ms de
+            // plus à l'écran et partageait le fil avec son rendu : c'était de l'attente, pas
+            // du mouvement. Le curseur, lui, glisse — c'est lui qui relie l'avant et l'après.
+            onChange={setVueListe}
             options={[{ label: 'Catalogue', value: 'catalogue' }, { label: 'Réalisable', value: 'reserve' }]}
           />
         </View>
@@ -439,7 +456,7 @@ export default function RecettesScreen() {
             recipe={selected}
             custom={isCustom(selected.id)}
             onEdit={() => setEditing(selected)}
-            onCook={pretes.some((c) => c.recipe.id === selected.id) ? () => cuisiner(selected) : undefined}
+            onCook={surReserve && pretes.some((c) => c.recipe.id === selected.id) ? () => cuisiner(selected) : undefined}
             onClose={() => setSelected(null)}
           />
         ) : null}

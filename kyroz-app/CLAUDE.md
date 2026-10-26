@@ -2353,6 +2353,14 @@ trajet, un libellé en couleur-sur-accent posé sur le rail sombre — **illisib
 pendant 300 ms**, sur l'élément qu'on vient justement de choisir. Une seule valeur
 animée pilote donc la position ET les N teintes, chacune interpolée sur sa distance
 au curseur.
+🔴 **Amendé le 2026-10-26 : le curseur est NATIF et part À L'APPUI.** Animé sur le fil
+JavaScript et lancé après le rendu de la nouvelle vue, il attendait la liste : mesuré au
+simulateur sur Catalogue → Réalisable, **430 ms d'arrêt** avant le premier mouvement. Le
+ressort part dans le geste (`useNativeDriver: true`), l'écran est prévenu à l'image
+suivante ; la teinte passe par deux libellés superposés dont seule l'OPACITÉ suit le
+curseur (une couleur ne s'anime pas sur le fil natif). Un changement de VUE ne prend plus
+de fondu de mise en page, et la liste « Réalisable » se calcule en fond. Garde-fou :
+`segmentReactif.test.ts` (7 mutations, 7 rouges).
 
 🔴 **ET UNE DÉCISION DE GOÛT A ÉTÉ RENVERSÉE PAR LA MESURE.** La bulle de la visite
 guidée avait été laissée immobile, sur un raisonnement juste : l'anneau est le même

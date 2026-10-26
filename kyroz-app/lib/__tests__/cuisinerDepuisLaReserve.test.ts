@@ -37,7 +37,9 @@ describe('le geste ne se propose que là où il est VRAI', () => {
   it('« J\'ai mangé » n\'apparaît que sur une recette réalisable', () => {
     // Déduire une recette dont on n'a pas les ingrédients retirerait un stock au
     // hasard, sans retour arrière possible. La condition n'est donc pas un confort.
-    expect(recettes).toContain('onCook={pretes.some((c) => c.recipe.id === selected.id)');
+    // ⚠️ Et seulement sous « Réalisable » : depuis le 2026-10-26 la couverture se
+    // prépare en fond, donc `pretes` est remplie aussi sous le Catalogue.
+    expect(recettes).toContain('onCook={surReserve && pretes.some((c) => c.recipe.id === selected.id)');
   });
 
   it('la déduction passe par le module, pas par un calcul recopié', () => {
