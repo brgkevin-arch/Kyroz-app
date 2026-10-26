@@ -288,7 +288,7 @@ function makeStyles(t: ThemePalette, isTablet: boolean) {
     // plus dessiné de l'écran — c'est le même arbitrage que les puces de filtre.
     swapBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.sm, paddingVertical: Spacing.lg, borderRadius: Radius.button, backgroundColor: t.fill },
     swapTxt: { ...Type.label, color: t.text },
-    swapHint: { ...Type.caption, color: t.textSecondary, lineHeight: 18, marginTop: -Spacing.xs, paddingHorizontal: Spacing.xs },
+    swapHint: { ...Type.explication, color: t.textSecondary, marginTop: -Spacing.xs, paddingHorizontal: Spacing.xs },
     statusBanner: { marginTop: Spacing.xxl, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: Spacing.md, paddingVertical: Spacing.lg, paddingHorizontal: Spacing.lg, borderRadius: Radius.card, borderWidth: Trait.fin },
     statusTxt: { ...Type.bodySmallStrong, flex: 1, color: t.textSecondary },
   });

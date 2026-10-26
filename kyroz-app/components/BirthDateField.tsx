@@ -100,7 +100,7 @@ export function BirthDateField({ t, value, onChange, fallbackAge }: Props) {
           frappe se voit toujours. (Ligne de réassurance retirée le 2026-08-02,
           décision fondateur.) */}
       {(probleme || repli) && (
-        <Text style={{ ...Type.caption, color: probleme ? t.warning : t.textSecondary, lineHeight: 18 }}>
+        <Text style={{ ...Type.explication, color: probleme ? t.warning : t.textSecondary }}>
           {probleme ?? repli}
         </Text>
       )}
