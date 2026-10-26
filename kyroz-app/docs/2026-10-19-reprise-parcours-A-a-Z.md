@@ -174,6 +174,70 @@ Vu au simulateur iPhone, puis retouché à la demande du fondateur, dans #406 :
 Les choix « non validés » de la liste ci-dessus sont restés tels quels : le fondateur ne les
 a pas remis en cause. Suites dans d'autres sessions : polices (#412, #415), fondu (#411).
 
+## Segment 8 — constat 4 (macros Plan ≠ Profil)
+
+*Mesuré le 2026-10-26 sur le moteur (`buildLocalPlan`), 4 gabarits (F 55, F 70, H 78, H 95)
+× 3 objectifs × 4 régimes × 3 volumes de sport × 3 tirages, soit 3 024 jours. Script :
+`npx tsx scripts/mesure-macros-plan-profil.ts`. La référence (les cibles du Profil) sort de
+`recalcProfile`, qui ne lit jamais le plan : elle est figée avant toute génération.*
+
+**Le constat.** Le Plan montre ce qui est servi ce jour-là, le Profil la cible. Relevé :
+162 / 215 / 65 g contre 164 / 213 / 75 g. **Reproduit à l'identique** avec le persona des
+scripts (Marc, H 82 kg, sèche, sans sport, NEAT assis) : cible 2 183 kcal, 164 / 213 / 75 g ;
+ses jours servent **66 à 73 g** de lipides (3 tirages × 7 jours).
+
+**Ce n'est pas un affichage qui lit une autre source.** Le Plan lit
+`plan.total_macros_per_day` (les assiettes), le Profil `profile.target_*_g` (la cible) :
+chacun dit vrai sur ce qu'il montre. Ce ne sont pas non plus les repas mangés : un plan
+neuf, sans aucun repas coché, a le même écart.
+
+**Les causes, mesurées, de la plus fréquente à la plus forte :**
+
+1. **Les fibres (cause systématique, tous les jours, tout le monde).** Les kcal d'un repas
+   viennent de Ciqual, qui compte l'énergie des fibres (~2 kcal/g). La cible du Profil, elle,
+   répartit ses kcal en 4 P + 4 G + 9 L, sans fibres. Le moteur sert les bonnes kcal — donc
+   il reste **75 kcal/jour en moyenne** (p10 42, p90 115) que P/G/L ne portent pas : ce sont
+   les **39 g de fibres** servies par jour (× 2 = 79 kcal). Ces kcal manquent aux glucides et
+   aux lipides. Sans sport : **lipides −4 g, glucides −8 g** en moyenne de semaine, tous
+   régimes (pire semaine −7 g de lipides).
+2. **Les vraies recettes (bruit, ±quelques grammes).** Un plat ne tombe pas au gramme : écart
+   moyen de 4 g de lipides par jour (p90 7, pire −12 / +14). L'exemple relevé (−10 g) est un
+   jour de cette queue, posé sur les −4 des fibres.
+3. **Le sport (seulement pour qui en déclare — le plus gros écart, et il est voulu).** Le
+   volume concentré (`lib/dailyBudget.ts`) donne plus aux jours d'entraînement et moins aux
+   jours de repos, puis le décalage glucides → lipides des jours de repos s'y ajoute :
+   | | kcal du jour − cible | glucides | lipides |
+   |---|---|---|---|
+   | muscu 3×60, jour d'entraînement | +179 | **+15 g** | +3 g |
+   | muscu 3×60, jour de repos | −134 | **−56 g** | +3 g |
+   | course 4×45, jour d'entraînement | +221 | +17 g | +5 g |
+   | course 4×45, jour de repos | −295 | **−87 g** (pire −134) | −1 g |
+   Les lipides restent stables (c'est le critère de `REST_DAY_CARB_TO_FAT_SHIFT`), les
+   protéines aussi (+1 à +5 g). Avec les fibres, la moyenne de la semaine finit à **−24 à
+   −31 g de glucides** sous la cible du Profil.
+
+**Garde-fou §6 vérifié au passage** : jours servis sous le plancher de carence lipidique
+(0,8 g/kg) : **0,1 %** (0,3 % sans sport, 0 % avec). Marc est un des profils dont la cible
+lipidique **est** la visée du plancher (0,8 × 1,15 × 82 = 75 g) ; ses 65 g relevés sont un
+de ces rares jours, sous les 65,6 g du seuil. La marge de visée fait son travail, ce n'est
+pas un nouveau défaut.
+
+**À l'écran, combien de jours montrent un écart ?** ≥ 5 g : protéines 22 % · glucides 86 %
+· lipides 37 %. ≥ 10 g : 4 % · 70 % · 3 %. Les glucides s'écartent presque tous les jours
+dès qu'il y a du sport ; sans sport, c'est surtout les lipides, de quelques grammes.
+
+### Ce que je propose (à trancher)
+
+| # | Proposition | Avant → après pour l'utilisateur | Coût |
+|---|---|---|---|
+| **A** | **Une ligne sous les trois cases de la feuille Objectifs** : « Ta cible moyenne. Chaque jour du plan s'en écarte un peu : de vraies recettes, et (si tu fais du sport) plus de glucides les jours d'entraînement. » | Il voit 75 g ici, 68 g sur le Plan, et lit pourquoi — sans rien qui bouge. | **petit** — un texte, OTA, aucun chiffre ne change |
+| B | **Le moteur compte les fibres dans le partage** : les cibles glucides/lipides se calculent sur les kcal moins l'énergie des fibres attendues | La cible du Profil baisse de quelques grammes et dit ce que l'assiette porte en moyenne ; il ne reste que le bruit des recettes (±4 g) et l'effet du sport. ⚠️ Chez Marc la cible lipidique EST la visée du plancher (75 g) : soit elle reste à 75 et ce sont les glucides de la cible qui baissent (~−19 g), soit le plancher se vise aussi sans les fibres — à mesurer avant de choisir. | **moyen** — règle de calcul changée : `ENGINE_REV`, `lib/methodologie.ts`, tests, re-mesure. Aucune kcal ne bouge, donc aucun avertissement. Ne règle pas les jours de sport |
+| C | Le Profil affiche la **moyenne servie de la semaine** au lieu de la cible | Les deux écrans se rapprochent en moyenne, mais le Profil change à chaque nouveau plan, et un jour de repos reste à −56 g de glucides | moyen — et la cible disparaît de l'écran |
+| D | Le Plan montre **aussi la cible** (« 68 / 75 g ») | L'écart s'affiche tous les jours, 86 % des jours en glucides | petit, mais **déconseillé** : contraire à la règle « un suivi rassure, jamais de pression » |
+
+**Ma reco : A**, et **B** si tu veux que le chiffre du Profil soit celui qu'on sert en
+moyenne. A + B se cumulent ; sans sport, B seul suffirait presque.
+
 ## Journal du chantier
 
 - 2026-10-19 — découpage posé, segment 1 audité. En attente des arbitrages du fondateur.
@@ -183,3 +247,7 @@ a pas remis en cause. Suites dans d'autres sessions : polices (#412, #415), fond
   voir sur iPhone.
 - 2026-10-25/26 — segment 12 vu au simulateur iPhone, retouché (cf. « Retouches sur iPhone
   et clôture »), fusionné (#406) et publié en 63ᵉ OTA. **Segment 12 CLOS.**
+- 2026-10-26 — segment 8, constat 4 (macros Plan ≠ Profil) mesuré sur le moteur : surtout les
+  fibres (~75 kcal/j que P/G/L ne portent pas → lipides −4 g, glucides −8 g sans sport), le bruit
+  des recettes (±4 g), et le sport (glucides +15 / −56 à −87 g selon le jour, voulu). Pas de défaut
+  d'affichage. Quatre options posées, en attente du fondateur.
