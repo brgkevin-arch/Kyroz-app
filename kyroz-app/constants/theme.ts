@@ -352,6 +352,17 @@ export const Type = {
   micro: { fontSize: 11, fontWeight: '500' as const },
   microStrong: { fontSize: 11, fontWeight: '700' as const },
   overline: { fontSize: 11, fontWeight: '700' as const, letterSpacing: 1 },
+
+  // ── Crans de RÔLE (décision fondateur 2026-10-26, CLAUDE.md §8) ──
+  // « Ça fait petit » : les lignes des feuilles du Profil étaient en 15, les
+  // sous-titres des cartes de choix en 13, les paragraphes d'explication en 13
+  // ou 14 selon l'écran — sous le titre d'un repas (17) qu'on lit juste avant.
+  // Ces deux rôles ont désormais un nom ; `typoDA.test.ts` les compte.
+  /** Ligne de réglage : libellé ET valeur (« Prénom … Kevin »). Taille d'un titre de carte, graisse du texte. */
+  ligne: { fontSize: 17, fontWeight: '500' as const },
+  /** Texte qui explique (paragraphe lu en entier). Jamais sous 14 ; la note fine en gris tertiaire reste en `caption`. */
+  explication: { fontSize: 14, fontWeight: '500' as const, lineHeight: 20 },
+  explicationStrong: { fontSize: 14, fontWeight: '700' as const, lineHeight: 20 },
 } as const;
 
 // La mention de bas d'écran — « Kyroz n'est pas un dispositif médical », etc.

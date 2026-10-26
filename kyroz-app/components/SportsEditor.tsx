@@ -152,5 +152,5 @@ const makeStyles = (t: ThemePalette) =>
     stepBtnOff: { opacity: 0.5 },
     stepVal: { ...Type.bodyStrong, color: t.text, minWidth: 64, textAlign: 'center' },
 
-    estimate: { ...Type.caption, marginTop: Spacing.md, color: t.textSecondary, lineHeight: 18 },
+    estimate: { ...Type.explication, marginTop: Spacing.md, color: t.textSecondary },
   });

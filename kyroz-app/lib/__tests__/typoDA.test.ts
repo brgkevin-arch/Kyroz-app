@@ -117,3 +117,78 @@ describe('Typographie — la taille et la graisse sont des tokens, pas des chiff
     expect(suspects, suspects.join('\n')).toEqual([]);
   });
 });
+
+// ── Le RÔLE choisit le cran (décision fondateur 2026-10-26) ──────────────────
+//
+// Le bloc du dessus ferme la porte au chiffre en dur ; il laissait passer le
+// MAUVAIS cran. Après la 63ᵉ OTA, sur iPhone : « ça fait petit comparé aux
+// autres polices de l'app ». Mesuré : les lignes des feuilles du Profil en 15,
+// les sous-titres des cartes de choix en 13, une trentaine de paragraphes
+// d'explication en 13 alors que leurs voisins étaient en 14 — sous le titre
+// d'un repas (17) qu'on vient de lire sur le Plan. CLAUDE.md §8, tableau des rôles.
+
+function source(rel: string): string {
+  return readFileSync(join(RACINE, rel), 'utf8');
+}
+
+/** Le corps d'une fonction du fichier, de sa signature à la suivante. */
+function corps(src: string, nom: string): string {
+  const debut = src.indexOf(`function ${nom}`);
+  expect(debut, `function ${nom} introuvable`).toBeGreaterThan(-1);
+  const suite = src.indexOf('\nfunction ', debut + 1);
+  const suiteExport = src.indexOf('\nexport function ', debut + 1);
+  const fins = [suite, suiteExport].filter((i) => i > -1);
+  return src.slice(debut, fins.length ? Math.min(...fins) : undefined);
+}
+
+describe('Typographie — chaque rôle a son cran', () => {
+  it('une ligne de réglage a la taille d\'un titre de carte, et la graisse du texte', () => {
+    expect(Type.ligne.fontSize).toBe(Type.h3.fontSize);
+    expect(Type.ligne.fontWeight).toBe(Type.body.fontWeight);
+    // Libellé ET valeur : une valeur plus petite que son libellé se lit comme une note.
+    const ligne = corps(source('app/profil.tsx'), 'Ligne');
+    expect(ligne.match(/Type\.ligne\b/g) ?? []).toHaveLength(2);
+    expect(ligne).not.toMatch(/Type\.(body|bodySmall|caption)\b/);
+  });
+
+  it('les lignes faites à la main de la feuille Repas suivent le même cran', () => {
+    // Les créneaux et « Aliments évités » ne passent pas par `Ligne` (heure à
+    // gauche, pastilles) : sans ce contrôle, ils resteraient seuls en 15.
+    const repas = corps(source('app/profil.tsx'), 'ListeRepas');
+    expect(repas).toMatch(/Type\.ligne, color: t\.text, flex: 1 \}\} numberOfLines=\{1\}>\{c\.label\}/);
+    expect(repas).toMatch(/Type\.ligne, color: t\.text, flex: 1 \}\}>Aliments évités/);
+    expect(repas).not.toMatch(/Type\.body\b/);
+  });
+
+  it('carte de choix : titre = titre de carte, sous-titre = corps (jamais une légende)', () => {
+    const carte = corps(source('components/ui.tsx'), 'OptionCard');
+    expect(carte).toMatch(/\.\.\.Type\.h3, color: t\.text[^}]*\}\}>\{title\}/);
+    expect(carte).toMatch(/\.\.\.Type\.body, color: t\.textSecondary[^}]*\}\}>\{subtitle\}/);
+  });
+
+  it('un paragraphe qui explique ne descend pas sous 14', () => {
+    expect(Type.explication.fontSize).toBe(Type.bodySmall.fontSize);
+    expect(Type.explicationStrong.fontSize).toBe(Type.bodySmall.fontSize);
+    // Un paragraphe se reconnaît à son interligne posé ; le cran 13 n'y a droit
+    // qu'en gris TERTIAIRE (la note fine : source, mention, aide sous un réglage).
+    // ⚠️ Angle mort assumé : une couleur posée À L'APPEL (`[s.note, { color }]`)
+    // échappe à la ligne lue ici.
+    const EXCEPTIONS: Record<string, string> = {
+      // Lien d'une source, sur UNE ligne (numberOfLines={1}) : une note, pas un paragraphe.
+      'app/methodologie.tsx': 'sourceLien',
+    };
+    const fautes: string[] = [];
+    for (const d of DOSSIERS) {
+      for (const f of fichiersTsx(join(RACINE, d))) {
+        const rel = f.slice(RACINE.length + 1);
+        readFileSync(f, 'utf8').split('\n').forEach((l, i) => {
+          if (!/Type\.caption(Strong)?\b/.test(l) || !/lineHeight:\s*\d/.test(l)) return;
+          if (!/color:[^,}]*t\.(text|textSecondary|warning|danger)\b/.test(l)) return;
+          if (EXCEPTIONS[rel] && l.includes(EXCEPTIONS[rel])) return;
+          fautes.push(`${rel}:${i + 1} — ${l.trim().slice(0, 90)}`);
+        });
+      }
+    }
+    expect(fautes, fautes.join('\n')).toEqual([]);
+  });
+});

@@ -156,10 +156,10 @@ export function OptionCard({
         t.scheme === 'light' && cardShadow(t),
       ]}
     >
-      <View style={{ flex: 1 }}>
+      <View style={{ flex: 1, marginRight: Spacing.md }}>
         <Text style={{ ...Type.h3, color: t.text, letterSpacing: -0.3 }}>{title}</Text>
         {subtitle ? (
-          <Text style={{ ...Type.caption, color: t.textSecondary, marginTop: Spacing.xs }}>{subtitle}</Text>
+          <Text style={{ ...Type.body, color: t.textSecondary, marginTop: Spacing.xs }}>{subtitle}</Text>
         ) : null}
       </View>
       <View style={{

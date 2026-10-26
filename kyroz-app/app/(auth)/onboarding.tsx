@@ -934,7 +934,7 @@ export default function Onboarding() {
                 l'app accepte, et la personne repart ressaisir ses chiffres. */}
             {!!objectifBloque && (
               <Card t={t}>
-                <Text style={{ ...Type.caption, color: t.text, lineHeight: 19 }}>{objectifBloque}</Text>
+                <Text style={{ ...Type.explication, color: t.text }}>{objectifBloque}</Text>
                 <Presse
                   onPress={() => setGoal('maintain')}
                   activeOpacity={OPACITE_PRESSION}
@@ -1203,7 +1203,7 @@ function makeStyles(t: ThemePalette) {
     liste: { gap: Spacing.sm },
     footer: { padding: Spacing.xl, paddingTop: Spacing.sm, backgroundColor: t.bg },
     indiceBas: { alignItems: 'center', paddingBottom: Spacing.xs },
-    hint: { ...Type.captionStrong, color: t.warning, lineHeight: 18, marginBottom: Spacing.md, textAlign: 'center' },
+    hint: { ...Type.explicationStrong, color: t.warning, marginBottom: Spacing.md, textAlign: 'center' },
     mentions: { gap: Spacing.xs, marginTop: Spacing.md },
     disclaimer: { ...Type.micro, color: t.textTertiary, lineHeight: 16, textAlign: 'center' },
   });

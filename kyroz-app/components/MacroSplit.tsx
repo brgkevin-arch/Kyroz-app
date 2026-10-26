@@ -169,7 +169,7 @@ function Row({ t, l, v, c, strong }: { t: ThemePalette; l: string; v: string; c?
 
 const styles = StyleSheet.create({
   label: { ...Type.overline },
-  note: { ...Type.caption, lineHeight: 18 },
+  note: { ...Type.explication },
   stepper: { flexDirection: 'row', alignItems: 'center', borderWidth: Trait.fin, borderRadius: Radius.button, padding: Spacing.sm, gap: Spacing.sm },
   btn: { width: 44, height: 44, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   center: { flex: 1, flexDirection: 'row', alignItems: 'baseline', justifyContent: 'center', gap: Spacing.xs },

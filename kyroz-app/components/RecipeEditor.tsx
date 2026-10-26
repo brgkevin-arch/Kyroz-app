@@ -275,7 +275,7 @@ function makeStyles(t: ThemePalette) {
     cell: { alignItems: 'center', flex: 1 },
     cellVal: { ...Type.h3, color: t.text },
     cellLabel: { ...Type.micro, color: t.textTertiary, marginTop: Spacing.xs },
-    warn: { ...Type.caption, color: t.warning, lineHeight: 17, marginTop: Spacing.sm },
+    warn: { ...Type.explication, color: t.warning, marginTop: Spacing.sm },
     qty: { width: 76, textAlign: 'center' },
     del: { padding: Spacing.xs },
     stepRow: { flexDirection: 'row', alignItems: 'flex-start', gap: Spacing.md },

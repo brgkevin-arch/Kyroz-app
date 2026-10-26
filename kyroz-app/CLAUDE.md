@@ -2056,6 +2056,38 @@ légitime que sur un **pictogramme** (un emoji dimensionné n'est pas de la typo
 taille en dur, graisse 600, token hors échelle, `input` sous 16, cran sans token.
 ⚠️ Même angle mort que son frère : il ne dit pas qu'on a choisi le **bon** cran.
 
+### Le RÔLE choisit le cran — décision fondateur du 2026-10-26
+
+L'échelle du dessus disait quels crans existent, pas lequel prendre. Après la 63ᵉ
+OTA, sur iPhone : « ça fait petit comparé aux autres polices de l'app ». Mesuré :
+les lignes des feuilles du Profil (« Prénom … Kevin », « Objectif daté ») en **15**,
+les sous-titres des cartes de choix en **13**, une trentaine de paragraphes
+d'explication en **13** quand leurs voisins étaient en 14 — alors que le titre d'un
+repas, lu juste avant sur le Plan, fait 17. iOS écrit ses listes de réglages en 17.
+
+| Rôle | Exemple | Cran |
+|---|---|---|
+| Titre d'écran | « Bonsoir Marc » | `display` 34 gras |
+| Titre de feuille | « Toi », « Objectifs » | `h2` 22 gras |
+| Titre de carte (repas, carte de choix, encadré) | « Sèche », nom du plat | `h3` 17 gras |
+| **Ligne de réglage — libellé ET valeur** | « Prénom … Kevin » | **`Type.ligne` 17 normal** |
+| **Sous-titre d'une carte de choix** | « Perdre du gras en gardant le muscle » | **`body` 15** |
+| **Texte qui explique** (paragraphe lu en entier) | « 300 kcal sous ta dépense… » | **`Type.explication` 14** (interligne 20) |
+| Étiquette de section | « TA JOURNÉE » | `overline` 11 gras capitales |
+| Petite légende, note fine en gris tertiaire | « Protéines » sous un chiffre, une source | `caption` 13 |
+
+Décidé par le fondateur sur avant/après au simulateur (Choix, Toi, Objectifs,
+Repas) : « lignes 17, sous-titres des choix 15, titres des choix inchangés ». La
+feuille Repas « ne paraissait pas petite » (assez de contenu), mais elle suit la
+règle pour ne pas « faire bizarre » à côté des autres.
+
+➡️ **Garde-fou : `typoDA.test.ts`, bloc « chaque rôle a son cran »** — `Ligne`
+et les lignes faites main de la feuille Repas en `Type.ligne`, `OptionCard` en
+`h3` + `body`, et aucun paragraphe (`caption` + interligne) en couleur de texte,
+secondaire, avertissement ou danger : le 13 n'y a droit qu'en gris tertiaire.
+**Vérifié par mutation** (six fautes, six rougissements). ⚠️ Angle mort : une
+couleur posée à l'appel (`[s.note, { color }]`) échappe au contrôle ligne à ligne.
+
 ### L'espacement — le blanc DIT ce qui va ensemble (2026-08-06)
 
 Troisième axe de la DA à recevoir un rôle et un garde-fou, après la forme et le

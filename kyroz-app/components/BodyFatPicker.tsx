@@ -252,7 +252,7 @@ export function BodyFatPicker({ t, sex, value, source, onChange, body }: Props) 
             estChoisi={(v) => source === v}
             onChoisir={(v) => onChange(value, source === v ? undefined : v)}
           />
-          <Text style={{ color: t.textSecondary, ...Type.caption, lineHeight: 17 }}>
+          <Text style={{ color: t.textSecondary, ...Type.explication }}>
             {source === 'measured'
               ? 'Balance à impédance, pince à plis, DEXA. Kyroz s\'appuiera dessus pour calculer ta dépense.'
               : 'Kyroz reste sur une estimation prudente de ta dépense. Ton pourcentage est gardé et affiché comme tu l\'as saisi.'}
@@ -273,7 +273,7 @@ export function BodyFatPicker({ t, sex, value, source, onChange, body }: Props) 
               ? `Ce chiffre annonce ${leanKg} kg de masse maigre`
               : `${value} %, c'est un niveau d'athlète de compétition`}
           </Text>
-          <Text style={{ ...Type.caption, color: t.textSecondary, lineHeight: 17 }}>
+          <Text style={{ ...Type.explication, color: t.textSecondary }}>
             {concern === 'lean_mass'
               // ⚠️ DEUX SITUATIONS OPPOSÉES derrière le même repère, et il faut les
               // distinguer : au PLAFOND du sélecteur le chiffre est trop HAUT et la

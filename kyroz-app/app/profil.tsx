@@ -609,7 +609,7 @@ export default function ProfilScreen() {
         {underweightCapped && (
           <Presse activeOpacity={OPACITE_PRESSION} onPress={() => openEditor('goal')}>
             <Card t={t}>
-              <Text style={{ ...Type.caption, color: t.text, lineHeight: 19 }}>
+              <Text style={{ ...Type.explication, color: t.text }}>
                 Ton poids est descendu sous la plage de référence pour ta taille. Kyroz a ramené ton plan à ta maintenance : plus de déficit tant que tu es dans cette zone. Tu n'as rien à faire dans l'immédiat, touche ici quand tu veux choisir un autre objectif.
               </Text>
             </Card>
@@ -630,7 +630,7 @@ export default function ProfilScreen() {
             suggérerait qu'il faut la corriger. */}
         {dietBreakWeek && (
           <Card t={t}>
-            <Text style={{ ...Type.caption, color: t.text, lineHeight: 19 }}>
+            <Text style={{ ...Type.explication, color: t.text }}>
               Cette semaine, tu manges à ta maintenance. C'est prévu : après huit semaines de déficit d'affilée, Kyroz en intercale une à l'équilibre. Ton déficit reprend tout seul la semaine prochaine, et ta date d'objectif en tient déjà compte.
             </Text>
           </Card>
@@ -1031,8 +1031,8 @@ function Ligne({ t, label, valeur, onPress, last }: { t: ThemePalette; label: st
   return (
     <Presse onPress={onPress} activeOpacity={OPACITE_PRESSION} accessibilityRole="button" accessibilityLabel={`${label}, ${valeur}`}
       style={[{ flexDirection: 'row', alignItems: 'center', gap: Spacing.md, minHeight: CIBLE_TACTILE_MIN, paddingVertical: Spacing.md }, !last && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.line }]}>
-      <Text style={{ ...Type.body, color: t.text, flexShrink: 0 }}>{label}</Text>
-      <Text style={{ ...Type.body, color: t.textSecondary, flex: 1, textAlign: 'right' }} numberOfLines={1}>{valeur}</Text>
+      <Text style={{ ...Type.ligne, color: t.text, flexShrink: 0 }}>{label}</Text>
+      <Text style={{ ...Type.ligne, color: t.textSecondary, flex: 1, textAlign: 'right' }} numberOfLines={1}>{valeur}</Text>
       <Ionicons name="chevron-forward" size={Icone.standard} color={t.textTertiary} />
     </Presse>
   );
@@ -1134,8 +1134,8 @@ function ListeRepas({ t, profile, ecarts, onOuvrir, onJours, onEcarts, dragHandl
           <Presse key={c.id} onPress={() => onOuvrir('meals', 'repas')} activeOpacity={OPACITE_PRESSION} accessibilityRole="button"
             accessibilityLabel={`${c.label}, ${formatSlotTime(c)}`}
             style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.md, minHeight: CIBLE_TACTILE_MIN, paddingVertical: Spacing.md, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.line }}>
-            <Text style={{ ...Type.bodySmallStrong, color: t.textSecondary, width: 52, fontVariant: ['tabular-nums'] }}>{formatSlotTime(c)}</Text>
-            <Text style={{ ...Type.body, color: t.text, flex: 1 }} numberOfLines={1}>{c.label}</Text>
+            <Text style={{ ...Type.h3, color: t.textSecondary, width: 52, fontVariant: ['tabular-nums'] }}>{formatSlotTime(c)}</Text>
+            <Text style={{ ...Type.ligne, color: t.text, flex: 1 }} numberOfLines={1}>{c.label}</Text>
             {copieux.includes(c.id) && <Pastille t={t} label="Copieux" />}
             {fixes[c.id] && <Pastille t={t} label="Géré par toi" />}
             <Ionicons name="chevron-forward" size={Icone.standard} color={t.textTertiary} />
@@ -1154,7 +1154,7 @@ function ListeRepas({ t, profile, ecarts, onOuvrir, onJours, onEcarts, dragHandl
           accessibilityLabel={`Régime, ${regimeResume(profile)}`}
           style={{ paddingVertical: Spacing.md, gap: Spacing.sm, minHeight: CIBLE_TACTILE_MIN, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.line }}>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <Text style={{ ...Type.bodyStrong, color: t.text, flex: 1 }}>{regimeResume(profile)}</Text>
+            <Text style={{ ...Type.h3, color: t.text, flex: 1 }}>{regimeResume(profile)}</Text>
             <Ionicons name="chevron-forward" size={Icone.standard} color={t.textTertiary} />
           </View>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.xs }}>
@@ -1165,8 +1165,8 @@ function ListeRepas({ t, profile, ecarts, onOuvrir, onJours, onEcarts, dragHandl
           accessibilityLabel={`Aliments évités, ${profile.disliked_foods.length || 'aucun'}`}
           style={{ paddingVertical: Spacing.md, gap: Spacing.sm, minHeight: CIBLE_TACTILE_MIN, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.line }}>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <Text style={{ ...Type.body, color: t.text, flex: 1 }}>Aliments évités</Text>
-            {profile.disliked_foods.length === 0 && <Text style={{ ...Type.body, color: t.textSecondary }}>Aucun</Text>}
+            <Text style={{ ...Type.ligne, color: t.text, flex: 1 }}>Aliments évités</Text>
+            {profile.disliked_foods.length === 0 && <Text style={{ ...Type.ligne, color: t.textSecondary }}>Aucun</Text>}
             <Ionicons name="chevron-forward" size={Icone.standard} color={t.textTertiary} />
           </View>
           {profile.disliked_foods.length > 0 && (
@@ -1298,12 +1298,12 @@ function InfoEditor({ t, profile, onSave, onWeighIn, onPoids, dragHandlers, shee
     <EditorShell t={t} title={section ? TITRES_INFO[section] : 'Informations'} onSave={submit} canSave={valid} dragHandlers={dragHandlers} sheetScrollProps={sheetScrollProps} onBack={onBack}>
       {blockMsg && (
         <Card t={t}>
-          <Text style={{ ...Type.captionStrong, color: t.danger, lineHeight: 19 }}>{blockMsg}</Text>
+          <Text style={{ ...Type.explicationStrong, color: t.danger }}>{blockMsg}</Text>
         </Card>
       )}
       {warnMsg && (
         <Card t={t}>
-          <Text style={{ ...Type.caption, color: t.warning, lineHeight: 19 }}>
+          <Text style={{ ...Type.explication, color: t.warning }}>
             {warnMsg} Tu peux le changer dans « Objectif ».
           </Text>
         </Card>
@@ -1385,11 +1385,11 @@ function LowEaRiseCard({ t, rise, onPress }: {
           </Text>
         </View>
         {enCours ? (
-          <Text style={{ ...Type.caption, color: t.text, lineHeight: 19 }}>
+          <Text style={{ ...Type.explication, color: t.text }}>
             Tu sèches depuis plus de 3 mois. Pour protéger ton énergie sur la durée, Kyroz remonte doucement tes calories — environ {rise.weeklyKcal} kcal par semaine, encore {rise.weeksToPlateau} semaine{rise.weeksToPlateau > 1 ? 's' : ''}. Tu n'as rien à changer.
           </Text>
         ) : (
-          <Text style={{ ...Type.caption, color: t.text, lineHeight: 19 }}>
+          <Text style={{ ...Type.explication, color: t.text }}>
             Après un long déficit, Kyroz t'a ramenée à un niveau qui protège ton énergie : tes calories ne baisseront plus tant que tu restes ici. Tu n'as rien à faire dans l'immédiat, touche ici quand tu veux choisir un autre objectif.
           </Text>
         )}
@@ -1483,10 +1483,10 @@ function EngineNoticeCard({ t, notice, onAdjust, onDismiss }: {
   const suite = 'Si tes journées sont plus actives que ce que Kyroz a retenu, dis-le\u00A0: ton budget suivra.';
   return (
     <Card t={t}>
-      <Text style={{ ...Type.caption, color: t.text, lineHeight: 19 }}>
+      <Text style={{ ...Type.explication, color: t.text }}>
         Ton budget est passé de {notice.from} à {notice.to} kcal/jour ({frsigne(delta)}). {explication}
       </Text>
-      <Text style={{ ...Type.caption, color: t.textSecondary, lineHeight: 19, marginTop: Spacing.sm }}>
+      <Text style={{ ...Type.explication, color: t.textSecondary, marginTop: Spacing.sm }}>
         {suite}
       </Text>
       <View style={{ flexDirection: 'row', gap: Spacing.md, marginTop: Spacing.lg }}>
@@ -1537,7 +1537,7 @@ function SportsProfileEditor({ t, profile, onSave, dragHandlers, sheetScrollProp
 
       {(!section || section === 'seances') && (<>
       {!section && <SectionLabel t={t}>TES SÉANCES</SectionLabel>}
-      <Text style={{ ...Type.caption, color: t.textSecondary, lineHeight: 18, marginBottom: Spacing.xs }}>Tes sports servent à estimer tes calories dépensées. Plus c'est précis, plus ton plan l'est.</Text>
+      <Text style={{ ...Type.explication, color: t.textSecondary, marginBottom: Spacing.xs }}>Tes sports servent à estimer tes calories dépensées. Plus c'est précis, plus ton plan l'est.</Text>
       <SportsEditor
         sports={sports} weight={profile.weight_kg} onChange={setSports}
         // Même case qu'à l'inscription : « aucun sport » est une RÉPONSE, qui se lit.
@@ -1578,7 +1578,7 @@ function GoalEditor({ t, profile, onSave, dragHandlers, sheetScrollProps, onBack
           ⚠️ `CUT_GOALS` est parti avec lui : il n'avait pas d'autre lecteur. */}
       {blockMsg && (
         <Card t={t}>
-          <Text style={{ ...Type.captionStrong, color: t.danger, lineHeight: 19 }}>{blockMsg}</Text>
+          <Text style={{ ...Type.explicationStrong, color: t.danger }}>{blockMsg}</Text>
         </Card>
       )}
     </EditorShell>
@@ -1719,7 +1719,7 @@ function DatedGoalEditor({ t, profile, onSave, dragHandlers, sheetScrollProps, o
   // rien tout en s'affichant comme s'il pilotait.
   return (
     <EditorShell t={t} title="Objectif daté" onSave={submit} canSave={!!provisional && !goalBlockMsg} dragHandlers={dragHandlers} sheetScrollProps={sheetScrollProps} onBack={onBack}>
-      <Text style={{ ...Type.caption, color: t.textSecondary, lineHeight: 18 }}>
+      <Text style={{ ...Type.explication, color: t.textSecondary }}>
         Fixe un poids et une échéance : Kyroz ajuste tes calories jour après jour pour t'y amener au rythme le plus rapide — mais sûr.
       </Text>
 
@@ -1737,7 +1737,7 @@ function DatedGoalEditor({ t, profile, onSave, dragHandlers, sheetScrollProps, o
       {validWeight && !goalBlockMsg && (
         dateAuPlusTot ? (
           <View style={{ gap: Spacing.sm }}>
-            <Text style={{ ...Type.caption, color: t.textSecondary, lineHeight: 18 }}>
+            <Text style={{ ...Type.explication, color: t.textSecondary }}>
               À {twN} kg, la première date que Kyroz peut tenir en sécurité : le {formatFR(dateAuPlusTot)}.
             </Text>
             {dateVisee !== dateAuPlusTot && (
@@ -1751,7 +1751,7 @@ function DatedGoalEditor({ t, profile, onSave, dragHandlers, sheetScrollProps, o
             )}
           </View>
         ) : (
-          <Text style={{ ...Type.caption, color: t.textSecondary, lineHeight: 18 }}>
+          <Text style={{ ...Type.explication, color: t.textSecondary }}>
             À {twN} kg, aucune date ne tient dans les cinq ans à venir, même au rythme le
             plus rapide que la sécurité autorise. Vise un poids intermédiaire : le
             plancher baissera avec ton poids, et la suite deviendra possible.
@@ -1770,7 +1770,7 @@ function DatedGoalEditor({ t, profile, onSave, dragHandlers, sheetScrollProps, o
           CLAUDE.md §2) pour un service que trois nombres rendent partout.
           ⚠️ La date pré-remplie reste dérivée du corps (cf. `defaultWeeks`) : c'est
           désormais la seule échéance que l'app propose, elle ne peut pas mentir. */}
-      <Text style={{ ...Type.caption, color: t.textSecondary, lineHeight: 18 }}>
+      <Text style={{ ...Type.explication, color: t.textSecondary }}>
         Pose la date que tu vises — un mariage, une compétition, des vacances.
       </Text>
       <DateInput
@@ -1803,11 +1803,11 @@ function DatedGoalEditor({ t, profile, onSave, dragHandlers, sheetScrollProps, o
           les deux mettrait deux dates contradictoires à l'écran ; annoncer celle qui est
           ADOPTABLE est ce que la personne peut faire de l'information. */}
       {dateVisee == null ? (
-        <Text style={{ ...Type.caption, color: refus === 'incomplete' ? t.textSecondary : t.warning, lineHeight: 18 }}>
+        <Text style={{ ...Type.explication, color: refus === 'incomplete' ? t.textSecondary : t.warning }}>
           {messageEcheance(refus ?? 'incomplete')}
         </Text>
       ) : (
-        <Text style={{ ...Type.caption, color: t.textSecondary, lineHeight: 18 }}>
+        <Text style={{ ...Type.explication, color: t.textSecondary }}>
           {!goalBlockMsg && status && !status.reachableByDate && !status.directionMismatch
             ? (dateAuPlusTot
               ? `Cible le ${formatFR(dateVisee)}\u00A0: c'est plus tôt que ce que Kyroz peut tenir\u00A0: au rythme sûr, ce sera le ${formatFR(dateAuPlusTot)}.`
@@ -1821,7 +1821,7 @@ function DatedGoalEditor({ t, profile, onSave, dragHandlers, sheetScrollProps, o
           visuellement un objectif qu'on rejette la ligne d'après. */}
       {goalBlockMsg && (
         <Card t={t}>
-          <Text style={{ ...Type.captionStrong, color: t.danger, lineHeight: 19 }}>{goalBlockMsg}</Text>
+          <Text style={{ ...Type.explicationStrong, color: t.danger }}>{goalBlockMsg}</Text>
         </Card>
       )}
 
@@ -1841,7 +1841,7 @@ function DatedGoalEditor({ t, profile, onSave, dragHandlers, sheetScrollProps, o
       )}
       {!goalBlockMsg && status?.directionMismatch && (
         <Card t={t}>
-          <Text style={{ ...Type.caption, color: t.text, lineHeight: 19 }}>
+          <Text style={{ ...Type.explication, color: t.text }}>
             Ce poids cible va dans le sens inverse de ton objectif « {goalLabel(profile.goal)} ». Kyroz ne pilote pas tes calories tant que les deux ne concordent pas.
           </Text>
         </Card>
@@ -1870,7 +1870,7 @@ function DatedGoalEditor({ t, profile, onSave, dragHandlers, sheetScrollProps, o
           date s'éloigne »). */}
       {!goalBlockMsg && status?.clamped && !status.reachableByDate && !status.directionMismatch && !status.floorCapped && (
         <Card t={t}>
-          <Text style={{ ...Type.caption, color: t.text, lineHeight: 19 }}>
+          <Text style={{ ...Type.explication, color: t.text }}>
             Objectif ambitieux : au rythme le plus sûr tu atteins {frnum(status.targetWeightKg)} kg
             {dateAuPlusTot ? ` le ${formatFR(dateAuPlusTot)}` : ' plus tard que prévu'}, après ta date.{' '}
             {status.maxRateApplied
@@ -1888,7 +1888,7 @@ function DatedGoalEditor({ t, profile, onSave, dragHandlers, sheetScrollProps, o
           ou la rendre inatteignable dans l'horizon (on le dit franchement). */}
       {!goalBlockMsg && status?.floorCapped && !status.directionMismatch && preview && (
         <Card t={t}>
-          <Text style={{ ...Type.caption, color: t.text, lineHeight: 19 }}>
+          <Text style={{ ...Type.explication, color: t.text }}>
             Ton plan ne peut pas descendre sous {preview.target_kcal} kcal/jour en sécurité — c'est ton plancher, pas un réglage.{' '}
             {status.reachableByDate ? (
               <>Ta date reste dans les clous : Kyroz ne creusera simplement pas plus que ça.</>
@@ -1905,7 +1905,7 @@ function DatedGoalEditor({ t, profile, onSave, dragHandlers, sheetScrollProps, o
           « dans les clous de ta date » juste au-dessus du message qui annonce
           l'inverse. La projection réellement corrigée est du ressort de P1.6. */}
       {!goalBlockMsg && status && status.reachableByDate && !status.directionMismatch && status.direction !== 'maintain' && (
-        <Text style={{ ...Type.caption, color: t.textSecondary, lineHeight: 17 }}>
+        <Text style={{ ...Type.explication, color: t.textSecondary }}>
           Rythme sûr, dans les clous de ta date.
         </Text>
       )}
@@ -1914,13 +1914,13 @@ function DatedGoalEditor({ t, profile, onSave, dragHandlers, sheetScrollProps, o
           `!floorCapped` évite le doublon avec la carte ci-dessus. */}
       {!goalBlockMsg && floored && preview && !status?.floorCapped && (
         <Card t={t}>
-          <Text style={{ ...Type.caption, color: t.text, lineHeight: 19 }}>
+          <Text style={{ ...Type.explication, color: t.text }}>
             Ton plancher de sécurité est à {preview.target_kcal} kcal/jour : en dessous, ton corps n'a plus assez d'énergie pour fonctionner correctement. Plus tu t'entraînes, plus ce plancher monte, et c'est normal, l'énergie de tes séances ne compte pas comme énergie disponible.
           </Text>
         </Card>
       )}
       {!goalBlockMsg && status?.direction === 'maintain' && (
-        <Text style={{ ...Type.caption, color: t.textSecondary, lineHeight: 17 }}>
+        <Text style={{ ...Type.explication, color: t.textSecondary }}>
           Tu es déjà à ton poids cible : Kyroz vise le maintien.
         </Text>
       )}
@@ -2351,7 +2351,7 @@ function makeStyles(t: ThemePalette) {
     macroN: { ...Type.caption, color: t.textSecondary },
     ecart: { ...Type.bodySmall, color: t.textSecondary, lineHeight: 19, marginTop: Spacing.xs },
     legende: { ...Type.bodySmall, color: t.textSecondary, lineHeight: 19 },
-    floorNote: { ...Type.caption, color: t.textSecondary, lineHeight: 18, marginTop: -Spacing.xs },
+    floorNote: { ...Type.explication, color: t.textSecondary, marginTop: -Spacing.xs },
     // Bouton d'action pleine largeur, sur le patron de « Se déconnecter » : fond de
     // carte et non l'accent — une action de repli ne doit pas crier plus fort que la
     // pesée, qui est la vraie entrée quotidienne de l'écran.
@@ -2473,7 +2473,7 @@ function CalorieBankEditor({ t, profile, onSave, dragHandlers, sheetScrollProps,
           <Text style={{ ...Type.bodyStrong, color: t.text, marginBottom: Spacing.sm }}>
             Ta cible est déjà à ton minimum
           </Text>
-          <Text style={{ ...Type.caption, color: t.textSecondary, lineHeight: 19 }}>
+          <Text style={{ ...Type.explication, color: t.textSecondary }}>
             Tes {profile.target_kcal} kcal/jour correspondent à ton métabolisme de base :
             l'énergie que ton corps dépense au repos. On ne descend pas en dessous, même
             un seul jour — la banque n'a donc rien à emprunter sur ta semaine.
@@ -2551,7 +2551,7 @@ function CalorieBankEditor({ t, profile, onSave, dragHandlers, sheetScrollProps,
       {apercu.uncompensatedKcal > 0 && (
         // Ni alarme ni reproche : un fait, et ce que ça implique. On ne masque pas
         // l'écart non repris — l'avaler en silence serait un mensonge (§10).
-        <Text style={{ ...Type.caption, color: t.textSecondary, lineHeight: 19 }}>
+        <Text style={{ ...Type.explication, color: t.textSecondary }}>
           Sur cette semaine, {apercu.uncompensatedKcal} kcal ne peuvent pas être reprises :
           les autres jours sont déjà à ton plancher de sécurité. Ta semaine finira un peu
           au-dessus de sa cible, et c'est très bien — le plancher passe avant.
