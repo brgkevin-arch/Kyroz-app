@@ -372,6 +372,14 @@ export const Type = {
 // interligne, même centrage. Sept copies d'un texte de prudence, c'est sept
 // occasions qu'une seule dérive et que la phrase la plus sensible de l'app soit
 // composée différemment d'un écran à l'autre.
+// Hauteur d'une ligne de réglage : la cible tactile, agrandie du MÊME
+// pourcentage que son texte (15 → 17, +13 %) — 44 → 50. Fondateur, 2026-10-26 :
+// « on a augmenté la police mais pas les encadrés ». À 17, `CIBLE_TACTILE_MIN`
+// tenait encore la ligne à 44 : le texte grossissait dans une ligne qui ne
+// bougeait pas, et paraissait à l'étroit. Calculée, pas écrite : si le cran de
+// la ligne change, la hauteur suit.
+export const HAUTEUR_LIGNE = Math.round(CIBLE_TACTILE_MIN * Type.ligne.fontSize / Type.body.fontSize);
+
 export const Disclaimer = { ...Type.micro, lineHeight: 16, textAlign: 'center' as const };
 
 // Les tailles que l'échelle AUTORISE, et rien d'autre. `lib/__tests__/typoDA.test.ts`

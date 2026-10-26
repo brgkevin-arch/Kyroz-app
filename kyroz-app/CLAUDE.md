@@ -2088,6 +2088,15 @@ secondaire, avertissement ou danger : le 13 n'y a droit qu'en gris tertiaire.
 **Vérifié par mutation** (six fautes, six rougissements). ⚠️ Angle mort : une
 couleur posée à l'appel (`[s.note, { color }]`) échappe au contrôle ligne à ligne.
 
+**Le même jour, l'encadré suit le texte** (fondateur : « on a augmenté la police
+mais pas les encadrés, il faudrait les agrandir du même % »). La ligne passait de
+15 à 17 mais restait tenue à 44 pt par `CIBLE_TACTILE_MIN` : le texte grossissait
+dans une ligne qui ne bougeait pas. `HAUTEUR_LIGNE` = 44 × 17 / 15 = **50** —
+CALCULÉE, elle suit le cran si celui-ci change. La carte de choix grandit en
+hauteur seulement (marge verticale 20 → 24, compacte 16 → 20) : élargir la marge
+latérale ferait passer plus de sous-titres sur deux lignes. Comptés dans le même
+bloc de `typoDA.test.ts` (4 mutations, 4 rouges).
+
 ### L'espacement — le blanc DIT ce qui va ensemble (2026-08-06)
 
 Troisième axe de la DA à recevoir un rôle et un garde-fou, après la forme et le

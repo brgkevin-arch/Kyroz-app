@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync, readdirSync, statSync } from 'fs';
 import { join } from 'path';
-import { Type, TAILLES_AUTORISEES } from '../../constants/theme';
+import { Type, TAILLES_AUTORISEES, CIBLE_TACTILE_MIN, HAUTEUR_LIGNE } from '../../constants/theme';
 
 // ── La TAILLE et la GRAISSE du texte passent par un token, comme la couleur ──
 //
@@ -149,6 +149,22 @@ describe('Typographie — chaque rôle a son cran', () => {
     const ligne = corps(source('app/profil.tsx'), 'Ligne');
     expect(ligne.match(/Type\.ligne\b/g) ?? []).toHaveLength(2);
     expect(ligne).not.toMatch(/Type\.(body|bodySmall|caption)\b/);
+  });
+
+  it("l'encadré grandit du même pourcentage que son texte (2026-10-26)", () => {
+    // « On a augmenté la police mais pas les encadrés » : à 17, la ligne restait
+    // tenue à 44 par la cible tactile. Elle prend le même +13 % que son texte.
+    expect(HAUTEUR_LIGNE).toBe(Math.round(CIBLE_TACTILE_MIN * Type.ligne.fontSize / Type.body.fontSize));
+    expect(HAUTEUR_LIGNE).toBeGreaterThan(CIBLE_TACTILE_MIN);
+    const src = source('app/profil.tsx');
+    expect(corps(src, 'Ligne')).toMatch(/minHeight: HAUTEUR_LIGNE/);
+    const repas = corps(src, 'ListeRepas');
+    expect(repas).not.toMatch(/minHeight: CIBLE_TACTILE_MIN/);
+    expect(repas.match(/minHeight: HAUTEUR_LIGNE/g) ?? []).toHaveLength(3);
+    // La carte de choix : plus haute (marge verticale), pas plus étroite.
+    const carte = corps(source('components/ui.tsx'), 'OptionCard');
+    expect(carte).toMatch(/paddingVertical: compacte \? Spacing\.xl : Spacing\.xxl/);
+    expect(carte).toMatch(/paddingHorizontal: compacte \? Spacing\.lg : Spacing\.xl/);
   });
 
   it('les lignes faites à la main de la feuille Repas suivent le même cran', () => {
