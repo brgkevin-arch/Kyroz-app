@@ -2918,8 +2918,9 @@ enfreinte par la prochaine maquette.
 > ligne de résumé chacun. Un encadré ouvre une feuille qui LISTE ce qui se modifie (« façon
 > A ») ; une ligne ouvre SA partie d'un éditeur (`section`) dans la même feuille, avec une
 > flèche retour — jamais une seconde feuille par-dessus. Plus de chapitres « Infos ·
-> Objectif · Repas », plus de `MenuRow` sur l'écran (`profilSection.test.ts`). Les cibles et
-> la dépense sont en tête de la feuille Objectifs. La règle de rangement ci-dessous (« ce
+> Objectif · Repas », plus de `MenuRow` sur l'écran (`profilSection.test.ts`). La feuille
+> Objectifs met l'objectif en gros, puis kcal, dépense et macros (2026-10-25) ; plus de ligne
+> « Calories & macros » — la répartition se règle par « Ma répartition (%) » du Plan. La règle de rangement ci-dessous (« ce
 > réglage change-t-il ce que Kyroz me SERT ? ») ne change pas : elle dit ce qui va dans les
 > encadrés et ce qui va derrière la roue.
 
