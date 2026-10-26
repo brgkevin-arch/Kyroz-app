@@ -8,7 +8,7 @@
 
 import { chromium } from 'playwright';
 import { writeFileSync, existsSync } from 'node:fs';
-import { SHOT, STATE, PHONE, HEADLESS, sleep, ensureDirs, open, tap, bootToPlan, closeSheet, goToProfil, goToPoids, neutralizeFirstRun, bilanPannes } from './_harness.mjs';
+import { SHOT, STATE, PHONE, HEADLESS, sleep, ensureDirs, open, tap, bootToPlan, closeSheet, goToProfil, goToPoids, ouvrirEncadre, neutralizeFirstRun, bilanPannes } from './_harness.mjs';
 
 ensureDirs();
 
@@ -82,11 +82,16 @@ if (await tap(page, 'Ajouter une pesée', { exact: true, timeout: 3000 }) || awa
 // ---- PROFIL + sous-écrans (la bulle du Plan) ----
 await goToProfil(page); await snap('D-profil');
 
-// Libellés réels des lignes de app/profil.tsx.
-const subs = ['Informations', 'Sport & activité', 'Objectif', 'Objectif daté', 'Calories & macros', 'Préférences alimentaires', 'Paramètres des repas'];
-for (const sub of subs) {
+// [encadré, ligne de sa feuille] — libellés réels de app/profil.tsx (2026-10-24).
+const subs = [
+  ['Toi', 'Prénom'], ['Toi', 'Au quotidien'],
+  ['Objectifs', 'Objectif daté'],
+  ['Repas', 'Aliments évités'], ['Repas', 'Plus copieux'],
+];
+for (const [encadre, sub] of subs) {
   await goToProfil(page);
   const key = sub.toLowerCase().replace(/[^a-zà-ÿ]+/g, '-');
+  if (!(await ouvrirEncadre(page, encadre))) { log('encadré introuvable : ' + encadre); continue; }
   if (await tap(page, sub, { exact: true, timeout: 3000 })) {
     await sleep(1500);
     await snap('D-set-' + key);

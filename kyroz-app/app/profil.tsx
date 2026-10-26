@@ -12,7 +12,7 @@ import { ThemeMode, useThemeMode, setThemeMode } from '../lib/themeMode';
 import { ACCENTS, ACCENT_IDS, useAccentId, setAccentId, readableOn } from '../lib/accentColor';
 import { DISCLAIMER } from '../constants/legal';
 import { CIQUAL_ATTRIBUTION } from '../lib/foods';
-import { Card, PrimaryButton, Chip, OptionCard, Field, SectionLabel, Segmented, SectionTitle, MenuRow, clavierScrollProps, GrilleChoix } from '../components/ui';
+import { Card, PrimaryButton, Chip, OptionCard, Field, SectionLabel, clavierScrollProps, GrilleChoix } from '../components/ui';
 import { RangeeJours } from '../components/RangeeJours';
 import { MesureField } from '../components/MesureField';
 import { GOUT_CHOIX, goutEnregistre, goutLu, type GoutChoix } from '../lib/gout';
@@ -38,7 +38,7 @@ import { useTour, resetAllTours } from '../components/GuidedTour';
 import { BodyFatPicker } from '../components/BodyFatPicker';
 import { DislikedFoodsField } from '../components/DislikedFoodsField';
 import { ProteinesParRegime } from '../components/ProteinesParRegime';
-import { cocheesValides } from '../lib/partsProteines';
+import { cocheesValides, sortesCochees, LIBELLE_SORTE } from '../lib/partsProteines';
 import { marquerPreferencesRevues } from '../lib/revuePreferences';
 import { basculerRegime } from '../lib/regime';
 import { MacroSplit } from '../components/MacroSplit';
@@ -46,10 +46,10 @@ import { WeightCheckin } from '../components/WeightCheckin';
 import { OffPlanHistory } from '../components/OffPlanHistory';
 import { useHydrationEnabled } from '../components/HydrationBar';
 import { useFirstName, saveFirstName } from '../lib/profileName';
-import { ProtectionIcon, RepasLibreIcon } from '../components/Icons';
+import { ProtectionIcon, RepasLibreIcon, ProfilIcon } from '../components/Icons';
 import { MealSlotsPicker } from '../components/MealSlotsPicker';
 import { NeatPicker } from '../components/NeatPicker';
-import { BUILTIN_SLOTS, knownSlots, slotLabel } from '../lib/mealSlots';
+import { BUILTIN_SLOTS, knownSlots, slotLabel, activeSlots, formatSlotTime } from '../lib/mealSlots';
 import { useProfile } from '../hooks/useProfile';
 import { useWeightLog } from '../hooks/useWeightLog';
 import { useOffPlanJournal } from '../hooks/useOffPlanJournal';
@@ -87,6 +87,7 @@ import { getRecipeById } from '../lib/recipes';
 import SportsEditor from '../components/SportsEditor';
 import { FixedMealSheet } from '../components/FixedMealSheet';
 import { frnum, frsigne } from '../lib/units';
+import { fonctionsEnPhrase } from '../lib/offreKyrozPlus';
 
 // ── Options ──────────────────────────────────────────────────────────────────
 // `cut_aggressive` retiré le 2026-07-29 (cf. lib/syncGuard.ts::normalizeGoal) : il
@@ -179,6 +180,24 @@ const withRecalc = recalcProfile;
 
 type EditorKey = 'info' | 'sports' | 'goal' | 'dated_goal' | 'macros' | 'prefs' | 'meals' | 'calorie_bank';
 
+// ── Les encadrés et leurs feuilles (2026-10-24) ──────────────────────────────
+// Chaque encadré de l'écran ouvre une feuille ; chaque éditeur vit dans l'une d'elles.
+type Groupe = 'toi' | 'objectifs' | 'repas';
+const GROUPE_DE: Record<EditorKey, Groupe> = {
+  info: 'toi', sports: 'toi',
+  goal: 'objectifs', dated_goal: 'objectifs', macros: 'objectifs',
+  prefs: 'repas', meals: 'repas', calorie_bank: 'repas',
+};
+// Une ligne de la liste ouvre SA partie d'un éditeur (« tu touches Taille, tu règles la
+// taille »), pas l'éditeur entier. L'éditeur garde tout son brouillon et toutes ses
+// vérifications : il n'AFFICHE que la partie demandée, et `undefined` les montre toutes
+// (deep-link, carte d'alerte).
+type InfoSection = 'prenom' | 'sexe' | 'age' | 'poids' | 'taille' | 'gras';
+type SportSection = 'quotidien' | 'seances';
+type PrefSection = 'regime' | 'gouts' | 'evites' | 'masquees';
+type RepasSection = 'jours' | 'repas' | 'fixes' | 'copieux' | 'auto' | 'variete';
+type Section = InfoSection | SportSection | PrefSection | RepasSection;
+
 // Éditeurs réservés à Kyroz+ une fois le paywall lancé. Les autres n'y figurent
 // pas et restent ouverts à tout le monde, définitivement.
 // ⚠️ `calorie_bank` en est SORTI le 2026-08-18 : le réglage « Jours plus copieux »
@@ -242,7 +261,7 @@ export default function ProfilScreen() {
   // 🔴 LE SUIVI DU POIDS A QUITTÉ CET ÉCRAN le 2026-10-21 (décision fondateur) : il est
   // devenu l'onglet « Poids » (`app/(tabs)/poids.tsx`), et le Profil s'ouvre depuis une
   // bulle en haut à droite du Plan. Les pesées ne servent plus ici qu'au rappel.
-  const { entries: weightEntries } = useWeightLog();
+  const { entries: weightEntries, logWeight } = useWeightLog();
   // Dernière pesée connue : elle sert à ré-armer la notification ET à déduire le jour
   // de rendez-vous quand aucun n'a été choisi. Une seule lecture, deux usages.
   const dernierePesee = weightEntries[weightEntries.length - 1]?.date ?? null;
@@ -254,7 +273,13 @@ export default function ProfilScreen() {
   const accentId = useAccentId();
   const [hydrationOn, setHydrationOn] = useHydrationEnabled();
   const router = useRouter();
+  // La feuille qu'ouvre un encadré, et le réglage qu'elle montre (`null` = sa liste).
+  const [groupe, setGroupe] = useState<Groupe | null>(null);
   const [editor, setEditor] = useState<EditorKey | null>(null);
+  const [section, setSection] = useState<Section | undefined>(undefined);
+  // Ouvert depuis la LISTE, « Enregistrer » y revient ; ouvert directement (deep-link,
+  // carte d'alerte), il referme la feuille — il n'y a pas de liste d'où l'on venait.
+  const [depuisListe, setDepuisListe] = useState(false);
   const [weighIn, setWeighIn] = useState(false);
   // Historique des repas hors plan (E6). Les écarts se posent depuis l'onglet
   // Plan, donc on RECHARGE à l'ouverture — la liste du montage est périmée.
@@ -284,11 +309,26 @@ export default function ProfilScreen() {
   // `Modal` montée le temps de son animation de sortie : au moment où iOS reçoit
   // la seconde, la première est encore présentée. **Écrire les setters dans le bon
   // ordre ne ferme pas cette porte** — seul le démontage réel la ferme.
-  const [apresEditeur, setApresEditeur] = useState<'peser' | null>(null);
+  // ➕ Depuis le 2026-10-24, la même file sert à la page Kyroz+ (« Objectif daté » sans
+  // abonnement) et à l'historique des écarts : une ROUTE poussée sous une feuille ouverte
+  // naît SOUS elle, et une seconde feuille ne s'y présente pas.
+  const [apresEditeur, setApresEditeur] = useState<'peser' | 'kyrozplus' | 'ecarts' | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [reglages, setReglages] = useState(false);
 
-  const save = async (updated: UserProfile) => { await saveProfile(updated); setEditor(null); };
+  const retourListe = () => { setEditor(null); setSection(undefined); };
+  // Le poids corrigé dans la liste « Toi » devient une PESÉE DU JOUR, sans le dire
+  // (décision fondateur, 2026-10-25) : c'est la seule écriture qui garde la courbe et
+  // le profil d'accord — un champ qui ne recalerait que le profil referait le défaut
+  // du 2026-08-10 (cf. InfoEditor). `logWeight` recale le profil lui-même.
+  const enregistrerPoids = async (kg: number) => {
+    if (profile && kg !== profile.weight_kg) await logWeight(kg);
+    if (depuisListe) retourListe(); else setGroupe(null);
+  };
+  const save = async (updated: UserProfile) => {
+    await saveProfile(updated);
+    if (depuisListe) retourListe(); else setGroupe(null);
+  };
 
   // ── Verrou Kyroz+ ──────────────────────────────────────────────────────────
   // `openEditor` est le point d'étranglement UNIQUE : toute ouverture d'éditeur
@@ -310,17 +350,35 @@ export default function ProfilScreen() {
   // `can('dated_goal')` pour la carte d'objectif. Ici, le verrou garde les ÉDITEURS
   // (`openEditor`, juste en dessous) — le deep-link de l'onglet Poids passe par lui.
 
-  const openEditor = (key: EditorKey) => {
+  // ⚠️ `groupeRef` et non `groupe` : le deep-link ci-dessous garde la closure de son
+  // premier rendu, où aucune feuille n'est ouverte.
+  const groupeRef = useRef<Groupe | null>(null);
+  groupeRef.current = groupe;
+  // Ouvert par un lien direct (Plan, onglet Poids) : refermer la feuille RAMÈNE à
+  // l'écran d'où l'on venait. Sans ça, « Ma répartition (%) » laissait sur le Profil,
+  // une page que la personne n'avait jamais demandée (signalé le 2026-10-25).
+  const lienDirectRef = useRef(false);
+  const openEditor = (key: EditorKey, sec?: Section, depuisLaListe = false) => {
     const feature = EDITEURS_PREMIUM[key];
-    if (feature && !premiumRef.current.can(feature)) { router.push('/kyroz-plus'); return; }
+    if (feature && !premiumRef.current.can(feature)) {
+      // Depuis une feuille : la page Kyroz+ attend qu'elle soit DÉMONTÉE (`onClosed`).
+      // Depuis un lien direct : elle REMPLACE le Profil, pour que son retour ramène d'où l'on vient.
+      if (groupeRef.current) { setApresEditeur('kyrozplus'); setGroupe(null); }
+      else if (lienDirectRef.current) { lienDirectRef.current = false; router.replace('/kyroz-plus'); }
+      else router.push('/kyroz-plus');
+      return;
+    }
     setEditor(key);
+    setSection(sec);
+    setDepuisListe(depuisLaListe);
+    setGroupe(GROUPE_DE[key]);
   };
 
   // Deep-link depuis l'écran Plan (« Personnaliser ma répartition ») : ouvre direct
   // l'éditeur demandé au focus, via un drapeau (même principe que REROLL_KEY).
   useFocusEffect(useCallback(() => {
     AsyncStorage.getItem('@kyroz:openEditor').then((v) => {
-      if (v) { AsyncStorage.removeItem('@kyroz:openEditor'); openEditor(v as EditorKey); }
+      if (v) { AsyncStorage.removeItem('@kyroz:openEditor'); lienDirectRef.current = true; openEditor(v as EditorKey); }
     });
   }, []));
 
@@ -338,7 +396,10 @@ export default function ProfilScreen() {
     });
     if (!ok) return;
     await AsyncStorage.setItem('@kyroz:planReroll', '1');
-    router.push('/(tabs)/plan');
+    // RETOUR au Plan, pas un Plan de plus : le Profil est poussé par-dessus les onglets,
+    // et `push` empilait Plan → Profil → Plan — le retour suivant ramenait au Profil.
+    // Le drapeau est lu au focus du Plan, que le retour déclenche.
+    if (router.canGoBack()) router.back(); else router.replace('/(tabs)/plan');
   };
 
   // Déconnexion : couper la session NE redirige pas tout seul l'écran déjà monté
@@ -536,7 +597,7 @@ export default function ProfilScreen() {
             plutôt que de laisser découvrir un budget différent sans un mot. */}
         {profile.engine_notice && (
           <EngineNoticeCard t={t} notice={profile.engine_notice}
-            onAdjust={() => { saveProfile(dismissEngineNotice(profile)); setEditor('sports'); }}
+            onAdjust={() => { saveProfile(dismissEngineNotice(profile)); openEditor('sports'); }}
             onDismiss={() => saveProfile(dismissEngineNotice(profile))} />
         )}
 
@@ -546,7 +607,7 @@ export default function ProfilScreen() {
             Ton informatif et non alarmant (anti charge mentale) : on explique et on
             offre l'action, on ne dramatise pas et on ne bloque rien. */}
         {underweightCapped && (
-          <Presse activeOpacity={OPACITE_PRESSION} onPress={() => setEditor('goal')}>
+          <Presse activeOpacity={OPACITE_PRESSION} onPress={() => openEditor('goal')}>
             <Card t={t}>
               <Text style={{ ...Type.caption, color: t.text, lineHeight: 19 }}>
                 Ton poids est descendu sous la plage de référence pour ta taille. Kyroz a ramené ton plan à ta maintenance : plus de déficit tant que tu es dans cette zone. Tu n'as rien à faire dans l'immédiat, touche ici quand tu veux choisir un autre objectif.
@@ -580,140 +641,65 @@ export default function ProfilScreen() {
             dix semaines sans un mot — une sèche dont les calories augmentent toutes
             les semaines, ce qui se lit comme une app qui déraille. On explique, on
             chiffre SUR SON CORPS, et on promet une fin (la remontée est bornée). */}
-        {lowEaRise && <LowEaRiseCard t={t} rise={lowEaRise} onPress={() => setEditor('goal')} />}
+        {lowEaRise && <LowEaRiseCard t={t} rise={lowEaRise} onPress={() => openEditor('goal')} />}
 
-        {/* Cibles du jour — les quatre macros perdent leurs quatre couleurs : même
-            graisse, même encre, la valeur porte seule. Il n'y a rien à comparer
-            entre quatre boîtes côte à côte (cf. la note en tête de theme.ts). */}
-        {/* 🔴 UNE SEULE CARTE, EN 2 × 2 (2026-09-20, décision fondateur sur maquette).
-            C'étaient quatre cartes côte à côte, centrées : à quatre colonnes sur un
-            iPhone, « kcal en moyenne » passait sur deux lignes et les chiffres se
-            serraient. Les quatre nombres se lisent ensemble — ils décrivent UNE
-            journée — donc ils tiennent dans un seul bloc, alignés à gauche. */}
-        <SectionTitle t={t}>Cibles</SectionTitle>
-        <View style={s.cibles}>
-          <View style={s.ciblesLigne}>
-            <Cible t={t} v={profile.target_kcal} l="kcal" />
-            <Cible t={t} v={profile.target_protein_g} l="protéines" u=" g" />
-          </View>
-          <View style={s.ciblesLigne}>
-            <Cible t={t} v={profile.target_carbs_g} l="glucides" u=" g" />
-            <Cible t={t} v={profile.target_fat_g} l="lipides" u=" g" />
-          </View>
-        </View>
+        {/* 🔴 QUATRE ENCADRÉS LÉGERS (2026-10-24, décision fondateur sur une référence
+            d'une autre app : « plus léger, et quand on appuie, là on a toutes les infos
+            qu'on peut modifier »). L'écran ne porte plus qu'un RÉSUMÉ par encadré — Toi,
+            Kyroz+, Objectifs, Repas, dans cet ordre — et chaque encadré ouvre une feuille
+            qui LISTE tout ce qui se modifie ; une ligne ouvre son réglage dans la MÊME
+            feuille (« façon A »), jamais une seconde feuille par-dessus (iOS la refuse).
+            Ce qui a déménagé, pour qu'on le retrouve :
+            · les cibles (kcal, macros) et la dépense → feuille Objectifs, en tête. Leur
+              écart est ÉCRIT (`ecartDepense`) : c'est lui qui répond à « pourquoi 2 183 ? » ;
+            · les chapitres « Infos · Objectif · Repas » (décision du 2026-09-21) → les
+              titres des encadrés ;
+            · le prénom, lu ici sans être affiché depuis la refonte d'août → en tête de
+              l'encadré Toi.
+            ⚠️ Les deux paragraphes retirés le 2026-08-14 (« enlève le blabla entre les
+            macro et le TDEE » — modulation, plancher de sécurité) ne reviennent PAS dans
+            la feuille : ils vivent dans Méthodologie & sources. */}
+        <Encadre
+          t={t}
+          titre={prenom || 'Toi'}
+          etiquette="Toi"
+          grand
+          valeur={`${profile.age} ans · ${frnum(profile.weight_kg)} kg · ${profile.height_cm} cm`}
+          avant={<Avatar t={t} prenom={prenom} />}
+          onPress={() => setGroupe('toi')}
+        />
 
-        {/* 🔴 DEUX PARAGRAPHES ONT ÉTÉ RETIRÉS ICI le 2026-08-14 (décision
-            fondateur : « enlève le blabla entre les macro et le TDEE »).
-            · la modulation par volume (« ton plan module ces calories… ») ;
-            · l'explication du plancher de sécurité (« ces N kcal, c'est ton
-              plancher — pas le résultat de ton déficit… »).
-            ⚠️ CE QU'ON A TROQUÉ, pour que personne ne le redécouvre par surprise :
-            la seconde répondait à « pourquoi ma cible ne bouge plus quand je change
-            mes réglages ? ». Sans elle, une cible bornée par la sécurité se lit
-            comme un moteur en panne — c'est le motif écrit dans CLAUDE.md §6 le jour
-            où elle a été ajoutée. Les deux explications survivent en entier dans
-            **Méthodologie & sources** (roue dentée → Aide et retours), qui est la
-            surface qu'Apple 1.4.1 impose de toute façon.
-            ➡️ Ne pas les remettre ici sans nouvelle décision : c'est cet écran-ci
-            que le fondateur voulait alléger. */}
+        {/* Kyroz+ juste sous Toi, au-dessus des Objectifs : il débloque l'objectif daté
+            qui vit dans la feuille juste en dessous. Sans abonnement, la ligne dit ce
+            qu'il apporte (lu dans `FONCTIONS_KYROZ_PLUS`, source unique de ce qu'il vend). */}
+        <Encadre
+          t={t}
+          titre="Kyroz+"
+          valeur={premium.reason === 'locked' ? majuscule(fonctionsEnPhrase()) : KYROZ_PLUS_VALEUR[premium.reason]}
+          onPress={() => router.push('/kyroz-plus')}
+        />
 
-        {/* TDEE — le libellé prend la place qui reste, le chiffre ne se coupe jamais
-            en deux lignes (`flexShrink: 0`). Sans ça, « 2 369 kcal » passait à la
-            ligne au milieu de lui-même.
-            ⚠️ REMONTÉ ICI le 2026-08-10. Il vivait tout en bas, APRÈS les onze
-            lignes de menu — à peu près 900 px sous les cibles qu'il explique. C'est
-            pourtant la seule ligne de l'écran qui réponde à « pourquoi 2 293 ? » :
-            la dépense et la cible se lisent ensemble ou ne se lisent pas.
-            ➡️ L'étape de visite guidée qui le vise a suivi (lib/tours.ts) : laissée
-            en avant-dernier, elle aurait fait remonter l'écran de tout en bas vers
-            le haut, puis redescendre. Une bulle qui déplace l'écran à contresens de
-            sa propre progression se lit comme un bug, pas comme une visite. */}
-        <View style={s.tdee}>
-          <Text style={s.tdeeL}>Ta dépense par jour, pour garder ton poids</Text>
-          <Text style={s.tdeeV}>{profile.tdee_kcal.toLocaleString('fr-FR')} kcal</Text>
-        </View>
+        <Encadre
+          t={t}
+          titre="Objectifs"
+          valeur={`${goalLabel(profile.goal)} · ${profile.target_kcal.toLocaleString('fr-FR')}\u00A0kcal par jour`}
+          onPress={() => setGroupe('objectifs')}
+        />
 
-        {/* Réglages — TOI d'abord (corps, sport, objectif), TON PLAN ensuite. Dix
-            lignes d'affilée étaient un mur : les couper en deux blocs nommés donne
-            un repère, et ça ne coûte rien. Les icônes sont parties — à 17 px
-            semi-gras le libellé suffit, et la ligne respire.
-            🔴 CE TITRE DISAIT « Réglages », ET C'ÉTAIT LE NOM D'AUTRE CHOSE. Depuis
-            E25, la roue dentée en haut de cet écran ouvre une feuille intitulée
-            « Réglages » (ReglagesSheet) dont le contenu est DISJOINT de ce bloc-ci :
-            là-bas notifications, affichage, confidentialité, compte ; ici ce qui
-            pilote le moteur. Deux destinations, un seul mot, sur le même écran —
-            « va dans les réglages » ne désignait plus rien. Le commit d'E25 nommait
-            déjà les deux blocs « Toi / Ton plan » ; le code, lui, était resté sur
-            l'ancien nom.
-            ➡️ « TOI » est un `SectionLabel`, comme « TON PLAN » : deux blocs frères
-            au même niveau. Avant, l'un était un `SectionTitle` (« découpe l'écran »)
-            et l'autre un `SectionLabel` (« étiquette un bloc ») — le premier bloc
-            n'avait donc aucune étiquette à lui, il empruntait celle du chapitre. */}
-        {/* ⚠️ TROIS blocs depuis le 2026-08-10, et chacun porte un SOUS-TITRE — c'est
-            lui qui fait le travail, pas le découpage. « TON PLAN » disait de quoi le
-            bloc parlait, jamais ce qu'il PILOTAIT : rien n'indiquait que « Sport &
-            activité » décide de la dépense, donc rien n'y envoyait qui doute de son
-            chiffre. Le réglage le plus lourd de l'app vit derrière cette ligne-là —
-            le NEAT, **80 kcal/j le cran** en médiane (57 à 102, mesuré sur 800
-            gabarits le 2026-08-10) — et il n'est demandé NULLE PART ailleurs, pas
-            même à l'inscription. Un sous-titre de cinq mots lui donne enfin une
-            adresse. */}
-        <SectionTitle t={t}>Infos</SectionTitle>
-        <View style={s.menu}>
-          <MenuRow t={t} label="Informations" value={`${SEX_LABELS[profile.sex]} · ${profile.age} ans · ${frnum(profile.weight_kg)} kg${profile.body_fat_pct != null ? ` · ${frnum(profile.body_fat_pct)} % de gras` : ''}`} onPress={() => setEditor('info')} />
-          <MenuRow t={t} label="Sport & activité" value={`${profile.sports?.length ? `${profile.sports.length} sport${profile.sports.length > 1 ? 's' : ''}` : 'Aucun sport'} · ${NEAT_SHORT[profile.neat_level ?? DEFAULT_NEAT_LEVEL]}`} onPress={() => setEditor('sports')} last />
-        </View>
-
-        {/* « Calories & macros » a quitté le bloc des repas pour celui-ci : il ne
-            remplit aucune assiette, il fixe le nombre que les assiettes doivent
-            atteindre. Il se lit avec l'objectif, pas avec les préférences. */}
-        <SectionTitle t={t}>Objectif</SectionTitle>
-        <View style={s.menu}>
-          <MenuRow t={t} label="Objectif" value={goalLabel(profile.goal)} onPress={() => setEditor('goal')} />
-          <MenuRow t={t} label="Objectif daté" value={profile.goal_target ? `${frnum(profile.goal_target.target_weight_kg)} kg · ${formatFR(profile.goal_target.target_date)}` : (premium.can('dated_goal') ? 'Aucun' : 'Inclus dans Kyroz+')} onPress={() => openEditor('dated_goal')} />
-          <MenuRow t={t} label="Calories & macros" value={profile.macro_mode === 'percent' ? 'Perso %' : 'Calculées'} onPress={() => setEditor('macros')} last />
-        </View>
-
-        <SectionTitle t={t}>Repas</SectionTitle>
-        <View style={s.menu}>
-          <MenuRow t={t} label="Préférences alimentaires" value={profile.dietary_restrictions.length || profile.disliked_foods.length || profile.hidden_recipes?.length ? 'Personnalisées' : 'Aucune'} onPress={() => setEditor('prefs')} />
-          {/* ⚠️ `last` CALCULÉ, pas écrit en dur : les deux lignes qui suivaient sont
-              éteintes (cf. lib/featureFlags.ts). Sans ça, le bloc se termine par un
-              séparateur qui pend dans le vide — déjà corrigé une fois le 2026-08-18. */}
-          <MenuRow t={t} label="Paramètres des repas" value={`${profile.plan_days} j · ${(profile.meals?.length || 4)} repas · ${emphasisResume(profile)}`} onPress={() => setEditor('meals')} last={!RYTHME_HEBDOMADAIRE_ACTIF && !PARCOURS_HORS_PLAN_ACTIF} />
-          {/* Le rythme PRÉVOIT un jour plus copieux, l'historique CONSTATE un écart
-              subi : la paire se lit toute seule, d'où le voisinage.
-              ⚠️ Plus aucun verrou premium ici depuis le 2026-08-18 (cf. `lib/premium.ts`) :
-              `openEditor` n'ouvre donc plus le paywall pour cette ligne, il ouvre l'éditeur. */}
-          {RYTHME_HEBDOMADAIRE_ACTIF && (
-            <MenuRow t={t} label="Jours plus copieux" value={bankResume(profile)} onPress={() => setEditor('calorie_bank')} last={!PARCOURS_HORS_PLAN_ACTIF} />
-          )}
-          {/* ⚠️ La VALEUR ne COMPTE PAS les écarts, et ce n'est pas un oubli de
-              rangement : un score posé là mettrait la pression sans qu'on ouvre quoi
-              que ce soit (règle anti charge mentale). Elle reste un FAIT daté — ce
-              que la nouvelle règle de forme demande — sans devenir un score. */}
-          {PARCOURS_HORS_PLAN_ACTIF && (
-            <MenuRow t={t} label="Écarts passés" value={journalSummary(journal.entries)} onPress={openOffPlan} last />
-          )}
-        </View>
+        <Encadre
+          t={t}
+          titre="Repas"
+          valeur={`${regimeResume(profile)} · ${repasResume(profile)}`}
+          onPress={() => setGroupe('repas')}
+        />
 
         {/* Une ACTION n'a pas de valeur à droite, donc pas sa place dans une liste de
             réglages : elle ne se règle pas, elle se déclenche. Bouton discret
-            (`t.card`), pas l'accent — sinon il deviendrait l'élément le plus criard
-            de l'écran, devant la pesée qui est l'entrée réellement quotidienne. */}
+            (`t.card`), pas l'accent, et en dernier : elle remplace toute la semaine. */}
         <Presse onPress={regenPlan} activeOpacity={OPACITE_PRESSION} accessibilityRole="button"
           style={s.actionBtn}>
           <Text style={s.actionTxt}>Régénérer mon plan</Text>
         </Presse>
-
-        {/* Kyroz+ — hors chapitre et en dernier. Ce n'est pas un réglage : c'est une
-            offre, et une offre se range là où elle se vend, à deux lignes des deux 💎
-            qu'elle débloque. Elle reste une LIGNE tant que « tout est déjà ouvert » :
-            une carte promotionnelle de 100 px qui ne vend rien est du bruit. Elle
-            deviendra une carte le jour où le paywall s'allumera, pas avant. */}
-        <View style={s.menu}>
-          <MenuRow t={t} label="Kyroz+" value={KYROZ_PLUS_VALEUR[premium.reason]} onPress={() => router.push('/kyroz-plus')} last />
-        </View>
 
       </ScrollView>
 
@@ -773,27 +759,53 @@ export default function ProfilScreen() {
         />
       </Sheet>
 
-      {/* Feuilles d'édition */}
+      {/* Feuilles des encadrés : la LISTE de ce qui se modifie, puis le réglage choisi,
+          dans la même feuille (2026-10-24). */}
       <Sheet
-        visible={editor !== null}
-        onClose={() => setEditor(null)}
-        onClosed={() => { if (apresEditeur === 'peser') setWeighIn(true); setApresEditeur(null); }}
+        visible={groupe !== null}
+        onClose={() => setGroupe(null)}
+        onClosed={() => {
+          const lienDirect = lienDirectRef.current;
+          lienDirectRef.current = false;
+          if (apresEditeur === 'peser') setWeighIn(true);
+          if (apresEditeur === 'kyrozplus') { if (lienDirect) router.replace('/kyroz-plus'); else router.push('/kyroz-plus'); }
+          if (apresEditeur === 'ecarts') openOffPlan();
+          if (lienDirect && apresEditeur === null) { if (router.canGoBack()) router.back(); else router.replace('/(tabs)/plan'); }
+          setApresEditeur(null);
+          retourListe();
+          setDepuisListe(false);
+        }}
       >
-        {/* `onWeighIn` : le poids ne se saisit plus dans cet éditeur, il s'y RENVOIE.
-            🔴 ET LA PESÉE N'EST DEMANDÉE QU'UNE FOIS L'ÉDITEUR DÉMONTÉ (`onClosed`).
+        {/* `onWeighIn` : le poids ne se saisit pas ici, il s'y RENVOIE.
+            🔴 ET LA PESÉE N'EST DEMANDÉE QU'UNE FOIS LA FEUILLE DÉMONTÉE (`onClosed`).
             La version d'avant faisait `setEditor(null); setWeighIn(true);` — deux
             setters dans le bon ordre, mais un seul lot d'état : iOS voyait la
             seconde `Modal` arriver pendant que la première jouait sa sortie, et
             n'en présentait AUCUNE. Bouton mort, sans erreur ni trace, invisible au
             navigateur. Même correctif que « Supprimer mon compte » juste au-dessus. */}
-        {editor === 'info' && <InfoEditor t={t} profile={profile} onSave={save} onWeighIn={() => { setApresEditeur('peser'); setEditor(null); }} />}
-        {editor === 'sports' && <SportsProfileEditor t={t} profile={profile} onSave={save} />}
-        {editor === 'goal' && <GoalEditor t={t} profile={profile} onSave={save} />}
-        {editor === 'dated_goal' && <DatedGoalEditor t={t} profile={profile} onSave={save} />}
-        {editor === 'macros' && <MacroEditor t={t} profile={profile} onSave={save} />}
-        {editor === 'prefs' && <PrefEditor t={t} profile={profile} onSave={save} />}
-        {editor === 'meals' && <MealsEditor t={t} profile={profile} onSave={save} />}
-        {RYTHME_HEBDOMADAIRE_ACTIF && editor === 'calorie_bank' && <CalorieBankEditor t={t} profile={profile} onSave={save} />}
+        {groupe === 'toi' && !editor && (
+          <ListeToi t={t} profile={profile} prenom={prenom}
+            onOuvrir={(k, sec) => openEditor(k, sec, true)}
+ />
+        )}
+        {groupe === 'objectifs' && !editor && (
+          <ListeObjectifs t={t} profile={profile} datedGoalOuvert={premium.can('dated_goal')}
+            onOuvrir={(k) => openEditor(k, undefined, true)} />
+        )}
+        {groupe === 'repas' && !editor && (
+          <ListeRepas t={t} profile={profile} ecarts={journalSummary(journal.entries)}
+            onOuvrir={(k, sec) => openEditor(k, sec, true)}
+            onJours={(jours) => saveProfile({ ...profile, plan_weekdays: orderedWeekdays(jours), plan_days: jours.length })}
+            onEcarts={() => { setApresEditeur('ecarts'); setGroupe(null); }} />
+        )}
+        {editor === 'info' && <InfoEditor t={t} profile={profile} onSave={save} section={section as InfoSection} onBack={depuisListe ? retourListe : undefined} onWeighIn={() => { setApresEditeur('peser'); setGroupe(null); }} onPoids={enregistrerPoids} />}
+        {editor === 'sports' && <SportsProfileEditor t={t} profile={profile} onSave={save} section={section as SportSection} onBack={depuisListe ? retourListe : undefined} />}
+        {editor === 'goal' && <GoalEditor t={t} profile={profile} onSave={save} onBack={depuisListe ? retourListe : undefined} />}
+        {editor === 'dated_goal' && <DatedGoalEditor t={t} profile={profile} onSave={save} onBack={depuisListe ? retourListe : undefined} />}
+        {editor === 'macros' && <MacroEditor t={t} profile={profile} onSave={save} onBack={depuisListe ? retourListe : undefined} />}
+        {editor === 'prefs' && <PrefEditor t={t} profile={profile} onSave={save} section={section as PrefSection} onBack={depuisListe ? retourListe : undefined} />}
+        {editor === 'meals' && <MealsEditor t={t} profile={profile} onSave={save} section={section as RepasSection} onBack={depuisListe ? retourListe : undefined} />}
+        {RYTHME_HEBDOMADAIRE_ACTIF && editor === 'calorie_bank' && <CalorieBankEditor t={t} profile={profile} onSave={save} onBack={depuisListe ? retourListe : undefined} />}
       </Sheet>
 
       {/* Suivi du poids */}
@@ -902,32 +914,301 @@ export default function ProfilScreen() {
 // partout est un rôle qui n'a pas de nom » (CLAUDE.md §8) — sur le composant le
 // plus employé de l'app, donc l'endroit où une divergence se verrait le moins.
 
-// ⚠️ Plus de prop `c` (couleur) : les quatre macros portaient quatre teintes,
-// alors qu'il n'y a rien à comparer entre quatre boîtes côte à côte. Même encre
-// pour les quatre — cf. la note en tête de constants/theme.ts.
-// Une cible dans la grille 2 × 2 : le nombre, puis son unité dessous. Plus de carte
-// par case — c'est la carte parente qui les tient toutes les quatre.
-// ⚠️ `toLocaleString('fr-FR')` sur les kcal : « 2513 » se lit mal, « 2 513 » se lit.
-// C'est le même format que la ligne TDEE juste en dessous, et deux formats différents
-// pour deux nombres de calories sur le même écran, ça se voit.
-function Cible({ t, v, l, u = '' }: { t: ThemePalette; v: number; l: string; u?: string }) {
+// ⚠️ La grille 2 × 2 des cibles (`Cible`) est partie avec la proposition du 2026-10-24 :
+// une seule ligne de macros, sous une barre, comme sur le Plan. Les quatre nombres
+// restent à la même encre — rien à comparer entre eux (cf. la note en tête de theme.ts).
+// La barre des macros en trois nuances, comme sur le Plan (`MacroBar`), sans son compteur.
+/** L'écart entre la cible et la dépense, écrit plutôt qu'à soustraire de tête. */
+function ecartDepense(cible: number, depense: number): string {
+  const d = depense - cible;
+  const dep = `${depense.toLocaleString('fr-FR')} kcal`;
+  if (Math.abs(d) < 20) return `Autant que ta dépense (${dep})\u00A0: tu gardes ton poids`;
+  return d > 0
+    ? `${d.toLocaleString('fr-FR')} kcal sous ta dépense, qui est de ${dep}`
+    : `${(-d).toLocaleString('fr-FR')} kcal au-dessus de ta dépense, qui est de ${dep}`;
+}
+
+/** « 5 jours · 4 repas » — le résumé de l'encadré Repas ; le détail vit dans sa feuille. */
+function repasResume(p: UserProfile): string {
+  const jours = p.plan_days;
+  return `${jours} jour${jours > 1 ? 's' : ''} · ${p.meals?.length || 4} repas`;
+}
+
+// ── Les encadrés de l'écran et leurs listes (2026-10-24) ─────────────────────
+
+const majuscule = (x: string) => x.charAt(0).toUpperCase() + x.slice(1);
+
+/** L'âge du jour quand la date de naissance est connue, l'âge saisi sinon (lib/birthday.ts). */
+const ageDe = (p: UserProfile) => ageOn(p.birth_date, todayStamp()) ?? p.age;
+
+/** « Omnivore », « Végétarien, Sans lactose ». */
+function regimeResume(p: UserProfile): string {
+  const regimes = p.dietary_restrictions.map((r) => RESTRICTION_LABELS[r]).filter(Boolean);
+  return regimes.length ? regimes.join(', ') : 'Omnivore';
+}
+
+// Le titre de l'éditeur ouvert sur une seule de ses parties : le nom de la ligne touchée.
+const TITRES_INFO: Record<InfoSection, string> = { prenom: 'Prénom', sexe: 'Genre', age: 'Date de naissance', poids: 'Poids', taille: 'Taille', gras: 'Masse grasse' };
+const TITRES_SPORT: Record<SportSection, string> = { quotidien: 'Au quotidien', seances: 'Sport' };
+const TITRES_PREF: Record<PrefSection, string> = { regime: 'Régime', gouts: 'Goûts', evites: 'Aliments évités', masquees: 'Recettes masquées' };
+const TITRES_REPAS: Record<RepasSection, string> = {
+  jours: 'Jours du plan', repas: 'Repas par jour', fixes: 'Repas que tu gères toi-même',
+  copieux: 'Repas plus copieux', auto: 'Repas cochés automatiquement', variete: 'Variété',
+};
+
+/** Un encadré de l'écran : un titre, un résumé d'une ligne, et la feuille au toucher. */
+// `etiquette` : ce que lit VoiceOver (et ce que vise le harnais). L'encadré Toi affiche
+// le prénom, mais il s'annonce « Toi », comme sa feuille.
+function Encadre({ t, titre, valeur, onPress, avant, grand, etiquette }: {
+  t: ThemePalette; titre: string; valeur: string; onPress: () => void; avant?: React.ReactNode; grand?: boolean; etiquette?: string;
+}) {
   return (
-    <View style={{ flex: 1, gap: Spacing.xs }}>
-      <Text style={{ ...Type.h2, letterSpacing: -0.5, color: t.text }}>{v.toLocaleString('fr-FR')}{u}</Text>
-      <Text style={{ ...Type.caption, color: t.textSecondary }}>{l}</Text>
+    <Presse onPress={onPress} activeOpacity={OPACITE_PRESSION} accessibilityRole="button" accessibilityLabel={etiquette ?? titre}
+      style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.lg, backgroundColor: t.card, borderRadius: Radius.card, padding: Spacing.xl }}>
+      {avant}
+      <View style={{ flex: 1, gap: Spacing.xs }}>
+        <Text style={{ ...(grand ? Type.h2 : Type.h3), color: t.text }} numberOfLines={1}>{titre}</Text>
+        <Text style={{ ...Type.bodySmall, color: t.textSecondary, lineHeight: 19 }} numberOfLines={2}>{valeur}</Text>
+      </View>
+      <Ionicons name="chevron-forward" size={Icone.standard} color={t.textTertiary} />
+    </Presse>
+  );
+}
+
+// L'initiale du prénom, sinon l'icône de la bulle du Plan — celle qui a mené ici.
+// ⚠️ Pas de photo : ce serait une donnée personnelle de plus à stocker et à effacer.
+const AVATAR = 56;
+function Avatar({ t, prenom }: { t: ThemePalette; prenom: string }) {
+  const initiale = prenom.trim().charAt(0).toLocaleUpperCase('fr-FR');
+  return (
+    <View style={{ width: AVATAR, height: AVATAR, borderRadius: AVATAR / 2, backgroundColor: t.fill, alignItems: 'center', justifyContent: 'center' }}>
+      {initiale
+        ? <Text style={{ ...Type.h2, color: t.text }}>{initiale}</Text>
+        : <ProfilIcon color={t.textSecondary} size={Icone.action} />}
+    </View>
+  );
+}
+
+/** En-tête commun aux listes et aux éditeurs : la flèche quand on vient d'une liste. */
+function EnTeteFeuille({ t, titre, onBack, dragHandlers }: { t: ThemePalette; titre: string; onBack?: () => void; dragHandlers?: any }) {
+  return (
+    <View style={{ paddingHorizontal: Spacing.xxl, paddingBottom: Spacing.sm, flexDirection: 'row', alignItems: 'center', gap: Spacing.xs }} {...(dragHandlers ?? {})}>
+      {onBack && (
+        <Presse onPress={onBack} hitSlop={10} activeOpacity={OPACITE_PRESSION} accessibilityRole="button" accessibilityLabel="Revenir à la liste"
+          style={{ alignItems: 'center', justifyContent: 'center', minHeight: CIBLE_TACTILE_MIN, marginLeft: -Spacing.sm }}>
+          <Ionicons name="chevron-back" size={Icone.nav} color={t.text} />
+        </Presse>
+      )}
+      <Text style={{ color: t.text, ...Type.h2, flex: 1 }} numberOfLines={1}>{titre}</Text>
+    </View>
+  );
+}
+
+type ListeProps = { t: ThemePalette; profile: UserProfile; dragHandlers?: any; sheetScrollProps?: any };
+
+function ListeShell({ t, titre, children, dragHandlers, sheetScrollProps }: { t: ThemePalette; titre: string; children: React.ReactNode; dragHandlers?: any; sheetScrollProps?: any }) {
+  return (
+    <View style={{ flex: 1, backgroundColor: t.bg }}>
+      <EnTeteFeuille t={t} titre={titre} dragHandlers={dragHandlers} />
+      <ScrollView
+        contentContainerStyle={{ padding: Spacing.xxl, paddingTop: Spacing.md, paddingBottom: Spacing.xxxl, gap: Spacing.lg }}
+        showsVerticalScrollIndicator={false}
+        {...clavierScrollProps}
+        {...(sheetScrollProps ?? {})}
+      >
+        {children}
+      </ScrollView>
+    </View>
+  );
+}
+
+function Bloc({ t, children }: { t: ThemePalette; children: React.ReactNode }) {
+  return <View style={{ backgroundColor: t.card, borderRadius: Radius.card, paddingHorizontal: Spacing.lg }}>{children}</View>;
+}
+
+/** Une ligne de liste : ce qui est réglé, à droite ; le toucher ouvre le réglage. */
+function Ligne({ t, label, valeur, onPress, last }: { t: ThemePalette; label: string; valeur: string; onPress: () => void; last?: boolean }) {
+  return (
+    <Presse onPress={onPress} activeOpacity={OPACITE_PRESSION} accessibilityRole="button" accessibilityLabel={`${label}, ${valeur}`}
+      style={[{ flexDirection: 'row', alignItems: 'center', gap: Spacing.md, minHeight: CIBLE_TACTILE_MIN, paddingVertical: Spacing.md }, !last && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.line }]}>
+      <Text style={{ ...Type.body, color: t.text, flexShrink: 0 }}>{label}</Text>
+      <Text style={{ ...Type.body, color: t.textSecondary, flex: 1, textAlign: 'right' }} numberOfLines={1}>{valeur}</Text>
+      <Ionicons name="chevron-forward" size={Icone.standard} color={t.textTertiary} />
+    </Presse>
+  );
+}
+
+function ListeToi({ t, profile, prenom, onOuvrir, dragHandlers, sheetScrollProps }: ListeProps & {
+  prenom: string; onOuvrir: (k: EditorKey, s: Section) => void;
+}) {
+  const seances = totalSessionsPerWeek(profile.sports);
+  return (
+    <ListeShell t={t} titre="Toi" dragHandlers={dragHandlers} sheetScrollProps={sheetScrollProps}>
+      <Bloc t={t}>
+        <Ligne t={t} label="Prénom" valeur={prenom || 'À ajouter'} onPress={() => onOuvrir('info', 'prenom')} />
+        <Ligne t={t} label="Genre" valeur={SEX_LABELS[profile.sex]} onPress={() => onOuvrir('info', 'sexe')} />
+        <Ligne t={t} label="Âge" valeur={`${ageDe(profile)} ans`} onPress={() => onOuvrir('info', 'age')} />
+        {/* Une roulette, comme la taille — et l'enregistrer AJOUTE une pesée du jour
+            (`enregistrerPoids`) : la courbe et le profil restent d'accord. */}
+        <Ligne t={t} label="Poids" valeur={`${frnum(profile.weight_kg)} kg`} onPress={() => onOuvrir('info', 'poids')} />
+        <Ligne t={t} label="Taille" valeur={`${profile.height_cm} cm`} onPress={() => onOuvrir('info', 'taille')} />
+        <Ligne t={t} label="Masse grasse" valeur={profile.body_fat_pct != null ? `${frnum(profile.body_fat_pct)} %` : 'Non renseignée'} onPress={() => onOuvrir('info', 'gras')} last />
+      </Bloc>
+      {/* Ces deux lignes calculent ta dépense — le NEAT pèse ~80 kcal/j le cran (médiane
+          mesurée le 2026-08-10) et n'est demandé nulle part ailleurs. */}
+      <Bloc t={t}>
+        <Ligne t={t} label="Au quotidien" valeur={majuscule(NEAT_SHORT[profile.neat_level ?? DEFAULT_NEAT_LEVEL])} onPress={() => onOuvrir('sports', 'quotidien')} />
+        <Ligne t={t} label="Sport" valeur={seances > 0 ? `${seances} séance${seances > 1 ? 's' : ''} par semaine` : 'Aucun'} onPress={() => onOuvrir('sports', 'seances')} last />
+      </Bloc>
+    </ListeShell>
+  );
+}
+
+function ListeObjectifs({ t, profile, datedGoalOuvert, onOuvrir, dragHandlers, sheetScrollProps }: ListeProps & {
+  datedGoalOuvert: boolean; onOuvrir: (k: EditorKey) => void;
+}) {
+  const s = useMemo(() => makeStyles(t), [t]);
+  const gt = profile.goal_target;
+  return (
+    <ListeShell t={t} titre="Objectifs" dragHandlers={dragHandlers} sheetScrollProps={sheetScrollProps}>
+      {/* L'OBJECTIF EN GROS, et dessous ce qu'il sert : calories, dépense, macros — sans
+          la barre du Plan (décision fondateur, 2026-10-25). La carte entière ouvre le choix
+          de l'objectif : l'écrire une seconde fois dans une ligne aurait doublé « Sèche ».
+          ⚠️ Plus de ligne « Calories & macros » : la répartition se règle depuis
+          « Ma répartition (%) » du Plan, qui ouvre le même éditeur (lien direct). */}
+      <Presse onPress={() => onOuvrir('goal')} activeOpacity={OPACITE_PRESSION} accessibilityRole="button"
+        accessibilityLabel={`Objectif\u00A0: ${goalLabel(profile.goal)}. Changer d'objectif`} style={s.cibles}>
+        <View style={s.objectifLigne}>
+          <Text style={s.objectifNom}>{goalLabel(profile.goal)}</Text>
+          <Ionicons name="chevron-forward" size={Icone.standard} color={t.textTertiary} />
+        </View>
+        <View>
+          <View style={s.kcalLigne}>
+            <Text style={s.kcalV}>{profile.target_kcal.toLocaleString('fr-FR')}</Text>
+            <Text style={s.kcalU}> kcal par jour</Text>
+          </View>
+          <Text style={s.ecart}>{ecartDepense(profile.target_kcal, profile.tdee_kcal)}</Text>
+        </View>
+        <View style={s.macros}>
+          {([['Protéines', profile.target_protein_g], ['Glucides', profile.target_carbs_g], ['Lipides', profile.target_fat_g]] as const).map(([nom, g]) => (
+            <View key={nom} style={s.macro}>
+              <Text style={s.macroV}>{g} g</Text>
+              <Text style={s.macroN}>{nom}</Text>
+            </View>
+          ))}
+        </View>
+      </Presse>
+      <Bloc t={t}>
+        <Ligne t={t} label="Objectif daté" valeur={gt ? `${frnum(gt.target_weight_kg)} kg · ${formatFR(gt.target_date)}` : (datedGoalOuvert ? 'Aucun' : 'Avec Kyroz+')} onPress={() => onOuvrir('dated_goal')} last />
+      </Bloc>
+    </ListeShell>
+  );
+}
+
+function ListeRepas({ t, profile, ecarts, onOuvrir, onJours, onEcarts, dragHandlers, sheetScrollProps }: ListeProps & {
+  ecarts: string; onOuvrir: (k: EditorKey, s?: Section) => void; onJours: (jours: number[]) => void; onEcarts: () => void;
+}) {
+  // 🔴 UNE FEUILLE QUI MONTRE, PAS UNE LISTE QUI DÉCRIT (décision fondateur, 2026-10-25 :
+  // « ne pas faire un copier-coller de l'onboarding, une belle présentation »). La journée
+  // est dessinée avec ses heures, la semaine se touche directement, les goûts se lisent en
+  // pastilles. Les éditeurs derrière restent ceux d'avant : ils portent les vérifications.
+  const [repasAuto] = useRepasAuto();
+  const gout = (g: string | null | undefined) => GOUT_CHOIX.find((c) => c.value === (goutLu(g) ?? 'egal'))?.label ?? 'Peu importe';
+  const masquees = profile.hidden_recipes?.length ?? 0;
+  const jours = servedWeekdays(profile.plan_weekdays, Math.min(Math.max(profile.plan_days ?? 7, 1), 7));
+  const creneaux = activeSlots(profile);
+  const copieux = emphasisIds(profile.meal_emphasis, creneaux.map((c) => c.id));
+  const fixes = profile.fixed_meals ?? {};
+  const sortes = sortesCochees(profile);
+  // La semaine se règle SANS changer d'écran : un toucher enregistre. Jamais zéro jour —
+  // un plan sans jour n'est pas un plan, et le dernier jour allumé ne s'éteint donc pas.
+  const basculerJour = (v: number) => {
+    const next = jours.includes(v) ? jours.filter((x) => x !== v) : [...jours, v];
+    if (next.length >= 1) onJours(next);
+  };
+  return (
+    <ListeShell t={t} titre="Repas" dragHandlers={dragHandlers} sheetScrollProps={sheetScrollProps}>
+      <SectionLabel t={t}>Ta journée</SectionLabel>
+      <Bloc t={t}>
+        {creneaux.map((c) => (
+          <Presse key={c.id} onPress={() => onOuvrir('meals', 'repas')} activeOpacity={OPACITE_PRESSION} accessibilityRole="button"
+            accessibilityLabel={`${c.label}, ${formatSlotTime(c)}`}
+            style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.md, minHeight: CIBLE_TACTILE_MIN, paddingVertical: Spacing.md, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.line }}>
+            <Text style={{ ...Type.bodySmallStrong, color: t.textSecondary, width: 52, fontVariant: ['tabular-nums'] }}>{formatSlotTime(c)}</Text>
+            <Text style={{ ...Type.body, color: t.text, flex: 1 }} numberOfLines={1}>{c.label}</Text>
+            {copieux.includes(c.id) && <Pastille t={t} label="Copieux" />}
+            {fixes[c.id] && <Pastille t={t} label="Géré par toi" />}
+            <Ionicons name="chevron-forward" size={Icone.standard} color={t.textTertiary} />
+          </Presse>
+        ))}
+        <Ligne t={t} label="Plus copieux" valeur={emphasisResume(profile)} onPress={() => onOuvrir('meals', 'copieux')} />
+        <Ligne t={t} label="Gérés par toi" valeur={Object.keys(fixes).length ? `${Object.keys(fixes).length}` : 'Aucun'} onPress={() => onOuvrir('meals', 'fixes')} last />
+      </Bloc>
+
+      <SectionLabel t={t}>Ta semaine</SectionLabel>
+      <RangeeJours t={t} choisis={jours} onChoisir={basculerJour} />
+
+      <SectionLabel t={t}>Tes goûts</SectionLabel>
+      <Bloc t={t}>
+        <Presse onPress={() => onOuvrir('prefs', 'regime')} activeOpacity={OPACITE_PRESSION} accessibilityRole="button"
+          accessibilityLabel={`Régime, ${regimeResume(profile)}`}
+          style={{ paddingVertical: Spacing.md, gap: Spacing.sm, minHeight: CIBLE_TACTILE_MIN, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.line }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <Text style={{ ...Type.bodyStrong, color: t.text, flex: 1 }}>{regimeResume(profile)}</Text>
+            <Ionicons name="chevron-forward" size={Icone.standard} color={t.textTertiary} />
+          </View>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.xs }}>
+            {sortes.length ? sortes.map((so) => <Pastille key={so} t={t} label={LIBELLE_SORTE[so]} />) : <Pastille t={t} label="Toutes les protéines" />}
+          </View>
+        </Presse>
+        <Presse onPress={() => onOuvrir('prefs', 'evites')} activeOpacity={OPACITE_PRESSION} accessibilityRole="button"
+          accessibilityLabel={`Aliments évités, ${profile.disliked_foods.length || 'aucun'}`}
+          style={{ paddingVertical: Spacing.md, gap: Spacing.sm, minHeight: CIBLE_TACTILE_MIN, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.line }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <Text style={{ ...Type.body, color: t.text, flex: 1 }}>Aliments évités</Text>
+            {profile.disliked_foods.length === 0 && <Text style={{ ...Type.body, color: t.textSecondary }}>Aucun</Text>}
+            <Ionicons name="chevron-forward" size={Icone.standard} color={t.textTertiary} />
+          </View>
+          {profile.disliked_foods.length > 0 && (
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.xs }}>
+              {profile.disliked_foods.map((f) => <Pastille key={f} t={t} label={f} />)}
+            </View>
+          )}
+        </Presse>
+        <Ligne t={t} label="Matin" valeur={gout(profile.gout_petit_dej)} onPress={() => onOuvrir('prefs', 'gouts')} />
+        <Ligne t={t} label="Collations" valeur={gout(profile.gout_collation)} onPress={() => onOuvrir('prefs', 'gouts')} last={masquees === 0} />
+        {masquees > 0 && <Ligne t={t} label="Recettes masquées" valeur={`${masquees}`} onPress={() => onOuvrir('prefs', 'masquees')} last />}
+      </Bloc>
+
+      <Bloc t={t}>
+        <Ligne t={t} label="Repas cochés" valeur={repasAuto ? 'Automatiquement' : 'À la main'} onPress={() => onOuvrir('meals', 'auto')} />
+        <Ligne t={t} label="Variété" valeur={VARIETY_LABELS[profile.variety]} onPress={() => onOuvrir('meals', 'variete')} last={!RYTHME_HEBDOMADAIRE_ACTIF && !PARCOURS_HORS_PLAN_ACTIF} />
+        {RYTHME_HEBDOMADAIRE_ACTIF && <Ligne t={t} label="Jours plus copieux" valeur={bankResume(profile)} onPress={() => onOuvrir('calorie_bank')} last={!PARCOURS_HORS_PLAN_ACTIF} />}
+        {/* ⚠️ La valeur ne COMPTE PAS les écarts (règle anti charge mentale) : un fait daté. */}
+        {PARCOURS_HORS_PLAN_ACTIF && <Ligne t={t} label="Écarts passés" valeur={ecarts} onPress={onEcarts} last />}
+      </Bloc>
+    </ListeShell>
+  );
+}
+
+/** Une étiquette qu'on LIT (pas un bouton) : ce qui est choisi, sans rien ouvrir. */
+function Pastille({ t, label }: { t: ThemePalette; label: string }) {
+  return (
+    <View style={{ backgroundColor: t.fill, borderRadius: Radius.pill, paddingHorizontal: Spacing.sm, paddingVertical: Spacing.xs }}>
+      <Text style={{ ...Type.caption, color: t.textSecondary }} numberOfLines={1}>{label}</Text>
     </View>
   );
 }
 
 // ── Coquille d'éditeur (en-tête + scroll + bouton) ───────────────────────────
+// `onBack` : présent quand l'éditeur a été ouvert depuis la LISTE d'un encadré
+// (2026-10-24) — la flèche y ramène sans enregistrer.
 function EditorShell({
-  t, title, children, onSave, canSave = true, dragHandlers, sheetScrollProps,
-}: { t: ThemePalette; title: string; children: React.ReactNode; onSave: () => void; canSave?: boolean; dragHandlers?: any; sheetScrollProps?: any }) {
+  t, title, children, onSave, canSave = true, dragHandlers, sheetScrollProps, onBack,
+}: { t: ThemePalette; title: string; children: React.ReactNode; onSave: () => void; canSave?: boolean; dragHandlers?: any; sheetScrollProps?: any; onBack?: () => void }) {
   return (
     <View style={{ flex: 1, backgroundColor: t.bg }}>
-      <View style={{ paddingHorizontal: Spacing.xxl, paddingBottom: Spacing.sm }} {...(dragHandlers ?? {})}>
-        <Text style={{ color: t.text, ...Type.h2 }}>{title}</Text>
-      </View>
+      <EnTeteFeuille t={t} titre={title} onBack={onBack} dragHandlers={dragHandlers} />
       <ScrollView
         contentContainerStyle={{ padding: Spacing.xxl, paddingTop: Spacing.md, gap: Spacing.lg }}
         showsVerticalScrollIndicator={false}
@@ -943,10 +1224,10 @@ function EditorShell({
   );
 }
 
-type EditorProps = { t: ThemePalette; profile: UserProfile; onSave: (p: UserProfile) => void; dragHandlers?: any; sheetScrollProps?: any };
+type EditorProps = { t: ThemePalette; profile: UserProfile; onSave: (p: UserProfile) => void; dragHandlers?: any; sheetScrollProps?: any; onBack?: () => void };
 
 // ── Éditeurs ─────────────────────────────────────────────────────────────────
-function InfoEditor({ t, profile, onSave, onWeighIn, dragHandlers, sheetScrollProps }: EditorProps & { onWeighIn: () => void }) {
+function InfoEditor({ t, profile, onSave, onWeighIn, onPoids, dragHandlers, sheetScrollProps, onBack, section }: EditorProps & { onWeighIn: () => void; onPoids: (kg: number) => void; section?: InfoSection }) {
   // Prénom — LOCAL à l'appareil, hors profil synchronisé (cf. lib/profileName.ts).
   // Il ne s'écrivait qu'à l'onboarding : un compte antérieur à cette étape restait
   // sur « Ton plan » sans aucun recours. Il vit ici désormais.
@@ -973,6 +1254,10 @@ function InfoEditor({ t, profile, onSave, onWeighIn, dragHandlers, sheetScrollPr
   // daté lit la même série : il continuait de projeter depuis un poids abandonné.
   // ➡️ Une donnée qui alimente une SÉRIE ne se corrige pas par un champ qui ignore
   // la série. Le poids devient une ligne de renvoi vers son unique porte d'entrée.
+  // ➕ Depuis le 2026-10-25, la partie « Poids » (ouverte depuis la liste) a sa roulette —
+  // mais elle n'écrit PAS le profil : elle passe par `onPoids`, c'est-à-dire par une pesée,
+  // donc par la série. Le défaut décrit ci-dessus reste fermé.
+  const [poids, setPoids] = useState(String(profile.weight_kg));
   const [height, setHeight] = useState(String(profile.height_cm));
   const [bodyFat, setBodyFat] = useState<number | undefined>(profile.body_fat_pct);
   const [bodyFatSource, setBodyFatSource] = useState<BodyFatSource | undefined>(profile.body_fat_source);
@@ -1003,9 +1288,14 @@ function InfoEditor({ t, profile, onSave, onWeighIn, dragHandlers, sheetScrollPr
   // `sports`), et withRecalc recalcule le TDEE avec le nouveau poids/%MG.
   // Le prénom part avant le profil : il vit dans son propre store, `onSave` ne le
   // porte pas. Vide = on efface la salutation, ce qui est un choix légitime.
-  const submit = () => { if (valid) { saveFirstName(prenom); onSave(withRecalc(draft)); } };
+  const poidsN = parseFloat(poids);
+  const submit = () => {
+    if (section === 'poids') { if (poidsN >= WEIGHT_BOUNDS[0] && poidsN <= WEIGHT_BOUNDS[1]) onPoids(poidsN); return; }
+    if (valid) { saveFirstName(prenom); onSave(withRecalc(draft)); }
+  };
+  const montre = (x: InfoSection) => !section || section === x;
   return (
-    <EditorShell t={t} title="Informations" onSave={submit} canSave={valid} dragHandlers={dragHandlers} sheetScrollProps={sheetScrollProps}>
+    <EditorShell t={t} title={section ? TITRES_INFO[section] : 'Informations'} onSave={submit} canSave={valid} dragHandlers={dragHandlers} sheetScrollProps={sheetScrollProps} onBack={onBack}>
       {blockMsg && (
         <Card t={t}>
           <Text style={{ ...Type.captionStrong, color: t.danger, lineHeight: 19 }}>{blockMsg}</Text>
@@ -1020,14 +1310,22 @@ function InfoEditor({ t, profile, onSave, onWeighIn, dragHandlers, sheetScrollPr
       )}
       {/* Même correction que l'étape 1 de l'onboarding (2026-08-12) : le placeholder
           reprend le libellé au lieu de suggérer « Kévin », le prénom du fondateur. */}
-      <Field t={t} label="Prénom" value={prenom} onChangeText={setPrenom} placeholder="Ton prénom" autoCapitalize="words" />
-      <Segmented t={t} options={[{ label: 'Homme', value: 'male' }, { label: 'Femme', value: 'female' }]} value={sex} onChange={setSex} />
+      {montre('prenom') && <Field t={t} label="Prénom" value={prenom} onChangeText={setPrenom} placeholder="Ton prénom" autoCapitalize="words" />}
+      {/* Des cases, comme le régime et les autres choix des feuilles (demande fondateur,
+          2026-10-25) — plus le sélecteur segmenté, seul de son espèce dans la liste « Toi ». */}
+      {montre('sexe') && (
+        <GrilleChoix t={t} options={[{ label: 'Homme', value: 'male' as Sex }, { label: 'Femme', value: 'female' as Sex }]}
+          estChoisi={(v) => sex === v} onChoisir={setSex} />
+      )}
       {/* Pas de titre de section ici : le champ porte déjà « Date de naissance », et
           l'éditeur l'affichait deux fois de suite (relevé le 2026-09-30). */}
-      <BirthDateField t={t} value={birthDate} onChange={setBirthDate} fallbackAge={profile.birth_date ? undefined : profile.age} />
+      {montre('age') && <BirthDateField t={t} value={birthDate} onChange={setBirthDate} fallbackAge={profile.birth_date ? undefined : profile.age} />}
       {/* Renvoi, pas champ : le poids a UNE porte d'entrée, et c'est celle qui
           tient l'historique. Le libellé dit où l'on va, pas seulement que ça se
           passe ailleurs. */}
+      {/* Ouvert sur UNE partie (depuis la liste), le renvoi n'a pas sa place : la liste
+          porte sa propre ligne « Poids », qui mène directement à la pesée. */}
+      {!section && (<>
       <Presse onPress={onWeighIn} activeOpacity={OPACITE_PRESSION} accessibilityRole="button"
         style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.md, backgroundColor: t.card, borderRadius: Radius.card, padding: Spacing.lg, minHeight: CIBLE_TACTILE_MIN }}>
         <View style={{ flex: 1 }}>
@@ -1040,10 +1338,13 @@ function InfoEditor({ t, profile, onSave, onWeighIn, dragHandlers, sheetScrollPr
       <Text style={{ ...Type.caption, color: t.textTertiary, lineHeight: 17, marginTop: -Spacing.sm }}>
         Ton poids se met à jour en te pesant : c'est ce qui garde ta courbe et ton suivi justes.
       </Text>
+      </>)}
       {/* À la roulette, comme à l'inscription (2026-09-30) : le même chiffre ne se saisit
           pas au clavier ici et à la molette là-bas. */}
-      <MesureField t={t} mesure="taille" value={height} onChange={setHeight} sex={sex} />
-      <SectionLabel t={t}>Masse grasse (optionnel)</SectionLabel>
+      {section === 'poids' && <MesureField t={t} mesure="poids" value={poids} onChange={setPoids} sex={sex} />}
+      {montre('taille') && <MesureField t={t} mesure="taille" value={height} onChange={setHeight} sex={sex} />}
+      {montre('gras') && (<>
+      {!section && <SectionLabel t={t}>Masse grasse (optionnel)</SectionLabel>}
       {/* `draft` : le repère de plausibilité chiffre l'impact sur le corps EN COURS
           d'édition, pas sur le profil enregistré. */}
       <BodyFatPicker
@@ -1051,6 +1352,7 @@ function InfoEditor({ t, profile, onSave, onWeighIn, dragHandlers, sheetScrollPr
         onChange={(pct, src) => { setBodyFat(pct); setBodyFatSource(src); }}
         body={draft}
       />
+      </>)}
     </EditorShell>
   );
 }
@@ -1199,7 +1501,7 @@ function EngineNoticeCard({ t, notice, onAdjust, onDismiss }: {
   );
 }
 
-function SportsProfileEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }: EditorProps) {
+function SportsProfileEditor({ t, profile, onSave, dragHandlers, sheetScrollProps, onBack, section }: EditorProps & { section?: SportSection }) {
   const [sports, setSports] = useState<SportSession[]>(profile.sports ?? []);
   const [neat, setNeat] = useState<NeatLevel>(profile.neat_level ?? DEFAULT_NEAT_LEVEL);
   const [restDays, setRestDays] = useState<number[]>(effectiveRestWeekdays(profile));
@@ -1227,13 +1529,14 @@ function SportsProfileEditor({ t, profile, onSave, dragHandlers, sheetScrollProp
     rest_weekdays: trainingDaysEq > 0 ? orderedWeekdays(restDays) : profile.rest_weekdays,
   }));
   return (
-    <EditorShell t={t} title="Sport & activité" onSave={submit} dragHandlers={dragHandlers} sheetScrollProps={sheetScrollProps}>
+    <EditorShell t={t} title={section ? TITRES_SPORT[section] : 'Sport & activité'} onSave={submit} dragHandlers={dragHandlers} sheetScrollProps={sheetScrollProps} onBack={onBack}>
       {/* La question vit dans `NeatPicker`, partagé avec l'inscription : c'est le même
           réglage, il se pose de la même façon aux deux endroits (cf. l'en-tête du
           composant pour l'ordre NEAT-avant-séances, qui est une règle, pas un goût). */}
-      <NeatPicker t={t} value={neat} onChange={setNeat} />
+      {(!section || section === 'quotidien') && <NeatPicker t={t} value={neat} onChange={setNeat} />}
 
-      <SectionLabel t={t}>TES SÉANCES</SectionLabel>
+      {(!section || section === 'seances') && (<>
+      {!section && <SectionLabel t={t}>TES SÉANCES</SectionLabel>}
       <Text style={{ ...Type.caption, color: t.textSecondary, lineHeight: 18, marginBottom: Spacing.xs }}>Tes sports servent à estimer tes calories dépensées. Plus c'est précis, plus ton plan l'est.</Text>
       <SportsEditor
         sports={sports} weight={profile.weight_kg} onChange={setSports}
@@ -1243,11 +1546,12 @@ function SportsProfileEditor({ t, profile, onSave, dragHandlers, sheetScrollProp
       {trainingDaysEq > 0 && (
         <RestDaysPicker t={t} value={restDays} onToggle={togRestDay} onNone={() => { setRestTouche(true); setRestDays([]); }} />
       )}
+      </>)}
     </EditorShell>
   );
 }
 
-function GoalEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }: EditorProps) {
+function GoalEditor({ t, profile, onSave, dragHandlers, sheetScrollProps, onBack }: EditorProps) {
   const [goal, setGoal] = useState<Goal>(profile.goal);
   // L'éligibilité était branchée sur l'onboarding et l'objectif daté seulement :
   // une personne en insuffisance pondérale se voyait refuser la sèche à l'inscription
@@ -1255,7 +1559,7 @@ function GoalEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }: Edit
   const blockMsg = eligibilityMessage(checkEligibility({ ...profile, goal }, profile.goal_target));
   const submit = () => { if (!blockMsg) onSave(withRecalc({ ...profile, goal })); };
   return (
-    <EditorShell t={t} title="Objectif" onSave={submit} canSave={!blockMsg} dragHandlers={dragHandlers} sheetScrollProps={sheetScrollProps}>
+    <EditorShell t={t} title="Objectif" onSave={submit} canSave={!blockMsg} dragHandlers={dragHandlers} sheetScrollProps={sheetScrollProps} onBack={onBack}>
       {/* Chaque objectif porte sa phrase (2026-08-25, décision fondateur). Elle
           vient de `goalSubtitle` — les MÊMES mots qu'à l'inscription, où la même
           question est posée. Pas de texte écrit en dur ici, sinon les deux écrans
@@ -1281,7 +1585,7 @@ function GoalEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }: Edit
   );
 }
 
-function DatedGoalEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }: EditorProps) {
+function DatedGoalEditor({ t, profile, onSave, dragHandlers, sheetScrollProps, onBack }: EditorProps) {
   const today = todayStamp();
   const existing = profile.goal_target;
   const [targetWeight, setTargetWeight] = useState(
@@ -1414,7 +1718,7 @@ function DatedGoalEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }:
   // enregistrer une date passée créerait un objectif INACTIF — un objectif qui ne pilote
   // rien tout en s'affichant comme s'il pilotait.
   return (
-    <EditorShell t={t} title="Objectif daté" onSave={submit} canSave={!!provisional && !goalBlockMsg} dragHandlers={dragHandlers} sheetScrollProps={sheetScrollProps}>
+    <EditorShell t={t} title="Objectif daté" onSave={submit} canSave={!!provisional && !goalBlockMsg} dragHandlers={dragHandlers} sheetScrollProps={sheetScrollProps} onBack={onBack}>
       <Text style={{ ...Type.caption, color: t.textSecondary, lineHeight: 18 }}>
         Fixe un poids et une échéance : Kyroz ajuste tes calories jour après jour pour t'y amener au rythme le plus rapide — mais sûr.
       </Text>
@@ -1630,7 +1934,7 @@ function DatedGoalEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }:
   );
 }
 
-function MacroEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }: EditorProps) {
+function MacroEditor({ t, profile, onSave, dragHandlers, sheetScrollProps, onBack }: EditorProps) {
   const { notify } = useDialog();
   // 'manual' (legacy) est ramené sur 'percent' : on ne propose plus les grammes fixes.
   const [mode, setMode] = useState<'auto' | 'percent'>(profile.macro_mode === 'auto' ? 'auto' : 'percent');
@@ -1661,8 +1965,8 @@ function MacroEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }: Edi
   };
 
   return (
-    <EditorShell t={t} title="Calories & macros" onSave={submit} dragHandlers={dragHandlers} sheetScrollProps={sheetScrollProps}>
-      <Segmented<'auto' | 'percent'> t={t} options={[{ label: 'Calculées', value: 'auto' }, { label: 'Perso %', value: 'percent' }]} value={mode} onChange={setMode} />
+    <EditorShell t={t} title="Calories & macros" onSave={submit} dragHandlers={dragHandlers} sheetScrollProps={sheetScrollProps} onBack={onBack}>
+      <GrilleChoix<'auto' | 'percent'> t={t} options={[{ label: 'Calculées', value: 'auto' }, { label: 'Perso %', value: 'percent' }]} estChoisi={(v) => v === mode} onChoisir={setMode} />
       {mode === 'auto' ? (
         <Card t={t} style={{ gap: Spacing.md }}>
           <Row t={t} l="Objectif calorique" v={`${auto.target_kcal} kcal`} strong />
@@ -1684,7 +1988,7 @@ function MacroEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }: Edi
   );
 }
 
-function PrefEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }: EditorProps) {
+function PrefEditor({ t, profile, onSave, dragHandlers, sheetScrollProps, onBack, section }: EditorProps & { section?: PrefSection }) {
   const [restrictions, setRestrictions] = useState<DietaryRestriction[]>(profile.dietary_restrictions);
   const [proteins, setProteins] = useState<string[]>(profile.preferred_proteins);
   // Goût du matin et de la collation (D28). Un compte d'avant la question s'ouvre sur
@@ -1704,9 +2008,11 @@ function PrefEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }: Edit
     // `undefined` ne part pas à Supabase, et l'ancien « Salé » reviendrait.
     gout_petit_dej: goutEnregistre(goutPdj), gout_collation: goutEnregistre(goutCol),
   }); };
+  const montrePref = (x: PrefSection) => !section || section === x;
   return (
-    <EditorShell t={t} title="Préférences" onSave={submit} dragHandlers={dragHandlers} sheetScrollProps={sheetScrollProps}>
-      <SectionLabel t={t}>Régime</SectionLabel>
+    <EditorShell t={t} title={section ? TITRES_PREF[section] : 'Préférences'} onSave={submit} dragHandlers={dragHandlers} sheetScrollProps={sheetScrollProps} onBack={onBack}>
+      {montrePref('regime') && (<>
+      {!section && <SectionLabel t={t}>Régime</SectionLabel>}
       {/* Même grille qu'à l'inscription (2026-09-30) : la même question ne se pose pas
           de deux façons selon l'écran. */}
       <GrilleChoix
@@ -1717,6 +2023,8 @@ function PrefEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }: Edit
         t={t} restrictions={restrictions} valeurs={cocheesValides(restrictions, proteins)} onChange={setProteins} grille
         peuImporte={{ selected: cocheesValides(restrictions, proteins).length === 0, onToggle: () => setProteins([]) }}
       />
+      </>)}
+      {montrePref('gouts') && (<>
       <SectionLabel t={t}>Petit-déjeuner</SectionLabel>
       <GrilleChoix
         t={t} options={GOUT_TRANCHES} estChoisi={(v) => goutPdj === v} onChoisir={setGoutPdj}
@@ -1727,8 +2035,9 @@ function PrefEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }: Edit
         t={t} options={GOUT_TRANCHES} estChoisi={(v) => goutCol === v} onChoisir={setGoutCol}
         pleineLargeur={{ label: GOUT_EGAL.label, selected: goutCol === GOUT_EGAL.value, onPress: () => setGoutCol(GOUT_EGAL.value) }}
       />
-      <DislikedFoodsField t={t} value={dislikes} onChange={setDislikes} />
-      {hiddenNamed.length > 0 && (
+      </>)}
+      {montrePref('evites') && <DislikedFoodsField t={t} value={dislikes} onChange={setDislikes} />}
+      {montrePref('masquees') && hiddenNamed.length > 0 && (
         <>
           <SectionLabel t={t}>Recettes masquées ({hiddenNamed.length})</SectionLabel>
           <Text style={{ ...Type.caption, color: t.textTertiary, lineHeight: 17, marginTop: -Spacing.sm }}>
@@ -1794,7 +2103,7 @@ function RestDaysPicker({ t, value, onToggle, onNone }: { t: ThemePalette; value
   );
 }
 
-function MealsEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }: EditorProps) {
+function MealsEditor({ t, profile, onSave, dragHandlers, sheetScrollProps, onBack, section }: EditorProps & { section?: RepasSection }) {
   // ⚠️ Réglage d'APPAREIL (store externe + `useSyncExternalStore`, cf. §11) : il
   // s'applique dès la bascule, sans attendre « Enregistrer » — il ne fait pas partie
   // du profil qu'on soumet, et le faire passer par `submit` l'aurait perdu si on
@@ -1874,6 +2183,8 @@ function MealsEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }: Edi
   };
 
   // Sous-vue : définir le repas géré par l'user (remplace l'éditeur le temps de la saisie).
+  const montreRepas = (x: RepasSection) => !section || section === x;
+
   if (definingMeal) {
     // Pas de `sheetScrollProps` ici : cette feuille n'a pas de ScrollView.
     return (
@@ -1886,10 +2197,13 @@ function MealsEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }: Edi
   }
 
   return (
-    <EditorShell t={t} title="Paramètres des repas" onSave={submit} canSave={weekdays.length >= 1 && meals.length >= 1} dragHandlers={dragHandlers} sheetScrollProps={sheetScrollProps}>
-      <SectionLabel t={t}>Jours du plan</SectionLabel>
+    <EditorShell t={t} title={section ? TITRES_REPAS[section] : 'Paramètres des repas'} onSave={submit} canSave={weekdays.length >= 1 && meals.length >= 1} dragHandlers={dragHandlers} sheetScrollProps={sheetScrollProps} onBack={onBack}>
+      {montreRepas('jours') && (<>
+      {!section && <SectionLabel t={t}>Jours du plan</SectionLabel>}
       <RangeeJours t={t} choisis={weekdays} onChoisir={togDay} />
-      <SectionLabel t={t}>Repas inclus</SectionLabel>
+      </>)}
+      {montreRepas('repas') && (<>
+      {!section && <SectionLabel t={t}>Repas inclus</SectionLabel>}
       {/* 🔴 « Tu manges plus de quatre fois par jour ? … » retiré le 2026-08-25
           (décision fondateur). Le bouton d'ajout de `MealSlotsPicker` dit déjà ce
           qu'il fait ; la répartition du budget sur tous les créneaux, elle, est le
@@ -1899,6 +2213,7 @@ function MealsEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }: Edi
         onToggle={togMeal} onSaveSlot={saveSlot} onDeleteSlot={deleteSlot}
       />
       {meals.length === 0 && <Text style={{ ...Type.caption, color: t.danger }}>Sélectionne au moins 1 repas.</Text>}
+      </>)}
 
       {/* ── L'auto-coche vit ICI, et pas derrière la roue dentée ──────────────
           Test de rangement de §8 : *ce réglage change-t-il ce que Kyroz me SERT ?*
@@ -1906,11 +2221,13 @@ function MealsEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }: Edi
           réserve. Sa place est donc sur le Profil ; et parmi ses éditeurs, celui qui
           porte déjà les créneaux et LEURS HEURES, puisque ce sont ces heures-là qui
           déclenchent l'auto-coche. */}
-      <SectionLabel t={t}>Repas cochés automatiquement</SectionLabel>
-      <Segmented<'on' | 'off'>
+      {montreRepas('auto') && (<>
+      {!section && <SectionLabel t={t}>Repas cochés automatiquement</SectionLabel>}
+      {/* Deux cases sur toute la largeur, comme le genre (2026-10-25). */}
+      <GrilleChoix<'on' | 'off'>
         t={t}
-        value={repasAuto ? 'on' : 'off'}
-        onChange={(v) => setRepasAuto(v === 'on')}
+        estChoisi={(v) => (v === 'on') === repasAuto}
+        onChoisir={(v) => setRepasAuto(v === 'on')}
         options={[{ label: 'Automatique', value: 'on' }, { label: 'À la main', value: 'off' }]}
       />
       <Text style={{ ...Type.caption, color: t.textTertiary, lineHeight: 17, marginTop: -Spacing.sm }}>
@@ -1927,8 +2244,10 @@ function MealsEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }: Edi
           ? "Un repas non marqué passe en «\u00A0mangé\u00A0» une heure après le début du suivant, et le dernier en fin de journée. Ses ingrédients quittent ta réserve, et un repas coché ne revient pas en arrière."
           : "Tes repas ne se cochent que si tu tapes «\u00A0J'ai cuisiné\u00A0». Ta journée n'est recalée que sur ce que tu as marqué toi-même."}
       </Text>
+      </>)}
 
-      <SectionLabel t={t}>Repas que tu gères toi-même</SectionLabel>
+      {montreRepas('fixes') && (<>
+      {!section && <SectionLabel t={t}>Repas que tu gères toi-même</SectionLabel>}
       <Text style={{ ...Type.caption, color: t.textTertiary, lineHeight: 17, marginTop: -Spacing.sm }}>
         Définis-les une fois : Kyroz les compte dans ton total et cale tes autres repas autour, sans te les redemander chaque jour.
       </Text>
@@ -1961,9 +2280,15 @@ function MealsEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }: Edi
         })}
       </View>
 
-      <SectionLabel t={t}>Tu manges plus à quel moment ?</SectionLabel>
-      <View style={styles.wrap}>
-        {emphasisOpts.map((e) => <Chip key={e.val} t={t} label={e.label} selected={emphasis.includes(e.val)} onPress={() => togEmphasis(e.val)} />)}
+      </>)}
+
+      {montreRepas('copieux') && (<>
+      {!section && <SectionLabel t={t}>Tu manges plus à quel moment ?</SectionLabel>}
+      {/* En colonne, sur toute la largeur (2026-10-25) : quatre moments et « Équilibré »
+          s'enroulaient en pastilles sur deux lignes inégales. */}
+      <GrilleChoix t={t} options={emphasisOpts.map((e) => ({ label: e.label, value: e.val }))}
+        estChoisi={(v) => emphasis.includes(v)} onChoisir={togEmphasis}
+        pleineLargeur={{ label: 'Équilibré', selected: emphasis.length === 0, onPress: () => setEmphasis([]) }} />
         {/* « Équilibré » n'est PAS un état caché : c'est la même donnée (liste vide),
             rendue visible — exactement l'argument de la puce « Aucun » des jours de
             repos, deux sections plus haut. Sans elle, l'écran affiche quatre puces
@@ -1971,10 +2296,12 @@ function MealsEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }: Edi
             ⚠️ Tout cocher revient au même résultat (le moteur multiplie alors chaque
             poids par le même facteur, cf. `computeDistribution`) — mais ça se dit en
             un tap au lieu de quatre. */}
-        <Chip t={t} label="Équilibré" selected={emphasis.length === 0} onPress={() => setEmphasis([])} />
-      </View>
-      <SectionLabel t={t}>Variété</SectionLabel>
+
+      </>)}
+      {montreRepas('variete') && (<>
+      {!section && <SectionLabel t={t}>Variété</SectionLabel>}
       <View style={{ gap: Spacing.md }}>{VARIETY.map((v) => <OptionCard key={v.value} t={t} title={v.title} subtitle={v.sub} selected={variety === v.value} onPress={() => setVariety(v.value)} />)}</View>
+      </>)}
       {/* 🔴 « Ton plan se met à jour automatiquement après enregistrement. » RETIRÉ
           le 2026-08-26 (relecture des textes, décision fondateur). C'était la
           description du bouton « Enregistrer » posé juste dessous, et le seul texte
@@ -2011,14 +2338,20 @@ function makeStyles(t: ThemePalette) {
     sub: { ...Type.bodySmall, color: t.textSecondary, lineHeight: 19 },
     cibles: {
       backgroundColor: t.card, borderRadius: Radius.card,
-      padding: Spacing.xl, gap: Spacing.xl,
+      padding: Spacing.xl, gap: Spacing.lg,
     },
-    ciblesLigne: { flexDirection: 'row', gap: Spacing.md },
-    menu: { backgroundColor: t.card, borderRadius: Radius.card, paddingHorizontal: Spacing.lg },
-    tdee: { backgroundColor: t.card, borderRadius: Radius.card, padding: Spacing.lg, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: Spacing.md },
+    objectifLigne: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+    objectifNom: { ...Type.display, color: t.text },
+    kcalLigne: { flexDirection: 'row', alignItems: 'baseline' },
+    kcalV: { ...Type.h1, color: t.text },
+    kcalU: { ...Type.h3, color: t.textTertiary },
+    macros: { flexDirection: 'row', gap: Spacing.sm },
+    macro: { flex: 1, backgroundColor: t.fill, borderRadius: Radius.sm, padding: Spacing.md, gap: Spacing.xs },
+    macroV: { ...Type.h3, color: t.text },
+    macroN: { ...Type.caption, color: t.textSecondary },
+    ecart: { ...Type.bodySmall, color: t.textSecondary, lineHeight: 19, marginTop: Spacing.xs },
+    legende: { ...Type.bodySmall, color: t.textSecondary, lineHeight: 19 },
     floorNote: { ...Type.caption, color: t.textSecondary, lineHeight: 18, marginTop: -Spacing.xs },
-    tdeeL: { ...Type.bodySmall, flex: 1, color: t.textSecondary, lineHeight: 19 },
-    tdeeV: { ...Type.h3, flexShrink: 0, color: t.text },
     // Bouton d'action pleine largeur, sur le patron de « Se déconnecter » : fond de
     // carte et non l'accent — une action de repli ne doit pas crier plus fort que la
     // pesée, qui est la vraie entrée quotidienne de l'écran.
@@ -2076,7 +2409,7 @@ function bankResume(p: UserProfile): string {
 
 const BANK_PRESETS = [200, 400, 600, 900];
 
-function CalorieBankEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }: EditorProps) {
+function CalorieBankEditor({ t, profile, onSave, dragHandlers, sheetScrollProps, onBack }: EditorProps) {
   const [bank, setBank] = useState<Record<string, number>>(profile.calorie_bank ?? {});
   const [jour, setJour] = useState<number | null>(null);
 
@@ -2111,7 +2444,7 @@ function CalorieBankEditor({ t, profile, onSave, dragHandlers, sheetScrollProps 
   const marge = profile.target_kcal - bankFloorKcal(profile);
 
   return (
-    <EditorShell t={t} title="Jours plus copieux" onSave={() => onSave({ ...profile, calorie_bank: Object.keys(bank).length ? bank : undefined })} dragHandlers={dragHandlers} sheetScrollProps={sheetScrollProps}>
+    <EditorShell t={t} title="Jours plus copieux" onSave={() => onSave({ ...profile, calorie_bank: Object.keys(bank).length ? bank : undefined })} dragHandlers={dragHandlers} sheetScrollProps={sheetScrollProps} onBack={onBack}>
       <Text style={{ ...Type.bodySmall, color: t.textSecondary, lineHeight: 20 }}>
         Certains jours sont plus copieux que d'autres — le repas de famille du dimanche,
         la soirée du samedi. Dis-le à Kyroz : il sert plus ce jour-là et reprend l'écart
@@ -2167,7 +2500,7 @@ function CalorieBankEditor({ t, profile, onSave, dragHandlers, sheetScrollProps 
       </View>
       {joursDuPlan.length === 0 && (
         <Text style={{ ...Type.caption, color: t.textTertiary }}>
-          Choisis d'abord tes jours de plan dans « Paramètres des repas ».
+          Choisis d'abord tes jours de plan dans « Repas », ligne « Jours du plan ».
         </Text>
       )}
 

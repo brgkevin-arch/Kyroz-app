@@ -9,7 +9,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme, ThemePalette, Radius, Spacing, Type, cardShadow, Fond, CIBLE_TACTILE_MIN, Trait, Icone, OPACITE_PRESSION } from '../../constants/theme';
 import { useCollapsingTitle, CompactTitleBar } from '../../components/CollapsingTitle';
 import { useLayout } from '../../constants/layout';
-import { PrimaryButton, Chip, Field, Segmented } from '../../components/ui';
+import { PrimaryButton, Chip, Field, Segmented, Choix } from '../../components/ui';
 import { animerMiseEnPage } from '../../components/Mouvement';
 import { ActionSheet } from '../../components/ActionSheet';
 import { LigneGlissable } from '../../components/LigneGlissable';
@@ -410,11 +410,8 @@ export default function ReserveScreen() {
           {UNITS.map((u) => <Chip key={u} t={t} label={u} selected={editUnit === u} onPress={() => setEditUnit(u)} />)}
         </View>
         <Text style={s.editLabel}>RANGEMENT</Text>
-        <View style={s.unitRow}>
-          {CONSERVATIONS.map((c) => (
-            <Chip key={c.value} t={t} label={c.label} selected={editConservation === c.value} onPress={() => setEditConservation(c.value)} />
-          ))}
-        </View>
+        {/* Une réponse, donc la DA de sélection unique (2026-10-25). */}
+        <Choix t={t} options={CONSERVATIONS.map((c) => ({ label: c.label, value: c.value }))} value={editConservation} onChange={setEditConservation} />
         <View style={{ height: 4 }} />
         <PrimaryButton
           t={t}

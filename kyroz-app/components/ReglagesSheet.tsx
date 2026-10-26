@@ -5,7 +5,7 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import Constants from 'expo-constants';
 import { ThemePalette, Spacing, Type, Radius, Trait, Icone, OPACITE_PRESSION, CIBLE_TACTILE_MIN, useTheme } from '../constants/theme';
-import { Chip, Segmented, SectionTitle, MenuRow } from './ui';
+import { SectionTitle, MenuRow, Choix } from './ui';
 import { RangeeJours } from './RangeeJours';
 import { useReminder } from '../hooks/useReminder';
 import { usePlanCheckin } from '../hooks/usePlanCheckin';
@@ -161,7 +161,7 @@ export function ReglagesSheet({
         <SectionTitle t={t}>Notifications</SectionTitle>
 
         <Text style={s.label}>Rappel quotidien</Text>
-        <Segmented<'off' | 'on'>
+        <Choix<'off' | 'on'>
           t={t}
           value={reminderTime ? 'on' : 'off'}
           onChange={async (v) => {
@@ -214,14 +214,14 @@ export function ReglagesSheet({
             que lissé. Les comptes qui la portaient sont refermés sur « Sem. » à la
             lecture (`syncGuard::normalizeWeighIn`), pas laissés sur un segment vide. */}
         <Text style={s.label}>Rappel de pesée</Text>
-        <Segmented<WeighInFrequency>
+        <Choix<WeighInFrequency>
           t={t}
           value={weighInFrequency}
           onChange={onWeighInFrequency}
           options={[
-            { label: 'Sem.', value: 'weekly' },
-            { label: '2 sem.', value: 'biweekly' },
-            { label: '4 sem.', value: 'monthly' },
+            { label: 'Chaque semaine', value: 'weekly' },
+            { label: 'Toutes les 2 semaines', value: 'biweekly' },
+            { label: 'Toutes les 4 semaines', value: 'monthly' },
           ]}
         />
 
@@ -238,7 +238,7 @@ export function ReglagesSheet({
         <Text style={s.aide}>On te proposera un check-in {weighInResume(weighInFrequency, weighInDay)}.</Text>
 
         <Text style={s.label}>Propositions d'ajustement</Text>
-        <Segmented<'on' | 'off'>
+        <Choix<'on' | 'off'>
           t={t}
           value={checkinEnabled ? 'on' : 'off'}
           onChange={(v) => setCheckinEnabled(v === 'on')}
@@ -254,7 +254,7 @@ export function ReglagesSheet({
         <SectionTitle t={t}>Affichage</SectionTitle>
 
         <Text style={s.label}>Apparence</Text>
-        <Segmented<ThemeMode>
+        <Choix<ThemeMode>
           t={t}
           value={themeMode}
           onChange={setThemeMode}
@@ -298,7 +298,7 @@ export function ReglagesSheet({
         </Text>
 
         <Text style={s.label}>Suivi d'hydratation</Text>
-        <Segmented<'on' | 'off'>
+        <Choix<'on' | 'off'>
           t={t}
           value={hydrationOn ? 'on' : 'off'}
           onChange={(v) => setHydrationOn(v === 'on')}
@@ -353,7 +353,7 @@ export function ReglagesSheet({
         {STATISTIQUES_USAGE_ACTIVES && (
           <>
             <Text style={s.label}>Statistiques d'usage</Text>
-            <Segmented<'on' | 'off'>
+            <Choix<'on' | 'off'>
               t={t}
               value={analyticsConsent === 'granted' ? 'on' : 'off'}
               onChange={(v) => chooseConsent(v === 'on' ? 'granted' : 'denied')}

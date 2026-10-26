@@ -5,7 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme, Radius, Spacing, Type, cardShadow, Icone, OPACITE_PRESSION } from '../constants/theme';
 import { ActionSheet } from './ActionSheet';
-import { Segmented, SectionLabel } from './ui';
+import { SectionLabel, Choix } from './ui';
 import { HydratationIcon } from './Icons';
 
 // --- Feature test : suivi d'hydratation (jetable). Tout est isolé ici ;
@@ -182,7 +182,7 @@ export function HydrationBar() {
 
         <View style={styles.sheetBlock}>
           <SectionLabel t={t}>Objectif du jour</SectionLabel>
-          <Segmented t={t} options={GOAL_OPTIONS} value={goalMl} onChange={updateGoal} />
+          <Choix t={t} options={GOAL_OPTIONS} value={goalMl} onChange={updateGoal} />
           <Text style={[styles.hint, { color: t.textTertiary }]}>
             {fmtL(goalMl)} L par jour · ≈ {glassesForGoal} verres de {glassMl} ml
           </Text>
@@ -190,7 +190,7 @@ export function HydrationBar() {
 
         <View style={styles.sheetBlock}>
           <SectionLabel t={t}>Taille du verre (ml)</SectionLabel>
-          <Segmented t={t} options={GLASS_OPTIONS} value={glassMl} onChange={updateGlass} />
+          <Choix t={t} options={GLASS_OPTIONS} value={glassMl} onChange={updateGlass} />
         </View>
 
         <Presse

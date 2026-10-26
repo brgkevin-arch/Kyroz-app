@@ -35,7 +35,7 @@ const FORME_INTEGREE: Partial<Record<MealType, string>> = {
 };
 
 /** Où le réglage vit vraiment — vérifié par `pagesOnboarding.test.ts`. */
-export const CHEMIN_REGLAGE = 'Profil → Paramètres des repas';
+export const CHEMIN_REGLAGE = 'Profil → Repas → Gérés par toi';
 
 export function messageRepasGere(id: MealType, libelle: string): MessageRepasGere {
   const forme = FORME_INTEGREE[id];

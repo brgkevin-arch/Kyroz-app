@@ -94,46 +94,41 @@ export function GrilleChoix<T extends string | number>({
   t, options, estChoisi, onChoisir, pleineLargeur,
 }: {
   t: ThemePalette;
-  options: readonly { label: string; value: T }[];
+  options: readonly { label: string; value: T; sub?: string }[];
   estChoisi: (v: T) => boolean;
   onChoisir: (v: T) => void;
   pleineLargeur?: { label: string; selected: boolean; onPress: () => void };
 }) {
+  // 🔴 UNE SEULE DA DE SÉLECTION (décision fondateur, 2026-10-25) : la carte et son rond
+  // coché (`OptionCard`), une réponse par ligne, sur toute la largeur. La grille de cases
+  // pleines du 2026-09-22 est partie avec elle : trois formes de choix cohabitaient
+  // (cases, cartes, pastilles) pour la même question « laquelle ? ». Exceptions voulues :
+  // la rangée des jours (un calendrier) et les filtres des Recettes (un tri, pas un réglage).
+  // `pleineLargeur` garde son nom et son rôle : la réponse « à part », en dernier.
   return (
-    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm }}>
+    <View style={{ gap: Spacing.sm }}>
       {options.map((o) => (
-        <CaseChoix key={String(o.value)} t={t} label={o.label} selected={estChoisi(o.value)} onPress={() => onChoisir(o.value)} />
+        <OptionCard key={String(o.value)} t={t} title={o.label} subtitle={o.sub} selected={estChoisi(o.value)} onPress={() => onChoisir(o.value)} compacte />
       ))}
-      {options.length % 2 === 1 && <View style={{ flexBasis: '40%', flexGrow: 1 }} />}
       {pleineLargeur && (
-        <CaseChoix t={t} label={pleineLargeur.label} selected={pleineLargeur.selected} onPress={pleineLargeur.onPress} large />
+        <OptionCard t={t} title={pleineLargeur.label} selected={pleineLargeur.selected} onPress={pleineLargeur.onPress} compacte />
       )}
     </View>
   );
 }
 
-function CaseChoix({
-  t, label, selected, onPress, large,
-}: { t: ThemePalette; label: string; selected: boolean; onPress: () => void; large?: boolean }) {
-  return (
-    <Presse
-      activeOpacity={OPACITE_PRESSION}
-      onPress={onPress}
-      accessibilityState={{ selected }}
-      style={{
-        // `flexBasis` 40 % + `flexGrow` : deux cases qui se partagent la ligne à parts
-        // égales, l'écart compris — sans calcul de pixels.
-        flexBasis: large ? '100%' : '40%', flexGrow: 1,
-        minHeight: CIBLE_TACTILE_MIN, justifyContent: 'center', alignItems: 'center',
-        paddingVertical: Spacing.md, paddingHorizontal: Spacing.sm,
-        borderRadius: Radius.button,
-        backgroundColor: selected ? t.accent : t.fill,
-        borderWidth: Trait.fin, borderColor: selected ? t.accent : t.line,
-      }}
-    >
-      <Text style={{ ...Type.bodySmallStrong, color: selected ? t.onAccent : t.text }} numberOfLines={1}>{label}</Text>
-    </Presse>
-  );
+/**
+ * Une réponse parmi plusieurs, avec l'API d'un segmenté (`value` / `onChange`) : c'est
+ * ce qui a permis de remplacer chaque segmenté-RÉPONSE de l'app sans réécrire ses
+ * appelants (2026-10-25). `value === null` = rien n'est choisi, et ça se voit : aucun
+ * rond coché — le même devoir que `Segmented` (cf. `sexeOnboarding.test.ts`).
+ * ⚠️ `Segmented` reste pour ce qui change de VUE (Réalisable / Catalogue, frais / sec,
+ * chercher / saisir) : ce n'est pas une réponse, c'est un onglet.
+ */
+export function Choix<T extends string | number>({
+  t, options, value, onChange,
+}: { t: ThemePalette; options: readonly { label: string; value: T; sub?: string }[]; value: T | null; onChange: (v: T) => void }) {
+  return <GrilleChoix t={t} options={options} estChoisi={(v) => v === value} onChoisir={onChange} />;
 }
 
 /**

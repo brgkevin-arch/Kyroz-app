@@ -2490,6 +2490,21 @@ se lisent en trois lignes de source.
 
 ➡️ **Garde-fou : `lib/__tests__/haptiqueDA.test.ts`**, vérifié par 9 mutations.
 
+### UNE seule DA de sélection (2026-10-25)
+
+Décision fondateur, sur captures : *« il faudrait qu'on garde UNE DA de sélection »*. Quand
+on répond à une question — une réponse ou plusieurs —, c'est **la carte au rond coché**
+(`ui.tsx::OptionCard`), une réponse par ligne, sur toute la largeur. `GrilleChoix`
+(réponses multiples, `estChoisi`) et `Choix` (une réponse, API d'un segmenté) la rendent ;
+la grille de cases pleines du 2026-09-22 est partie.
+- **Exceptions décidées** : la rangée des jours (`RangeeJours`, un calendrier) et les
+  filtres des Recettes (un tri, pas un réglage).
+- **Ce qui reste, et pourquoi** : `Segmented` change de VUE (Réalisable / Catalogue, frais
+  / sec, chercher / saisir) ; `Chip` est une étiquette qu'on retire (✕), une suggestion,
+  ou une unité collée à un champ de quantité.
+- ➡️ Compté par `lib/__tests__/selectionDA.test.ts` (vérifié par mutation) : un segmenté
+  ou une pastille qui apparaît ailleurs le fait rougir.
+
 ### Les longues listes se dévoilent par PALIERS (2026-08-14)
 
 Décision fondateur, sur captures : *« dans les recettes que l'on peut faire, en
@@ -2848,6 +2863,16 @@ porte les 8 qui ne se déduisent d'aucune palette. Une règle absente du miroir 
 enfreinte par la prochaine maquette.
 
 ### Le Profil ne porte que TOI et TON PLAN (2026-08-10)
+
+> 🔴 **QUATRE ENCADRÉS DEPUIS LE 2026-10-24** (décision fondateur, segment 12 de
+> `docs/2026-10-19-reprise-parcours-A-a-Z.md`) : **Toi · Kyroz+ · Objectifs · Repas**, une
+> ligne de résumé chacun. Un encadré ouvre une feuille qui LISTE ce qui se modifie (« façon
+> A ») ; une ligne ouvre SA partie d'un éditeur (`section`) dans la même feuille, avec une
+> flèche retour — jamais une seconde feuille par-dessus. Plus de chapitres « Infos ·
+> Objectif · Repas », plus de `MenuRow` sur l'écran (`profilSection.test.ts`). Les cibles et
+> la dépense sont en tête de la feuille Objectifs. La règle de rangement ci-dessous (« ce
+> réglage change-t-il ce que Kyroz me SERT ? ») ne change pas : elle dit ce qui va dans les
+> encadrés et ce qui va derrière la roue.
 
 > 🔴 **LE PROFIL N'EST PLUS UN ONGLET depuis le 2026-10-21** (décision fondateur, AGENTS.md
 > **E81**) : l'onglet est devenu **« Poids »** (`app/(tabs)/poids.tsx`), et le Profil

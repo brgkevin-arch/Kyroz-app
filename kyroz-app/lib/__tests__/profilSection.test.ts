@@ -55,21 +55,18 @@ function titresDeSection(src: string): string[] {
 }
 
 /**
- * Les chapitres du Profil, dans l'ordre attendu à l'écran.
+ * Les encadrés du Profil, dans l'ordre attendu à l'écran.
  *
- * 🔴 RENOMMÉS ET REHAUSSÉS LE 2026-09-21 (décision fondateur) : « TOI · TON OBJECTIF ·
- * TES REPAS » en petites capitales, chacun sous-titré, sont devenus **« Infos ·
- * Objectif · Repas »** — mêmes taille et police que « Suivi du poids » et « Cibles »,
- * et **sans la ligne d'explication**.
- * ⚠️ Ce que ça renverse, pour qu'on le sache en le relisant : la passe du 2026-08-10
- * avait mis ces blocs au niveau `SectionLabel` justement pour qu'aucun n'emprunte le
- * titre d'un chapitre, et leurs sous-titres portaient une information qui n'existe
- * nulle part ailleurs (« ce qui calcule ta dépense » était la seule chose qui envoyait
- * vers le réglage NEAT, 80 kcal/j le cran). Les deux cas qui les comptaient sont donc
- * réécrits, pas supprimés : ils tiennent désormais l'UNIFORMITÉ — cinq chapitres, un
- * seul niveau, aucun sous-titre — qui est la règle qui les remplace.
+ * 🔴 DEPUIS LE 2026-10-24 (décision fondateur, sur une référence d'une autre app :
+ * « plus léger, et quand on appuie, là on a toutes les infos qu'on peut modifier »),
+ * l'écran ne porte plus de chapitres : quatre ENCADRÉS — Toi, Kyroz+, Objectifs, Repas —
+ * chacun résumé en une ligne, et chacun ouvre la liste de ce qui se modifie.
+ * ⚠️ Ce que ça remplace : les chapitres « Infos · Objectif · Repas » en `SectionTitle`
+ * (décision du 2026-09-21), qui remplaçaient eux-mêmes « TOI · TON OBJECTIF · TES REPAS »
+ * en petites capitales (2026-08-10). L'encadré Toi porte le prénom (ou « Toi » sans
+ * prénom) : on le repère à son avatar.
  */
-const CHAPITRES = ['Infos', 'Objectif', 'Repas'];
+const ENCADRES = ['<Avatar ', 'titre="Kyroz+"', 'titre="Objectifs"', 'titre="Repas"'];
 
 describe('Profil — le mot « Réglages » ne désigne qu’un seul endroit', () => {
   it('aucun titre de section de l’écran ne porte le nom de la feuille qu’ouvre la roue', () => {
@@ -90,35 +87,22 @@ describe('Profil — le mot « Réglages » ne désigne qu’un seul endroit', (
     expect(norm(m![1])).toBe(norm(titreDeLaFeuille()));
   });
 
-  it('tous les chapitres de l’écran sont au MÊME niveau', () => {
-    // L'ancienne règle disait « SectionLabel pour tous », parce qu'un `SectionTitle`
-    // au milieu de `SectionLabel` faisait emprunter au premier bloc le titre du
-    // chapitre. Le mélange reste le défaut ; c'est le niveau retenu qui a changé.
-    for (const attendu of CHAPITRES) {
-      expect(
-        SRC_PROFIL,
-        `le chapitre « ${attendu} » n'est plus un SectionTitle`,
-      ).toMatch(new RegExp(`<SectionTitle t=\\{t\\}>${attendu}</SectionTitle>`));
+  it('les quatre encadrés sont là, dans l’ordre Toi · Kyroz+ · Objectifs · Repas', () => {
+    // L'ordre est une décision : Kyroz+ juste au-dessus des Objectifs, où vit l'objectif
+    // daté qu'il débloque.
+    const corps = SRC_PROFIL.slice(SRC_PROFIL.indexOf('export default function ProfilScreen'), SRC_PROFIL.indexOf('// ── Lignes / boîtes'));
+    const positions = ENCADRES.map((e) => corps.indexOf(e));
+    ENCADRES.forEach((e, i) => expect(positions[i], `l'encadré ${e} a disparu de l'écran`).toBeGreaterThan(0));
+    for (let i = 1; i < positions.length; i++) {
+      expect(positions[i], `${ENCADRES[i]} est rendu avant ${ENCADRES[i - 1]}`).toBeGreaterThan(positions[i - 1]);
     }
-    // Et l'uniformité se compte dans les DEUX sens : aucun chapitre ne doit
-    // redescendre au niveau d'étiquette pendant qu'un autre reste un titre.
-    const restes = [...SRC_PROFIL.matchAll(/<SectionLabel t=\{t\}[^>]*>(TOI|TON OBJECTIF|TES REPAS)<\/SectionLabel>/g)];
-    expect(restes.map((m) => m[1]), 'un ancien chapitre en petites capitales est revenu').toEqual([]);
   });
 
-  it('aucun chapitre ne porte de phrase sous son titre', () => {
-    // 🔴 DÉCISION FONDATEUR DU 2026-09-21 : « sans la phrase en dessous ». Elle
-    // renverse la passe du 2026-08-10, dont le sous-titre était l'apport principal —
-    // il disait ce que le bloc PILOTE (« ce qui calcule ta dépense ») et non de quoi
-    // il parle. ⚠️ CE QUE ÇA COÛTE, et il faut le savoir : plus rien n'indique sur
-    // cet écran que « Sport & activité » décide de la dépense, or le NEAT vaut
-    // 80 kcal/j le cran (médiane mesurée) et n'est demandé nulle part ailleurs.
-    // Le chiffre reste juste ; c'est son ADRESSE qui n'est plus donnée.
-    for (const chap of CHAPITRES) {
-      const m = SRC_PROFIL.match(new RegExp(`<Section(?:Title|Label) t=\\{t\\}([^>]*)>${chap}</Section(?:Title|Label)>`));
-      expect(m, `le chapitre « ${chap} » a disparu`).toBeTruthy();
-      expect(m![1], `le chapitre « ${chap} » a retrouvé un sous-titre`).not.toMatch(/sub=/);
-    }
+  it('l’écran ne porte plus de chapitres ni de lignes de menu — seulement les encadrés', () => {
+    // « Plus léger » : le détail vit dans la feuille de chaque encadré. Un `SectionTitle`
+    // ou une `MenuRow` qui revient sur l'écran, c'est l'ancienne liste qui repousse.
+    expect(SRC_PROFIL).not.toMatch(/<SectionTitle\b/);
+    expect(SRC_PROFIL).not.toMatch(/<MenuRow\b/);
   });
 });
 
@@ -226,13 +210,14 @@ describe('Profil — la visite guidée descend l’écran, elle ne fait pas d’
     // le premier bloc » : VERT, quel que soit l'ordre réel de l'écran. Un test qui
     // se repère sur l'outil d'un AUTRE mécanisme meurt avec lui, en silence.
     // ➡️ On se repère désormais sur le LIBELLÉ affiché, qui est le sujet du test.
-    const tdee = SRC_PROFIL.indexOf('Ta dépense par jour, pour garder ton poids');
+    // ⚠️ Depuis le 2026-10-24, cibles et dépense vivent dans la feuille Objectifs, en
+    // tête, et la dépense y est écrite comme un écart (`ecartDepense`) : c'est l'appel
+    // qu'on repère. Il doit précéder les lignes de réglage de la même feuille.
+    const feuille = SRC_PROFIL.slice(SRC_PROFIL.indexOf('function ListeObjectifs'));
+    const tdee = feuille.indexOf('ecartDepense(profile.target_kcal, profile.tdee_kcal)');
     expect(tdee, 'le libellé de la dépense estimée est introuvable — le repère a bougé').toBeGreaterThan(0);
-    // ⚠️ Le repère suit le RENOMMAGE du 2026-09-21 (« TOI » → « Infos ») : un test
-    // qui se repère sur un libellé doit suivre le libellé, sinon il mesure le vide —
-    // c'est exactement ce que la note ci-dessus raconte de `profil-tdee`.
-    const premierBloc = SRC_PROFIL.search(/<SectionTitle t=\{t\}>Infos<\/SectionTitle>/);
-    expect(premierBloc, 'le chapitre « Infos » a disparu').toBeGreaterThan(0);
-    expect(tdee, 'la dépense estimée est repassée sous les lignes de menu').toBeLessThan(premierBloc);
+    const premiereLigne = feuille.indexOf('<Ligne ');
+    expect(premiereLigne, 'la feuille Objectifs n’a plus de lignes').toBeGreaterThan(0);
+    expect(tdee, 'la dépense estimée est repassée sous les lignes de réglage').toBeLessThan(premiereLigne);
   });
 });
