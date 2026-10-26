@@ -273,8 +273,19 @@ const RETRAIT_CURSEUR = 4;
  * valeur animée pilote donc les deux : la position du curseur ET la teinte de
  * chaque libellé, qui s'interpole sur sa distance à lui.
  *
- * ⚠️ `useNativeDriver: false` est obligatoire — une couleur ne s'interpole pas
- * sur le fil natif. Le coût est nul ici : un sélecteur ne bouge qu'au tap.
+ * 🔴 **TOUT TOURNE SUR LE FIL NATIF, ET LE CURSEUR PART À L'APPUI** (2026-10-26,
+ * retour fondateur : « ça met du temps une fois qu'on appuie »). Mesuré au
+ * simulateur sur Catalogue → Réalisable : **430 ms d'arrêt** entre l'appui et le
+ * premier mouvement. Le curseur tournait sur le fil JavaScript et ne partait qu'à
+ * l'effet de mise en page, donc APRÈS le rendu de la nouvelle liste — qui, là,
+ * balayait les 559 recettes. Il glissait aussi à ~30 images/s, partageant le fil
+ * avec ce rendu. Désormais :
+ * · l'appui lance le ressort tout de suite, PUIS prévient l'écran à l'image
+ *   suivante (`requestAnimationFrame`) — l'ordre de départ part avant le rendu ;
+ * · le ressort est natif (`useNativeDriver: true`) : il avance même quand le JS
+ *   calcule. Une couleur ne s'interpole pas sur le fil natif, donc chaque libellé
+ *   est posé DEUX fois — secondaire dessous, couleur-sur-accent dessus — et seule
+ *   l'OPACITÉ du second suit le curseur. Même rendu, natif de bout en bout.
  * ⚠️ La première position se POSE (pas d'animation au montage) : un curseur qui
  * viendrait de la gauche à chaque affichage d'écran serait une animation
  * d'entrée déguisée, et la retenue est ce que la DA demande.
@@ -295,6 +306,18 @@ export function Segmented<T extends string | number>({
   const position = React.useRef(new Animated.Value(index)).current;
   const pose = React.useRef(false);
   const etaitVide = React.useRef(vide);
+  // L'option vers laquelle le curseur est DÉJÀ parti : un appui lance le ressort
+  // lui-même, l'effet ci-dessous ne doit pas le relancer quand la valeur revient.
+  const cible = React.useRef(index);
+
+  const lancer = React.useCallback((vers: number) => {
+    cible.current = vers;
+    Animated.spring(position, {
+      toValue: vers,
+      useNativeDriver: true,
+      ...ressortRN(ressortReduit(RESSORT.pose, reduire)),
+    }).start();
+  }, [position, reduire]);
 
   // Chaque option occupe une part égale du rail, moins les gouttières.
   const utile = Math.max(0, larg - Spacing.xs * 2 - Spacing.xs * (options.length - 1));
@@ -308,15 +331,21 @@ export function Segmented<T extends string | number>({
     // Première pose, ou sortie de l'état vide : on POSE le curseur, on ne l'y fait pas
     // glisser. Il ne vient pas d'une option précédente — il n'y en avait aucune.
     if (!pose.current || etaitVide.current) {
-      pose.current = true; etaitVide.current = vide; position.setValue(index); return;
+      pose.current = true; etaitVide.current = vide; cible.current = index; position.setValue(index); return;
     }
     etaitVide.current = vide;
-    Animated.spring(position, {
-      toValue: index,
-      useNativeDriver: false,
-      ...ressortRN(ressortReduit(RESSORT.pose, reduire)),
-    }).start();
-  }, [index, vide, reduire, position]);
+    // Changement venu de l'EXTÉRIEUR (l'écran a changé la valeur lui-même) : on suit.
+    if (index !== cible.current) lancer(index);
+  }, [index, vide, lancer, position]);
+
+  const choisir = (v: T, i: number) => {
+    if (v === value) return;
+    if (glissant) lancer(i);
+    // L'écran n'est prévenu qu'à l'image suivante : l'ordre de départ du ressort
+    // (natif) part d'abord, le rendu de la nouvelle vue ensuite. Dans l'autre
+    // ordre, le curseur attend la liste.
+    requestAnimationFrame(() => onChange(v));
+  };
 
   // Une seule option : rien à départager, donc rien à faire glisser. Rien de choisi :
   // rien à désigner — et `on` reste faux partout, donc tous les libellés restent
@@ -352,27 +381,35 @@ export function Segmented<T extends string | number>({
       {options.map((o, i) => {
         const on = o.value === value;
         return (
-          <Presse key={String(o.value)} onPress={() => onChange(o.value)} activeOpacity={OPACITE_PRESSION}
+          <Presse key={String(o.value)} onPress={() => choisir(o.value, i)} activeOpacity={OPACITE_PRESSION}
             style={{ flex: 1, paddingVertical: Spacing.md, borderRadius: Radius.button - RETRAIT_CURSEUR, alignItems: 'center' }}>
             {/* `textAlign: 'center'` : un libellé qui passe sur deux lignes restait calé
                 à GAUCHE dans sa case (vu sur « Repas complet », 2026-09-22). */}
-            <Animated.Text
-              style={{
-                ...Type.bodySmallStrong,
-                textAlign: 'center',
-                color: glissant
-                  ? position.interpolate({
-                      // L'option i est à l'accent quand le curseur est SUR elle,
-                      // et redevient secondaire dès qu'il s'en éloigne d'un cran.
-                      inputRange: [i - 1, i, i + 1],
-                      outputRange: [t.textSecondary, t.onAccent, t.textSecondary],
-                      extrapolate: 'clamp',
-                    })
-                  : (on ? t.onAccent : t.textSecondary),
-              }}
-            >
+            <Text style={{ ...Type.bodySmallStrong, textAlign: 'center', color: !glissant && on ? t.onAccent : t.textSecondary }}>
               {o.label}
-            </Animated.Text>
+            </Text>
+            {glissant && (
+              <Animated.View
+                pointerEvents="none"
+                importantForAccessibility="no-hide-descendants"
+                accessibilityElementsHidden
+                style={{
+                  position: 'absolute', top: 0, bottom: 0, left: 0, right: 0,
+                  alignItems: 'center', justifyContent: 'center',
+                  // L'option i est à l'accent quand le curseur est SUR elle,
+                  // et redevient secondaire dès qu'il s'en éloigne d'un cran.
+                  opacity: position.interpolate({
+                    inputRange: [i - 1, i, i + 1],
+                    outputRange: [0, 1, 0],
+                    extrapolate: 'clamp',
+                  }),
+                }}
+              >
+                <Text style={{ ...Type.bodySmallStrong, textAlign: 'center', color: t.onAccent }}>
+                  {o.label}
+                </Text>
+              </Animated.View>
+            )}
           </Presse>
         );
       })}
