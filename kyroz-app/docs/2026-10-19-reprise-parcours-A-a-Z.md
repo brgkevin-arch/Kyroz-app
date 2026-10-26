@@ -89,6 +89,78 @@ adresse » (code à 6 chiffres) → questionnaire.** Trois écrans avant la prem
 | P7 | Connexion : « Ton mot de passe » ; « E-mail » partout | petit |
 | P8 | Sur iPhone : Apple EN HAUT, l'e-mail en dessous | petit (à vérifier au simulateur) |
 
+## Segment 2 — Questionnaire « toi » (prénom, genre, naissance, poids, taille, silhouette)
+
+*Regardé le 2026-10-26 au simulateur iPhone 17 Pro, en sombre, comme un nouvel inscrit
+(session factice, aucune donnée locale), sur `main` à `ebf7c5d` (après la 65ᵉ OTA). Trois
+pages : `prenom`, `infos`, `masseGrasse` de `app/(auth)/onboarding.tsx`. Comparé au Profil
+refait au segment 12 (« Genre », roulettes, carte au rond coché, crans par rôle).*
+
+### Constats
+
+**A. Page 1 — le prénom**
+
+1. **À l'arrivée, le titre « Bienvenue sur Kyroz » n'est pas à l'écran.** Le clavier s'ouvre
+   tout seul (`autoFocus`) et la page défile pour garder le champ visible : le titre passe
+   sous la barre du haut, on ne voit qu'une phrase grise. Il revient quand le clavier se
+   ferme. C'est la toute première page après l'inscription. *(Cause probable : le
+   défilement « saisie au-dessus du clavier » de #407, déjà en ligne ; à confirmer.)*
+2. **« Ton prénom » deux fois, et la consigne en gras.** Le libellé au-dessus du champ et le
+   texte du champ vide disent la même chose ; ce texte est en gras (17), il se lit comme
+   une réponse déjà donnée. Même chose pour « À renseigner » (page 2) et « ex. 18 » (page 3).
+3. **Deux compteurs qui ne disent pas la même chose.** La barre compte la page du prénom
+   (2ᵉ page = 2/9), l'étiquette non (« ÉTAPE 1 / 8 »).
+
+**B. Page 2 — genre, naissance, poids, taille**
+
+4. **Le genre n'a pas de nom.** Deux cartes « Homme / Femme » sans intitulé, alors que les
+   trois champs suivants en ont un. Le Profil l'appelle « Genre » ; le message de blocage dit
+   « Indique si tu es un homme ou une femme ».
+5. **Les roulettes s'ouvrent dans une feuille pleine hauteur, vide aux deux tiers** (date,
+   poids, taille). Au Profil, la même roulette vit DANS la feuille « Toi ». La règle de
+   §8 met le contenu court dans une feuille à sa hauteur (`ActionSheet`).
+6. **La roulette part d'une valeur moyenne** (1ᵉʳ janvier 1996, 75 kg, 176 cm pour un
+   homme), et un « Valider » sans rien toucher l'enregistre. C'est l'usage d'iOS et le choix
+   des roulettes (2026-09-22) ; je le note sans proposer de le changer.
+7. **La date a « JOUR · MOIS · ANNÉE » sous ses colonnes, le poids et la taille rien.**
+   Détail.
+
+**C. Page 3 — la masse grasse**
+
+8. **La silhouette choisie devient une carte pleine (blanche)**, la grille de cases pleines
+   retirée partout ailleurs le 2026-10-25. C'est la seule sélection hors de la carte au rond
+   coché, et elle n'est pas dans les exceptions de §8. La silhouette claire sur fond blanc se
+   lit mal.
+9. **🔴 Le champ et la silhouette se contredisent, et le champ gagne en silence.** Si l'on
+   tape un % puis qu'on touche une silhouette sans fermer le clavier : la silhouette s'allume,
+   le champ garde l'ancien chiffre (il ne se met pas à jour tant qu'il a le focus) ; en
+   quittant le champ, c'est le chiffre tapé qui est enregistré et la silhouette s'éteint. Vu
+   au simulateur (sélection effacée au départ du champ) et lu dans
+   `BodyFatPicker.tsx` (`onBlur` réécrit `pctText`). Juste après, « Continuer » restait
+   blanc sans aucune sélection ; il est redevenu gris au tap, avec le message.
+10. **Le % exact se tape au clavier**, alors que la date, le poids et la taille sont à la
+    roulette (le Profil a la même chose : même composant).
+11. **Les silhouettes sont petites** (~70 pt de haut, deux par ligne) : ~10 et ~15 % se
+    distinguent mal.
+
+*Pas vu* : le mode clair (le simulateur n'a pas basculé), la question « mesuré ou
+estimé ? » (au-delà de 35 % H / 43 % F, la saisie au clavier AZERTY du simulateur l'a
+empêchée), une inscription par Apple (prénom pré-rempli).
+
+### Ce que je propose (à trancher)
+
+| # | Proposition | Coût |
+|---|---|---|
+| P1 | Page 1 : le titre reste à l'écran à l'arrivée (ne pas faire défiler quand le champ est déjà visible au-dessus du clavier) | petit (à vérifier au simulateur) |
+| P2 | Plus de consigne en gras dans un champ vide : texte normal, gris ; « Ton prénom » une seule fois | petit |
+| P3 | Un seul compteur : l'étiquette compte aussi la page du prénom (« ÉTAPE 2 / 9 »), ou la barre ne la compte plus | petit |
+| P4 | Intitulé « Genre » au-dessus des deux cartes, et message « Indique ton genre pour continuer » | petit |
+| P5 | Roulettes dans une feuille à la hauteur de leur contenu | moyen (gestes à vérifier au simulateur) |
+| P6 | Silhouettes : même DA que partout — contour et rond coché, fond inchangé | petit |
+| P7 | Toucher une silhouette remplace le chiffre du champ et ferme le clavier ; un test le compte | petit |
+| P8 | Silhouettes plus grandes (une par ligne, ou image agrandie) | moyen (dépend de la résolution des images) |
+| P9 | % exact à la roulette (une ligne « Je connais mon % » qui l'ouvre), ici et au Profil | moyen |
+
 ## Segment 12 — Profil (contenu et visuel)
 
 *Ouvert le 2026-10-24 à la demande du fondateur (« on va retravailler le contenu et le
@@ -183,3 +255,5 @@ a pas remis en cause. Suites dans d'autres sessions : polices (#412, #415), fond
   voir sur iPhone.
 - 2026-10-25/26 — segment 12 vu au simulateur iPhone, retouché (cf. « Retouches sur iPhone
   et clôture »), fusionné (#406) et publié en 63ᵉ OTA. **Segment 12 CLOS.**
+- 2026-10-26 — segment 2 (questionnaire « toi ») audité au simulateur iPhone : 11 constats,
+  P1 à P9. En attente des arbitrages du fondateur ; rien codé.
