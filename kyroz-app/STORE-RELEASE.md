@@ -219,7 +219,13 @@ installation neuve part du binaire, donc du (6).
   encore `0639ecc` après la compilation, 0 PR ouverte — le piège du 11 août ne s'est pas
   rejoué). *(Le précédent :)* le **(6)** — `ceec1b17`, commit
   `1047b9f`, terminé le 2026-08-11 à 20 h 37. Il a **62 commits de retard** sur `main` — chiffre RE-MESURÉ le 2026-08-26 (il en annonçait 40, mesurés le 2026-08-23), qui **grandit à chaque merge** : le relire avec `git rev-list --count 1047b9f..origin/main` plutôt que de le recopier (même défaut que le décompte d'OTA tenu à la main).
-- **OTA** : la dernière est la **62ᵉ** (groupe `28380372`, **iOS seulement**, 2026-10-23),
+- **OTA** : la dernière est la **63ᵉ** (groupe `8c32b08f`, **iOS seulement**, 2026-10-26),
+  publiée sur le commit `9759d26` — `main`, arbre propre, détaché sur `origin/main`.
+  ✅ **Runtime iOS `823c89db…` = le build (22)**, empreinte comparée AVANT publication.
+  Contenu (#400 à #409) : le Profil en quatre encadrés, la saisie au-dessus du clavier,
+  le nouveau mouvement, la liste en grammes, les restes cuisinés dans la semaine, le ticket
+  de caisse endormi jusqu'au lecteur natif.
+  *(La précédente :)* la **62ᵉ** (groupe `28380372`, **iOS seulement**, 2026-10-23),
   publiée sur le commit `435f82a` — `main`, arbre propre, détaché sur `origin/main`.
   ✅ **Runtime iOS `823c89db…` = le build (22)**, empreinte comparée AVANT publication.
   Contenu (#376, #390, #393, #395) : **le plan daté** (un plan généré le week-end est celui
