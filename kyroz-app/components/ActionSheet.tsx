@@ -3,7 +3,7 @@ import {
   Modal, View, StyleSheet, Animated, PanResponder, Pressable, useWindowDimensions,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useTheme, Spacing, Fond, Radius } from '../constants/theme';
+import { useTheme, Spacing, Fond, Radius, CIBLE_TACTILE_MIN } from '../constants/theme';
 import Materiau, { useVerre } from './Materiau';
 import { useLayout } from '../constants/layout';
 import {
@@ -20,6 +20,13 @@ interface Props {
   visible: boolean;
   onClose: () => void;
   children: React.ReactNode;
+  /**
+   * Le glissement pour fermer ne part que de la POIGNÉE, pas de toute la feuille.
+   * Pour un contenu qui défile lui-même vers le bas — une roulette : sinon la feuille
+   * prend le geste et se ferme au lieu de faire tourner la colonne (vu au simulateur
+   * le 2026-10-26, segment 2). Même partage que `Sheet` (`dragHandlers`).
+   */
+  glissePoigneeSeule?: boolean;
 }
 
 /**
@@ -58,7 +65,7 @@ const RAYON_VERRE = Spacing.xxl + Radius.button;
 /** Le décollement des bords — l'écart qui fait lire la feuille comme posée au-dessus. */
 const MARGE_VERRE = Spacing.sm;
 
-export function ActionSheet({ visible, onClose, children }: Props) {
+export function ActionSheet({ visible, onClose, children, glissePoigneeSeule }: Props) {
   const t = useTheme();
   const layout = useLayout();
   // Relu à chaque rendu : « Réduire la transparence » bascule pendant que l'app tourne.
@@ -254,7 +261,7 @@ export function ActionSheet({ visible, onClose, children }: Props) {
             transparence ») est la feuille d'AVANT au pixel près — peinte, collée aux
             bords, arrondie en haut seulement. C'est ce qui autorise l'OTA. */}
         <Animated.View
-          {...pan.panHandlers}
+          {...(glissePoigneeSeule ? {} : pan.panHandlers)}
           onLayout={(e) => setHauteurFeuille(e.nativeEvent.layout.height)}
           style={[
             styles.sheet,
@@ -269,7 +276,14 @@ export function ActionSheet({ visible, onClose, children }: Props) {
         >
           {/* Le verre se rend DERRIÈRE le contenu, à la forme de la feuille. */}
           {verre && <Materiau pointerEvents="none" style={[StyleSheet.absoluteFill, { borderRadius: RAYON_VERRE }]} />}
-          <View style={[styles.handle, { backgroundColor: t.lineStrong }]} />
+          {glissePoigneeSeule ? (
+            // Une zone de 44 pt autour de la poignée : 5 pt de haut, elle ne se viserait pas.
+            <View {...pan.panHandlers} style={styles.zonePoignee}>
+              <View style={[styles.handle, { backgroundColor: t.lineStrong, marginBottom: 0 }]} />
+            </View>
+          ) : (
+            <View style={[styles.handle, { backgroundColor: t.lineStrong }]} />
+          )}
           {children}
         </Animated.View>
       </View>
@@ -295,4 +309,10 @@ const styles = StyleSheet.create({
   sheetVerreTablette: { marginBottom: Spacing.xxl },
   sheetSurClavier: { paddingBottom: Spacing.lg },
   handle: { width: 44, height: 5, borderRadius: 3, alignSelf: 'center', marginBottom: Spacing.sm },
+  // Même hauteur totale que la poignée seule (haut de feuille + poignée + marge), pour
+  // que le contenu ne bouge pas : la cible tactile déborde vers le haut et vers les côtés.
+  zonePoignee: {
+    minHeight: CIBLE_TACTILE_MIN, marginTop: -Spacing.md, marginHorizontal: -Spacing.xxl,
+    alignItems: 'center', justifyContent: 'center',
+  },
 });

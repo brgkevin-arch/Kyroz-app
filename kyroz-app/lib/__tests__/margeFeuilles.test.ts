@@ -83,9 +83,11 @@ describe('Tout contenu de feuille apporte sa marge intérieure', () => {
     // après la migration vers `Presse` (CLAUDE.md §8).
     expect(ENFANTS.length).toBeGreaterThanOrEqual(15);
     expect(RESOLUS.length).toBeGreaterThanOrEqual(15);
-    // Et celui par qui le défaut est arrivé doit rester dans le périmètre : s'il
-    // en sortait, ce fichier garderait son titre sans plus rien surveiller.
-    expect(RESOLUS.map((e) => e.nom)).toContain('BirthDatePicker');
+    // Un témoin connu doit rester dans le périmètre. C'était `BirthDatePicker`, par
+    // qui le défaut est arrivé — mais sa roulette vit depuis le 2026-10-26 dans une
+    // `ActionSheet` (segment 2, P5), qui pose ELLE-MÊME la marge : il en est sorti à
+    // bon droit. Le témoin est désormais la feuille de pesée.
+    expect(RESOLUS.map((e) => e.nom)).toContain('WeightCheckin');
   });
 
   it('🔴 aucun contenu de feuille ne colle au bord de l’écran', () => {
@@ -99,10 +101,9 @@ describe('Tout contenu de feuille apporte sa marge intérieure', () => {
     // Un compteur qu'on n'a jamais vu rougir ne prouve rien. On rejoue ici le
     // fichier tel qu'il était avant le correctif — root `<View style={{ gap:
     // Spacing.lg }}>`, pas une seule marge — et la sonde doit le désigner.
-    const avant = readFileSync(join(RACINE, 'components', 'BirthDatePicker.tsx'), 'utf8')
-      .replace('padding: Spacing.xxl, gap: Spacing.lg', 'gap: Spacing.lg');
-    expect(MARGE_FEUILLE.test(sansCommentaires(avant))).toBe(false);
-    // …et le fichier RÉEL, lui, passe.
-    expect(MARGE_FEUILLE.test(fichierDe('BirthDatePicker')!.code)).toBe(true);
+    const avant = '<View style={{ gap: Spacing.lg }}>';
+    expect(MARGE_FEUILLE.test(avant)).toBe(false);
+    // …et un fichier RÉEL, lui, passe.
+    expect(MARGE_FEUILLE.test(fichierDe('WeightCheckin')!.code)).toBe(true);
   });
 });

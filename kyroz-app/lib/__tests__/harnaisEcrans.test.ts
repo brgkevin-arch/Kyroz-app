@@ -34,7 +34,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { TOURS } from '../tours';
 import { CIBLE_TACTILE_MIN } from '../../constants/theme';
-import { WEIGHT_BOUNDS, HEIGHT_BOUNDS } from '../safety';
+import { WEIGHT_BOUNDS, HEIGHT_BOUNDS, bodyFatBounds } from '../safety';
 
 const RACINE = join(__dirname, '..', '..');
 const lire = (rel: string) => readFileSync(join(RACINE, rel), 'utf8');
@@ -218,26 +218,11 @@ const ANCRES: Ancre[] = [
 // naissance jusqu'au 2026-08-12, où elles sont devenues une roulette. La forme
 // `via` reste décrite ci-dessous : `DateInput` est toujours en service pour
 // l'échéance de l'objectif daté, que le harnais ne remplit pas aujourd'hui.
-type Via = { fichier: string; cle: string };
-const PLACEHOLDERS: { quoi: string; valeur: string; dans: string; via?: Via }[] = [
-  // ⚠️ Ce placeholder REPREND le libellé du champ depuis le 2026-08-12 (il valait
-  // « Kévin »). Il reste une ancre valable — le harnais remplit le champ PAR son
-  // placeholder — mais il ne se distingue plus du libellé : `fillPh` doit viser
-  // l'attribut, pas le texte à l'écran.
-  { quoi: 'prénom (étape 1)', valeur: 'Ton prénom', dans: 'app/(auth)/onboarding.tsx' },
-  // ⚠️ LES TROIS PLACEHOLDERS DE LA DATE DE NAISSANCE ONT DISPARU LE 2026-08-12 :
-  // ce n'est plus une saisie, c'est une ROULETTE (`components/Wheel.tsx`), et une
-  // roulette ne se remplit pas par un placeholder. Le harnais la pilote par les
-  // repères `wheel-*` — vérifiés plus bas, dans leur propre table, parce qu'ils
-  // se prouvent autrement (un `testID`, pas un attribut `placeholder`).
-  // ℹ️ `champDate` reste employé : l'échéance de l'objectif daté, elle, se tape
-  // toujours dans `DateInput`.
-  // ⚠️ POIDS ET TAILLE NE SONT PLUS ICI depuis le 2026-09-22 : leurs exemples « 80 »
-  // et « 178 » se lisaient comme des valeurs saisies (retour testeurs), ils disent
-  // désormais tous deux « À renseigner ». Deux champs, un seul placeholder : ils se
-  // visent par `testID`, vérifié plus bas avec les repères de roulette.
-  { quoi: 'masse grasse (étape 3)', valeur: 'ex. 18', dans: 'components/BodyFatPicker.tsx' },
-];
+// 🔴 LA TABLE DES PLACEHOLDERS EST VIDE DEPUIS LE 2026-10-26 (segment 2) : le prénom
+// n'a plus de placeholder (P2 — il reprenait le libellé, en gras) et le % de masse
+// grasse ne se tape plus (P9 — roulette). Le prénom se vise par son `testID`, le % par
+// ses colonnes de roulette, vérifiés plus bas. Historique : poids et taille en sont
+// sortis le 2026-09-22, la date de naissance le 2026-08-12.
 
 /**
  * Clés AsyncStorage lues ou écrites par le harnais. Un renommage ici ne casse rien
@@ -308,26 +293,9 @@ describe('harnais Playwright — les libellés cherchés existent encore', () =>
     ).toBe(true);
   });
 
-  it.each(PLACEHOLDERS)('placeholder « $valeur » — $quoi', ({ valeur, dans, via }) => {
-    // Écrit sur le champ (`placeholder="80"`), ou décidé dans un écran et transmis à un
-    // composant de saisie (`placeholders={{ y: '1994' }}` → `DateInput`). Les deux
-    // rendent le même attribut dans le DOM ; la seconde forme exige donc les DEUX bouts,
-    // et pour LE champ concerné : l'exemple là où il est choisi, et son passage effectif
-    // là où ce champ-là est rendu.
-    const direct = lire(dans).includes(`placeholder="${valeur}"`);
-    const transmis = !!via
-      && lire(dans).includes(`${via.cle}: '${valeur}'`)
-      && lire(via.fichier).includes(`placeholder={placeholders?.${via.cle}}`);
-    expect(
-      direct || transmis,
-      via
-        ? `${dans} ne choisit plus « ${via.cle}: '${valeur}' », ou ${via.fichier} ne le passe plus à ce champ → fillPh() ne remplira RIEN, en silence`
-        : `${dans} n'a plus de champ avec placeholder="${valeur}" → fillPh() ne remplira RIEN, en silence`,
-    ).toBe(true);
-    expect(
-      lire(HARNAIS).includes(`'${valeur}'`),
-      `${HARNAIS} ne vise plus le placeholder « ${valeur} » : mettre à jour cette table`,
-    ).toBe(true);
+  it('le champ du prénom se vise par son testID', () => {
+    expect(lire('app/(auth)/onboarding.tsx')).toContain('testID="champ-prenom"');
+    expect(lire(HARNAIS)).toContain("getByTestId('champ-prenom')");
   });
 
   // ── La roulette de date de naissance (choisirDateNaissance) ──────────────
@@ -367,6 +335,8 @@ describe('harnais Playwright — les libellés cherchés existent encore', () =>
     { quoi: 'colonne des kilos', repere: 'wheel-poids', fichier: 'components/MesureField.tsx' },
     { quoi: 'colonne des dixièmes', repere: 'wheel-poids-dixieme', fichier: 'components/MesureField.tsx' },
     { quoi: 'colonne des centimètres', repere: 'wheel-taille', fichier: 'components/MesureField.tsx' },
+    { quoi: 'colonne des pourcents (masse grasse)', repere: 'wheel-gras', fichier: 'components/MesureField.tsx' },
+    { quoi: 'colonne des dixièmes de %', repere: 'wheel-gras-dixieme', fichier: 'components/MesureField.tsx' },
   ])('repère de roulette « $repere » — $quoi', ({ repere, fichier }) => {
     expect(
       lire(fichier).includes(repere),
@@ -382,6 +352,8 @@ describe('harnais Playwright — les libellés cherchés existent encore', () =>
     const harnais = lire(HARNAIS);
     expect(harnais).toContain(`export const POIDS_MIN = ${WEIGHT_BOUNDS[0]};`);
     expect(harnais).toContain(`export const TAILLE_MIN = ${HEIGHT_BOUNDS[0]};`);
+    expect(harnais).toContain(`export const GRAS_MIN = { male: ${bodyFatBounds('male')[0]}, female: ${bodyFatBounds('female')[0]} };`);
+    expect(lire('lib/roulettesMesure.ts')).toContain('const [lo, hi] = bodyFatBounds(sex);');
     // …et la roulette part bien de ces bornes (elle les lit, elle ne les recopie pas).
     expect(lire('lib/roulettesMesure.ts')).toContain('plage(WEIGHT_BOUNDS[0], WEIGHT_BOUNDS[1])');
     expect(lire('lib/roulettesMesure.ts')).toContain('plage(HEIGHT_BOUNDS[0], HEIGHT_BOUNDS[1])');

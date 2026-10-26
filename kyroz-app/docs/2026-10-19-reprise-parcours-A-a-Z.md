@@ -161,6 +161,23 @@ empêchée), une inscription par Apple (prénom pré-rempli).
 | P8 | Silhouettes plus grandes (une par ligne, ou image agrandie) | moyen (dépend de la résolution des images) |
 | P9 | % exact à la roulette (une ligne « Je connais mon % » qui l'ouvre), ici et au Profil | moyen |
 
+### Ce que le fondateur a tranché (2026-10-26)
+
+**Tout est retenu, sauf les constats 6 et 7 (laissés tels quels).** P3 : la barre ne compte
+plus la page du prénom (vide sur cette page, puis 1/8 → 8/8). P8 : image agrandie, deux
+silhouettes par ligne. P9 : ici **et** au Profil. Codé sur `claude/segment-2-questionnaire`,
+vu au simulateur iPhone 17 Pro (sombre). Ce que le code a dû trancher en plus :
+- **P1** : le titre était chassé par le clavier ouvert d'office — le pied de page (bouton +
+  mentions) ne laissait plus de place au champ. Le clavier s'ouvre désormais au premier
+  appui (plus d'`autoFocus`).
+- **P5** : dans la feuille à sa hauteur, tourner une colonne vers le bas FERMAIT la feuille
+  (vu au simulateur). Pour les roulettes, le glissement de fermeture ne part plus que de la
+  poignée (`ActionSheet` → `glissePoigneeSeule`) ; toucher le fond ferme toujours.
+- **P9** : la ligne montre le % dès qu'aucune silhouette ne le porte — sans ça, un 12 %
+  enregistré au Profil n'apparaissait plus nulle part. P7 est tenu par construction : plus de
+  clavier, plus de champ qui contredit la silhouette.
+- Le sous-titre de la page 3 dit « ou indique ton % » (plus « saisis »).
+
 ## Segment 12 — Profil (contenu et visuel)
 
 *Ouvert le 2026-10-24 à la demande du fondateur (« on va retravailler le contenu et le
@@ -321,6 +338,9 @@ moyenne. A + B se cumulent ; sans sport, B seul suffirait presque.
   et clôture »), fusionné (#406) et publié en 63ᵉ OTA. **Segment 12 CLOS.**
 - 2026-10-26 — segment 2 (questionnaire « toi ») audité au simulateur iPhone : 11 constats,
   P1 à P9. En attente des arbitrages du fondateur ; rien codé.
+- 2026-10-26 — arbitrages rendus (tout sauf 6 et 7), codés sur
+  `claude/segment-2-questionnaire`, vus au simulateur. PR à fusionner sur « go » du fondateur ;
+  OTA sur un « go » séparé.
 - 2026-10-26 — segment 8, constat 4 (macros Plan ≠ Profil) mesuré sur le moteur : surtout les
   fibres (~75 kcal/j que P/G/L ne portent pas → lipides −4 g, glucides −8 g sans sport), le bruit
   des recettes (±4 g), et le sport (glucides +15 / −56 à −87 g selon le jour, voulu). Pas de défaut

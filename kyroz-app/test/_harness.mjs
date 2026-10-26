@@ -330,10 +330,12 @@ async function poserRoulette(page, cibles, quoi) {
  */
 export const POIDS_MIN = 30;
 export const TAILLE_MIN = 120;
-export async function choisirMesure(page, mesure, valeur) {
+/** Le plancher du % de masse grasse, PAR GENRE (`bodyFatBounds`). */
+export const GRAS_MIN = { male: 5, female: 12 };
+export async function choisirMesure(page, mesure, valeur, sex) {
   const ligne = page.getByTestId(`ligne-${mesure}`);
   if (!(await ligne.isVisible({ timeout: 3000 }).catch(() => false))) {
-    await panne(page, `${mesure}-ligne`, `la ligne « ${mesure} » est introuvable à l'étape 2`);
+    await panne(page, `${mesure}-ligne`, `la ligne « ${mesure} » est introuvable`);
     return false;
   }
   await ligne.click().catch(() => {});
@@ -341,11 +343,14 @@ export async function choisirMesure(page, mesure, valeur) {
   const v = Number(valeur);
   const cibles = mesure === 'poids'
     ? [['wheel-poids', Math.floor(v) - POIDS_MIN], ['wheel-poids-dixieme', Math.round(v * 10) % 10]]
-    : [['wheel-taille', Math.round(v) - TAILLE_MIN]];
+    : mesure === 'gras'
+      ? [['wheel-gras', Math.floor(v) - GRAS_MIN[sex]], ['wheel-gras-dixieme', Math.round(v * 10) % 10]]
+      : [['wheel-taille', Math.round(v) - TAILLE_MIN]];
   if (!(await poserRoulette(page, cibles, mesure))) return false;
   await tapPrimary(page, 'Valider');
   await sleep(300);
-  if (((await ligne.textContent().catch(() => '')) ?? '').includes('À renseigner')) {
+  const texte = (await ligne.textContent().catch(() => '')) ?? '';
+  if (texte.includes('À renseigner') || (mesure === 'gras' && texte.includes('Choisir'))) {
     await panne(page, `${mesure}-validee`, `« Valider » n'a rien enregistré : la ligne « ${mesure} » dit toujours « À renseigner »`);
     return false;
   }
@@ -433,11 +438,10 @@ export async function runOnboarding(page, p = DEFAULT_PERSONA) {
   };
 
   // 1 — prénom
-  // ⚠️ Le placeholder vaut « Ton prénom » depuis le 2026-08-12 — il valait « Kévin ».
-  // Il est donc IDENTIQUE au libellé du champ, ce qui ne gêne pas `fillPh`
-  // (`getByPlaceholder` lit l'attribut, jamais le texte à l'écran) mais interdit de
-  // basculer ce remplissage sur `getByText` : il attraperait le libellé.
-  await fillPh(page, 'Ton prénom', p.name);
+  // ⚠️ Par son `testID` depuis le 2026-10-26 : le champ n'a PLUS de placeholder
+  // (segment 2, P2 — il reprenait le libellé « Ton prénom », en gras). Avant, il
+  // valait « Kévin » (jusqu'au 2026-08-12).
+  await page.getByTestId('champ-prenom').fill(String(p.name)).catch(() => {});
   await sleep(300);
   if (!(await suivant(1))) return { ok: false, etape: 1, repas: 0 };
 
@@ -459,8 +463,9 @@ export async function runOnboarding(page, p = DEFAULT_PERSONA) {
   await sleep(400);
   if (!(await suivant(2))) return { ok: false, etape: 2, repas: 0 };
 
-  // 3 — masse grasse (saisie % directe plutôt que la silhouette)
-  await fillPh(page, 'ex. 18', p.bodyFat);
+  // 3 — masse grasse (le % exact plutôt que la silhouette), à la ROULETTE depuis le
+  // 2026-10-26 (segment 2, P9) : plus de champ « ex. 18 » à remplir.
+  if (!(await choisirMesure(page, 'gras', p.bodyFat, p.sex))) return { ok: false, etape: 3, repas: 0 };
   await sleep(300);
   if (!(await suivant(3))) return { ok: false, etape: 3, repas: 0 };
 
