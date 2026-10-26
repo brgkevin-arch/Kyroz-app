@@ -239,7 +239,11 @@ export default function ReserveScreen() {
               t={t}
               options={CONSERVATIONS.map((c) => ({ label: c.label, value: c.value }))}
               value={vue}
-              onChange={(v) => { animerMiseEnPage(); setVue(v as Conservation); }}
+              // Changer de vue = la nouvelle liste, d'un coup, comme un onglet d'iOS (2026-10-26).
+              // Le fondu de mise en page qui l'accompagnait gardait l'ancienne liste 200 ms de
+              // plus à l'écran et partageait le fil avec son rendu : c'était de l'attente, pas
+              // du mouvement. Le curseur, lui, glisse — c'est lui qui relie l'avant et l'après.
+              onChange={(v) => setVue(v as Conservation)}
             />
           </View>
         )}
