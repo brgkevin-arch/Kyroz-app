@@ -6,7 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import Constants from 'expo-constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter, useFocusEffect, Redirect } from 'expo-router';
-import { useTheme, ThemePalette, Radius, Spacing, Type, Fond, CIBLE_TACTILE_MIN, Trait, Icone, OPACITE_PRESSION } from '../constants/theme';
+import { useTheme, ThemePalette, Radius, Spacing, Type, Fond, CIBLE_TACTILE_MIN, HAUTEUR_LIGNE, Trait, Icone, OPACITE_PRESSION } from '../constants/theme';
 import { useLayout } from '../constants/layout';
 import { ThemeMode, useThemeMode, setThemeMode } from '../lib/themeMode';
 import { ACCENTS, ACCENT_IDS, useAccentId, setAccentId, readableOn } from '../lib/accentColor';
@@ -1030,7 +1030,7 @@ function Bloc({ t, children }: { t: ThemePalette; children: React.ReactNode }) {
 function Ligne({ t, label, valeur, onPress, last }: { t: ThemePalette; label: string; valeur: string; onPress: () => void; last?: boolean }) {
   return (
     <Presse onPress={onPress} activeOpacity={OPACITE_PRESSION} accessibilityRole="button" accessibilityLabel={`${label}, ${valeur}`}
-      style={[{ flexDirection: 'row', alignItems: 'center', gap: Spacing.md, minHeight: CIBLE_TACTILE_MIN, paddingVertical: Spacing.md }, !last && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.line }]}>
+      style={[{ flexDirection: 'row', alignItems: 'center', gap: Spacing.md, minHeight: HAUTEUR_LIGNE, paddingVertical: Spacing.md }, !last && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.line }]}>
       <Text style={{ ...Type.ligne, color: t.text, flexShrink: 0 }}>{label}</Text>
       <Text style={{ ...Type.ligne, color: t.textSecondary, flex: 1, textAlign: 'right' }} numberOfLines={1}>{valeur}</Text>
       <Ionicons name="chevron-forward" size={Icone.standard} color={t.textTertiary} />
@@ -1133,7 +1133,7 @@ function ListeRepas({ t, profile, ecarts, onOuvrir, onJours, onEcarts, dragHandl
         {creneaux.map((c) => (
           <Presse key={c.id} onPress={() => onOuvrir('meals', 'repas')} activeOpacity={OPACITE_PRESSION} accessibilityRole="button"
             accessibilityLabel={`${c.label}, ${formatSlotTime(c)}`}
-            style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.md, minHeight: CIBLE_TACTILE_MIN, paddingVertical: Spacing.md, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.line }}>
+            style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.md, minHeight: HAUTEUR_LIGNE, paddingVertical: Spacing.md, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.line }}>
             <Text style={{ ...Type.h3, color: t.textSecondary, width: 52, fontVariant: ['tabular-nums'] }}>{formatSlotTime(c)}</Text>
             <Text style={{ ...Type.ligne, color: t.text, flex: 1 }} numberOfLines={1}>{c.label}</Text>
             {copieux.includes(c.id) && <Pastille t={t} label="Copieux" />}
@@ -1152,7 +1152,7 @@ function ListeRepas({ t, profile, ecarts, onOuvrir, onJours, onEcarts, dragHandl
       <Bloc t={t}>
         <Presse onPress={() => onOuvrir('prefs', 'regime')} activeOpacity={OPACITE_PRESSION} accessibilityRole="button"
           accessibilityLabel={`Régime, ${regimeResume(profile)}`}
-          style={{ paddingVertical: Spacing.md, gap: Spacing.sm, minHeight: CIBLE_TACTILE_MIN, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.line }}>
+          style={{ paddingVertical: Spacing.md, gap: Spacing.sm, minHeight: HAUTEUR_LIGNE, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.line }}>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
             <Text style={{ ...Type.h3, color: t.text, flex: 1 }}>{regimeResume(profile)}</Text>
             <Ionicons name="chevron-forward" size={Icone.standard} color={t.textTertiary} />
@@ -1163,7 +1163,7 @@ function ListeRepas({ t, profile, ecarts, onOuvrir, onJours, onEcarts, dragHandl
         </Presse>
         <Presse onPress={() => onOuvrir('prefs', 'evites')} activeOpacity={OPACITE_PRESSION} accessibilityRole="button"
           accessibilityLabel={`Aliments évités, ${profile.disliked_foods.length || 'aucun'}`}
-          style={{ paddingVertical: Spacing.md, gap: Spacing.sm, minHeight: CIBLE_TACTILE_MIN, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.line }}>
+          style={{ paddingVertical: Spacing.md, gap: Spacing.sm, minHeight: HAUTEUR_LIGNE, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.line }}>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
             <Text style={{ ...Type.ligne, color: t.text, flex: 1 }}>Aliments évités</Text>
             {profile.disliked_foods.length === 0 && <Text style={{ ...Type.ligne, color: t.textSecondary }}>Aucun</Text>}

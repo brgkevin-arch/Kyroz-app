@@ -147,7 +147,11 @@ export function OptionCard({
         {
           backgroundColor: t.card,
           borderRadius: Radius.card,
-          padding: compacte ? Spacing.lg : Spacing.xl,
+          // Le texte a pris +13 % le 2026-10-26 (sous-titre 13 → 15) : la carte grandit
+          // d'autant en HAUTEUR seulement — élargir la marge latérale ferait passer
+          // plus de sous-titres sur deux lignes.
+          paddingHorizontal: compacte ? Spacing.lg : Spacing.xl,
+          paddingVertical: compacte ? Spacing.xl : Spacing.xxl,
           borderWidth: Trait.controle,
           borderColor: selected ? t.accent : (t.scheme === 'dark' ? t.line : 'transparent'),
           flexDirection: 'row',
