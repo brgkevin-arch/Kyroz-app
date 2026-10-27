@@ -327,6 +327,61 @@ dès qu'il y a du sport ; sans sport, c'est surtout les lipides, de quelques gra
 **Ma reco : A**, et **B** si tu veux que le chiffre du Profil soit celui qu'on sert en
 moyenne. A + B se cumulent ; sans sport, B seul suffirait presque.
 
+## Segment 10 — Courses + Réserve
+
+Audité le 2026-10-27 au simulateur iPhone 17 (sombre), profil de test « Marc » (omnivore, sèche),
+sur `main` après la 67ᵉ OTA. Courses terminées cette semaine : la liste montre donc la semaine
+suivante, avec ce qui manque encore pour la semaine en cours en tête.
+
+### Constats
+
+**A. La liste de courses**
+
+1. **L'en-tête ne nomme qu'une des deux semaines.** Sous « Courses » : « Pour ta semaine du lundi
+   2 novembre. » Juste en dessous, la première section s'appelle « Encore pour cette semaine »
+   (avocats, poivrons, olives…). La phrase dit « semaine prochaine », la liste commence par
+   « cette semaine ».
+2. **Un omnivore achète du jambon végétal, avec 400 g de jambon blanc au frigo.** « Jambon
+   végétal, 165 g » dans Viandes & poissons. Il sert trois COLLATIONS (jour 7, puis jours 6 et 7
+   de la semaine suivante). La règle D35 (omnivore = ni PST ni tofu) ne vise que déjeuner et dîner,
+   à dessein : l'appliquer au matin et aux collations cassait le calibrage. Mais vu des Courses,
+   c'est le « remplissage bizarre » que le fondateur refuse.
+3. **Des quantités qu'on ne peut pas acheter.** Galette de riz soufflé 15 g, sirop d'érable 20 g,
+   olives 30 g. C'est la règle E83 (la liste dit le besoin en grammes) et le seuil E75 (10 g au
+   moins) ; le **seuil par aliment**, demandé le 2026-10-19 (« 5 g/10 g négligeables »), n'est
+   toujours pas conçu.
+
+**B. La Réserve**
+
+4. **Les surgelés sont « au frais ».** Haricots verts 1 kg, petits pois 1 kg, mélange wok 600 g,
+   fruits rouges 500 g : il n'existe que frais et sec, rien pour le congélateur.
+5. **« Au sec » range ce qui n'est pas sec.** Avocat (⅓, donc entamé), tomates, bananes, pommes de
+   terre. Le mot fait penser au placard des pâtes et du riz ; un tiers d'avocat ouvert n'a rien à y
+   faire.
+6. **L'éditeur de quantité propose toutes les unités à tous les aliments.** Riz complet ou pain
+   pita : g, kg, **ml**, **pièce**. Des choix qui n'ont pas de sens pour l'aliment.
+
+**C. L'historique**
+
+7. **Deux sorties « Hier », sans heure pour les distinguer**, et la seconde dit « 61 non pris,
+   restés dans ta liste » — au présent, alors que la liste d'aujourd'hui en compte 16 (ils ont été
+   achetés à la sortie suivante).
+
+*Vu et laissé, déjà décidé :* la liste ne dit pas qu'elle a déduit la réserve (riz complet : 425 g
+en réserve, 60 g à acheter) — retiré le 2026-10-22, « l'app tourne en silence ».
+
+### Ce que je propose (à trancher)
+
+| # | Proposition | Coût |
+|---|---|---|
+| P1 | L'en-tête nomme les deux : « Ce qu'il manque cette semaine, puis ta semaine du 2 novembre » | petit |
+| P2 | Collations d'un omnivore : pas de simili (jambon, filets végétaux) quand l'équivalent animal existe — à mesurer d'abord (le calibrage des collations) | moyen |
+| P3 | Concevoir le seuil par aliment (E75) : sous lui, la ligne disparaît comme le sel | moyen |
+| P4 | Un 3ᵉ rangement « Au congélo » pour les surgelés, classés d'office | moyen |
+| P5 | Une pièce entamée (⅓ avocat) passe au frais d'office ; renommer « Au sec » en « Au placard » | petit |
+| P6 | Les unités suivent l'aliment : g/kg pour le sec, ml/L pour les liquides, pièce là où un poids unitaire existe | petit |
+| P7 | Historique : l'heure à côté de « Hier », et « reportés à la liste suivante » au lieu de « restés dans ta liste » | petit |
+
 ## Journal du chantier
 
 - 2026-10-19 — découpage posé, segment 1 audité. En attente des arbitrages du fondateur.
@@ -350,3 +405,4 @@ moyenne. A + B se cumulent ; sans sport, B seul suffirait presque.
   fibres (~75 kcal/j que P/G/L ne portent pas → lipides −4 g, glucides −8 g sans sport), le bruit
   des recettes (±4 g), et le sport (glucides +15 / −56 à −87 g selon le jour, voulu). Pas de défaut
   d'affichage. Quatre options posées, en attente du fondateur.
+- 2026-10-27 — segment 10 (Courses + Réserve) audité au simulateur : 7 constats, P1 à P7 à trancher.
