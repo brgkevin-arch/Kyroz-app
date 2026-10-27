@@ -140,6 +140,15 @@ suite **2 978 / 210** verte, `tsc` 0, **0 PR ouverte**.
   de texte (#412, E86, 64ᵉ) puis **les encadrés grandissent comme leur texte** (#415, 65ᵉ).
 - E82, E83, E84 (restes, liste en grammes, ticket endormi) sont partis avec la 63ᵉ.
 
+**⏳ Fusionné, NON publié (2026-10-27)** : **segment 2 — questionnaire « toi »** (#422,
+`a628ebc`, go fondateur « fusionne, pas d'OTA pour l'instant ») — titre de la 1re page
+visible (plus d'`autoFocus`), barre sur 8, « Genre », consignes de champ vide en gris normal
+(tous les `Field`), roulettes dans une `ActionSheet` à leur hauteur fermée par la poignée
+seule, silhouettes au rond coché et à 150 pt, % de masse grasse à la roulette (onboarding ET
+Profil). JS seul, aucune source d'empreinte touchée. Détail :
+`docs/2026-10-19-reprise-parcours-A-a-Z.md`, segment 2. **Part avec la prochaine OTA, sur un
+go à lui.**
+
 **Reste à jouer** : voir sur un vrai iPhone les gestes, les animations, le fondu en
 défilant et les nouvelles tailles. **Prochain** : demander au fondateur — segments 2 à 11 de
 la reprise A→Z ; le constat 4 du segment 12 (le Plan affiche les macros SERVIES, le Profil

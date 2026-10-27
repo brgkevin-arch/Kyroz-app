@@ -341,6 +341,8 @@ moyenne. A + B se cumulent ; sans sport, B seul suffirait presque.
 - 2026-10-26 — arbitrages rendus (tout sauf 6 et 7), codés sur
   `claude/segment-2-questionnaire`, vus au simulateur. PR à fusionner sur « go » du fondateur ;
   OTA sur un « go » séparé.
+- 2026-10-27 — segment 2 **fusionné** (#422, `a628ebc`), **non publié** (« pas d'OTA pour
+  l'instant »).
 - 2026-10-26 — segment 8, constat 4 (macros Plan ≠ Profil) mesuré sur le moteur : surtout les
   fibres (~75 kcal/j que P/G/L ne portent pas → lipides −4 g, glucides −8 g sans sport), le bruit
   des recettes (±4 g), et le sport (glucides +15 / −56 à −87 g selon le jour, voulu). Pas de défaut
