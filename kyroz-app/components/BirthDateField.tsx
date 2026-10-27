@@ -3,7 +3,7 @@ import { View, Text } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { ThemePalette, Type, Spacing, Radius, Trait, Icone, CIBLE_TACTILE_MIN } from '../constants/theme';
 import { Presse } from './Presse';
-import { Sheet } from './Sheet';
+import { ActionSheet } from './ActionSheet';
 import { BirthDatePicker } from './BirthDatePicker';
 import { libelleDate } from '../lib/wheelDate';
 import { ageOn, BIRTH_YEAR_MIN } from '../lib/birthday';
@@ -88,7 +88,7 @@ export function BirthDateField({ t, value, onChange, fallbackAge }: Props) {
       >
         {/* ⚠️ « À renseigner » et pas une date grisée : la ligne dit ce que le
             moteur A, jamais ce que la roulette PROPOSERAIT. */}
-        <Text style={{ ...Type.h3, color: value ? t.text : t.textTertiary }}>
+        <Text style={{ ...(value ? Type.h3 : Type.ligne), color: value ? t.text : t.textTertiary }}>
           {value ? libelleDate(value) : 'À renseigner'}
         </Text>
         <Ionicons name="chevron-forward" size={Icone.standard} color={t.textTertiary} />
@@ -105,14 +105,16 @@ export function BirthDateField({ t, value, onChange, fallbackAge }: Props) {
         </Text>
       )}
 
-      <Sheet visible={ouvert} onClose={() => setOuvert(false)}>
+      {/* À SA HAUTEUR (`ActionSheet`, segment 2, P5, 2026-10-26) : à 94 %, la roulette
+          occupait le tiers du haut d'une feuille vide aux deux tiers. */}
+      <ActionSheet visible={ouvert} onClose={() => setOuvert(false)} glissePoigneeSeule>
         <BirthDatePicker
           t={t}
           value={value}
           anneeCourante={parseInt(today.slice(0, 4), 10)}
           onValider={(stamp) => { onChange(stamp); setOuvert(false); }}
         />
-      </Sheet>
+      </ActionSheet>
     </View>
   );
 }

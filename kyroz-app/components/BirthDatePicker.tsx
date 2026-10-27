@@ -68,7 +68,8 @@ export function BirthDatePicker({ t, value, anneeCourante, onValider, dragHandle
   const majAnnee = (na: number) => { setA(na); setJ((v) => clampJour(v, na, m)); };
 
   return (
-    <View style={{ padding: Spacing.xxl, gap: Spacing.lg }}>
+    // ⚠️ Pas de marge propre : la feuille (`ActionSheet`) pose déjà la sienne.
+    <View style={{ gap: Spacing.lg }}>
       <View {...(dragHandlers ?? {})} style={{ gap: Spacing.xs }}>
         {/* Titre seul (demande fondateur, 2026-09-22) : la phrase « Elle sert à calculer
             ton métabolisme, et ton âge se mettra à jour tout seul » est partie. */}

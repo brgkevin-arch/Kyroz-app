@@ -47,7 +47,7 @@ describe('la question du sexe est posée, pas présupposée', () => {
   });
 
   it('l\'étape dit ce qui manque, sans deviner à la place', () => {
-    expect(onboarding).toContain('Indique si tu es un homme ou une femme pour continuer.');
+    expect(onboarding).toContain('Indique ton genre pour continuer.');
   });
 
   it('la fin de parcours ne se rabat sur AUCUN sexe par défaut', () => {

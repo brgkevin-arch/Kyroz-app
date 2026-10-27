@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Image, ImageSourcePropType } from 'react-native';
 import { Presse } from './Presse';
-import { ThemePalette, Radius, Type, Spacing, Trait, CIBLE_TACTILE_MIN, OPACITE_PRESSION } from '../constants/theme';
-import { Field, GrilleChoix } from './ui';
+import { ThemePalette, Radius, Type, Spacing, Trait, CIBLE_TACTILE_MIN, OPACITE_PRESSION, cardShadow } from '../constants/theme';
+import { GrilleChoix, RondCoche } from './ui';
+import { MesureField } from './MesureField';
 import { BodyFatSource, Sex } from '../lib/types';
 import {
   BF_CHART_MAX, bodyFatBounds, bodyFatConcern, fatFreeMassKg,
@@ -90,28 +91,14 @@ export function BodyFatPicker({ t, sex, value, source, onChange, body }: Props) 
   // une femme (~12 % de gras essentiel). L'ancienne borne unique 3–60 était fausse.
   const [BF_MIN, BF_MAX] = bodyFatBounds(sex);
 
-  // Texte LOCAL du champ « % exact ». On NE clampe pas le MIN pendant la frappe
-  // (sinon taper « 23 » passe par « 2 » → clampé au minimum → « 33 »). Le
-  // clamp MIN n'est appliqué qu'au blur. La synchro depuis `value` permet au tap
-  // d'une silhouette (ou à « Effacer ») de remplir/vider le champ.
-  const [pctText, setPctText] = useState(value != null ? String(value) : '');
-  // ⚠️ TANT QUE LE CHAMP A LE FOCUS, `value` ne réécrit PAS le texte tapé.
-  // C'est le mécanisme du bug « 23 → 33 », et retirer le clamp MIN ne l'avait
-  // traité qu'à moitié : dès qu'UN clamp (min, max, ou le re-bornage au
-  // changement de sexe) modifie `value` au milieu d'une frappe, cette synchro
-  // remplace ce que l'utilisateur est en train d'écrire — le chiffre suivant
-  // s'ajoute alors à une valeur qu'il n'a jamais tapée. Le champ n'est resynchro
-  // que quand il n'a PAS le focus (tap d'une silhouette, « Effacer ») ; au blur,
-  // `onBlur` ci-dessous écrit lui-même la valeur normalisée.
-  const focused = React.useRef(false);
+  // 🔴 PLUS DE CHAMP À TAPER (segment 2, P9, 2026-10-26) : le % passe par la roulette
+  // de `MesureField`. Le champ, tant qu'il avait le focus, ne suivait plus la silhouette
+  // touchée — et au départ du champ, le chiffre tapé regagnait en silence (constat 9).
+  // Sans clavier, ce qui est allumé à l'écran est ce qui est enregistré.
   // La question de provenance ne s'affiche que sur une saisie MANUELLE. Elle reste
   // affichée pour qui a déjà répondu « mesuré » (sinon la réponse enregistrée serait
   // invisible et non modifiable au retour sur l'écran).
   const [saisiManuel, setSaisiManuel] = useState(source === 'measured');
-  useEffect(() => {
-    if (focused.current) return;
-    setPctText(value != null ? String(value) : '');
-  }, [value]);
 
   // Le sexe est ÉDITABLE dans « Informations » : un %MG parfaitement valide chez
   // l'homme (10 %, première silhouette) est sous le gras essentiel féminin (12 %).
@@ -167,57 +154,43 @@ export function BodyFatPicker({ t, sex, value, source, onChange, body }: Props) 
               // on enregistre la réponse. Demander « tu l'as mesuré ? » juste après un
               // tap sur un dessin serait absurde, et inviterait à répondre « oui ».
               onPress={() => { setSaisiManuel(false); onChange(on ? undefined : lv.pct, on ? undefined : 'estimated'); }}
+              // 🔴 LA CARTE GARDE SON FOND, le contour et le rond coché disent le choix
+              // (segment 2, P6, 2026-10-26) — la règle d'`OptionCard`, la seule DA de
+              // sélection (CLAUDE.md §8). La carte pleine d'avant était la dernière, et la
+              // silhouette claire s'y lisait mal sur fond blanc.
               style={[
                 styles.cell,
-                { backgroundColor: on ? t.accent : t.card, borderColor: on ? t.accent : t.line },
+                { backgroundColor: t.card, borderColor: on ? t.accent : (t.scheme === 'dark' ? t.line : 'transparent') },
+                t.scheme === 'light' && cardShadow(t),
               ]}
             >
+              <View style={styles.rond}><RondCoche t={t} selected={on} /></View>
               <View style={styles.figure}>
-                <Image
-                  source={IMAGES[sex][i]}
-                  style={[styles.img, on && { opacity: 0.9 }]}
-                  resizeMode="contain"
-                />
+                <Image source={IMAGES[sex][i]} style={styles.img} resizeMode="contain" />
               </View>
-              <Text style={[styles.pct, { color: on ? t.onAccent : t.text }]}>{lv.label}</Text>
-              <Text style={[styles.desc, { color: on ? t.onAccent : t.textSecondary }]}>{lv.desc}</Text>
+              <Text style={[styles.pct, { color: t.text }]}>{lv.label}</Text>
+              <Text style={[styles.desc, { color: t.textSecondary }]}>{lv.desc}</Text>
             </Presse>
           );
         })}
       </View>
 
-      <Field
-        t={t}
-        label="Ou saisis ton % exact (si tu le connais)"
-        suffix="%"
-        keyboardType="decimal-pad"
-        value={pctText}
-        onFocus={() => { focused.current = true; }}
-        onChangeText={(txt) => {
-          setPctText(txt);
-          setSaisiManuel(!!txt);
-          if (!txt) return onChange(undefined, undefined);
-          const n = parseFloat(txt.replace(',', '.'));
+      {/* La ligne montre le % dès qu'AUCUNE silhouette ne le porte (saisi à la roulette,
+          ou enregistré avant : un 12 % du Profil doit rester visible quelque part) ;
+          une silhouette touchée est déjà la réponse, elle s'allume au-dessus. La
+          roulette s'ouvre sur la valeur courante. */}
+      <MesureField
+        t={t} mesure="gras" sex={sex}
+        value={value != null && (saisiManuel || !levels.some((lv) => lv.pct === value)) ? String(value) : ''}
+        depart={value}
+        onChange={(v) => {
+          const n = Math.min(Math.max(parseFloat(v), BF_MIN), BF_MAX);
           if (Number.isNaN(n)) return;
-          // Pendant la frappe : seul le clamp MAX (évite l'absurde) ; le MIN
-          // est appliqué au blur pour ne pas casser la saisie progressive.
+          setSaisiManuel(true);
           // La provenance déjà répondue est CONSERVÉE — corriger un chiffre mesuré
           // ne le rend pas estimé.
-          const borne = Math.min(n, BF_MAX);
-          onChange(borne, provenanceRetenue(sex, borne, source));
+          onChange(n, provenanceRetenue(sex, n, source));
         }}
-        // ⚠️ `onBlur` et NON `onEndEditing` : react-native-web ne câble PAS
-        // onEndEditing (no-op sur le web déployé) — seul onBlur est appelé au blur.
-        onBlur={() => {
-          focused.current = false;
-          if (!pctText) return;
-          const n = parseFloat(pctText.replace(',', '.'));
-          if (Number.isNaN(n)) { onChange(undefined, undefined); setPctText(''); setSaisiManuel(false); return; }
-          const clamped = Math.min(Math.max(n, BF_MIN), BF_MAX);
-          onChange(clamped, provenanceRetenue(sex, clamped, source));
-          setPctText(String(clamped));
-        }}
-        placeholder="ex. 18"
       />
 
       {/* ── Provenance ────────────────────────────────────────────────────────
@@ -304,14 +277,18 @@ const styles = StyleSheet.create({
   cell: {
     width: '48%',
     flexGrow: 1,
-    borderWidth: Trait.fin,
+    borderWidth: Trait.controle,
     borderRadius: Radius.card,
     paddingVertical: Spacing.lg,
     paddingHorizontal: Spacing.lg,
     gap: Spacing.xs,
     alignItems: 'center',
   },
-  figure: { height: 104, alignItems: 'center', justifyContent: 'center' },
+  // 🔴 150 ET NON 104 (segment 2, P8, 2026-10-26) : à 104, ~10 et ~15 % se
+  // distinguaient mal. 150 pt × 3 = 450 px, sous les 479 px des fichiers : l'image
+  // n'est pas agrandie au-delà de sa définition.
+  figure: { height: 150, alignItems: 'center', justifyContent: 'center' },
+  rond: { position: 'absolute', top: Spacing.md, right: Spacing.md },
   // 🔴 CE RATIO EST CELUI DES FICHIERS SERVIS, ET IL PÉRIME QUAND ON LES REGÉNÈRE.
   // Il valait `220 / 462` — les dimensions du jeu d'avant. Les planches redécoupées
   // le 2026-08-23 sortent en **273 × 479** (le canevas commun est calculé sur le plus
@@ -323,7 +300,7 @@ const styles = StyleSheet.create({
   // ➡️ Compté par `lib/__tests__/silhouettes.test.ts`, qui lit les PNG sur le disque :
   // le jour où la découpe rend d'autres dimensions, le test rougit au lieu de laisser
   // l'écran rapetisser en silence.
-  img: { height: 104, aspectRatio: 273 / 479 },
+  img: { height: 150, aspectRatio: 273 / 479 },
   pct: { ...Type.h3 },
   desc: { ...Type.caption, lineHeight: 16, textAlign: 'center' },
   // ⚠️ 44 pt PLEINS. À `paddingVertical: Spacing.xs` il mesurait ~28 pt : le

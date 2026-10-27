@@ -166,15 +166,26 @@ export function OptionCard({
           <Text style={{ ...Type.body, color: t.textSecondary, marginTop: Spacing.xs }}>{subtitle}</Text>
         ) : null}
       </View>
-      <View style={{
-        width: 24, height: 24, borderRadius: 12,
-        borderWidth: Trait.controle, borderColor: selected ? t.accent : t.lineStrong,
-        backgroundColor: selected ? t.accent : 'transparent',
-        alignItems: 'center', justifyContent: 'center',
-      }}>
-        {selected && <Ionicons name="checkmark" size={Icone.petite} color={t.onAccent} />}
-      </View>
+      <RondCoche t={t} selected={selected} />
     </Presse>
+  );
+}
+
+/**
+ * Le rond coché de la carte de choix — sorti d'`OptionCard` le 2026-10-26 pour que
+ * les silhouettes de masse grasse le portent aussi (segment 2, P6) : une sélection,
+ * un seul signe, partout.
+ */
+export function RondCoche({ t, selected }: { t: ThemePalette; selected: boolean }) {
+  return (
+    <View style={{
+      width: 24, height: 24, borderRadius: 12,
+      borderWidth: Trait.controle, borderColor: selected ? t.accent : t.lineStrong,
+      backgroundColor: selected ? t.accent : 'transparent',
+      alignItems: 'center', justifyContent: 'center',
+    }}>
+      {selected && <Ionicons name="checkmark" size={Icone.petite} color={t.onAccent} />}
+    </View>
   );
 }
 
@@ -232,7 +243,11 @@ export function Field({
           // dans le cadre (sinon, surtout sur web, sa largeur intrinsèque pousse
           // l'unité hors de la bordure). Avec un suffixe, valeur alignée à droite
           // → collée à l'unité (« 30 min ») ; sans suffixe (ex. « Nom »), à gauche.
-          style={{ ...Type.h3, flex: 1, minWidth: 0, paddingVertical: Spacing.lg, color: t.text, textAlign: suffix ? 'right' : 'left' }}
+          // ⚠️ Champ VIDE en `Type.ligne` (17, normal), rempli en `h3` (17, gras) : un
+          // placeholder prend la police du champ, et en gras il se lisait comme une
+          // réponse déjà donnée (segment 2, P2, 2026-10-26). Même taille, donc la
+          // ligne ne bouge pas à la première lettre.
+          style={{ ...(props.value ? Type.h3 : Type.ligne), flex: 1, minWidth: 0, paddingVertical: Spacing.lg, color: t.text, textAlign: suffix ? 'right' : 'left' }}
           {...props}
         />
         {suffix ? <Text style={{ ...Type.body, color: t.textTertiary, marginLeft: Spacing.sm }}>{suffix}</Text> : null}

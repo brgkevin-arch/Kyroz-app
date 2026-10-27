@@ -526,7 +526,7 @@ export default function Onboarding() {
       // Un choix manquant se dit à part d'un champ vide : l'écran montre déjà POURQUOI
       // on le demande (« pour calculer ton métabolisme »), le blocage dit seulement
       // CE QUI MANQUE — la règle posée le 2026-08-26 sur l'étape 3.
-      if (sex === null) return 'Indique si tu es un homme ou une femme pour continuer.';
+      if (sex === null) return 'Indique ton genre pour continuer.';
       return 'Remplis ta date de naissance, ton poids et ta taille pour continuer.';
     }
     if (etape === 'masseGrasse' && !bodyFatValid)
@@ -785,8 +785,11 @@ export default function Onboarding() {
         <Presse onPress={back} disabled={step === 1} style={[s.backBtn, step === 1 && { opacity: 0 }]}>
           <Ionicons name="chevron-back" size={Icone.action} color={t.text} />
         </Presse>
-        {/* Sur ressort : la barre GLISSE jusqu'au cran suivant au lieu d'y sauter. */}
-        <Jauge style={s.track} remplissage={s.fill} pct={(step / TOTAL_STEPS) * 100} couleur={t.accent} ressort={RESSORT.pose} />
+        {/* Sur ressort : la barre GLISSE jusqu'au cran suivant au lieu d'y sauter.
+            🔴 Elle ne compte PAS la page du prénom (décision fondateur, 2026-10-26,
+            segment 2 P3) : vide sur cette page, puis 1/8 à 8/8 — le même compte que
+            l'étiquette « ÉTAPE n / 8 ». Avant, la barre disait 2/9 sous « ÉTAPE 1 / 8 ». */}
+        <Jauge style={s.track} remplissage={s.fill} pct={((step - 1) / (TOTAL_STEPS - 1)) * 100} couleur={t.accent} ressort={RESSORT.pose} />
       </View>
 
       <ScrollView
@@ -822,12 +825,17 @@ export default function Onboarding() {
                 ⚠️ C'est un dévoilement, PAS une étape de plus : les quatre champs
                 restent dans la même étape 2, donc `TOTAL_STEPS` ne bouge pas et le
                 brouillon (`lireBrouillon`) se relit tel quel. */}
-            <Choix
-              t={t}
-              options={[{ label: 'Homme', value: 'male' }, { label: 'Femme', value: 'female' }]}
-              value={sex}
-              onChange={setSex}
-            />
+            {/* « Genre », le mot du Profil (segment 12) : les trois champs suivants ont
+                leur intitulé, les deux cartes n'en avaient pas (segment 2, P4). */}
+            <View style={{ gap: Spacing.sm }}>
+              <Intitule t={t}>Genre</Intitule>
+              <Choix
+                t={t}
+                options={[{ label: 'Homme', value: 'male' }, { label: 'Femme', value: 'female' }]}
+                value={sex}
+                onChange={setSex}
+              />
+            </View>
             {sex && (
               <>
                 <BirthDateField t={t} value={birthDate} onChange={setBirthDate} />
@@ -854,7 +862,7 @@ export default function Onboarding() {
           <BlocCascade style={s.block} sens={sens.current}>
             <Text style={s.title}>Ta masse grasse</Text>
             <Text style={s.sub}>
-              Choisis la silhouette la plus proche de toi, ou saisis ton % si tu le connais.
+              Choisis la silhouette la plus proche de toi, ou indique ton % si tu le connais.
             </Text>
             {/* Le corps est déjà saisi à l'étape 2 → le repère de plausibilité peut
                 chiffrer l'impact. Les séances (étape 4) ne comptent pas ici : elles
@@ -1167,13 +1175,15 @@ function NameStep({ t, value, onChange, venuDApple }: { t: ThemePalette; value: 
           : "On va te bâtir un plan nutrition sur-mesure en moins de 2 minutes. D'abord, comment on t'appelle\u00A0?"}
       </Animated.Text>
       <Animated.View style={{ opacity: field, marginTop: Spacing.sm }}>
-        {/* ⚠️ Le placeholder REPREND le libellé, il ne donne pas d'exemple. C'était
-            « Kévin » — le prénom du fondateur, servi comme suggestion à tout le monde.
-            Décision du 2026-08-12 : aucun prénom réel dans un champ vide. Même
-            correction dans Profil → Prénom, qui portait le même. */}
-        {/* ⚠️ `autoFocus` seulement si le champ est VIDE : ouvrir le clavier sur un
-            champ déjà rempli invite à le corriger — l'inverse du message. */}
-        <Field t={t} label="Ton prénom" value={value} onChangeText={onChange} placeholder="Ton prénom" autoCapitalize="words" autoFocus={!venuDApple} />
+        {/* ⚠️ PAS DE PLACEHOLDER (segment 2, P2, 2026-10-26) : il reprenait le libellé
+            mot pour mot, en gras, et se lisait comme une réponse. Il avait d'abord été
+            « Kévin » — le prénom du fondateur, servi à tout le monde (retiré le
+            2026-08-12). Le harnais vise le champ par son `testID`.
+            🔴 PAS D'`autoFocus` NON PLUS (segment 2, P1) : le clavier ouvert d'office
+            rétrécissait la zone défilante sous le pied de page (bouton + mentions), le
+            champ n'y tenait plus, et la page défilait — « Bienvenue sur Kyroz » arrivait
+            caché sous la barre du haut. Le clavier s'ouvre au premier appui. */}
+        <Field t={t} label="Ton prénom" value={value} onChangeText={onChange} autoCapitalize="words" testID="champ-prenom" />
         {/* Le DIRE, et pas seulement le pré-remplir : sans cette ligne, un prénom qui
             apparaît tout seul dans un champ se lit comme une donnée qu'on a devinée.
             Elle dit aussi qu'il reste modifiable — on retire l'obligation, pas le choix. */}

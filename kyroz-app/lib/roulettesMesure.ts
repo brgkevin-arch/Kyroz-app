@@ -15,7 +15,7 @@
 // ⚠️ LA VALEUR RESTE UNE CHAÎNE (« 75.5 »), comme quand elle se tapait : l'écran, le
 // brouillon d'inscription et `parseFloat` la lisent tels quels. Aucune migration.
 
-import { WEIGHT_BOUNDS, HEIGHT_BOUNDS } from './safety';
+import { WEIGHT_BOUNDS, HEIGHT_BOUNDS, bodyFatBounds } from './safety';
 import type { Sex } from './types';
 
 const plage = (de: number, a: number) => Array.from({ length: a - de + 1 }, (_, i) => de + i);
@@ -67,4 +67,44 @@ export function libellePoids(saisie: string): string | null {
 export function libelleTaille(saisie: string): string | null {
   const v = lireTaille(saisie);
   return v === null ? null : `${v} cm`;
+}
+
+// ── Le % de masse grasse, à la roulette (segment 2, P9, 2026-10-26) ───────────
+// Décision fondateur : « ici et au Profil ». Il se tapait au clavier, seul chiffre du
+// questionnaire qui ne passait pas par une roulette — et le champ, tant qu'il avait le
+// focus, ne suivait plus la silhouette qu'on touchait (le chiffre tapé regagnait au
+// départ du champ, en silence). Plus de clavier, plus de conflit.
+// ⚠️ Les bornes sont celles du garde-fou (`bodyFatBounds`), PAR GENRE : elles se
+// lisent, elles ne se recopient pas.
+
+/** Pourcents entiers proposés pour ce genre — bornes du garde-fou incluses. */
+export function pourcentsGras(sex: Sex): number[] {
+  const [lo, hi] = bodyFatBounds(sex);
+  return plage(lo, hi);
+}
+
+/** Où la roulette s'ouvre sans rien de choisi : la silhouette du milieu (~20 % / ~28 %). */
+export function departGras(sex: Sex | null): number {
+  return sex === 'female' ? 28 : 20;
+}
+
+/** « 23.5 » → { entier: 23, dixieme: 5 } ; `null` si vide ou hors des bornes du genre. */
+export function decouperGras(saisie: string, sex: Sex): { entier: number; dixieme: number } | null {
+  const v = parseFloat(saisie.replace(',', '.'));
+  const [lo, hi] = bodyFatBounds(sex);
+  if (!Number.isFinite(v) || v < lo || v > hi) return null;
+  const dixiemes = Math.round(v * 10);
+  return { entier: Math.floor(dixiemes / 10), dixieme: dixiemes % 10 };
+}
+
+/** { 23, 5 } → « 23.5 », borné au plafond du genre (60,9 n'existe pas : 60). */
+export function assemblerGras(entier: number, dixieme: number, sex: Sex): string {
+  const [, hi] = bodyFatBounds(sex);
+  return entier >= hi ? String(hi) : assemblerPoids(entier, dixieme);
+}
+
+/** « 23,5 % », ou rien. */
+export function libelleGras(saisie: string, sex: Sex): string | null {
+  const g = decouperGras(saisie, sex);
+  return g ? `${g.entier}${g.dixieme ? `,${g.dixieme}` : ''}\u00A0%` : null;
 }
