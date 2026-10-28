@@ -382,6 +382,20 @@ en réserve, 60 g à acheter) — retiré le 2026-10-22, « l'app tourne en sile
 | P6 | Les unités suivent l'aliment : g/kg pour le sec, ml/L pour les liquides, pièce là où un poids unitaire existe | petit |
 | P7 | Historique : l'heure à côté de « Hier », et « reportés à la liste suivante » au lieu de « restés dans ta liste » | petit |
 
+### Ce que le fondateur a tranché (2026-10-28)
+
+- **Constat 1 → l'écran Courses devient une bibliothèque de listes, une par semaine.**
+  - Avant « Courses terminées » : la liste du plan EN COURS, en grand.
+  - Après : ce qui manque encore pour la semaine en cours (s'il en manque) ; les semaines
+    suivantes en **petits encadrés** (« Courses de la semaine du 2 nov. »), pas en grand.
+  - **Le jour où l'on entre dans la semaine d'une liste, elle passe en grand** d'elle-même.
+  - Toujours un moyen d'atteindre la **bibliothèque** des listes quand il y en a plusieurs.
+  - Direction pour plus tard (plans sur un mois) : plusieurs listes, réparties selon les DLC pour
+    que rien ne périme. Pas dans ce chantier — le plan sur un mois n'existe pas.
+  - **À vérifier avant de coder** : pourquoi 5 articles restent « encore pour cette semaine »
+    après une sortie de 78 articles (pas cochés ? plan modifié après les courses ? calcul ?).
+- **Constat 4 → laissé** : les surgelés restent « au frais », c'est le frigo au sens large.
+
 ## Journal du chantier
 
 - 2026-10-19 — découpage posé, segment 1 audité. En attente des arbitrages du fondateur.
