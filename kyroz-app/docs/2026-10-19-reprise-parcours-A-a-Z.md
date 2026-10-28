@@ -450,3 +450,4 @@ en réserve, 60 g à acheter) — retiré le 2026-10-22, « l'app tourne en sile
   d'affichage. Quatre options posées, en attente du fondateur.
 - 2026-10-27 — segment 10 (Courses + Réserve) audité au simulateur : 7 constats, P1 à P7 à trancher.
 - 2026-10-28 — segment 10 **CLOS** : P2 (#428), une liste par semaine et la page des listes (#429), seuil selon la réserve, unités, historique des listes finies (#431). Fusionné, non publié.
+- 2026-10-28 — segment 10 **publié** dans la 68ᵉ OTA (groupe `177488b1`, commit `ae40f91`), avec le compte des calories centré (#433).

@@ -219,7 +219,11 @@ installation neuve part du binaire, donc du (6).
   encore `0639ecc` après la compilation, 0 PR ouverte — le piège du 11 août ne s'est pas
   rejoué). *(Le précédent :)* le **(6)** — `ceec1b17`, commit
   `1047b9f`, terminé le 2026-08-11 à 20 h 37. Il a **62 commits de retard** sur `main` — chiffre RE-MESURÉ le 2026-08-26 (il en annonçait 40, mesurés le 2026-08-23), qui **grandit à chaque merge** : le relire avec `git rev-list --count 1047b9f..origin/main` plutôt que de le recopier (même défaut que le décompte d'OTA tenu à la main).
-- **OTA** : la dernière est la **67ᵉ** (groupe `9993f96d`, **iOS seulement**, 2026-10-27),
+- **OTA** : la dernière est la **68ᵉ** (groupe `177488b1`, **iOS seulement**, 2026-10-28),
+  publiée sur le commit `ae40f91` — `main`, arbre propre, détaché sur `origin/main`.
+  ✅ **Runtime iOS `823c89db…` = le build (22)**, empreinte comparée AVANT publication.
+  Contenu (#428, #429, #431, #433) : segment 10 (Courses et Réserve), calories du jour centrées.
+  *(La précédente :)* la **67ᵉ** (groupe `9993f96d`, **iOS seulement**, 2026-10-27),
   publiée sur le commit `ed4c1ab` — `main`, arbre propre, détaché sur `origin/main`.
   ✅ **Runtime iOS `823c89db…` = le build (22)**, empreinte comparée AVANT publication.
   Contenu (#422) : segment 2, le questionnaire « toi » de l'inscription.
