@@ -33,3 +33,9 @@ const REF_PAR_NOM: Map<string, string> = new Map(
 export function refDuNom(name: string): string | undefined {
   return REF_PAR_NOM.get(norm(name));
 }
+
+/** L'unité dans laquelle le catalogue range cet aliment (`g`, `ml`, `pièce`), s'il le connaît. */
+export function uniteDuCatalogue(name: string): string | undefined {
+  const ref = refDuNom(name);
+  return ref ? (RECIPE_INGREDIENTS[ref] as { unit?: string } | undefined)?.unit : undefined;
+}

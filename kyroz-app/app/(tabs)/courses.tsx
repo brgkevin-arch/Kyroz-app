@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useCallback } from 'react';
+import React, { useMemo, useState, useCallback, useEffect } from 'react';
 import { View, Text, StyleSheet, SectionList, TouchableOpacity, RefreshControl } from 'react-native';
 import { Presse } from '../../components/Presse';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -24,7 +24,8 @@ import { sousLeSeuil } from '../../lib/seuilAchat';
 import { lireDebutSuivi } from '../../lib/repasAuto';
 import { activeSlots } from '../../lib/mealSlots';
 import { useProfile } from '../../hooks/useProfile';
-import { formatQuantity, toBaseUnit } from '../../lib/units';
+import { formatQuantity, toBaseUnit, unitesPour } from '../../lib/units';
+import { uniteDuCatalogue } from '../../lib/nomsAliments';
 import { searchFoods } from '../../lib/foods';
 import { loadPantry, savePantry, addOrMerge, isStaple, nomAffiche } from '../../lib/pantry';
 import { achatALaPiece, quantiteRangee } from '../../lib/formatsVendus';
@@ -38,7 +39,7 @@ import {
   ecarter, retablir, appliquerEcartes, nettoyerEcartes, resumeEcartes, ecartesApresCloture,
 } from '../../lib/shoppingRemoved';
 import {
-  loadAjouts, saveAjouts, UNITES_AJOUT, SANS_QUANTITE,
+  loadAjouts, saveAjouts, SANS_QUANTITE,
   normaliserNom, trouverArticle, creerAjout, ajouterAjout, retirerAjout,
   basculerAjout, cocherTousAjouts, fusionner, nettoyerAjouts, ajoutsApresCloture,
 } from '../../lib/shoppingAjouts';
@@ -110,6 +111,9 @@ export default function CoursesScreen() {
   const [qty, setQty] = useState('');
   const [unite, setUnite] = useState('g');
   const [sugFermees, setSugFermees] = useState(false);
+  // Une unité qui n'a plus de sens pour le nom tapé (« ml » puis « riz ») revient à la première.
+  const unitesAjout = unitesPour(nom, uniteDuCatalogue(nom));
+  useEffect(() => { if (!unitesAjout.includes(unite)) setUnite(unitesAjout[0]); }, [nom]); // eslint-disable-line react-hooks/exhaustive-deps
   // Ce que la feuille d'ajout a à dire — jamais un dialogue : voir `ajouterArticle`.
   const [note, setNote] = useState<string | null>(null);
 
@@ -402,7 +406,8 @@ export default function CoursesScreen() {
         await savePantry(pantry);
         pushPantry(pantry);
       }
-      await recordTrip({ id: suivante.id, plan_id: suivante.plan_id, items: suivante.items });
+      // Même règle que la semaine en cours : à l'historique seulement une fois TOUT pris.
+      if (suivante.items.every((i) => i.checked)) await recordTrip({ id: suivante.id, plan_id: suivante.plan_id, items: suivante.items });
       // Les cases repartent à zéro ; les ajouts à la main non pris restent sur la liste.
       const restes: CochesDeSemaine = { semaine: suivante.semaine_suivante ?? '', noms: [], ajouts: suivante.items.filter((i) => i.manuel && !i.checked) };
       await AsyncStorage.setItem(SUIVANTE_KEY, JSON.stringify(restes));
@@ -507,11 +512,17 @@ export default function CoursesScreen() {
       // `plan_id` sert au seul diagnostic : une sortie qui ne contient que des
       // ajouts manuels n'a pas de plan derrière elle, et le dire est plus juste
       // que de recopier l'identifiant d'un plan qui n'a rien demandé.
-      await recordTrip({
-        id: list?.id ?? 'sl-manuel',
-        plan_id: list?.plan_id ?? 'manuel',
-        items: tous.filter(visible),
-      });
+      // 🔴 UNE LISTE N'ENTRE À L'HISTORIQUE QUE FINIE (2026-10-28, décision fondateur : « si l'user
+      // n'a pas tout acheté, la liste reste en haut de la page Courses, pas dans l'historique »).
+      // Gardés pour la prochaine fois, les non-pris laissent la liste OUVERTE : ce qui est pris
+      // entre en réserve et en sort, le reste attend. Tout pris, ou le reste retiré : elle est finie.
+      if (restants.length === 0 || sort === 'retirer') {
+        await recordTrip({
+          id: list?.id ?? 'sl-manuel',
+          plan_id: list?.plan_id ?? 'manuel',
+          items: tous.filter(visible),
+        });
+      }
       await AsyncStorage.removeItem(LIST_KEY);
       // Les ajouts cochés ont été achetés : ils quittent la liste (et viennent
       // d'entrer en réserve à l'étape ①). Les autres suivent le choix ci-dessus.
@@ -667,7 +678,8 @@ export default function CoursesScreen() {
         keyboardType="decimal-pad"
       />
       <View style={s.unitRow}>
-        {UNITES_AJOUT.map((u) => <Chip key={u} t={t} label={u} selected={unite === u} onPress={() => setUnite(u)} />)}
+        {/* Les unités qui ont un sens pour CET aliment (2026-10-28) : pas de « ml » pour du riz. */}
+        {unitesAjout.map((u) => <Chip key={u} t={t} label={u} selected={unite === u} onPress={() => setUnite(u)} />)}
       </View>
       {/* Seul ce qui répond à la saisie se dit ici (« … est déjà dans ta liste »). La note
           « Sans quantité, l'article ne rejoindra pas ta réserve une fois acheté » est

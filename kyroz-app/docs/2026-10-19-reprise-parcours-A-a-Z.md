@@ -409,6 +409,18 @@ en réserve, 60 g à acheter) — retiré le 2026-10-22, « l'app tourne en sile
     suivent quand elle passe en grand) ; plus de sous-titre ; « Mes courses passées » en petit,
     sans phrase (« une appli épurée, sans blabla »).
 - **Constat 4 → laissé** : les surgelés restent « au frais », c'est le frigo au sens large.
+- **Constat 3 → seuil par aliment, PLAFONNÉ** (go fondateur ; ajusté à la mesure) : sous 15 % du
+  plus petit paquet, la ligne part — mais jamais au-delà de 20 g. Sans plafond, 17 % des lignes
+  partaient, dont de vraies portions (70 g de riz, 145 ml de lait, 150 g de pommes de terre) ; à
+  20 g, 5,6 % partent, toutes des garnitures (amandes, graines, tahini, sirop, galettes de riz,
+  sauce soja). Protéine du plat inchangée. « 30 g de pesto, c'est un repas » tient
+  (`scripts/mesure-seuil-paquet.ts`).
+- **Constat 5 → laissé** (« pas nécessaire »).
+- **Constat 6 → les unités suivent l'aliment** : g/kg pour le riz, ml/L pour les liquides, « pièce »
+  là où un poids de pièce existe ; tout pour un nom inconnu (`units.ts::unitesPour`).
+- **Constat 7 → une liste n'entre à l'historique que FINIE** (fondateur : « si l'user n'a pas tout
+  acheté, la liste reste en haut de la page Courses ») : « garder pour la prochaine fois » range ce
+  qui est pris et laisse la liste ouverte ; tout pris, ou le reste retiré, elle part à l'historique.
 
 ## Journal du chantier
 

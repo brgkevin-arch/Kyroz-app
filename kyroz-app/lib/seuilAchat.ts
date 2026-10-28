@@ -1,5 +1,6 @@
 import { RAW_RECIPES, RECIPE_INGREDIENTS } from './recipeData';
 import { refDuNom, isStaple } from './pantry';
+import { FORMATS } from './formatsVendus';
 
 /**
  * SOUS QUELLE QUANTITÉ UNE LIGNE DE COURSES NE VAUT PAS UN ACHAT (E75, décisions fondateur
@@ -32,6 +33,21 @@ export const PART_DE_PORTION = 0.2;
 export const SEUIL_MIN = 10;
 /** Jamais plus pour ce qui porte la protéine du plat. */
 export const SEUIL_MAX_PROTEINE = 15;
+/**
+ * SEUIL PAR ALIMENT (2026-10-28, segment 10, constat 3, décision fondateur) : la liste demandait
+ * 15 g de galettes de riz, 20 g de sirop d'érable, 30 g d'olives — des quantités qui ne
+ * s'achètent pas. Sous 15 % du PLUS PETIT format vendu, la ligne disparaît, comme le sel.
+ * ⚠️ Jamais pour la protéine du plat (son seuil reste plafonné à `SEUIL_MAX_PROTEINE`), ni pour
+ * ce qui se vend à la pièce (une courgette s'achète seule).
+ */
+export const PART_DU_PAQUET = 0.15;
+/**
+ * …et jamais au-delà de 20 g. Mesuré le 2026-10-28 (`scripts/mesure-seuil-paquet.ts`) : sans
+ * plafond, 17 % des lignes partaient, dont de vraies portions (70 g de riz, 145 ml de lait,
+ * 150 g de pommes de terre) ; à 20 g, ne partent que des garnitures. Et « 30 g de pesto, c'est
+ * un repas » (fondateur, E75) : il en manque 25 g, la ligne reste.
+ */
+export const SEUIL_MAX_PAQUET = 20;
 
 /**
  * Rôle corrigé à la main là où le catalogue trompe : les merguez végétales sont classées
@@ -72,8 +88,11 @@ function calculer(): Record<string, SeuilAliment> {
     const compte = roles[ref];
     const dominant = Object.keys(compte).reduce((a, b) => (compte[b] > compte[a] ? b : a));
     const role = PROTEINE_FORCEE.has(ref) ? 'protein' : dominant;
+    const regle = FORMATS[ref];
+    const paquet = regle && 'formats' in regle ? Math.min(...regle.formats.map((f) => f.taille)) : 0;
     const brut = Math.max(SEUIL_MIN, arrondi5(PART_DE_PORTION * portion));
-    out[ref] = { portion, role, seuil: role === 'protein' ? Math.min(SEUIL_MAX_PROTEINE, brut) : brut };
+    const auPaquet = Math.min(SEUIL_MAX_PAQUET, Math.floor(PART_DU_PAQUET * paquet));
+    out[ref] = { portion, role, seuil: role === 'protein' ? Math.min(SEUIL_MAX_PROTEINE, brut) : Math.max(brut, auPaquet) };
   }
   return out;
 }

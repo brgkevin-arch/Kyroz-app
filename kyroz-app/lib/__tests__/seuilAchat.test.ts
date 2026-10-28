@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { RECIPE_INGREDIENTS } from '../recipeData';
-import { SEUILS, sousLeSeuil, SEUIL_MIN, SEUIL_MAX_PROTEINE, PART_DE_PORTION } from '../seuilAchat';
+import { SEUILS, sousLeSeuil, SEUIL_MIN, SEUIL_MAX_PROTEINE, SEUIL_MAX_PAQUET, PART_DE_PORTION } from '../seuilAchat';
 
 const ligne = (ref: string, quantity: number) => ({ name: RECIPE_INGREDIENTS[ref].name, quantity, unit: RECIPE_INGREDIENTS[ref].unit });
 
@@ -10,7 +10,9 @@ describe('seuil d’achat (E75) — la règle validée par le fondateur', () => 
   it('20 % d’une portion habituelle, jamais moins de 10 g', () => {
     for (const [ref, s] of Object.entries(SEUILS)) {
       expect(s.seuil, ref).toBeGreaterThanOrEqual(SEUIL_MIN);
-      if (s.role !== 'protein') expect(s.seuil, ref).toBe(Math.max(SEUIL_MIN, 5 * Math.round((PART_DE_PORTION * s.portion) / 5)));
+      // Depuis le 2026-10-28 (segment 10, constat 3), aussi 15 % du plus petit paquet, plafonné à 20 g.
+      if (s.role !== 'protein') expect(s.seuil, ref).toBeGreaterThanOrEqual(Math.max(SEUIL_MIN, 5 * Math.round((PART_DE_PORTION * s.portion) / 5)));
+      if (s.role !== 'protein') expect(s.seuil, ref).toBeLessThanOrEqual(Math.max(SEUIL_MAX_PAQUET, SEUIL_MIN, 5 * Math.round((PART_DE_PORTION * s.portion) / 5)));
     }
   });
 
@@ -29,6 +31,15 @@ describe('seuil d’achat (E75) — la règle validée par le fondateur', () => 
     // « 30 g de pesto, c'est un repas » : il en manque 25 g, la ligne reste.
     expect(sousLeSeuil(ligne('pesto', 25))).toBe(false);
     expect(sousLeSeuil(ligne('mozzarella', 25))).toBe(false);
+  });
+
+  it('segment 10, constat 3 : ce qui ne s’achète pas part (15 g de galettes de riz, 15 g de sirop), une vraie portion reste', () => {
+    expect(sousLeSeuil(ligne('galette_riz', 15))).toBe(true);
+    expect(sousLeSeuil(ligne('sirop_erable', 15))).toBe(true);
+    expect(sousLeSeuil(ligne('amandes', 15))).toBe(true);
+    expect(sousLeSeuil(ligne('riz_complet', 40))).toBe(false);
+    expect(sousLeSeuil(ligne('lait_demi_ecreme', 90))).toBe(false);
+    expect(sousLeSeuil(ligne('pomme_de_terre', 150))).toBe(false);
   });
 
   it('un reste de poulet de 15 g disparaît, 20 g reste ; le lait, au-delà de 50 ml, reste', () => {
