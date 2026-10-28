@@ -104,6 +104,19 @@ export function formatQuantity(name: string, quantity: number, unit: string = 'g
   return `${Math.round(quantity)} g`;
 }
 
+/**
+ * LES UNITÉS QUI ONT UN SENS POUR CET ALIMENT (2026-10-28, segment 10, constat 6) : l'éditeur
+ * proposait « ml » et « pièce » pour du riz. `base` = l'unité dans laquelle l'aliment se range
+ * (`g`, `ml`, `pièce`) ; inconnue (un nom tapé que le catalogue ne connaît pas), tout reste
+ * proposé. « pièce » seulement là où l'on sait ce que pèse une pièce.
+ */
+export function unitesPour(name: string, base: string | undefined): string[] {
+  if (base === 'ml') return ['ml', 'L'];
+  if (base === 'pièce') return ['pièce'];
+  if (base === 'g') return poidsUnitaire(name) ? ['g', 'kg', 'pièce'] : ['g', 'kg'];
+  return ['g', 'kg', 'ml', 'pièce'];
+}
+
 // Convertit une saisie (avec unité de saisie kg/L) vers l'unité de base stockée.
 export function toBaseUnit(quantity: number, unit: string): { quantity: number; unit: string } {
   if (unit === 'kg') return { quantity: Math.round(quantity * 1000), unit: 'g' };

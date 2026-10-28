@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Presse } from '../../components/Presse';
 import {
   View, Text, StyleSheet, ScrollView,
@@ -13,7 +13,8 @@ import { PrimaryButton, Chip, Field, Segmented, Choix } from '../../components/u
 import { animerMiseEnPage } from '../../components/Mouvement';
 import { ActionSheet } from '../../components/ActionSheet';
 import { LigneGlissable } from '../../components/LigneGlissable';
-import { formatQuantity, quantiteDeSaisie, versStockage } from '../../lib/units';
+import { formatQuantity, quantiteDeSaisie, versStockage, unitesPour } from '../../lib/units';
+import { uniteDuCatalogue } from '../../lib/nomsAliments';
 import { pushPantry } from '../../lib/sync';
 import { searchFoods } from '../../lib/foods';
 import {
@@ -26,7 +27,6 @@ const CATEGORY_LABELS: Record<PantryCategory, string> = {
   viandes: 'Viandes & poissons', légumes: 'Légumes & fruits',
   féculents: 'Féculents & céréales', laitiers: 'Produits laitiers & œufs', autres: 'Autres',
 };
-const UNITS = ['g', 'kg', 'ml', 'pièce'];
 
 // ── LE FRAIS ET LE SEC SONT SÉPARÉS (2026-08-24, décision fondateur) ─────────
 //
@@ -83,6 +83,9 @@ export default function ReserveScreen() {
   const [name, setName] = useState('');
   const [qty, setQty] = useState('');
   const [unit, setUnit] = useState('g');
+  // Une unité qui n'a plus de sens pour le nom tapé (« ml » puis « riz ») revient à la première.
+  const unitesAjout = unitesPour(name, uniteDuCatalogue(name));
+  useEffect(() => { if (!unitesAjout.includes(unit)) setUnit(unitesAjout[0]); }, [name]); // eslint-disable-line react-hooks/exhaustive-deps
   const [sugDismissed, setSugDismissed] = useState(false); // masque les suggestions après choix
   // Formulaire d'édition
   const [editQty, setEditQty] = useState('');
@@ -385,7 +388,8 @@ export default function ReserveScreen() {
         })()}
         <Field t={t} label="Quantité" suffix={unit} value={qty} onChangeText={setQty} placeholder="500" keyboardType="decimal-pad" />
         <View style={s.unitRow}>
-          {UNITS.map((u) => <Chip key={u} t={t} label={u} selected={unit === u} onPress={() => setUnit(u)} />)}
+          {/* Les unités qui ont un sens pour CET aliment (2026-10-28) : pas de « ml » pour du riz. */}
+          {unitesAjout.map((u) => <Chip key={u} t={t} label={u} selected={unit === u} onPress={() => setUnit(u)} />)}
         </View>
         {/* Pas de choix frais/sec à l'ajout : Kyroz range seul d'après l'aliment, et
             la fiche permet de corriger. Une question de plus à chaque ajout pour un
@@ -411,7 +415,8 @@ export default function ReserveScreen() {
           </Presse>
         </View>
         <View style={s.unitRow}>
-          {UNITS.map((u) => <Chip key={u} t={t} label={u} selected={editUnit === u} onPress={() => setEditUnit(u)} />)}
+          {/* L'unité de la ligne rangée dit ce que l'aliment est : g, ml ou pièce. */}
+          {unitesPour(editItem?.name ?? '', editItem?.unit ?? uniteDuCatalogue(editItem?.name ?? '')).map((u) => <Chip key={u} t={t} label={u} selected={editUnit === u} onPress={() => setEditUnit(u)} />)}
         </View>
         <Text style={s.editLabel}>RANGEMENT</Text>
         {/* Une réponse, donc la DA de sélection unique (2026-10-25). */}

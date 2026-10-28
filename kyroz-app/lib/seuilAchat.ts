@@ -1,5 +1,7 @@
 import { RAW_RECIPES, RECIPE_INGREDIENTS } from './recipeData';
 import { refDuNom, isStaple } from './pantry';
+import { FORMATS } from './formatsVendus';
+import { dureeDe } from './dureeDeVie';
 
 /**
  * SOUS QUELLE QUANTITÉ UNE LIGNE DE COURSES NE VAUT PAS UN ACHAT (E75, décisions fondateur
@@ -32,6 +34,21 @@ export const PART_DE_PORTION = 0.2;
 export const SEUIL_MIN = 10;
 /** Jamais plus pour ce qui porte la protéine du plat. */
 export const SEUIL_MAX_PROTEINE = 15;
+/**
+ * SEUIL PAR ALIMENT (2026-10-28, segment 10, constat 3, décision fondateur) : la liste demandait
+ * 15 g de galettes de riz, 20 g de sirop d'érable, 30 g d'olives — des quantités qui ne
+ * s'achètent pas. Sous 15 % du PLUS PETIT format vendu, la ligne disparaît, comme le sel.
+ * ⚠️ Jamais pour la protéine du plat (son seuil reste plafonné à `SEUIL_MAX_PROTEINE`), ni pour
+ * ce qui se vend à la pièce (une courgette s'achète seule).
+ */
+export const PART_DU_PAQUET = 0.15;
+/**
+ * …et jamais au-delà de 20 g. Mesuré le 2026-10-28 (`scripts/mesure-seuil-paquet.ts`) : sans
+ * plafond, 17 % des lignes partaient, dont de vraies portions (70 g de riz, 145 ml de lait,
+ * 150 g de pommes de terre) ; à 20 g, ne partent que des garnitures. Et « 30 g de pesto, c'est
+ * un repas » (fondateur, E75) : il en manque 25 g, la ligne reste.
+ */
+export const SEUIL_MAX_PAQUET = 20;
 
 /**
  * Rôle corrigé à la main là où le catalogue trompe : les merguez végétales sont classées
@@ -72,8 +89,11 @@ function calculer(): Record<string, SeuilAliment> {
     const compte = roles[ref];
     const dominant = Object.keys(compte).reduce((a, b) => (compte[b] > compte[a] ? b : a));
     const role = PROTEINE_FORCEE.has(ref) ? 'protein' : dominant;
+    const regle = FORMATS[ref];
+    const paquet = regle && 'formats' in regle ? Math.min(...regle.formats.map((f) => f.taille)) : 0;
     const brut = Math.max(SEUIL_MIN, arrondi5(PART_DE_PORTION * portion));
-    out[ref] = { portion, role, seuil: role === 'protein' ? Math.min(SEUIL_MAX_PROTEINE, brut) : brut };
+    const auPaquet = Math.min(SEUIL_MAX_PAQUET, Math.floor(PART_DU_PAQUET * paquet));
+    out[ref] = { portion, role, seuil: role === 'protein' ? Math.min(SEUIL_MAX_PROTEINE, brut) : Math.max(brut, auPaquet) };
   }
   return out;
 }
@@ -84,13 +104,27 @@ export const SEUILS: Record<string, SeuilAliment> = calculer();
 type Article = { name: string; quantity: number; unit: string; manuel?: boolean };
 
 /**
- * Cette ligne de la liste générée est-elle sous son seuil, donc à cacher ?
+ * Cette ligne de la liste générée est-elle à cacher ?
+ *
+ * 🔴 TOUT DÉPEND DE CE QU'IL Y A DÉJÀ EN RÉSERVE (2026-10-28, décision fondateur, segment 10,
+ * constat 3 — « 15 g d'amandes, ça peut être un repas ») :
+ * · **rien de cet aliment chez soi** → la ligne RESTE, quelle que soit la quantité : c'est
+ *   peut-être tout le repas. Seule exception : une miette (< 10 g) d'un aliment FRAIS — un
+ *   paquet entier se jetterait pour 5 g, et le plat reste mangeable sans ;
+ * · **déjà un peu chez soi** (la ligne est un MANQUE) → on finit le paquet entamé :
+ *   - un aliment FRAIS part jusqu'à son seuil (20 % d'une portion, ou 15 % du plus petit
+ *     paquet plafonné à 20 g ; la protéine du plat à 15 g au plus) ;
+ *   - un aliment qui SE GARDE (riz, amandes, conserves) ne part que s'il manque une misère
+ *     (≤ 10 g) : en racheter n'est pas grave, il attendra en réserve (fondateur).
  * ⚠️ Jamais un ajout manuel (la personne a écrit ce qu'elle veut acheter), jamais un aliment
  * hors catalogue (aucune portion connue), jamais une unité qui ne correspond pas.
  */
-export function sousLeSeuil(article: Article): boolean {
+export function sousLeSeuil(article: Article, dejaEnReserve = false): boolean {
   if (article.manuel || isStaple(article.name)) return false;
   const ref = refDuNom(article.name);
   const s = ref ? SEUILS[ref] : undefined;
-  return !!s && RECIPE_INGREDIENTS[ref!]?.unit === article.unit && article.quantity > 0 && article.quantity <= s.seuil;
+  if (!s || RECIPE_INGREDIENTS[ref!]?.unit !== article.unit || !(article.quantity > 0)) return false;
+  const frais = !!dureeDe(ref!);
+  if (!dejaEnReserve) return frais && article.quantity < SEUIL_MIN;
+  return article.quantity <= (frais ? s.seuil : SEUIL_MIN);
 }

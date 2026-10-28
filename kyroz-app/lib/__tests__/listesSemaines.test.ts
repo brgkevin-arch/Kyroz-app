@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { articlesDeLaSuivante, cochesPourLaSemaine } from '../listesSemaines';
+import { unitesPour } from '../units';
 
 // UNE LISTE PAR SEMAINE (segment 10, constat 1, décision fondateur du 2026-10-28).
 describe('la liste de la semaine d’après', () => {
@@ -55,5 +56,23 @@ describe('l’onglet Courses s’ouvre sur la liste de la semaine tant qu’elle
   it('la liste d’après a son « + » : ses ajouts la suivent et passent en grand avec elle', () => {
     expect(src).toMatch(/if \(vue === 'suivante' && suivante\) \{\s*const la = trouverArticle\(suivante\.items, propre\)/);
     expect(src).toMatch(/ajouts: l\.items\.filter\(\(i\) => i\.manuel\)/);
+  });
+});
+
+describe('une liste n’entre à l’historique que finie (segment 10, constat 7)', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const src: string = require('node:fs').readFileSync(require('node:path').join(__dirname, '../../app/(tabs)/courses.tsx'), 'utf8');
+  it('gardés pour la prochaine fois, les non-pris laissent la liste ouverte', () => {
+    expect(src).toMatch(/if \(restants\.length === 0 \|\| sort === 'retirer'\) \{\s*await recordTrip\(/);
+    expect(src).toMatch(/if \(suivante\.items\.every\(\(i\) => i\.checked\)\) await recordTrip\(/);
+  });
+});
+
+describe('les unités suivent l’aliment (segment 10, constat 6)', () => {
+  it('pas de « ml » ni de « pièce » pour du riz ; « pièce » pour ce qui se compte', () => {
+    expect(unitesPour('Riz complet', 'g')).toEqual(['g', 'kg']);
+    expect(unitesPour('Lait demi-écrémé', 'ml')).toEqual(['ml', 'L']);
+    expect(unitesPour('Tomate', 'g')).toContain('pièce');
+    expect(unitesPour('Café', undefined)).toEqual(['g', 'kg', 'ml', 'pièce']);
   });
 });
