@@ -79,11 +79,11 @@ export default function CoursesScreen() {
   // Ce que la liste couvre, dit à l'écran. Posé là où le plan est LU (`load`), parce que
   // cet écran ne garde pas le plan en état — il le relit à chaque venue sur l'onglet.
   const [semaine, setSemaine] = useState('');
-  // La liste de la semaine d'après (une fois les courses de celle-ci closes), et celle qu'on
-  // regarde en grand. Elle s'ouvre depuis son encadré ou depuis la liste des listes.
+  // La liste de la semaine d'après (une fois les courses de celle-ci closes), et ce qu'on
+  // regarde : la page des LISTES (la page principale, décision fondateur du 2026-10-28) ou
+  // une liste ouverte en grand depuis son encadré.
   const [suivante, setSuivante] = useState<ShoppingList | null>(null);
-  const [vue, setVue] = useState<'courante' | 'suivante'>('courante');
-  const [listesOuvertes, setListesOuvertes] = useState(false);
+  const [vue, setVue] = useState<'listes' | 'courante' | 'suivante'>('listes');
   const { choose } = useDialog();
   const [list, setList] = useState<ShoppingList | null>(null);
   // Articles écartés (`lib/shoppingRemoved.ts`). ⚠️ Ils vivent HORS de `list` :
@@ -128,8 +128,8 @@ export default function CoursesScreen() {
     const { courante: brut, suivante: apres } = await lireListes();
     setList(brut);
     setSuivante(apres);
-    // Plus de semaine d'après à montrer : on revient sur la semaine en cours.
-    if (!apres?.items.length) setVue('courante');
+    // Plus de semaine d'après à montrer : on revient à la page des listes.
+    if (!apres?.items.length) setVue((v) => (v === 'suivante' ? 'listes' : v));
     // Les écartés se NETTOIENT à chaque chargement : on ne garde que ceux que la
     // liste propose encore. Sans ça la clé grossit indéfiniment, et un nom écarté
     // il y a trois semaines ré-écarterait en silence l'article qu'une nouvelle
@@ -650,27 +650,15 @@ export default function CoursesScreen() {
       <Presse style={s.encadre} onPress={ouvrir} activeOpacity={OPACITE_PRESSION} accessibilityRole="button">
         <View style={s.texte}>
           <Text style={s.encadreT} numberOfLines={1}>{titre}</Text>
-          <Text style={s.encadreS} numberOfLines={1}>{[date, `${n} article${n > 1 ? 's' : ''}`, pris > 0 ? `${pris} pris` : ''].filter(Boolean).join(' · ')}</Text>
+          <Text style={s.encadreS} numberOfLines={1}>{[date, n === 0 ? 'Rien à acheter' : `${n} article${n > 1 ? 's' : ''}`, pris > 0 ? `${pris} pris` : ''].filter(Boolean).join(' · ')}</Text>
         </View>
         <Ionicons name="chevron-forward" size={Icone.standard} color={t.textTertiary} />
       </Presse>
     );
   };
-  const ouvrirSuivante = () => { setListesOuvertes(false); animerMiseEnPage(); setVue('suivante'); };
-  const ouvrirCourante = () => { setListesOuvertes(false); animerMiseEnPage(); setVue('courante'); };
-
-  // TES LISTES (2026-10-28, décision fondateur) : les listes à venir puis les courses passées.
-  // « Historique » a quitté les boutons de l'écran pour venir ici.
-  const feuilleListes = (
-    <Sheet visible={listesOuvertes} onClose={() => setListesOuvertes(false)}>
-      <View style={s.listesEnTete}>
-        <Text style={s.sheetTitle}>Tes listes</Text>
-        {visiblesCourante.length > 0 && encadre(visiblesCourante, 'Cette semaine', semaine.replace(/^Semaine du /, ''), ouvrirCourante)}
-        {!!suivante?.items.length && encadre(suivante.items, 'Semaine prochaine', dateSuivante, ouvrirSuivante)}
-      </View>
-      <ShoppingHistory t={t} trips={history} onRemove={retirerSortie} />
-    </Sheet>
-  );
+  const ouvrirSuivante = () => { animerMiseEnPage(); setVue('suivante'); };
+  const ouvrirCourante = () => { animerMiseEnPage(); setVue('courante'); };
+  const retourAuxListes = () => { animerMiseEnPage(); setVue('listes'); setLigneOuverte(null); };
 
   // ⚠️ La feuille d'ajout suit la MÊME règle que celle de l'historique, et pour
   // la même raison : montée ici, elle garde son rang parmi les enfants quel que
@@ -679,52 +667,38 @@ export default function CoursesScreen() {
   const ecran = (corps: React.ReactNode) => (
     <SafeAreaView style={s.safe} edges={['top']}>
       {corps}
-      {feuilleListes}
       {feuilleAjout}
     </SafeAreaView>
   );
 
-  if (visibles.length === 0) {
-    // 🔴 PLUS D'ÉCRAN « RIEN À ACHETER » (2026-10-28, décision fondateur) : quand la semaine
-    // en cours n'a plus rien à prendre, l'onglet montre TES LISTES — la semaine d'après en
-    // encadré, l'ajout à la main, puis les courses passées. Une ligne dit encore pourquoi
-    // la liste est vide, et les TROIS cas ne se confondent pas : aucun plan · tout est déjà
-    // en réserve · tout a été RETIRÉ à la main (« ta réserve couvre déjà tout le plan » à
-    // qui vient de vider sa liste serait un mensonge).
-    const toutEcarte = nbEcartes > 0;
-    const covered = !!list && tous.length === 0;
+  // ⚠️ « Cette semaine » s'ouvre même vide : c'est par elle qu'on ajoute un article à la main.
+  if (vue === 'listes' || (vue === 'suivante' && !surSuivante)) {
+    // 🔴 LA PAGE PRINCIPALE DE L'ONGLET, CE SONT LES LISTES (2026-10-28, décision fondateur) :
+    // un encadré par liste — la semaine en cours, puis la suivante une fois ses courses
+    // closes —, et les courses passées, trois puis « Voir plus ». On touche une liste, elle
+    // s'ouvre en grand. Plus d'écran « Rien à acheter » ni de phrase : l'encadré de la semaine
+    // en cours le dit (« Rien à acheter »), et c'est par lui qu'on ajoute un article à la main.
+    const aPlan = !!list || tous.length > 0;
+    const nbListes = (aPlan ? 1 : 0) + (suivante?.items.length ? 1 : 0);
+    const dateCourante = semaine.replace(/^Semaine du /, '');
     return ecran(
       <View style={[s.pageListes, layout.content]}>
         <Text style={s.h1}>Courses</Text>
-        <Text style={s.pageNote}>
-          {toutEcarte
-            ? `Tu as retiré ${nbEcartes > 1 ? 'tous les articles' : 'le dernier article'} de ta liste.`
-            : covered
-            ? 'Rien à acheter cette semaine\u00A0: ta réserve couvre le plan.'
-            : 'Génère un plan repas et ta liste de courses apparaît ici, triée par rayon.'}
-        </Text>
+        <Text style={s.listesSous}>{nbListes > 1 ? 'Listes de courses' : 'Liste de courses'}</Text>
+        {aPlan
+          ? encadre(visiblesCourante, 'Cette semaine', dateCourante, ouvrirCourante)
+          : <Text style={s.pageNote}>Génère un plan repas et ta liste de courses apparaît ici, triée par rayon.</Text>}
         {!!suivante?.items.length && encadre(suivante.items, 'Semaine prochaine', dateSuivante, ouvrirSuivante)}
-        <View style={s.controls}>
-          {/* L'ajout à la main ne demande aucun plan : sans lui, « aucune liste » serait un
-              cul-de-sac pour qui veut juste noter du café. */}
-          <Presse style={s.ctrl} onPress={() => setShowAdd(true)} activeOpacity={OPACITE_PRESSION}>
-            <Ionicons name="add" size={Icone.petite} color={t.textSecondary} />
-            <Text style={s.ctrlTxt}>Ajouter un article</Text>
+        {/* Tout retiré à la main : la seule sortie, cette page ne se tire pas pour rafraîchir. */}
+        {nbEcartes > 0 && visiblesCourante.length === 0 && (
+          <Presse style={s.ctrl} onPress={retablirTout} activeOpacity={OPACITE_PRESSION}>
+            <Ionicons name="arrow-undo-outline" size={Icone.petite} color={t.textSecondary} />
+            <Text style={s.ctrlTxt}>Rétablir ma liste</Text>
           </Presse>
-          {/* La seule sortie quand tout a été retiré : cette page ne se tire pas pour
-              rafraîchir. */}
-          {toutEcarte && (
-            <Presse style={s.ctrl} onPress={retablirTout} activeOpacity={OPACITE_PRESSION}>
-              <Ionicons name="arrow-undo-outline" size={Icone.petite} color={t.textSecondary} />
-              <Text style={s.ctrlTxt}>Rétablir ma liste</Text>
-            </Presse>
-          )}
-        </View>
-        {/* Les courses passées, ici surtout : « rien à acheter » est le moment où l'on se
-            demande ce qu'on a pris la dernière fois. Rien tant qu'il n'y a rien dedans. */}
+        )}
         {history.length > 0 && (
           <View style={s.passees}>
-            <ShoppingHistory t={t} trips={history} onRemove={retirerSortie} />
+            <ShoppingHistory t={t} trips={history} onRemove={retirerSortie} limite={3} />
           </View>
         )}
       </View>
@@ -766,29 +740,45 @@ export default function CoursesScreen() {
         {/* « Courses », pas « Liste de courses » : le mot de la barre d'onglets, pour
             qu'un même objet n'ait pas deux noms selon l'endroit où on le regarde. */}
         <View style={s.header}>
-          {/* 🔴 PLUS DE COMPTEUR AU-DESSUS DU TITRE (2026-08-25, décision fondateur), et depuis le
-              2026-10-28 plus rien à côté de lui que l'accès à TES LISTES : le « + » est descendu
-              en bas de la liste (« Ajouter un article »), le compteur sous le titre, à côté de
-              la semaine qu'il compte. */}
+          {/* 🔴 PLUS DE COMPTEUR AU-DESSUS DU TITRE (2026-08-25, décision fondateur). Depuis le
+              2026-10-28, une liste ouverte porte à côté de son titre ses trois gestes en icônes
+              (décision fondateur) : ajouter un article, tout cocher, masquer les cochés. */}
           <Text style={[s.h1, { flex: 1 }]} numberOfLines={1}>Courses</Text>
+          {/* La liste d'après se recalcule depuis son plan : on n'y ajoute rien à la main. */}
+          {!surSuivante && (
+            <Presse style={s.iconBtn} onPress={() => setShowAdd(true)} activeOpacity={OPACITE_PRESSION} accessibilityRole="button" accessibilityLabel="Ajouter un article">
+              <Ionicons name="add" size={Icone.action} color={t.text} />
+            </Presse>
+          )}
+          {/* Tout cocher, puis tout décocher quand tout est pris (il remplace « Réinitialiser »).
+              Rien à cocher ni à masquer dans une liste vide : les deux icônes s'effacent. */}
+          {total > 0 && (<>
           <Presse
             style={s.iconBtn}
-            onPress={() => setListesOuvertes(true)}
+            onPress={remaining > 0 ? checkAll : reset}
             activeOpacity={OPACITE_PRESSION}
             accessibilityRole="button"
-            accessibilityLabel="Tes listes de courses"
+            accessibilityLabel={remaining > 0 ? 'Tout cocher' : 'Tout décocher'}
           >
-            <Ionicons name="albums-outline" size={Icone.action} color={t.text} />
+            <Ionicons name={remaining > 0 ? 'checkmark-done-outline' : 'refresh-outline'} size={Icone.action} color={t.text} />
           </Presse>
+          <Presse
+            style={[s.iconBtn, hideChecked && s.ctrlOn]}
+            onPress={() => { animerMiseEnPage(); setHideChecked((v) => !v); }}
+            activeOpacity={OPACITE_PRESSION}
+            accessibilityRole="button"
+            accessibilityLabel={hideChecked ? 'Montrer les cochés' : 'Masquer les cochés'}
+          >
+            <Ionicons name={hideChecked ? 'eye-off-outline' : 'eye-outline'} size={Icone.action} color={hideChecked ? t.onAccent : t.text} />
+          </Presse>
+          </>)}
         </View>
 
-        {/* La liste d'après, ouverte en grand avant sa semaine : un retour vers celle en cours. */}
-        {surSuivante && visiblesCourante.length > 0 && (
-          <Presse style={s.retour} onPress={ouvrirCourante} accessibilityRole="button">
-            <Ionicons name="chevron-back" size={Icone.standard} color={t.accent} />
-            <Text style={s.retourTxt}>Cette semaine</Text>
-          </Presse>
-        )}
+        {/* Le retour à la page des listes, la page principale de l'onglet. */}
+        <Presse style={s.retour} onPress={retourAuxListes} accessibilityRole="button">
+          <Ionicons name="chevron-back" size={Icone.standard} color={t.accent} />
+          <Text style={s.retourTxt}>Listes</Text>
+        </Presse>
 
         {/* La semaine que la liste couvre (et, avant les courses, à partir de quel jour), puis
             ce qui est pris. Une liste qui ne couvre pas toute la semaine doit le DIRE. */}
@@ -803,39 +793,6 @@ export default function CoursesScreen() {
             passer de 0 à 100 % en une frame — le seul geste de l'écran qui dise
             « ça avance » n'avait aucune durée pour le dire. */}
         <Jauge style={s.track} remplissage={s.fill} pct={pct} couleur={done ? t.success : t.accent} />
-
-        {/* UNE ligne (2026-10-28) : « Tout cocher » devient « Tout décocher » quand tout est
-            pris (il remplace « Réinitialiser »), et « Historique » est parti dans TES LISTES. */}
-        <View style={s.controls}>
-          <Presse style={s.ctrl} onPress={remaining > 0 ? checkAll : reset} activeOpacity={OPACITE_PRESSION}>
-            <Ionicons name={remaining > 0 ? 'checkmark-done-outline' : 'refresh-outline'} size={Icone.petite} color={t.textSecondary} />
-            <Text style={s.ctrlTxt}>{remaining > 0 ? 'Tout cocher' : 'Tout décocher'}</Text>
-          </Presse>
-          <Presse style={[s.ctrl, hideChecked && s.ctrlOn]} onPress={() => { animerMiseEnPage(); setHideChecked((v) => !v); }} activeOpacity={OPACITE_PRESSION}>
-            <Ionicons name={hideChecked ? 'eye-off-outline' : 'eye-outline'} size={Icone.petite} color={hideChecked ? t.onAccent : t.textSecondary} />
-            <Text style={[s.ctrlTxt, hideChecked && { color: t.onAccent }]}>Masquer cochés</Text>
-          </Presse>
-        </View>
-
-        {/* UN seul bouton, deux poids. Tant qu'il reste des articles à cocher,
-            c'est une sortie possible parmi d'autres (fond discret) ; quand tout
-            est coché, c'est LA suite (fond d'accent). Deux boutons — un discret
-            en cours de route, un franc à la fin — auraient été deux libellés à
-            garder d'accord pour un seul geste. */}
-        {checked > 0 && (
-          <Presse
-            style={[s.finir, done && { backgroundColor: t.accent }]}
-            onPress={terminer}
-            disabled={closing}
-            activeOpacity={OPACITE_PRESSION}
-            accessibilityRole="button"
-          >
-            <Ionicons name="bag-check-outline" size={Icone.petite} color={done ? t.onAccent : t.text} />
-            <Text style={[s.finirTxt, done && { color: t.onAccent }]}>
-              {closing ? 'Un instant…' : 'Courses terminées'}
-            </Text>
-          </Presse>
-        )}
 
         {/* Ce qui a été retiré doit rester VISIBLE quelque part, sinon un article
             disparu est indistinguable d'un bug — et le geste pour le ramener
@@ -855,9 +812,6 @@ export default function CoursesScreen() {
             pas plus qu'iOS ne l'explique. (Elle avait menti deux fois avant : « il part
             direct dans ton frigo ».) */}
 
-        {/* La semaine d'après, en petit (2026-10-28, décision fondateur) : elle passe en grand
-            le jour où sa semaine commence, ou d'un appui ici pour faire ses courses en avance. */}
-        {!surSuivante && !!suivante?.items.length && encadre(suivante.items, 'Semaine prochaine', dateSuivante, ouvrirSuivante)}
     </View>
   );
 
@@ -873,12 +827,21 @@ export default function CoursesScreen() {
         ListHeaderComponent={enTete}
         // Le « + » de l'en-tête est descendu ici (2026-10-28) : on ajoute là où on lit, comme
         // dans Rappels. Pas sur la liste d'après, qui se recalcule depuis son plan.
-        ListFooterComponent={surSuivante ? null : (
-          <Presse style={s.ajoutLigne} onPress={() => setShowAdd(true)} activeOpacity={OPACITE_PRESSION} accessibilityRole="button">
-            <Ionicons name="add" size={Icone.standard} color={t.accent} />
-            <Text style={s.ajoutTxt}>Ajouter un article</Text>
+        // « Courses terminées » en bas, à la couleur choisie (2026-10-28, décision fondateur) :
+        // c'est la fin du parcours en magasin. Sans rien de coché, il attend (rien à ranger).
+        ListEmptyComponent={<Text style={s.vide}>Rien à acheter pour l'instant.</Text>}
+        ListFooterComponent={total > 0 ? (
+          <Presse
+            style={[s.finir, { backgroundColor: t.accent }, checked === 0 && s.finirAttente]}
+            onPress={terminer}
+            disabled={closing || checked === 0}
+            activeOpacity={OPACITE_PRESSION}
+            accessibilityRole="button"
+          >
+            <Ionicons name="bag-check-outline" size={Icone.petite} color={t.onAccent} />
+            <Text style={[s.finirTxt, { color: t.onAccent }]}>{closing ? 'Un instant…' : 'Courses terminées'}</Text>
           </Presse>
-        )}
+        ) : null}
         // La note de pied (« Formats courants en magasin, arrondis au-dessus de ce que
         // demandent tes repas… ») est RETIRÉE le 2026-10-22 (fondateur, point 4 : « l'app
         // tourne en silence ») : elle racontait le calcul, la ligne dit déjà quoi prendre.
@@ -1009,15 +972,15 @@ function makeStyles(t: ThemePalette) {
     encadre: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md, minHeight: CIBLE_TACTILE_MIN, padding: Spacing.lg, borderRadius: Radius.card, backgroundColor: t.card, marginTop: Spacing.md },
     encadreT: { ...Type.bodyStrong, color: t.text },
     encadreS: { ...Type.bodySmall, color: t.textSecondary },
-    ajoutLigne: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md, minHeight: CIBLE_TACTILE_MIN, paddingHorizontal: Spacing.lg, paddingVertical: Spacing.lg, borderRadius: Radius.card, backgroundColor: t.card, marginTop: Spacing.xxl },
-    ajoutTxt: { ...Type.body, color: t.accent },
+    finirAttente: { opacity: 0.4 },
+    vide: { ...Type.body, color: t.textSecondary, paddingTop: Spacing.xxl },
     rowPremiere: { borderTopLeftRadius: Radius.card, borderTopRightRadius: Radius.card },
     rowDerniere: { borderBottomLeftRadius: Radius.card, borderBottomRightRadius: Radius.card },
     // La page des listes, quand la semaine en cours n'a plus rien à prendre.
     pageListes: { flex: 1, paddingHorizontal: Spacing.xl, paddingTop: Spacing.xl, gap: Spacing.md },
     pageNote: { ...Type.body, color: t.textSecondary },
     passees: { flex: 1, marginHorizontal: -Spacing.xxl, marginTop: Spacing.md },
-    listesEnTete: { paddingHorizontal: Spacing.xxl, gap: Spacing.md, paddingBottom: Spacing.md },
+    listesSous: { ...Type.bodySmall, color: t.textSecondary, marginTop: -Spacing.sm },
     ctrl: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, paddingHorizontal: Spacing.lg, paddingVertical: Spacing.sm, minHeight: CIBLE_TACTILE_MIN, borderRadius: Radius.pill, backgroundColor: t.fill },
     ctrlOn: { backgroundColor: t.accent },
     ctrlTxt: { ...Type.bodySmall, color: t.text },
@@ -1025,7 +988,7 @@ function makeStyles(t: ThemePalette) {
     // faite pour une puce, jamais pour un bouton qui traverse l'écran (§8).
     finir: {
       flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.sm,
-      minHeight: CIBLE_TACTILE_MIN, borderRadius: Radius.button, backgroundColor: t.fill, marginTop: Spacing.md,
+      minHeight: CIBLE_TACTILE_MIN, borderRadius: Radius.button, backgroundColor: t.fill, marginTop: Spacing.xxl,
     },
     finirTxt: { ...Type.bodySmallStrong, color: t.text },
     retires: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: Spacing.md, paddingTop: Spacing.md },

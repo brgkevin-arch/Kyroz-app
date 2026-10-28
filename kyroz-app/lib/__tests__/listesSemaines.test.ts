@@ -31,3 +31,16 @@ describe('la liste de la semaine d’après', () => {
     expect(cochesPourLaSemaine(null, '2026-11-02').size).toBe(0);
   });
 });
+
+// L'écran, tel que le fondateur l'a dessiné le 2026-10-28 : la page des listes d'abord.
+describe('l’onglet Courses s’ouvre sur ses listes', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const src: string = require('node:fs').readFileSync(require('node:path').join(__dirname, '../../app/(tabs)/courses.tsx'), 'utf8');
+  it('la page principale est celle des listes, l’historique montre 3 sorties puis « Voir plus »', () => {
+    expect(src).toMatch(/useState<'listes' \| 'courante' \| 'suivante'>\('listes'\)/);
+    expect(src).toMatch(/<ShoppingHistory t=\{t\} trips=\{history\} onRemove=\{retirerSortie\} limite=\{3\} \/>/);
+  });
+  it('une liste ouverte finit sur « Courses terminées », à la couleur choisie', () => {
+    expect(src).toMatch(/ListFooterComponent=\{total > 0 \? \([\s\S]{0,200}backgroundColor: t\.accent/);
+  });
+});

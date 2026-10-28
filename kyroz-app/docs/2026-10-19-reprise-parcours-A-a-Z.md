@@ -399,6 +399,11 @@ en réserve, 60 g à acheter) — retiré le 2026-10-22, « l'app tourne en sile
     listes », semaine et compteur dessous, deux boutons sur une ligne (« Tout cocher » devient
     « Tout décocher »), « Ajouter un article » en bas de la liste, encadré « Semaine
     prochaine », et l'écran « Rien à acheter » remplacé par la page des listes.
+  - **Retouché le même jour** (« ça va pas ») : la page des LISTES est la page principale de
+    l'onglet (sous-titre « Liste(s) de courses », un encadré par semaine, courses passées : 3
+    puis « Voir plus », plus de phrase ni de bouton d'ajout) ; une liste s'ouvre en grand d'un
+    appui, avec en icônes à côté du titre « + », « tout cocher » et « masquer », et
+    « Courses terminées » en bas, à la couleur d'accent.
 - **Constat 4 → laissé** : les surgelés restent « au frais », c'est le frigo au sens large.
 
 ## Journal du chantier

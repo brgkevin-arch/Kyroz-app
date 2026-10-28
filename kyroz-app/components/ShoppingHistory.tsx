@@ -10,6 +10,7 @@ import {
 import { frDateLongue } from '../lib/dateLabel';
 import { formatQuantity } from '../lib/units';
 import { ConfirmationEnLigne } from './ConfirmationEnLigne';
+import { BoutonRevelation } from './ui';
 import { nomAffiche } from '../lib/pantry';
 
 // ── Historique des listes de courses ─────────────────────────────────────────
@@ -29,7 +30,7 @@ import { nomAffiche } from '../lib/pantry';
 // geste le plus courant aurait touché du doigt le geste irréversible.
 
 export function ShoppingHistory({
-  t, trips, onRemove, dragHandlers, sheetScrollProps,
+  t, trips, onRemove, dragHandlers, sheetScrollProps, limite,
 }: {
   t: ThemePalette;
   trips: ShoppingTrip[];
@@ -37,10 +38,14 @@ export function ShoppingHistory({
   onRemove: (at: string) => void;
   dragHandlers?: any;
   sheetScrollProps?: any;     // injecté par <Sheet> : lie le défilement à la fermeture
+  /** Les N plus récentes, puis « Voir plus » (page des listes de l'onglet Courses, 2026-10-28). */
+  limite?: number;
 }) {
   const s = useMemo(() => makeStyles(t), [t]);
   const liste = useMemo(() => newestFirst(trips), [trips]);
   const [ouverte, setOuverte] = useState<string | null>(null);
+  const [toutes, setToutes] = useState(false);
+  const montrees = limite && !toutes ? liste.slice(0, limite) : liste;
   const [aConfirmer, setAConfirmer] = useState<string | null>(null);
 
   // 🔴 LA CONFIRMATION VIT DANS LA FEUILLE, PLUS DANS UNE BOÎTE DE DIALOGUE —
@@ -80,7 +85,7 @@ export function ShoppingHistory({
         </View>
       ) : (
         <ScrollView style={s.scroll} contentContainerStyle={s.scrollContent} showsVerticalScrollIndicator={false} {...(sheetScrollProps ?? {})}>
-          {liste.map((tr) => {
+          {montrees.map((tr) => {
             const ouvert = ouverte === tr.at;
             const pris = boughtItems(tr);
             const laisses = skippedItems(tr);
@@ -144,6 +149,9 @@ export function ShoppingHistory({
               </View>
             );
           })}
+          {montrees.length < liste.length && (
+            <BoutonRevelation t={t} libelle="Voir plus" onPress={() => setToutes(true)} />
+          )}
         </ScrollView>
       )}
 
