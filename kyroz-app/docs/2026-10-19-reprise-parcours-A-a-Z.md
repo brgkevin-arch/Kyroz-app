@@ -392,8 +392,22 @@ en réserve, 60 g à acheter) — retiré le 2026-10-22, « l'app tourne en sile
   - Toujours un moyen d'atteindre la **bibliothèque** des listes quand il y en a plusieurs.
   - Direction pour plus tard (plans sur un mois) : plusieurs listes, réparties selon les DLC pour
     que rien ne périme. Pas dans ce chantier — le plan sur un mois n'existe pas.
-  - **À vérifier avant de coder** : pourquoi 5 articles restent « encore pour cette semaine »
-    après une sortie de 78 articles (pas cochés ? plan modifié après les courses ? calcul ?).
+  - **Vérifié** : les 5 articles restants étaient justes — le plan avait été régénéré le 27 à
+    2 h 48, APRÈS les courses du 26 (réglages du Profil touchés pendant les essais) ; les
+    nouvelles recettes demandaient ce qui manquait. Pas un défaut de calcul.
+  - **Codé** (2026-10-28, `lib/listesSemaines.ts`) : en-tête « Courses » + accès à « Tes
+    listes », semaine et compteur dessous, deux boutons sur une ligne (« Tout cocher » devient
+    « Tout décocher »), « Ajouter un article » en bas de la liste, encadré « Semaine
+    prochaine », et l'écran « Rien à acheter » remplacé par la page des listes.
+  - **Retouché le même jour** (« ça va pas ») : la page des LISTES est la page principale de
+    l'onglet (sous-titre « Liste(s) de courses », un encadré par semaine, courses passées : 3
+    puis « Voir plus », plus de phrase ni de bouton d'ajout) ; une liste s'ouvre en grand d'un
+    appui, avec en icônes à côté du titre « + », « tout cocher » et « masquer », et
+    « Courses terminées » en bas, à la couleur d'accent.
+  - **Et encore** : l'onglet s'ouvre sur la liste de la semaine tant que ses courses ne sont
+    pas validées, puis sur la page des listes ; « + » aussi sur la liste d'après (ses ajouts la
+    suivent quand elle passe en grand) ; plus de sous-titre ; « Mes courses passées » en petit,
+    sans phrase (« une appli épurée, sans blabla »).
 - **Constat 4 → laissé** : les surgelés restent « au frais », c'est le frigo au sens large.
 
 ## Journal du chantier

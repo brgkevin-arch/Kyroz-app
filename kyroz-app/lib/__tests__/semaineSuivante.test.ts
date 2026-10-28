@@ -247,10 +247,13 @@ describe('les écrans s’en servent', () => {
     expect(plan.indexOf("if (!prete) { await ecrireLaSuivante(null); generate(true, 'semaine_ecoulee'); return; }"))
       .toBeGreaterThan(-1);
   });
-  it('Courses : une liste pour les deux semaines, ce qui manque cette semaine en tête', () => {
+  // 🔴 AMENDÉ le 2026-10-28 (segment 10, constat 1) : plus une liste pour les deux semaines,
+  // mais une liste PAR semaine — la suivante calculée sur les deux moins la semaine en cours.
+  it('Courses : une liste par semaine, la suivante sans compter deux fois la réserve', () => {
     expect(courses).toMatch(/assurerLaSuivante\(profile, plan, cloture\)/);
     expect(courses).toMatch(/buildShoppingList\(\{ \.\.\.plan, meals: \[\.\.\.restantes, \.\.\.suivante\.plan\.meals\] \}, pantry\)/);
-    expect(courses).toMatch(/const sections: CoursesSection\[\] = \[\.\.\.enTeteSemaine, \.\.\.CATEGORY_ORDER/);
+    expect(courses).toMatch(/articlesDeLaSuivante\(lesDeux\.items, enCours\)/);
+    expect(courses).not.toMatch(/title: 'Encore pour cette semaine'/);
   });
 });
 

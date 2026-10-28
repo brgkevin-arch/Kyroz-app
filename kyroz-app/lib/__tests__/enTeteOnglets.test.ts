@@ -88,7 +88,7 @@ describe('Le grand titre ouvre chaque onglet', () => {
       // onglets. ⚠️ Ce que la règle protège ne bouge pas : aucun DÉCOMPTE ne
       // réapparaît sous un titre.
       profil: null,
-      courses: null,
+      courses: null, // le sous-titre « Listes de courses » a vécu un jour (2026-10-28) : retiré
       reserve: null,
       recettes: null,
     };
