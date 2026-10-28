@@ -48,8 +48,11 @@ describe('seuil d’achat (E75) — la règle validée par le fondateur', () => 
 describe('seuil d’achat — l’écran Courses s’en sert', () => {
   it('la liste générée passe par `sousLeSeuil` avant d’être affichée et mise en cache', () => {
     const src = readFileSync(join(__dirname, '../../app/(tabs)/courses.tsx'), 'utf8');
-    expect(src).toMatch(/const items = brute\.items\.filter\(\(i\) => !sousLeSeuil\(i\)\);/);
-    expect(src).toMatch(/const l: ShoppingList = \{\s*\.\.\.brute, items,/);
+    // Depuis le 2026-10-28, les DEUX listes (semaine en cours et semaine d'après) passent par le seuil.
+    expect(src).toMatch(/const garder = \(items: ShoppingItem\[\]\) => items\.filter\(\(i\) => !sousLeSeuil\(i\)\);/);
+    expect(src).toMatch(/const enCours = garder\(brute\.items\);/);
+    expect(src).toMatch(/items: garder\(articlesDeLaSuivante\(lesDeux\.items, enCours\)\)/);
+    expect(src).toMatch(/const l: ShoppingList = \{ \.\.\.brute, items: enCours \};/);
     expect(src.indexOf('!sousLeSeuil(i)')).toBeLessThan(src.indexOf('AsyncStorage.setItem(LIST_KEY, JSON.stringify(l))'));
   });
 });

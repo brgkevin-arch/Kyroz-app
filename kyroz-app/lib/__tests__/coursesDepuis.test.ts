@@ -78,8 +78,8 @@ describe('l’écran Courses s’en sert', () => {
     expect(src).toMatch(/repasACompter\(servi, profile\?\.plan_weekdays, cloture\)/);
     // Sans semaine suivante (2026-10-21), la liste reste celle des jours à acheter.
     expect(src).toMatch(/: buildShoppingList\(\{ \.\.\.plan, meals: perimetre\.meals \}, pantry, perimetre\.jours\)/);
-    expect(src).toMatch(/: perimetre\.apresCourses/);
-    expect(src).toMatch(/: mentionDepart\(plan, profile\?\.plan_weekdays\)\)/);
-    expect(src).toMatch(/depart !== '' && <Text style=\{s\.depart\}>\{depart\}<\/Text>/);
+    // Depuis le 2026-10-28, la mention suit la semaine sous le titre (« Semaine du … · à partir de … »).
+    expect(src).toMatch(/perimetre\.apresCourses \? '' : mentionDepart\(plan, profile\?\.plan_weekdays\)/);
+    expect(src).toMatch(/<Text style=\{s\.semaine\} numberOfLines=\{1\}>/);
   });
 });

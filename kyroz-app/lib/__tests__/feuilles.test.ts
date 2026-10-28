@@ -142,7 +142,7 @@ describe('feuilles modales — les deux pannes qui ne se voyaient pas', () => {
     expect(enveloppes.length, `courses.tsx : ${enveloppes.length} \`SafeAreaView\` — les deux rendus ne partagent plus leur enveloppe`)
       .toBe(1);
     // Et la feuille n'est rendue qu'à un seul endroit : dedans.
-    const rendus = src.match(/\{feuilleHistorique\}/g) ?? [];
+    const rendus = src.match(/\{feuilleListes\}/g) ?? [];
     expect(rendus.length, `courses.tsx : la feuille est rendue ${rendus.length} fois`).toBe(1);
     // 🔴 L'enveloppe est une FONCTION APPELÉE, jamais un composant. Un composant
     // défini dans le corps du rendu change d'identité à chaque rendu : React
