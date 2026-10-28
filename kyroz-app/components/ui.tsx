@@ -453,11 +453,12 @@ export function Intitule({ t, children }: { t: ThemePalette; children: React.Rea
   return <Text style={{ ...Type.captionStrong, color: t.textSecondary }}>{children}</Text>;
 }
 
-export function SectionLabel({ t, sub, children }: { t: ThemePalette; sub?: string; children: React.ReactNode }) {
+export function SectionLabel({ t, sub, centre, children }: { t: ThemePalette; sub?: string; centre?: boolean; children: React.ReactNode }) {
   return (
     <View style={{ gap: Spacing.xs }}>
       <Text style={{
         ...Type.overline, color: t.textTertiary, textTransform: 'uppercase',
+        ...(centre ? { textAlign: 'center' as const } : null),
       }}>
         {children}
       </Text>
