@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { makeProfile } from './helpers';
 import { recalcProfile } from '../tdee';
-import { buildLocalPlan, PROTEIN_REFS, recipeAllowed, regleVegetal, swapMeal } from '../planEngine';
+import { buildLocalPlan, mangeDeLaViande, porteUnSimili, PROTEIN_REFS, recipeAllowed, regleVegetal, swapMeal } from '../planEngine';
 import { adaptRecipe, FLAG_AUDIENCE } from '../adaptRecipe';
 import { getEffectiveRecipes } from '../recipes';
 import { feculentsDe, ingredientsDeBase, plafondIngredient, platDuMidi, surLePouce } from '../repasHumain';
@@ -71,6 +71,8 @@ describe('« Remplacer ce repas » tient les règles du plan', () => {
         const quoi = `jour ${repas.day} ${repas.meal_type} : ${repas.recipe.name_fr} → ${neuf.recipe.name_fr}`;
         if (neuf.meal_type === 'breakfast') expect(platDuMidi(neuf.recipe), quoi).toBe(false);
         if (neuf.meal_type === 'snack') expect(surLePouce(neuf.recipe), quoi).toBe(true);
+        // P2 (2026-10-28) : remplacer un petit repas ne ramène pas un simili végétal chez qui mange de la viande.
+        if (!principal(neuf) && mangeDeLaViande(p)) expect(porteUnSimili(neuf.recipe), quoi).toBe(false);
 
         const jour = apres.meals.filter((m) => m.day === repas.day);
         const ids = jour.map((m) => m.recipe.id);

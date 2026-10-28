@@ -77,7 +77,10 @@ describe('un omnivore qui n\'a pas coché « Végétal » ne reçoit pas un plan
     // n'offre simplement plus de plats végétaux — et le test ne prouverait rien.
     const peuImporte = repasServis('max', { preferred_proteins: [] });
     const vege = repasServis('max', { dietary_restrictions: ['vegetarian'], preferred_proteins: ['œufs'] });
-    expect(peuImporte.filter(toutVegetal).length / peuImporte.length).toBeGreaterThan(0.15);
+    // 0,15 → 0,12 le 2026-10-28 (segment 10, P2) : les similis végétaux ont quitté le matin et
+    // les collations de qui mange de la viande, donc une part de ce végétal est partie à dessein
+    // (mesuré : 14,6 %). Le témoin garde son rôle : prouver que le catalogue en offre encore.
+    expect(peuImporte.filter(toutVegetal).length / peuImporte.length).toBeGreaterThan(0.12);
     expect(vege.filter(toutVegetal).length / vege.length).toBeGreaterThan(0.3);
   }, 60_000);
 });

@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { makeProfile } from './helpers';
 import { recalcProfile } from '../tdee';
-import { buildLocalPlan, PROTEIN_REFS, recipeAllowed, regleVegetal } from '../planEngine';
+import { buildLocalPlan, porteUnSimili, PROTEIN_REFS, recipeAllowed, regleVegetal } from '../planEngine';
 import { getEffectiveRecipes } from '../recipes';
 import { basculerRegime, normaliserRegimes, normalizeRestrictions } from '../regime';
 import type { DietaryRestriction, Meal, UserProfile, VarietyPreference } from '../types';
@@ -109,5 +109,30 @@ describe('D36 — les règles de la case, et la fin de « sans porc »', () => {
       // L'onboarding passe par `GrilleChoix` depuis le 2026-09-22 (`onChoisir={(v) => …}`).
       expect(src, ecran).toMatch(/basculerRegime\(restrictions, (r\.value|v)\)/);
     }
+  });
+});
+
+/**
+ * P2 — segment 10, décision fondateur du 2026-10-28 : un omnivore achetait du jambon végétal
+ * pour ses collations, avec du jambon blanc au frigo. Plus de SIMILI végétal au petit-déjeuner
+ * ni en collation chez qui mange de la viande ; yaourt de soja et légumineuses restent permis.
+ */
+describe('P2 — pas de simili végétal au matin ni en collation chez qui mange de la viande', () => {
+  const petits = (meals: Meal[]) => meals.filter((m) => !principal(m));
+  it.each([
+    ['case Omnivore', { dietary_restrictions: ['omnivore'] as DietaryRestriction[] }],
+    ['rien coché', { dietary_restrictions: [] as DietaryRestriction[] }],
+    ['halal', { dietary_restrictions: ['halal'] as DietaryRestriction[] }],
+    ['sans gluten', { dietary_restrictions: ['gluten_free'] as DietaryRestriction[] }],
+  ] as [string, Partial<UserProfile>][])('%s : aucun', (_n, over) => {
+    for (const meals of semaines(over)) {
+      const fautifs = petits(meals).filter((m) => porteUnSimili(m.recipe)).map((m) => `${m.meal_type} : ${m.recipe.name_fr}`);
+      expect(fautifs).toEqual([]);
+    }
+  });
+  it('la sonde sait dire OUI : un végétarien en reçoit encore au matin ou en collation', () => {
+    let n = 0;
+    for (const meals of semaines({ dietary_restrictions: ['vegetarian'] })) n += petits(meals).filter((m) => porteUnSimili(m.recipe)).length;
+    expect(n).toBeGreaterThan(0);
   });
 });
