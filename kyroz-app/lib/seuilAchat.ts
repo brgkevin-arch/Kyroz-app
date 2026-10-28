@@ -1,6 +1,7 @@
 import { RAW_RECIPES, RECIPE_INGREDIENTS } from './recipeData';
 import { refDuNom, isStaple } from './pantry';
 import { FORMATS } from './formatsVendus';
+import { dureeDe } from './dureeDeVie';
 
 /**
  * SOUS QUELLE QUANTITÉ UNE LIGNE DE COURSES NE VAUT PAS UN ACHAT (E75, décisions fondateur
@@ -103,13 +104,27 @@ export const SEUILS: Record<string, SeuilAliment> = calculer();
 type Article = { name: string; quantity: number; unit: string; manuel?: boolean };
 
 /**
- * Cette ligne de la liste générée est-elle sous son seuil, donc à cacher ?
+ * Cette ligne de la liste générée est-elle à cacher ?
+ *
+ * 🔴 TOUT DÉPEND DE CE QU'IL Y A DÉJÀ EN RÉSERVE (2026-10-28, décision fondateur, segment 10,
+ * constat 3 — « 15 g d'amandes, ça peut être un repas ») :
+ * · **rien de cet aliment chez soi** → la ligne RESTE, quelle que soit la quantité : c'est
+ *   peut-être tout le repas. Seule exception : une miette (< 10 g) d'un aliment FRAIS — un
+ *   paquet entier se jetterait pour 5 g, et le plat reste mangeable sans ;
+ * · **déjà un peu chez soi** (la ligne est un MANQUE) → on finit le paquet entamé :
+ *   - un aliment FRAIS part jusqu'à son seuil (20 % d'une portion, ou 15 % du plus petit
+ *     paquet plafonné à 20 g ; la protéine du plat à 15 g au plus) ;
+ *   - un aliment qui SE GARDE (riz, amandes, conserves) ne part que s'il manque une misère
+ *     (≤ 10 g) : en racheter n'est pas grave, il attendra en réserve (fondateur).
  * ⚠️ Jamais un ajout manuel (la personne a écrit ce qu'elle veut acheter), jamais un aliment
  * hors catalogue (aucune portion connue), jamais une unité qui ne correspond pas.
  */
-export function sousLeSeuil(article: Article): boolean {
+export function sousLeSeuil(article: Article, dejaEnReserve = false): boolean {
   if (article.manuel || isStaple(article.name)) return false;
   const ref = refDuNom(article.name);
   const s = ref ? SEUILS[ref] : undefined;
-  return !!s && RECIPE_INGREDIENTS[ref!]?.unit === article.unit && article.quantity > 0 && article.quantity <= s.seuil;
+  if (!s || RECIPE_INGREDIENTS[ref!]?.unit !== article.unit || !(article.quantity > 0)) return false;
+  const frais = !!dureeDe(ref!);
+  if (!dejaEnReserve) return frais && article.quantity < SEUIL_MIN;
+  return article.quantity <= (frais ? s.seuil : SEUIL_MIN);
 }

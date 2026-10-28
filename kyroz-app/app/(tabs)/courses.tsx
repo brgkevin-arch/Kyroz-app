@@ -27,7 +27,7 @@ import { useProfile } from '../../hooks/useProfile';
 import { formatQuantity, toBaseUnit, unitesPour } from '../../lib/units';
 import { uniteDuCatalogue } from '../../lib/nomsAliments';
 import { searchFoods } from '../../lib/foods';
-import { loadPantry, savePantry, addOrMerge, isStaple, nomAffiche } from '../../lib/pantry';
+import { loadPantry, savePantry, addOrMerge, isStaple, nomAffiche, memeAliment } from '../../lib/pantry';
 import { achatALaPiece, quantiteRangee } from '../../lib/formatsVendus';
 import { clotureAvecTicket, lireTicket, rapprocher, type Rangement } from '../../lib/ticketCaisse';
 import { lecteurDisponible, lireTicketDepuis, type SourceTicket } from '../../lib/lecteurTicket';
@@ -207,7 +207,10 @@ export default function CoursesScreen() {
     // E75 (2026-10-20) : un reste sous son seuil ne vaut pas un paquet — la ligne disparaît,
     // comme le sel (`lib/seuilAchat.ts` : 20 % d'une portion, 10 g au moins, 15 g au plus
     // pour la protéine du plat).
-    const garder = (items: ShoppingItem[]) => items.filter((i) => !sousLeSeuil(i));
+    // Le seuil dépend de ce qu'il y a déjà chez soi (2026-10-28) : sans rien en réserve, la ligne
+    // reste ; avec un paquet entamé, un petit manque se finit sans racheter.
+    const dejaLa = (i: ShoppingItem) => pantry.some((p) => p.quantity > 0 && memeAliment(p.name, i.name));
+    const garder = (items: ShoppingItem[]) => items.filter((i) => !sousLeSeuil(i, dejaLa(i)));
     const brute = suivante
       ? buildShoppingList({ ...plan, meals: restantes }, pantry)
       : buildShoppingList({ ...plan, meals: perimetre.meals }, pantry, perimetre.jours);

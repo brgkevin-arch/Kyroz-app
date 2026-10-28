@@ -409,12 +409,15 @@ en réserve, 60 g à acheter) — retiré le 2026-10-22, « l'app tourne en sile
     suivent quand elle passe en grand) ; plus de sous-titre ; « Mes courses passées » en petit,
     sans phrase (« une appli épurée, sans blabla »).
 - **Constat 4 → laissé** : les surgelés restent « au frais », c'est le frigo au sens large.
-- **Constat 3 → seuil par aliment, PLAFONNÉ** (go fondateur ; ajusté à la mesure) : sous 15 % du
-  plus petit paquet, la ligne part — mais jamais au-delà de 20 g. Sans plafond, 17 % des lignes
-  partaient, dont de vraies portions (70 g de riz, 145 ml de lait, 150 g de pommes de terre) ; à
-  20 g, 5,6 % partent, toutes des garnitures (amandes, graines, tahini, sirop, galettes de riz,
-  sauce soja). Protéine du plat inchangée. « 30 g de pesto, c'est un repas » tient
-  (`scripts/mesure-seuil-paquet.ts`).
+- **Constat 3 → le seuil dépend de ce qu'il y a DÉJÀ en réserve** (fondateur, après une première
+  version : « 15 g d'amandes, ça peut être un repas » ; « c'est à ça que je pensais au départ ») :
+  · rien de l'aliment chez soi → la ligne RESTE, quelle que soit la quantité (seule exception : une
+    miette < 10 g d'un aliment frais, un paquet entier se jetterait) ;
+  · paquet déjà entamé → on le finit : un FRAIS part jusqu'à son seuil (20 % d'une portion ou 15 %
+    du plus petit paquet, plafonné à 20 g ; protéine ≤ 15 g) ; ce qui SE GARDE ne part que s'il
+    manque ≤ 10 g (« en avoir en réserve, c'est pas grave »).
+  Mesuré (`scripts/mesure-seuil-paquet.ts`) : réserve vide, 0 ligne sur 1 323 ne part ; paquet
+  entamé, 5,4 % — des manques de 5 à 10 g (graines, noix, sirop, whey, cacao), la feta jusqu'à 20 g.
 - **Constat 5 → laissé** (« pas nécessaire »).
 - **Constat 6 → les unités suivent l'aliment** : g/kg pour le riz, ml/L pour les liquides, « pièce »
   là où un poids de pièce existe ; tout pour un nom inconnu (`units.ts::unitesPour`).
