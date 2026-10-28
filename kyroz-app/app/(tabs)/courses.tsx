@@ -739,7 +739,7 @@ export default function CoursesScreen() {
             il ne reste que la semaine prochaine (2026-10-28, décision fondateur). */}
         {aPlan
           ? (visiblesCourante.length > 0 || !validee) && encadre(visiblesCourante, 'Cette semaine', dateCourante, ouvrirCourante)
-          : <Text style={s.pageNote}>Génère un plan repas et ta liste de courses apparaît ici, triée par rayon.</Text>}
+          : <Text style={s.pageNote}>Pas encore de liste.</Text>}
         {!!suivante?.items.length && encadre(suivante.items, 'Semaine prochaine', dateSuivante, ouvrirSuivante)}
         {/* Tout retiré à la main : la seule sortie, cette page ne se tire pas pour rafraîchir. */}
         {nbEcartes > 0 && visiblesCourante.length === 0 && (
@@ -878,7 +878,7 @@ export default function CoursesScreen() {
         // dans Rappels. Pas sur la liste d'après, qui se recalcule depuis son plan.
         // « Courses terminées » en bas, à la couleur choisie (2026-10-28, décision fondateur) :
         // c'est la fin du parcours en magasin. Sans rien de coché, il attend (rien à ranger).
-        ListEmptyComponent={<Text style={s.vide}>Rien à acheter pour l'instant.</Text>}
+        ListEmptyComponent={<Text style={s.vide}>Rien à acheter.</Text>}
         ListFooterComponent={total > 0 ? (
           <Presse
             style={[s.finir, { backgroundColor: t.accent }, checked === 0 && s.finirAttente]}
