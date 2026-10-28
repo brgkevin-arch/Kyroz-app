@@ -84,6 +84,8 @@ export default function CoursesScreen() {
   // une liste ouverte en grand depuis son encadré.
   const [suivante, setSuivante] = useState<ShoppingList | null>(null);
   const [vue, setVue] = useState<'listes' | 'courante' | 'suivante'>('listes');
+  // Les courses de la semaine en cours sont-elles validées (« Courses terminées ») ?
+  const [validee, setValidee] = useState(false);
   const { choose } = useDialog();
   const [list, setList] = useState<ShoppingList | null>(null);
   // Articles écartés (`lib/shoppingRemoved.ts`). ⚠️ Ils vivent HORS de `list` :
@@ -128,6 +130,7 @@ export default function CoursesScreen() {
     const { courante: brut, suivante: apres, validee } = await lireListes();
     setList(brut);
     setSuivante(apres);
+    setValidee(validee);
     // PAR DÉFAUT (2026-10-28, décision fondateur) : la liste de la semaine, tant que ses courses
     // ne sont pas validées ; ensuite, la page des listes. Une liste d'après déjà ouverte reste
     // ouverte tant qu'il y a quelque chose dessus.
@@ -717,8 +720,10 @@ export default function CoursesScreen() {
     return ecran(
       <View style={[s.pageListes, layout.content]}>
         <Text style={s.h1}>Courses</Text>
+        {/* Validée et plus rien à prendre : pas d'encadré « Cette semaine · Rien à acheter »,
+            il ne reste que la semaine prochaine (2026-10-28, décision fondateur). */}
         {aPlan
-          ? encadre(visiblesCourante, 'Cette semaine', dateCourante, ouvrirCourante)
+          ? (visiblesCourante.length > 0 || !validee) && encadre(visiblesCourante, 'Cette semaine', dateCourante, ouvrirCourante)
           : <Text style={s.pageNote}>Génère un plan repas et ta liste de courses apparaît ici, triée par rayon.</Text>}
         {!!suivante?.items.length && encadre(suivante.items, 'Semaine prochaine', dateSuivante, ouvrirSuivante)}
         {/* Tout retiré à la main : la seule sortie, cette page ne se tire pas pour rafraîchir. */}
