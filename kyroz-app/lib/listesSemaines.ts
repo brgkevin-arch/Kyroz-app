@@ -31,7 +31,12 @@ export function articlesDeLaSuivante<T extends ArticleDeListe>(lesDeux: T[], enC
 }
 
 /** Les articles cochés d'une liste qui n'est pas encore en grand, rattachés à SA semaine. */
-export interface CochesDeSemaine { semaine: string; noms: string[] }
+export interface CochesDeSemaine {
+  semaine: string;
+  noms: string[];
+  /** Ce qu'on a ajouté à la main à la liste d'après : il la suit quand elle passe en grand. */
+  ajouts?: (ArticleDeListe & { checked?: boolean; manuel?: boolean })[];
+}
 
 /**
  * Le jour où sa semaine commence, la liste d'après passe en grand : ses cases cochées la

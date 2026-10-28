@@ -88,9 +88,7 @@ describe('Le grand titre ouvre chaque onglet', () => {
       // onglets. ⚠️ Ce que la règle protège ne bouge pas : aucun DÉCOMPTE ne
       // réapparaît sous un titre.
       profil: null,
-      // La page des listes porte son sous-titre (2026-10-28, décision fondateur : « un sous-titre
-      // listes de courses, ou liste de course au singulier ») — un nom, pas un décompte.
-      courses: /s\.listesSous/,
+      courses: null, // le sous-titre « Listes de courses » a vécu un jour (2026-10-28) : retiré
       reserve: null,
       recettes: null,
     };

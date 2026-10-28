@@ -44,3 +44,16 @@ describe('l’onglet Courses s’ouvre sur ses listes', () => {
     expect(src).toMatch(/ListFooterComponent=\{total > 0 \? \([\s\S]{0,200}backgroundColor: t\.accent/);
   });
 });
+
+describe('l’onglet Courses s’ouvre sur la liste de la semaine tant qu’elle n’est pas validée', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const src: string = require('node:fs').readFileSync(require('node:path').join(__dirname, '../../app/(tabs)/courses.tsx'), 'utf8');
+  it('pas validée → la liste ; validée → la page des listes', () => {
+    expect(src).toMatch(/const ouvrirLaSemaine = !validee &&/);
+    expect(src).toMatch(/setVue\(\(v\) => \(ouvrirLaSemaine \? 'courante' :/);
+  });
+  it('la liste d’après a son « + » : ses ajouts la suivent et passent en grand avec elle', () => {
+    expect(src).toMatch(/if \(vue === 'suivante' && suivante\) \{\s*const la = trouverArticle\(suivante\.items, propre\)/);
+    expect(src).toMatch(/ajouts: l\.items\.filter\(\(i\) => i\.manuel\)/);
+  });
+});

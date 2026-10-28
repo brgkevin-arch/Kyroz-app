@@ -404,6 +404,10 @@ en réserve, 60 g à acheter) — retiré le 2026-10-22, « l'app tourne en sile
     puis « Voir plus », plus de phrase ni de bouton d'ajout) ; une liste s'ouvre en grand d'un
     appui, avec en icônes à côté du titre « + », « tout cocher » et « masquer », et
     « Courses terminées » en bas, à la couleur d'accent.
+  - **Et encore** : l'onglet s'ouvre sur la liste de la semaine tant que ses courses ne sont
+    pas validées, puis sur la page des listes ; « + » aussi sur la liste d'après (ses ajouts la
+    suivent quand elle passe en grand) ; plus de sous-titre ; « Mes courses passées » en petit,
+    sans phrase (« une appli épurée, sans blabla »).
 - **Constat 4 → laissé** : les surgelés restent « au frais », c'est le frigo au sens large.
 
 ## Journal du chantier

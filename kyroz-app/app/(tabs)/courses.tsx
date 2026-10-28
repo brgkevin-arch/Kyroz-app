@@ -125,11 +125,14 @@ export default function CoursesScreen() {
 
   const load = async () => {
     setHistory(await loadHistory());
-    const { courante: brut, suivante: apres } = await lireListes();
+    const { courante: brut, suivante: apres, validee } = await lireListes();
     setList(brut);
     setSuivante(apres);
-    // Plus de semaine d'après à montrer : on revient à la page des listes.
-    if (!apres?.items.length) setVue((v) => (v === 'suivante' ? 'listes' : v));
+    // PAR DÉFAUT (2026-10-28, décision fondateur) : la liste de la semaine, tant que ses courses
+    // ne sont pas validées ; ensuite, la page des listes. Une liste d'après déjà ouverte reste
+    // ouverte tant qu'il y a quelque chose dessus.
+    const ouvrirLaSemaine = !validee && ((brut?.items.length ?? 0) > 0 || (await loadAjouts()).length > 0);
+    setVue((v) => (ouvrirLaSemaine ? 'courante' : v === 'suivante' && apres?.items.length ? 'suivante' : 'listes'));
     // Les écartés se NETTOIENT à chaque chargement : on ne garde que ceux que la
     // liste propose encore. Sans ça la clé grossit indéfiniment, et un nom écarté
     // il y a trois semaines ré-écarterait en silence l'article qu'une nouvelle
@@ -151,13 +154,13 @@ export default function CoursesScreen() {
    * depuis le plan) et, une fois ses courses closes, celle de la semaine d'APRÈS — toujours
    * recalculée, ses cases cochées gardées à part (`SUIVANTE_KEY`).
    */
-  const lireListes = async (): Promise<{ courante: ShoppingList | null; suivante: ShoppingList | null }> => {
+  const lireListes = async (): Promise<{ courante: ShoppingList | null; suivante: ShoppingList | null; validee: boolean }> => {
     const saved = await AsyncStorage.getItem(LIST_KEY);
     let cache: ShoppingList | null = saved ? JSON.parse(saved) : null;
     // Une liste rangée avant le 2026-10-28 mêlait les deux semaines : on la refait.
     if (cache?.pour_cette_semaine) { await AsyncStorage.removeItem(LIST_KEY); cache = null; }
     const planRaw = await AsyncStorage.getItem(PLAN_KEY);
-    if (!planRaw) { setSemaine(''); return { courante: cache, suivante: null }; }
+    if (!planRaw) { setSemaine(''); return { courante: cache, suivante: null, validee: false }; }
     const plan: MealPlan = JSON.parse(planRaw);
     // Après des « Courses terminées » cette semaine, seuls comptent les repas qu'il reste
     // à cuisiner : un repas cuisiné a déjà été retiré de la réserve, le compter aussi dans
@@ -213,27 +216,36 @@ export default function CoursesScreen() {
       const cochees = cochesPourLaSemaine(coches, debutSuivante);
       laSuivante = {
         ...lesDeux, id: `${lesDeux.id}-suivante`, semaine_suivante: debutSuivante,
-        items: garder(articlesDeLaSuivante(lesDeux.items, enCours))
+        // Ce qu'on y a ajouté à la main la suit (`fusionner` : un nom = une ligne).
+        items: fusionner(garder(articlesDeLaSuivante(lesDeux.items, enCours))
           .map((i) => ({ ...i, checked: cochees.has(i.name.toLowerCase()) })),
+          coches?.semaine === debutSuivante ? ((coches.ajouts ?? []) as ShoppingItem[]) : []),
       };
     } else if (coches) {
       // Sa semaine est arrivée : le plan s'est renouvelé sur elle, elle est passée en grand.
       // Ses cases cochées la suivent une fois, puis la clé s'efface.
       await AsyncStorage.removeItem(SUIVANTE_KEY);
+      // Ce qu'on y avait ajouté à la main rejoint les ajouts de la semaine en cours.
+      if (coches.semaine === debutPlan && coches.ajouts?.length) {
+        let deja = await loadAjouts();
+        for (const a of coches.ajouts as ShoppingItem[]) if (!trouverArticle(deja, a.name)) deja = ajouterAjout(deja, a);
+        await saveAjouts(deja);
+      }
       if (!cache) {
         const cochees = cochesPourLaSemaine(coches, debutPlan);
         for (const i of enCours) if (cochees.has(i.name.toLowerCase())) i.checked = true;
       }
     }
 
-    if (cache) return { courante: cache, suivante: laSuivante };
+    const validee = perimetre.apresCourses;
+    if (cache) return { courante: cache, suivante: laSuivante, validee };
     const l: ShoppingList = { ...brute, items: enCours };
     // Ne pas mettre en cache une liste vide (tout couvert) : sinon l'onglet
     // resterait bloqué sur « rien à acheter » même après avoir vidé la réserve.
     // Sans cache, load() la reconstruit à chaque focus et les articles
     // réapparaissent dès qu'elle se dépeuple.
     if (l.items.length > 0) await AsyncStorage.setItem(LIST_KEY, JSON.stringify(l));
-    return { courante: l, suivante: laSuivante };
+    return { courante: l, suivante: laSuivante, validee };
   };
 
   const lireCochesSuivante = async (): Promise<CochesDeSemaine | null> => {
@@ -260,6 +272,11 @@ export default function CoursesScreen() {
   const ecarterArticle = async (item: ShoppingItem) => {
     animerMiseEnPage();
     setLigneOuverte(null);
+    // Sur la liste d'après, seul un ajout à la main se retire (la liste se recalcule du plan).
+    if (vue === 'suivante' && suivante) {
+      if (item.manuel) await persistSuivante({ ...suivante, items: suivante.items.filter((i) => i.name !== item.name) });
+      return;
+    }
     if (item.manuel) {
       await persistAjouts(retirerAjout(ajouts, item.name));
       return;
@@ -289,7 +306,11 @@ export default function CoursesScreen() {
   // se recalcule à chaque venue, ses cases cochées la suivent.
   const persistSuivante = async (l: ShoppingList) => {
     setSuivante(l);
-    const coches: CochesDeSemaine = { semaine: l.semaine_suivante ?? '', noms: l.items.filter((i) => i.checked).map((i) => i.name) };
+    const coches: CochesDeSemaine = {
+      semaine: l.semaine_suivante ?? '',
+      noms: l.items.filter((i) => i.checked && !i.manuel).map((i) => i.name),
+      ajouts: l.items.filter((i) => i.manuel),
+    };
     await AsyncStorage.setItem(SUIVANTE_KEY, JSON.stringify(coches));
   };
 
@@ -379,7 +400,9 @@ export default function CoursesScreen() {
         pushPantry(pantry);
       }
       await recordTrip({ id: suivante.id, plan_id: suivante.plan_id, items: suivante.items });
-      await AsyncStorage.removeItem(SUIVANTE_KEY);
+      // Les cases repartent à zéro ; les ajouts à la main non pris restent sur la liste.
+      const restes: CochesDeSemaine = { semaine: suivante.semaine_suivante ?? '', noms: [], ajouts: suivante.items.filter((i) => i.manuel && !i.checked) };
+      await AsyncStorage.setItem(SUIVANTE_KEY, JSON.stringify(restes));
       await load();
     } finally { setClosing(false); }
   };
@@ -561,6 +584,17 @@ export default function CoursesScreen() {
   const ajouterArticle = async () => {
     const propre = normaliserNom(nom);
     if (!propre) return;
+    const q0 = parseFloat(qty.replace(',', '.'));
+    const base0 = q0 > 0 ? toBaseUnit(q0, unite) : null;
+    // Sur la liste d'après (2026-10-28, décision fondateur : « le + aussi sur la future liste »).
+    if (vue === 'suivante' && suivante) {
+      const la = trouverArticle(suivante.items, propre);
+      if (la) { setNote(`${la.name} est déjà dans cette liste.`); return; }
+      const article = base0 ? creerAjout(propre, base0.quantity, base0.unit) : creerAjout(propre);
+      await persistSuivante({ ...suivante, items: [...suivante.items, article] });
+      fermerAjout();
+      return;
+    }
     const deja = trouverArticle(tous, propre);
     if (deja) {
       // Il EST là, mais retiré de la liste : le retaper veut dire « finalement,
@@ -679,12 +713,10 @@ export default function CoursesScreen() {
     // s'ouvre en grand. Plus d'écran « Rien à acheter » ni de phrase : l'encadré de la semaine
     // en cours le dit (« Rien à acheter »), et c'est par lui qu'on ajoute un article à la main.
     const aPlan = !!list || tous.length > 0;
-    const nbListes = (aPlan ? 1 : 0) + (suivante?.items.length ? 1 : 0);
     const dateCourante = semaine.replace(/^Semaine du /, '');
     return ecran(
       <View style={[s.pageListes, layout.content]}>
         <Text style={s.h1}>Courses</Text>
-        <Text style={s.listesSous}>{nbListes > 1 ? 'Listes de courses' : 'Liste de courses'}</Text>
         {aPlan
           ? encadre(visiblesCourante, 'Cette semaine', dateCourante, ouvrirCourante)
           : <Text style={s.pageNote}>Génère un plan repas et ta liste de courses apparaît ici, triée par rayon.</Text>}
@@ -744,12 +776,9 @@ export default function CoursesScreen() {
               2026-10-28, une liste ouverte porte à côté de son titre ses trois gestes en icônes
               (décision fondateur) : ajouter un article, tout cocher, masquer les cochés. */}
           <Text style={[s.h1, { flex: 1 }]} numberOfLines={1}>Courses</Text>
-          {/* La liste d'après se recalcule depuis son plan : on n'y ajoute rien à la main. */}
-          {!surSuivante && (
-            <Presse style={s.iconBtn} onPress={() => setShowAdd(true)} activeOpacity={OPACITE_PRESSION} accessibilityRole="button" accessibilityLabel="Ajouter un article">
-              <Ionicons name="add" size={Icone.action} color={t.text} />
-            </Presse>
-          )}
+          <Presse style={s.iconBtn} onPress={() => setShowAdd(true)} activeOpacity={OPACITE_PRESSION} accessibilityRole="button" accessibilityLabel="Ajouter un article">
+            <Ionicons name="add" size={Icone.action} color={t.text} />
+          </Presse>
           {/* Tout cocher, puis tout décocher quand tout est pris (il remplace « Réinitialiser »).
               Rien à cocher ni à masquer dans une liste vide : les deux icônes s'effacent. */}
           {total > 0 && (<>
@@ -897,7 +926,7 @@ export default function CoursesScreen() {
           );
           // La liste d'après, ouverte en avance : on y coche, on n'y retire rien (le geste de
           // retrait écarte un article de la semaine en cours, pas d'une semaine à venir).
-          if (surSuivante) return (
+          if (surSuivante && !item.manuel) return (
             <Presse
               style={[s.row, first && s.rowPremiere, last && s.rowDerniere, !last && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.line }]}
               onPress={() => toggle(item)}
@@ -980,7 +1009,6 @@ function makeStyles(t: ThemePalette) {
     pageListes: { flex: 1, paddingHorizontal: Spacing.xl, paddingTop: Spacing.xl, gap: Spacing.md },
     pageNote: { ...Type.body, color: t.textSecondary },
     passees: { flex: 1, marginHorizontal: -Spacing.xxl, marginTop: Spacing.md },
-    listesSous: { ...Type.bodySmall, color: t.textSecondary, marginTop: -Spacing.sm },
     ctrl: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, paddingHorizontal: Spacing.lg, paddingVertical: Spacing.sm, minHeight: CIBLE_TACTILE_MIN, borderRadius: Radius.pill, backgroundColor: t.fill },
     ctrlOn: { backgroundColor: t.accent },
     ctrlTxt: { ...Type.bodySmall, color: t.text },
