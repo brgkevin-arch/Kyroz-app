@@ -1185,7 +1185,7 @@ export default function PlanScreen() {
                 liste ». */}
             {dayMacros && (
               <View>
-                <SectionLabel t={t} centre>Jour {selectedDay}{restDayNums.has(selectedDay) ? ' – Repos' : ''}</SectionLabel>
+                <SectionLabel t={t}>Jour {selectedDay}{restDayNums.has(selectedDay) ? ' – Repos' : ''}</SectionLabel>
                 {/* 🔴 LE BANDEAU « JOUR DE REPOS · … » A ÉTÉ RETIRÉ LE 2026-08-25
                     (décision fondateur). Il disait vrai — il avait même été corrigé
                     deux fois pour ça : « (mêmes kcal) » était devenu faux avec la
