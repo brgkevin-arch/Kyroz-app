@@ -1595,7 +1595,7 @@ function makeStyles(t: ThemePalette) {
     // même rang, donc rien ne doit laisser croire que l'une prime sur l'autre.
     // Aucun fond : elles se posent sur la page. La hauteur de 44 reste — c'est la
     // cible tactile minimale d'Apple, et elle ne se voit pas mais elle se touche.
-    actionsRow: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', columnGap: Spacing.xl, marginTop: Spacing.sm },
+    actionsRow: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center', columnGap: Spacing.xl, marginTop: Spacing.sm },
     actionBtn: { minHeight: 44, justifyContent: 'center' },
     actionTxt: { ...Type.bodySmallStrong, color: t.textSecondary },
     mentionDebut: { ...Type.bodySmall, color: t.textSecondary, marginBottom: Spacing.md },

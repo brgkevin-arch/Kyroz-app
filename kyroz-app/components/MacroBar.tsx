@@ -82,10 +82,11 @@ export function MacroBar({ protein_g, carbs_g, fat_g, targetKcal, plannedKcal, c
 }
 
 const styles = StyleSheet.create({
-  kcalRow: { flexDirection: 'row', alignItems: 'baseline' },
+  // Centré (2026-10-28, décision fondateur) : le compte du jour, puis ce qu'il reste et les macros.
+  kcalRow: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'center' },
   kcal: { ...Type.hero, letterSpacing: -1.4 },
   kcalSub: { ...Type.h3 },
-  sub: { ...Type.bodySmall, lineHeight: 19, marginTop: Spacing.xs },
+  sub: { ...Type.bodySmall, lineHeight: 19, marginTop: Spacing.xs, textAlign: 'center' },
   bar: { flexDirection: 'row', height: 8, borderRadius: 4, overflow: 'hidden' },
-  legend: { ...Type.bodySmall, lineHeight: 19 },
+  legend: { ...Type.bodySmall, lineHeight: 19, textAlign: 'center' },
 });
