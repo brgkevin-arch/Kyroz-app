@@ -425,6 +425,39 @@ en réserve, 60 g à acheter) — retiré le 2026-10-22, « l'app tourne en sile
   acheté, la liste reste en haut de la page Courses ») : « garder pour la prochaine fois » range ce
   qui est pris et laisse la liste ouverte ; tout pris, ou le reste retiré, elle part à l'historique.
 
+## Segment 9 — Fiche recette
+
+Audité le 2026-11-06 dans le navigateur intégré (les données du simulateur recopiées : l'outil
+qui pilote le simulateur ne se charge plus depuis la mise à jour d'Xcode 27.2), profil « Marc »,
+fiche ouverte depuis le Plan (déjeuner « Pâtes aux crevettes et roquette »).
+
+### Constats
+
+1. **« Sèche · Maintien » sous le titre.** Ce sont les étiquettes du catalogue (pour quels
+   objectifs la recette convient). Pour Marc, en sèche, « Maintien » ne veut rien dire.
+2. **« 1 portion », toujours.** Sur le Plan, chaque repas est déjà à ta mesure : la ligne
+   n'apprend rien.
+3. **« ~4 g de fibres (estimé) ».** Un chiffre que rien d'autre dans l'app ne suit.
+4. **Les étapes n'ont pas leurs quantités.** « Fais cuire les pâtes… » : pour savoir combien,
+   il faut remonter aux ingrédients, en pleine cuisine.
+5. **La fiche ne dit pas ce qui manque.** La carte du Plan dit « Il te manque : Crevettes
+   cuites… » ; dans la fiche, rien ne distingue ce qui est en réserve de ce qu'il faut acheter.
+6. **Une phrase sous « Remplacer ce repas »** : « Ce remplacement vaut pour ce plan. Si ce plat
+   ne te plaît pas du tout, « je n'aime pas » l'écarte pour de bon. »
+7. **Le texte des étapes ne suit pas la quantité** : « Coupe les tomates » pour ¾ de tomate.
+
+### Ce que je propose (à trancher)
+
+| # | Proposition | Coût |
+|---|---|---|
+| P1 | Retirer les étiquettes d'objectif de la fiche | petit |
+| P2 | Retirer « 1 portion » (garder la durée) | petit |
+| P3 | Retirer la ligne des fibres | petit |
+| P4 | La quantité dans l'étape : « Fais cuire les pâtes (75 g)… » | moyen |
+| P5 | Ce qui manque marqué dans les ingrédients (« à acheter » en petit) | petit |
+| P6 | Retirer la phrase sous « Remplacer ce repas » | petit |
+| P7 | Laisser : le texte des étapes est écrit pour la recette, pas pour la portion | — |
+
 ## Journal du chantier
 
 - 2026-10-19 — découpage posé, segment 1 audité. En attente des arbitrages du fondateur.
@@ -451,3 +484,4 @@ en réserve, 60 g à acheter) — retiré le 2026-10-22, « l'app tourne en sile
 - 2026-10-27 — segment 10 (Courses + Réserve) audité au simulateur : 7 constats, P1 à P7 à trancher.
 - 2026-10-28 — segment 10 **CLOS** : P2 (#428), une liste par semaine et la page des listes (#429), seuil selon la réserve, unités, historique des listes finies (#431). Fusionné, non publié.
 - 2026-10-28 — segment 10 **publié** dans la 68ᵉ OTA (groupe `177488b1`, commit `ae40f91`), avec le compte des calories centré (#433).
+- 2026-11-06 — segment 9 (fiche recette) audité : 7 constats, P1 à P7 à trancher.
