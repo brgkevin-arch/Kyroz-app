@@ -458,6 +458,14 @@ fiche ouverte depuis le Plan (déjeuner « Pâtes aux crevettes et roquette »).
 | P6 | Retirer la phrase sous « Remplacer ce repas » | petit |
 | P7 | Laisser : le texte des étapes est écrit pour la recette, pas pour la portion | — |
 
+### Ce que le fondateur a tranché (2026-11-06) — « ok go les 7 »
+
+Codé le même jour : étiquettes, « 1 portion », fibres et phrase sous « Remplacer » retirées ;
+« à acheter » sous un ingrédient qui manque à la réserve (comme « Il te manque » sur la carte) ;
+la quantité à la première mention de chaque ingrédient dans les étapes
+(`lib/etapesQuantites.ts`) — mesuré sur le catalogue, 2 319 ingrédients sur 2 342 retrouvés
+(99 %), 5 placements imparfaits (« les fèves (51 g) décortiquées »). P7 laissé.
+
 ## Journal du chantier
 
 - 2026-10-19 — découpage posé, segment 1 audité. En attente des arbitrages du fondateur.

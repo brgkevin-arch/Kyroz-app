@@ -7,11 +7,10 @@ import { useLayout } from '../constants/layout';
 import { PrimaryButton } from './ui';
 import { useFavorites } from '../hooks/useFavorites';
 import { formatQuantity } from '../lib/units';
-import { mealFiberG, mealFiberFromIngredients } from '../lib/fiber';
+import { etapesAvecQuantites } from '../lib/etapesQuantites';
 import { Recipe, MealStatus, Macros, AdaptFlag } from '../lib/types';
-import { OBJ_LABEL } from '../lib/recipeLabels';
 import { FLAG_AUDIENCE } from '../lib/adaptRecipe';
-import { DureeIcon, RepasIcon, AvertissementIcon, FibresIcon } from './Icons';
+import { DureeIcon, RepasIcon, AvertissementIcon } from './Icons';
 
 interface Props {
   recipe: Recipe;
@@ -38,9 +37,10 @@ interface Props {
   dragHandlers?: any;         // injecté par <Sheet> : rend l'en-tête glissable
   sheetScrollProps?: any;     // injecté par <Sheet> : lie le défilement à la fermeture
   memePlat?: 'demain' | 'hier'; // D30 : le même plat revient demain midi / était servi hier soir
+  aAcheter?: string[];        // noms des ingrédients qui manquent dans la réserve → « à acheter »
 }
 
-export function RecipeDetail({ recipe, portions = 1, adaptedIngredients, adaptedMacros, adaptFlags, adaptGap, restrictionRelaxed, onClose, onCook, onSkip, status, onSwap, onDislike, onEdit, custom, dragHandlers, sheetScrollProps, memePlat }: Props) {
+export function RecipeDetail({ recipe, portions = 1, adaptedIngredients, adaptedMacros, adaptFlags, adaptGap, restrictionRelaxed, onClose, onCook, onSkip, status, onSwap, onDislike, onEdit, custom, dragHandlers, sheetScrollProps, memePlat, aAcheter }: Props) {
   const t = useTheme();
   const layout = useLayout();
   const s = useMemo(() => makeStyles(t, layout.isTablet), [t, layout.isTablet]);
@@ -111,19 +111,19 @@ export function RecipeDetail({ recipe, portions = 1, adaptedIngredients, adapted
             <DureeIcon color={t.textSecondary} size={Icone.petite} />
             <Text style={s.metaTxt}>{recipe.prep_time_min} min</Text>
           </View>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.sm }}>
-            <RepasIcon color={t.textSecondary} size={Icone.petite} />
-            <Text style={s.metaTxt}>{f === 1 ? '1 portion' : `${f} portions`}</Text>
-          </View>
+          {/* « 1 portion » ne se dit plus (2026-11-06, segment 9, P2) : le repas est déjà à ta
+              mesure. Seul un nombre de portions qui n'est pas 1 apprend quelque chose. */}
+          {f !== 1 && (
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.sm }}>
+              <RepasIcon color={t.textSecondary} size={Icone.petite} />
+              <Text style={s.metaTxt}>{f} portions</Text>
+            </View>
+          )}
         </View>
 
-        {/* `recipe.sports` n'est plus affiché depuis le 2026-08-03 : il reste un
-            diversifieur interne, pas une promesse (cf. lib/recipeLabels.ts). */}
-        {recipe.objectives?.length ? (
-          <View style={s.tagRow}>
-            {recipe.objectives.map((o) => <Text key={o} style={s.tag}>{OBJ_LABEL[o]}</Text>)}
-          </View>
-        ) : null}
+        {/* Plus d'étiquettes d'objectif (« Sèche · Maintien », 2026-11-06, segment 9, P1) : des
+            étiquettes du catalogue, qui ne disent rien à qui lit sa recette. `recipe.sports`
+            ne l'est plus depuis le 2026-08-03. */}
 
         {restrictionRelaxed && (
           <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: Spacing.sm }}>
@@ -150,10 +150,8 @@ export function RecipeDetail({ recipe, portions = 1, adaptedIngredients, adapted
           <Big t={t} v={macros.carbs_g} l="Glucides" u="g" />
           <Big t={t} v={macros.fat_g} l="Lipides" u="g" />
         </View>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.sm }}>
-          <FibresIcon color={t.textTertiary} size={Icone.petite} />
-          <Text style={[s.fiber, { flex: 1 }]}>~{adaptedIngredients ? mealFiberFromIngredients(adaptedIngredients) : mealFiberG(recipe, f)} g de fibres (estimé)</Text>
-        </View>
+        {/* Plus de ligne « ~4 g de fibres (estimé) » (2026-11-06, segment 9, P3) : un chiffre que
+            rien d'autre dans l'app ne suit. Le moteur, lui, vise toujours les fibres en sèche. */}
 
         {/* 🔴 LA NOTE `why_fr` N'EST PLUS AFFICHÉE (décision fondateur, 2026-09-30). C'est
             une justification écrite pour CONSTRUIRE le catalogue (« Muscu/combats prise de
@@ -173,7 +171,12 @@ export function RecipeDetail({ recipe, portions = 1, adaptedIngredients, adapted
             <Text style={s.section}>INGRÉDIENTS</Text>
             {ings.map((ing, i) => (
               <View key={i} style={s.ing}>
-                <Text style={s.ingName}>{ing.name}</Text>
+                <View style={s.ingTexte}>
+                  <Text style={s.ingName}>{ing.name}</Text>
+                  {/* Ce qui manque dans la réserve (2026-11-06, segment 9, P5) : la carte du Plan le
+                      disait, la fiche non. */}
+                  {aAcheter?.includes(ing.name) && <Text style={s.ingAAcheter}>à acheter</Text>}
+                </View>
                 <Text style={s.ingQty}>{formatQuantity(ing.name, ing.quantity_g, ing.unit ?? 'g')}</Text>
               </View>
             ))}
@@ -181,7 +184,9 @@ export function RecipeDetail({ recipe, portions = 1, adaptedIngredients, adapted
 
           <View style={s.cookColWide}>
             <Text style={s.section}>PRÉPARATION</Text>
-            {recipe.steps.map((step, i) => (
+            {/* La quantité dans l'étape, à sa première mention (2026-11-06, segment 9, P4) : plus
+                besoin de remonter aux ingrédients en pleine cuisine. */}
+            {etapesAvecQuantites(recipe.steps, ings, (i) => formatQuantity(i.name, i.quantity_g, i.unit ?? 'g')).map((step, i) => (
               <View key={i} style={s.step}>
                 <View style={s.stepN}><Text style={s.stepNTxt}>{i + 1}</Text></View>
                 <Text style={s.stepTxt}>{step}</Text>
@@ -204,19 +209,13 @@ export function RecipeDetail({ recipe, portions = 1, adaptedIngredients, adapted
         {(!status || status === 'planned') && (onSwap || onCook || onSkip) && (
           <View style={{ marginTop: Spacing.xxl, gap: Spacing.md }}>
             {onSwap && (
-              <>
-                <Presse onPress={onSwap} activeOpacity={OPACITE_PRESSION} style={s.swapBtn}>
-                  <Ionicons name="swap-horizontal" size={Icone.standard} color={t.text} />
-                  <Text style={s.swapTxt}>Remplacer ce repas</Text>
-                </Presse>
-                {/* Disclaimer assumé, pas un aveu de bug : un remplacement n'est pas
-                    mémorisé (rien ne le distingue d'un repas proposé), donc une
-                    régénération peut ramener le plat écarté. On le DIT, et on donne
-                    l'action qui, elle, tient dans le temps — le 👎. Cf. AGENTS.md A26. */}
-                <Text style={s.swapHint}>
-                  Ce remplacement vaut pour ce plan. Si ce plat ne te plaît pas du tout, « je n'aime pas » l'écarte pour de bon.
-                </Text>
-              </>
+              // Plus de phrase sous le bouton (2026-11-06, segment 9, P6 : « une appli épurée ») :
+              // elle disait qu'un remplacement ne tient que pour ce plan (AGENTS.md A26) ; le 👎 de
+              // l'en-tête reste le geste qui écarte un plat pour de bon.
+              <Presse onPress={onSwap} activeOpacity={OPACITE_PRESSION} style={s.swapBtn}>
+                <Ionicons name="swap-horizontal" size={Icone.standard} color={t.text} />
+                <Text style={s.swapTxt}>Remplacer ce repas</Text>
+              </Presse>
             )}
             {onSkip && (
               <Presse onPress={onSkip} activeOpacity={OPACITE_PRESSION} style={s.swapBtn}>
@@ -269,15 +268,14 @@ function makeStyles(t: ThemePalette, isTablet: boolean) {
     close: { width: CIBLE_TACTILE_MIN, height: CIBLE_TACTILE_MIN, borderRadius: Radius.pill, backgroundColor: t.fill, alignItems: 'center', justifyContent: 'center' },
     meta: { flexDirection: 'row', gap: Spacing.lg },
     metaTxt: { ...Type.bodySmall, color: t.textSecondary },
-    tagRow: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm, marginTop: -Spacing.sm },
-    tag: { ...Type.microStrong, backgroundColor: t.fill, color: t.textSecondary, paddingHorizontal: Spacing.sm, paddingVertical: Spacing.xs, borderRadius: Radius.pill, overflow: 'hidden' },
     warn: { ...Type.caption, color: t.warning, marginTop: -Spacing.sm },
     macros: { flexDirection: 'row', backgroundColor: t.card, borderRadius: Radius.card, padding: Spacing.lg, justifyContent: 'space-around' },
-    fiber: { ...Type.caption, color: t.textTertiary, marginTop: -Spacing.sm },
     memePlat: { ...Type.bodySmall, color: t.textSecondary },
     section: { color: t.textTertiary, ...Type.overline },
     ing: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: Spacing.md, borderBottomWidth: Trait.fin, borderBottomColor: t.line },
     ingName: { ...Type.body, color: t.text },
+    ingTexte: { flex: 1, gap: Spacing.xs },
+    ingAAcheter: { ...Type.caption, color: t.textTertiary },
     ingQty: { ...Type.bodySmall, color: t.textSecondary },
     step: { flexDirection: 'row', gap: Spacing.lg, alignItems: 'flex-start' },
     stepN: { width: 28, height: 28, borderRadius: 14, backgroundColor: t.fill, alignItems: 'center', justifyContent: 'center', marginTop: Spacing.xs },
@@ -288,7 +286,6 @@ function makeStyles(t: ThemePalette, isTablet: boolean) {
     // plus dessiné de l'écran — c'est le même arbitrage que les puces de filtre.
     swapBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.sm, paddingVertical: Spacing.lg, borderRadius: Radius.button, backgroundColor: t.fill },
     swapTxt: { ...Type.label, color: t.text },
-    swapHint: { ...Type.explication, color: t.textSecondary, marginTop: -Spacing.xs, paddingHorizontal: Spacing.xs },
     statusBanner: { marginTop: Spacing.xxl, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: Spacing.md, paddingVertical: Spacing.lg, paddingHorizontal: Spacing.lg, borderRadius: Radius.card, borderWidth: Trait.fin },
     statusTxt: { ...Type.bodySmallStrong, flex: 1, color: t.textSecondary },
   });

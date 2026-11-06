@@ -1401,6 +1401,9 @@ export default function PlanScreen() {
             adaptGap={selectedMeal.adapt_gap}
             restrictionRelaxed={selectedMeal.restriction_relaxed}
             memePlat={selectedMeal.same_dish_tomorrow ? 'demain' : selectedMeal.same_dish_yesterday ? 'hier' : undefined}
+            // « à acheter » dans la fiche, comme « Il te manque » sur la carte — pas sans réserve, ni
+            // pour un repas déjà cuisiné (2026-11-06, segment 9, P5).
+            aAcheter={pantry.length > 0 && selectedMeal.status !== 'eaten' && !selectedMeal.fixed ? recipeCoverage(selectedMeal.recipe, pantry).missing.map((i) => i.name) : undefined}
             custom={isCustom(selectedMeal.recipe.id)}
             status={selectedMeal.status}
             onEdit={() => setEditingRecipe(selectedMeal.recipe)}
