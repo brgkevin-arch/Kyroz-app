@@ -493,3 +493,4 @@ la quantité à la première mention de chaque ingrédient dans les étapes
 - 2026-10-28 — segment 10 **CLOS** : P2 (#428), une liste par semaine et la page des listes (#429), seuil selon la réserve, unités, historique des listes finies (#431). Fusionné, non publié.
 - 2026-10-28 — segment 10 **publié** dans la 68ᵉ OTA (groupe `177488b1`, commit `ae40f91`), avec le compte des calories centré (#433).
 - 2026-11-06 — segment 9 (fiche recette) audité : 7 constats, P1 à P7 à trancher.
+- 2026-11-06 — segment 9 **CLOS** : codé et fusionné (#437), non publié.
